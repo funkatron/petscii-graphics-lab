@@ -48,6 +48,15 @@ Published app: https://funkatron.github.io/petscii-stencil-lab/
 6. Keep the GitHub Actions workflow functional. Report what tests actually ran and their results. Never claim browser behavior passed based only on source inspection.
 7. Preserve compatibility with existing projects wherever feasible; use explicit migration when formats change.
 
+## Current C64 ROM implementation (October 2026)
+- Browser editor accepts a user-provided **4096-byte C64 character ROM** via Import C64 ROM. The proprietary ROM binary is not committed, included in project files, or fetched automatically.
+- The ROM contains two sets of 256 eight-by-eight bitmap glyphs; address = charsetBank * 2048 + screenCode * 8. Codes 128–255 already contain inverse-video glyph images in the ROM; never inverse them again.
+- Once a ROM is imported, the paged palette previews numeric screen codes 0–255; character set can be switched independently. Canvas draws source bits as sharp filled squares. SVG exports vector pixels, and PNG rasterizes that SVG. Raw screen-code grid exports are row-major bytes; empty/legacy glyph positions map to code 32.
+- JSON project format **v2** includes charset, selected glyph and numeric screen codes. v1 loading remains supported. The ROM bytes are deliberately not embedded; after reopening a project, reimport the ROM to display numeric glyphs.
+- Legacy glyph compositions may coexist with authentic glyphs; source inspection and actual browser tests should cover both.
+- **Known limitation:** stencil island analysis supports the original legacy shapes but not numeric ROM-coded glyphs. It is not meaningful for ROM art until updated.
+- Prioritize correctness and browser regression tests for both ROM banks, glyph bitmap orientation, inverse codes, SVG and PNG exports, project round trips, and drag drawing.
+
 ## Future features to explore
 - Complete authentic graphics character sets, selectable charset mode, inverse-video variants, and C64-inspired screen/palette options.
 - Tile stamp, line/rectangle/fill tools, selection/move/duplicate and motif libraries.
