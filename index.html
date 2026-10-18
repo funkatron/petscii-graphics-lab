@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>PETSCII Stencil Lab</title>
+<style>
+:root{font-family:system-ui,sans-serif;background:#0f172a;color:#f1f5f9;color-scheme:dark}*{box-sizing:border-box}body{margin:0}header{padding:18px 16px 6px;max-width:1000px;margin:auto}h1{font-size:1.4rem;margin:0 0 5px}p{color:#aebed0;font-size:.88rem;line-height:1.45}main{max-width:1000px;margin:auto;padding:12px 16px 50px}.panel{background:#1d293b;border:1px solid #394a60;border-radius:13px;padding:14px;margin:12px 0}.canvas-box{background:#101c2e;border:2px solid #378f7e;padding:6px;border-radius:12px;touch-action:none;overscroll-behavior:contain;overflow:hidden}canvas{display:block;width:100%;max-width:640px;margin:auto;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.palette{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}button,select,input{font:inherit;min-height:42px;border:1px solid #61718a;border-radius:9px;background:#152238;color:#f1f5f9;padding:8px 10px}button{cursor:pointer}button.active{background:#236b5b;border-color:#73e5c2}button.glyph{font-size:24px;padding:6px}button:focus-visible{outline:3px solid #98d6fd}.row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.field{display:flex;gap:6px;flex-direction:column;flex:1;min-width:125px}.field label{font-size:.8rem;color:#aec1d6}.status{font-size:.8rem;color:#9ee8d1}textarea{width:100%;min-height:95px;background:#101c2e;color:#fff;border:1px solid #61718a;border-radius:8px;padding:8px;font:12px monospace}small{color:#adbed0}h2{font-size:1rem;margin:0 0 10px}
+</style></head><body><header><h1>PETSCII Stencil Lab</h1><p>Touch and drag to repeat graphical glyphs. Scrolling is suppressed inside the drawing canvas.</p></header><main>
+<section class="panel"><div class="row" style="justify-content:space-between;align-items:center"><strong>Canvas</strong><span class="status" id="status">Ready to draw</span></div><div class="canvas-box" id="boundary"><canvas id="canvas" width="640" height="640" aria-label="Touch drawing surface"></canvas></div><p>Drag across the canvas to draw continuous glyph strokes. Other parts of this page scroll normally.</p></section>
+<section class="panel"><h2>Graphics palette</h2><div class="palette" id="palette"></div><div class="row"><button id="erase">Eraser</button><button id="clear">Clear</button><button id="border">Border</button><button id="checker">Checkerboard</button></div></section>
+<section class="panel"><h2>Canvas controls</h2><div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div></div><small>Changing dimensions preserves the composition within the new grid boundaries.</small></section>
+<section class="panel"><h2>Export and import</h2><div class="row"><button id="svg">Download SVG</button><button id="text">Download text</button><button id="copy">Copy text</button><button id="import">Import text</button></div><textarea id="output" aria-label="Text composition"></textarea><p>SVG uses real vector geometry. Text uses Unicode graphical characters, not native C64 PETSCII codes.</p></section>
+</main><script>
+(()=>{
+'use strict';
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),boundary=document.getElementById('boundary'),status=document.getElementById('status'),palette=document.getElementById('palette'),out=document.getElementById('output');
+const glyphs=['█','▀','▄','▌','▐','◢','●','─','│','╱','┌','┼'];
+const shapes={
+'█':'<rect width="16" height="16"/>','▀':'<rect width="16" height="8"/>','▄':'<rect y="8" width="16" height="8"/>','▌':'<rect width="8" height="16"/>','▐':'<rect x="8" width="8" height="16"/>','◢':'<path d="M16 0V16H0Z"/>','●':'<circle cx="8" cy="8" r="6.5"/>','─':'<rect y="7" width="16" height="2"/>','│':'<rect x="7" width="2" height="16"/>','╱':'<path d="M0 16L13 0H16L3 16Z"/>','┌':'<path d="M0 0H16V3H3V16H0Z"/>','┼':'<path d="M7 0H9V7H16V9H9V16H7V9H0V7H7Z"/>'};
+let W=16,H=16,grid=Array(256).fill(''),glyph='█',erase=false,painting=false,last=null,pointer=null;
+function fillShape(g,x,y,s){
+ ctx.save();ctx.translate(x,y);ctx.fillStyle='#d9fff2';ctx.beginPath();
+ if(g==='█')ctx.rect(1,1,s-2,s-2);
+ else if(g==='▀')ctx.rect(1,1,s-2,s/2-1);
+ else if(g==='▄')ctx.rect(1,s/2,s-2,s/2-1);
+ else if(g==='▌')ctx.rect(1,1,s/2-1,s-2);
+ else if(g==='▐')ctx.rect(s/2,1,s/2-1,s-2);
+ else if(g==='◢'){ctx.moveTo(s-1,1);ctx.lineTo(s-1,s-1);ctx.lineTo(1,s-1);ctx.closePath();}
+ else if(g==='●')ctx.arc(s/2,s/2,s*.37,0,Math.PI*2);
+ else if(g==='─')ctx.rect(0,s*.42,s,s*.16);
+ else if(g==='│')ctx.rect(s*.42,0,s*.16,s);
+ else if(g==='╱'){ctx.moveTo(0,s);ctx.lineTo(s*.2,s);ctx.lineTo(s,0);ctx.lineTo(s*.8,0);ctx.closePath();}
+ else if(g==='┌'){ctx.rect(1,1,s-2,s*.2);ctx.rect(1,1,s*.2,s-2);}
+ else if(g==='┼'){ctx.rect(0,s*.42,s,s*.16);ctx.rect(s*.42,0,s*.16,s);}
+ ctx.fill();ctx.restore();
+}
+function redraw(){
+ const s=Math.min(640/W,640/H),ox=(640-W*s)/2,oy=(640-H*s)/2;
+ ctx.fillStyle='#101c2e';ctx.fillRect(0,0,640,640);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const X=ox+x*s,Y=oy+y*s;ctx.fillStyle='#29364a';ctx.fillRect(X+1,Y+1,s-2,s-2);let g=grid[y*W+x];if(g)fillShape(g,X,Y,s);}
+ out.value=grid.map((_,i)=>i%W===0?grid.slice(i,i+W).map(g=>g||' ').join(''):null).filter(x=>x!==null).join('\n');
+}
+function paint(x,y){
+ if(x<0||y<0||x>=W||y>=H)return;
+ const sym=document.getElementById('sym').value,pts=[[x,y]];
+ if(sym==='horizontal'||sym==='both')pts.push([W-1-x,y]);
+ if(sym==='vertical'||sym==='both')pts.push([x,H-1-y]);
+ if(sym==='both')pts.push([W-1-x,H-1-y]);
+ for(const [a,b]of pts)grid[b*W+a]=erase?'':glyph;
+}
+function position(e){const r=canvas.getBoundingClientRect(),px=(e.clientX-r.left)*640/r.width,py=(e.clientY-r.top)*640/r.height,s=Math.min(640/W,640/H);return [Math.floor((px-(640-W*s)/2)/s),Math.floor((py-(640-H*s)/2)/s)];}
+function stroke(a,b){const n=Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]),1);for(let i=0;i<=n;i++)paint(Math.round(a[0]+(b[0]-a[0])*i/n),Math.round(a[1]+(b[1]-a[1])*i/n));redraw();}
+canvas.addEventListener('pointerdown',e=>{if(painting)return;if(e.cancelable)e.preventDefault();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}stroke(last,last);status.textContent='Drawing…';});
+canvas.addEventListener('pointermove',e=>{if(!painting||e.pointerId!==pointer)return;if(e.cancelable)e.preventDefault();const p=position(e);stroke(last,p);last=p;});
+function stop(e){if(pointer!==e.pointerId)return;painting=false;pointer=null;last=null;status.textContent='Stroke complete';}
+canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',()=>{painting=false;pointer=null;last=null;});
+for(const name of ['touchstart','touchmove','gesturestart','gesturechange'])boundary.addEventListener(name,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
+for(const g of glyphs){const b=document.createElement('button');b.textContent=g;b.title=g;b.className='glyph';b.dataset.g=g;b.addEventListener('click',()=>{glyph=g;erase=false;refresh()});palette.appendChild(b);}
+function refresh(){for(const b of palette.children)b.classList.toggle('active',b.dataset.g===glyph&&!erase);document.getElementById('erase').classList.toggle('active',erase);}
+document.getElementById('erase').onclick=()=>{erase=!erase;refresh()};
+document.getElementById('clear').onclick=()=>{grid.fill('');redraw()};
+document.getElementById('border').onclick=()=>{for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1)grid[y*W+x]=glyph;redraw()};
+document.getElementById('checker').onclick=()=>{for(let y=0;y<H;y++)for(let x=0;x<W;x++)grid[y*W+x]=(x+y)%2?glyph:'';redraw()};
+function resize(){const nw=Number(document.getElementById('columns').value),nh=Number(document.getElementById('rows').value),next=Array(nw*nh).fill('');for(let y=0;y<Math.min(H,nh);y++)for(let x=0;x<Math.min(W,nw);x++)next[y*nw+x]=grid[y*W+x];grid=next;W=nw;H=nh;redraw();}
+document.getElementById('columns').onchange=resize;document.getElementById('rows').onchange=resize;
+function download(name,txt,type){const url=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+document.getElementById('text').onclick=()=>download('petscii-composition.txt',out.value,'text/plain;charset=utf-8');
+document.getElementById('svg').onclick=()=>{let parts=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){const g=grid[y*W+x];if(shapes[g])parts.push('<g transform="translate('+(x*16)+' '+(y*16)+')">'+shapes[g]+'</g>');}const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(W*16)+' '+(H*16)+'" width="'+(W*16)+'" height="'+(H*16)+'"><g fill="black">'+parts.join('')+'</g></svg>';download('petscii-composition.svg',svg,'image/svg+xml');};
+document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(out.value);status.textContent='Text copied';}catch{status.textContent='Select text manually to copy';}};
+document.getElementById('import').onclick=()=>{const lines=out.value.replace(/\r/g,'').split('\n');grid=Array(W*H).fill('');for(let y=0;y<Math.min(H,lines.length);y++)for(let x=0;x<Math.min(W,Array.from(lines[y]).length);x++){const g=Array.from(lines[y])[x];if(glyphs.includes(g))grid[y*W+x]=g;}redraw();status.textContent='Imported text';};
+refresh();redraw();
+})();
+</script></body></html>
