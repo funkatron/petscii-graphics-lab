@@ -7,7 +7,7 @@ Repository: `funkatron/petscii-stencil-lab`
 Published app: https://funkatron.github.io/petscii-stencil-lab/
 
 ## Product priorities
-1. **Authenticity:** Progress from the current PETSCII-inspired Unicode approximations toward accurate C64 character-ROM glyph shapes and documented screen-code/PETSCII mappings. Distinguish character screen codes from PETSCII control/printing codes and distinguish uppercase/graphics and lowercase/uppercase character sets. Do not claim byte accuracy until verified against authoritative C64 character-ROM data.
+1. **Authenticity:** Use the exact built-in C64 glyph shapes and documented screen-code/PETSCII mappings. Keep legacy Unicode approximations explicitly labeled. Distinguish character screen codes from PETSCII control/printing codes and distinguish uppercase/graphics and lowercase/uppercase character sets. Do not claim byte accuracy until verified against authoritative C64 character-ROM data.
 2. **Drawing quality:** Continuous finger/stylus/mouse painting, selectable graphics glyphs, symmetry, erase, patterns, undo/redo, convenient canvas scaling, and fast responsive feedback.
 3. **Creative output:** Save editable projects and export reliable graphics as SVG, PNG, and text or C64-oriented data where accurate and supported.
 4. **Ease of use:** Clean, compact, collapsible sidebar and useful canvas workspace, especially on iPad Safari.
@@ -16,7 +16,7 @@ Published app: https://funkatron.github.io/petscii-stencil-lab/
 ## Current architecture
 - Root `index.html` contains the HTML/CSS/vanilla JavaScript application; `assets/c64-glyphs.svg` supplies the built-in character artwork. Keep it usable from GitHub Pages without a backend.
 - `package.json`, `playwright.config.cjs`, `tests/*.spec.cjs`, and `.github/workflows/browser-tests.yml` implement automated browser testing for Chromium and iPad WebKit in landscape and portrait.
-- Current Unicode symbols are **visual approximations**, not verified C64 glyphs or byte-level PETSCII representations. Treat that as an important technical limitation to resolve.
+- The optional legacy Unicode shapes are **visual approximations**. The default palette uses exact C64 SVG glyphs; neither representation should be mislabeled as a PETSCII byte stream.
 - Keep changes targeted; avoid breaking saved project files or existing editor workflows.
 
 ## UX / interaction requirements
@@ -64,7 +64,7 @@ Published app: https://funkatron.github.io/petscii-stencil-lab/
 - Regression tests cover all 512 SVG symbols/fingerprint, known glyph shapes, both banks/inverse pixels in canvas/SVG/PNG, real Chromium touch dragging, real WebKit taps plus synthetic touch/pen streams, exports, storage, input rejection, resize, sidebar and undo. Physical iPad/Pencil verification remains a hardware check.
 
 ## Future features to explore
-- Complete authentic graphics character sets, selectable charset mode, inverse-video variants, and C64-inspired screen/palette options.
+- C64-inspired screen colors and palette options.
 - Tile stamp, line/rectangle/fill tools, selection/move/duplicate and motif libraries.
 - Keyboard shortcuts, improved undo workflow, zoom, and optional grid guides.
 - Export/import of C64-oriented character grids and metadata when reliably encoded.
