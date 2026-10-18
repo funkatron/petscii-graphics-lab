@@ -41,7 +41,9 @@ test('project JSON save and reload round-trip',async({page})=>{
  const before=await page.locator('#output').inputValue();
  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#saveProject').click()]);
  expect(download.suggestedFilename()).toMatch(/\.json$/);
- const content=JSON.parse(await (await download.createReadStream()).toArray().then(chunks=>Buffer.concat(chunks).toString()));
+ const savedStream=await download.createReadStream();const savedChunks=[];
+ for await(const chunk of savedStream)savedChunks.push(chunk);
+ const content=JSON.parse(Buffer.concat(savedChunks).toString('utf8'));
  expect(content.format).toBe('petscii-stencil-lab');
  expect(content.grid).toContain('█');
  await page.locator('#clear').click();
