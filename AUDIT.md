@@ -36,3 +36,11 @@ The local environment could not download Chromium through Playwright's default C
 - Screen-code bytes omit dimensions, charset and colors; export text and JSON retain metadata. Screen-code binary is not a PETSCII stream.
 - Legacy geometry is retained as explicit approximations. Export colors differ from the editing theme, while artwork geometry and orientation match.
 - Standalone per-glyph SVGs or an SVG glyph sheet can reuse the existing exact bitmap-vector conversion. Converting ROM-derived shapes to SVG does not by itself establish redistribution permission.
+
+## SVG-only follow-up
+
+The owner requested built-in SVGs derived from the initial import, then clarified that experimental custom-project backward compatibility was not important. The editor now uses `assets/c64-glyphs.svg` automatically and has no ROM import/storage workflow. The original binary is excluded. This replaces the runtime ROM-import architecture described in the initial audit above.
+
+The asset contains 512 exact SVG symbols and a viewable glyph sheet. `scripts/build_glyphs.py` rebuilds it from a developer-supplied reference ROM. Rebuilding and comparing the generated file byte-for-byte succeeded. Tests reconstruct every source byte from the SVG geometry and verify the complete SHA-256 fingerprint documented in README, along with known uppercase/lowercase shapes. They preserve the source's one-bit @/inverse-@ discrepancy in both banks rather than normalizing inverse glyphs.
+
+The final local SVG-only Playwright run completed with **69 passed, 3 expected skips, 0 failed** in 46.6 seconds across Chromium and WebKit iPad landscape/portrait. Tests cover immediate drawing with no imported ROM, both banks/inverse slots across canvas/SVG/PNG, source hash preservation, slow/invalid asset loading, retry without data loss, and the existing drawing, persistence, import and export behaviors. Runtime import tests were replaced with tests of the built-in asset and loader. Explicit custom-source projects are rejected rather than silently changed; no custom migration is maintained.

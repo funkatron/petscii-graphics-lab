@@ -1,5 +1,5 @@
-const {test,expect,download,loadProject,project,loadRom}=require('./helpers.cjs');
-test.beforeEach(async({page})=>{await page.goto('/')});
+const {test,expect,download,loadProject,project}=require('./helpers.cjs');
+test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();await page.locator('#paletteMode').selectOption('legacy');await page.locator('#palette button').first().click();});
 test('sparse touch and pen drags interpolate every cell, ignore secondary pointers, and undo once',async({page})=>{
  for(const pointerType of ['touch','pen']){
   await page.locator('#canvas').evaluate((c,pointerType)=>{
@@ -43,7 +43,7 @@ test('resize, collapse, and reload preserve artwork including a 40 by 25 screen'
  await expect(page.locator('#dimensions')).toHaveText('40 × 25');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(before.grid);
 });
 test('v1 projects of nonpreset dimensions remain editable; load undo restores bank and dimensions',async({page})=>{
- await loadRom(page);await loadProject(page,project([0,128],2,1,{charset:1}));
+ await loadProject(page,project([0,128],2,1,{charset:1}));
  const old=project(['█','','▀','','',''],3,2,{version:1,selectedGlyph:'▀'});await loadProject(page,old);
  await expect(page.locator('#columns')).toHaveValue('3');await expect(page.locator('#rows')).toHaveValue('2');
  await page.locator('#undo').click();await expect(page.locator('#charset')).toHaveValue('1');await expect(page.locator('#dimensions')).toHaveText('2 × 1');

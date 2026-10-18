@@ -1,7 +1,7 @@
 const { test, expect } = require('./helpers.cjs');
 test.beforeEach(async ({page}) => {
-  await page.goto('/');
-  await expect(page.locator('#canvas')).toBeVisible();
+  await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
+  await expect(page.locator('#canvas')).toBeVisible();await page.locator('#paletteMode').selectOption('legacy');await page.locator('#palette button').first().click();
 });
 async function paint(page,x=.25,y=.25){
  const box=await page.locator('#canvas').boundingBox();

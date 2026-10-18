@@ -4,7 +4,8 @@ A standalone, touch-first C64 character graphics editor. [Open the editor](https
 
 ## Drawing
 
-- Import a **4096-byte C64 character ROM** using **Import C64 ROM**. Select a bitmap glyph and drag with a finger, Pencil, or mouse. The checkbox optionally remembers the ROM on this device; **Forget stored ROM** removes that stored copy. A ROM active in the current tab remains active until the tab closes or reloads.
+- Both C64 sets are available immediately from the built-in [SVG glyph sheet](assets/c64-glyphs.svg): **512 exact 8×8 glyphs**, including inverse slots. Select a glyph and drag with a finger, Pencil, or mouse. No ROM import is needed.
+
 - The default **Graphics only** palette excludes ordinary letters and digits. Switch to **All screen codes** to inspect all 256 codes in either bank, or **Legacy shapes** to edit earlier artwork. Labels are hexadecimal screen codes; **Inverse ±128** selects the opposite half of the ROM.
 - The character set applies to the whole composition, as on a single-bank C64 screen. Switching it changes how every numeric screen code renders and is undoable.
 - Dragging interpolates between pointer samples; each stroke is one undo operation. Secondary pointers do not paint. Symmetry repeats the selected glyph at mirrored cell positions; it does not reflect the glyph bitmap itself.
@@ -12,7 +13,7 @@ A standalone, touch-first C64 character graphics editor. [Open the editor](https
 
 ## Saving
 
-Download JSON for a portable editable backup. Version 1 legacy projects and version 2 mixed projects remain supported. Projects contain glyph codes and metadata, **not ROM bytes**. Reimport the same ROM on a new device.
+Download JSON for a portable editable backup. Version 1 legacy projects and version 2 mixed projects remain supported. Projects contain glyph codes and metadata, **not ROM bytes**. Projects reopen immediately on another device using the same built-in glyphs. `glyphSource: "builtin"` records this choice. The experimental custom-ROM project format is no longer supported; custom-character editing may be added as a dedicated future feature.
 
 The current project also autosaves locally after edits and when leaving the page. Browser storage is device/site specific and may be cleared or unavailable in private browsing. It is a convenience, not a replacement for JSON backups. Undo history is session-only. One browser draft is stored; multiple tabs use last-write-wins behavior.
 
@@ -26,7 +27,7 @@ The current project also autosaves locally after edits and when leaving the page
 | Text, ROM or mixed | Labeled lossless grid described below; includes dimensions and charset. |
 | `.bin` | One screen-code byte per cell, row-major, with empty cells mapped to space code 32. No load address, charset, colors, or dimensions embedded. Legacy shapes are rejected rather than silently lost. These are **screen codes, not PETSCII bytes**. |
 
-Visual exports require the ROM whenever numeric codes are present. Missing ROM glyphs are marked on canvas; they are never silently omitted from an image export. Text, JSON, and binary screen codes do not require the ROM to preserve numeric data. Rendering uses the imported bits exactly, including the ROM's inverse glyph slots; arbitrary 4 KB files are accepted as custom bitmap data, not certified as original Commodore ROMs.
+Visual exports use the built-in SVG-derived bitmap data. If the glyph asset cannot load, numeric glyphs are marked on canvas; they are never silently omitted from an image export. Text, JSON, and binary screen codes do not require the ROM to preserve numeric data. Rendering preserves every source pixel, including the original inverse glyph slots.
 
 ### Lossless text grid
 
@@ -38,16 +39,33 @@ Visual exports require the ROM whenever numeric codes are present. Missing ROM g
 
 Header fields: format version, columns, rows, charset bank (0 or 1). Each row contains exactly `columns` space-separated tokens: two hexadecimal digits for a screen code, `--` for an empty cell, or one supported legacy symbol. Imports validate the whole document before changing artwork. This format preserves empty cells separately from explicit space code `20` and preserves mixed legacy/ROM art.
 
-## ROM access and provenance
+## SVG assets and provenance
 
-The application does not bundle, upload, or automatically fetch a proprietary ROM. Import a compatible file already available to you (for example, your own machine dump or emulator installation). Keeping that import in local browser storage avoids repeated file selection on iPad without depending on third-party CORS, network availability, or a changing download URL. Original ROM redistribution permissions have not been established, so bundling it is not part of this change.
+`assets/c64-glyphs.svg` contains an 8×8 `<symbol>` for each bank/screen-code pair (`c64-0-0` through `c64-1-255`), plus a viewable 16-column, 32-row sheet. Each shape is a vector rectangle covering a contiguous horizontal run of source pixels. No font substitution, tracing, smoothing, or synthesized inverse glyphs is involved.
 
-References used to check the data model:
+Converted from `characters.901225-01.bin` obtained from the [Zimmers C64 firmware archive](https://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c64/). Source fingerprint:
+
+```text
+SHA-256 fd0d53b8480e86163ac98998976c72cc58d5dd8eb824ed7b829774e74213b420
+MD5     12a4202f5331d45af846af6c58fba946
+```
+
+The repository includes the converted artwork, not the original ROM binary. SVG conversion retains ROM-derived shapes; it is not a claim of a separate license for those shapes. The SVGs were included at the project owner's request.
+
+The editor reads the integer rectangle geometry into an in-memory bitmap table to reuse the existing accurate drawing/export pipeline. No original ROM file, encoded byte array, or third-party download is needed. The editor has no ROM-import workflow. Startup validates all 512 symbols before exposing editing and delays autosave until restoration completes. A failed SVG load leaves legacy editing available, preserves numeric project codes, and offers **Reload C64 glyphs**. Image export is blocked until the glyph data is available.
+
+To reproduce the asset from a locally supplied ROM:
+
+```sh
+python3 scripts/build_glyphs.py /path/to/characters.901225-01.bin
+```
+
+Tests reconstruct all 512 glyphs from the SVG and compare the complete source SHA-256, check known uppercase/lowercase shapes, and preserve the source's one-bit `@`/inverse-`@` discrepancy in both banks. Inverse slots are intentionally copied exactly rather than regenerated by negating the first 128 glyphs.
+
+Data-model references:
 
 - [Commodore 64 Programmer's Reference Guide, character definitions](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_3/page_104.html): 256 glyphs per set, eight bytes per glyph; ROM-mapped charset offsets.
-- [Michael Steil's Ultimate Commodore Charset / PETSCII / Keyboard Reference](https://www.pagetable.com/232): ROM-derived glyphs sorted by screen code, inverse forms, and the distinction between PETSCII and screen codes. The linked interactive reference compares both C64 sets.
-
-The regression suite uses an original synthetic asymmetric bitmap fixture to detect swapped banks, bit order, vertical orientation, and accidental double inversion. It does not bundle or authenticate a complete Commodore ROM. Full-ROM hash identification and a rights-cleared built-in default remain future work.
+- [Michael Steil's Ultimate Commodore Charset / PETSCII / Keyboard Reference](https://www.pagetable.com/232): ROM-derived glyphs sorted by screen code, inverse forms, and the distinction between PETSCII and screen codes.
 
 ## Development and verification
 
