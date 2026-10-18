@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./helpers.cjs');
 test.beforeEach(async ({page}) => {
   await page.goto('/');
   await expect(page.locator('#canvas')).toBeVisible();

@@ -15,7 +15,7 @@ Published app: https://funkatron.github.io/petscii-stencil-lab/
 
 ## Current architecture
 - Root `index.html` contains the standalone HTML/CSS/vanilla JavaScript application. Keep it usable from GitHub Pages without a backend.
-- `package.json`, `playwright.config.cjs`, `tests/editor.spec.cjs`, and `.github/workflows/browser-tests.yml` implement automated browser testing for Chromium and iPad-sized WebKit.
+- `package.json`, `playwright.config.cjs`, `tests/*.spec.cjs`, and `.github/workflows/browser-tests.yml` implement automated browser testing for Chromium and iPad WebKit in landscape and portrait.
 - Current Unicode symbols are **visual approximations**, not verified C64 glyphs or byte-level PETSCII representations. Treat that as an important technical limitation to resolve.
 - Keep changes targeted; avoid breaking saved project files or existing editor workflows.
 
@@ -49,13 +49,18 @@ Published app: https://funkatron.github.io/petscii-stencil-lab/
 7. Preserve compatibility with existing projects wherever feasible; use explicit migration when formats change.
 
 ## Current C64 ROM implementation (October 2026)
-- Browser editor accepts a user-provided **4096-byte C64 character ROM** via Import C64 ROM. The proprietary ROM binary is not committed, included in project files, or fetched automatically.
-- The ROM contains two sets of 256 eight-by-eight bitmap glyphs; address = charsetBank * 2048 + screenCode * 8. Codes 128–255 already contain inverse-video glyph images in the ROM; never inverse them again.
-- Once a ROM is imported, the paged palette previews numeric screen codes 0–255; character set can be switched independently. Canvas draws source bits as sharp filled squares. SVG exports vector pixels, and PNG rasterizes that SVG. Raw screen-code grid exports are row-major bytes; empty/legacy glyph positions map to code 32.
-- JSON project format **v2** includes charset, selected glyph and numeric screen codes. v1 loading remains supported. The ROM bytes are deliberately not embedded; after reopening a project, reimport the ROM to display numeric glyphs.
-- Legacy glyph compositions may coexist with authentic glyphs; source inspection and actual browser tests should cover both.
-- **Known limitation:** stencil island analysis supports the original legacy shapes but not numeric ROM-coded glyphs. It is not meaningful for ROM art until updated.
-- Prioritize correctness and browser regression tests for both ROM banks, glyph bitmap orientation, inverse codes, SVG and PNG exports, project round trips, and drag drawing.
+- Declare ROM and charset state before installing handlers. Tests must fail on uncaught browser errors; the initial ROM implementation omitted these declarations and broke redraw/import/export.
+- A locally imported **4096-byte** bitmap contains two banks of 256 eight-by-eight glyphs. Address = bank * 2048 + screenCode * 8. The MSB is the left pixel; bytes run top to bottom. Inverse slots 128–255 are read verbatim, never inverted a second time.
+- Imported data is not automatically certified authentic by file length. Synthetic asymmetric fixtures verify rendering independently of proprietary binaries. Do not bundle or fetch a proprietary ROM without an established redistribution basis.
+- Optional device-local ROM storage (`petscii-graphics-rom`) avoids reimporting every visit. Forget removes the stored copy, not the active session's ROM. JSON project exports never contain ROM bytes.
+- Default palette filters to graphics codes (64–127 and 192–255, excluding second-bank alphabet codes 65–90 and 193–218). All screen codes and legacy palettes are explicitly selectable. Previews use cached bitmap canvases, accessible labels and pressed states. Inverse selection toggles bit 7.
+- Canvas uses nearest-neighbor bitmap rendering. SVG writes literal pixel rectangles; PNG rasterizes that SVG. Legacy canvas and SVG share identical path geometry. Missing ROMs display placeholders and block visual exports.
+- Raw screen-code export writes row-major bytes, maps empty cells to 32, and rejects nonempty legacy glyphs. It does not require ROM bytes; it is not a PETSCII stream and includes no charset metadata.
+- Text with numeric cells uses `# PETSCII-GRID 1 columns rows charset` followed by space-separated hex codes, `--` empty cells, or legacy symbols. Validate before mutation. Legacy-only Unicode text remains supported. See README for examples and early ambiguous-text limitations.
+- JSON project format remains v2 with v1 compatibility. Grid dimensions 1–40 are supported, including 40×25. Numeric cells, including 0, must never be tested by truthiness. Import, resize, character-set change and strokes are undoable; history restores dimensions and charset.
+- Device-local project autosave (`petscii-graphics-project-v2`) is a convenience alongside explicit JSON download, not a backup guarantee. It stores one draft with last-write-wins behavior across tabs. No undo history or ROM data is embedded in project JSON.
+- Stencil island analysis explicitly refuses ROM compositions instead of reporting a misleading successful check.
+- Tests cover desktop Chromium and iPad WebKit landscape/portrait, downloaded contents, bitmap pixels in both banks and inverse slots, mixed projects, corruption rejection, storage, touch/pen interpolation and native Chromium touch dispatch. WebKit real taps plus synthetic drag streams do not replace real iPad/Pencil hardware testing.
 
 ## Future features to explore
 - Complete authentic graphics character sets, selectable charset mode, inverse-video variants, and C64-inspired screen/palette options.
