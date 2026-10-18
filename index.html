@@ -56,7 +56,7 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 <header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div><h1>PETSCII Stencil Lab</h1><div class="subtitle">Touch-first graphics composition</div></div></header>
 <div class="layout">
 <aside id="sidebar" class="sidebar">
-<section class="section"><h2>Graphics palette</h2><div id="palette" class="palette"></div><p class="note">Choose a glyph, then drag to paint. The selected glyph is repeated across each cell.</p>
+<section class="section"><h2>Character ROM</h2><div class="row"><button id="loadRom">Import C64 ROM</button><input id="romInput" type="file" accept=".bin,.rom,application/octet-stream" hidden></div><div class="field"><label for="charset">Character set</label><select id="charset"><option value="0">Uppercase / graphics</option><option value="1">Lowercase / uppercase</option></select></div><p class="note" id="romInfo">ROM not loaded. Legacy drawing mode remains available.</p></section><section class="section"><h2>Graphics palette</h2><div id="palette" class="palette"></div><div class="field"><label for="glyphPage">Glyph page</label><select id="glyphPage"><option value="0">Codes 0–63</option><option value="1">Codes 64–127</option><option value="2">Codes 128–191</option><option value="3">Codes 192–255</option></select></div><p class="note">Choose a glyph, then drag to paint. The selected glyph is repeated across each cell.</p>
 <div class="row"><button id="erase">Eraser</button><button id="clear">Clear</button></div><div class="row"><button id="undo" disabled>↶ Undo</button><button id="redo" disabled>↷ Redo</button></div></section>
 <section class="section"><h2>Patterns</h2><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div></section>
 <section class="section"><h2>Canvas settings</h2>
@@ -66,8 +66,8 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 <section class="section"><h2>Project</h2><div class="row"><button id="saveProject">Save project (.json)</button><button id="loadProject">Load project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden><p class="note">Saves the editable glyph grid, dimensions, current glyph, and symmetry.</p></section>
 <section class="section"><h2>Stencil-safety preview</h2><div class="row"><button id="checkStencil">Analyze potential islands</button></div><p id="stencilReport" class="note" aria-live="polite">A preliminary geometry screening tool. Not a manufacturing certification.</p></section>
 <section class="section"><h2>Export and import</h2>
-<div class="row"><button id="svg">Download SVG</button><button id="text">Download text</button></div><div class="row"><div class="field"><label for="pngScale">PNG resolution</label><select id="pngScale"><option value="1">1× (16 px/cell)</option><option value="2">2× (32 px/cell)</option><option value="4" selected>4× (64 px/cell)</option><option value="8">8× (128 px/cell)</option></select></div><div class="field"><label for="pngBg">Background</label><select id="pngBg"><option value="transparent">Transparent</option><option value="white" selected>White</option><option value="black">Black</option></select></div></div><div class="row"><button id="png">Download PNG bitmap</button></div><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div>
-<textarea id="output" aria-label="Text composition"></textarea><p class="note">SVG exports vector geometry. PNG exports the artwork without grid lines, at selectable resolution. Text uses Unicode symbols, not native C64 codes.</p>
+<div class="row"><button id="svg">Download SVG</button><button id="text">Download text</button></div><div class="row"><button id="screenCodes">Download screen codes (.bin)</button></div><div class="row"><div class="field"><label for="pngScale">PNG resolution</label><select id="pngScale"><option value="1">1× (16 px/cell)</option><option value="2">2× (32 px/cell)</option><option value="4" selected>4× (64 px/cell)</option><option value="8">8× (128 px/cell)</option></select></div><div class="field"><label for="pngBg">Background</label><select id="pngBg"><option value="transparent">Transparent</option><option value="white" selected>White</option><option value="black">Black</option></select></div></div><div class="row"><button id="png">Download PNG bitmap</button></div><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div>
+<textarea id="output" aria-label="Text composition"></textarea><p class="note">After loading a C64 ROM, glyphs render from 8×8 ROM bitmaps. SVG and PNG use crisp pixels. Text displays hex screen codes; binary export writes row-major codes. Save the ROM separately.</p>
 </section></aside>
 <main class="stage">
 <div class="stagebar"><span id="dimensions">16 × 16</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
@@ -83,6 +83,52 @@ const shapes={
 '█':'<rect width="16" height="16"/>','▀':'<rect width="16" height="8"/>','▄':'<rect y="8" width="16" height="8"/>','▌':'<rect width="8" height="16"/>','▐':'<rect x="8" width="8" height="16"/>','◢':'<path d="M16 0V16H0Z"/>','●':'<circle cx="8" cy="8" r="6.5"/>','─':'<rect y="7" width="16" height="2"/>','│':'<rect x="7" width="2" height="16"/>','╱':'<path d="M0 16L13 0H16L3 16Z"/>','┌':'<path d="M0 0H16V3H3V16H0Z"/>','┼':'<path d="M7 0H9V7H16V9H9V16H7V9H0V7H7Z"/>'};
 let W=16,H=16,grid=Array(256).fill(''),glyph='█',erasing=false,painting=false,last=null,pointer=null,unit=20;
 function setStatus(s){$('status').textContent=s}
+function romGlyphRows(code){
+ if(!rom||!Number.isInteger(code)||code<0||code>255)return null;
+ // The C64 4KB ROM has two 2048-byte sets, each with 256 8-byte glyphs.
+ // Codes 128–255 are already inverse glyphs in the ROM. Do not invert twice.
+ return rom.subarray(charset*2048+code*8,charset*2048+code*8+8);
+}
+function romRects(code,x,y,pixel){
+ const rows=romGlyphRows(code);if(!rows)return '';
+ let o='';for(let r=0;r<8;r++)for(let b=0;b<8;b++)if(rows[r]&(0x80>>b))o+='<rect x="'+(x+b*pixel)+'" y="'+(y+r*pixel)+'" width="'+pixel+'" height="'+pixel+'"/>';
+ return o;
+}
+function romCanvasGlyph(target,code,x,y,s){
+ const rows=romGlyphRows(code);if(!rows)return;
+ target.fillStyle='#d9fff2';const p=s/8;
+ for(let r=0;r<8;r++)for(let b=0;b<8;b++)if(rows[r]&(0x80>>b))target.fillRect(x+b*p,y+r*p,p+.015,p+.015);
+}
+function drawPalette(){
+ palette.innerHTML='';
+ if(rom){
+  const start=Number($('glyphPage').value)*64;
+  for(let code=start;code<start+64;code++){
+   const btn=document.createElement('button');btn.className='glyph';btn.dataset.g=String(code);btn.title='C64 screen code '+code;
+   const tile=document.createElement('canvas');tile.width=32;tile.height=32;tile.style.cssText='width:28px;height:28px;image-rendering:pixelated';
+   romCanvasGlyph(tile.getContext('2d'),code,0,0,32);btn.appendChild(tile);
+   btn.onclick=()=>{glyph=code;erasing=false;refresh()};palette.appendChild(btn);
+  }
+ }else for(const g of glyphs){
+  const b=document.createElement('button');b.className='glyph';b.textContent=g;b.dataset.g=g;
+  b.addEventListener('click',()=>{glyph=g;erasing=false;refresh()});palette.appendChild(b);
+ }
+ refresh();
+}
+$('glyphPage').onchange=drawPalette;
+$('charset').onchange=()=>{charset=Number($('charset').value);drawPalette();redraw()};
+$('loadRom').onclick=()=>$('romInput').click();
+$('romInput').onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  const b=new Uint8Array(await file.arrayBuffer());
+  if(b.length!==4096)throw Error('Expected exactly 4096 bytes (4 KB)');
+  rom=b;glyph=0;erasing=false;$('glyphPage').value='0';
+  $('romInfo').textContent='Authentic 4 KB ROM active: '+file.name+'. 256 screen-code slots per character set.';
+  drawPalette();redraw();setStatus('C64 ROM loaded');
+ }catch(err){setStatus(err.message)}
+ e.target.value='';
+};
 function fit(){
  const r=frame.getBoundingClientRect();
  const availableW=Math.max(20,r.width-22),availableH=Math.max(20,r.height-22);
@@ -116,9 +162,9 @@ function redraw(){
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const xx=x*unit,yy=y*unit;
   ctx.fillStyle='#29364a';ctx.fillRect(xx+line,yy+line,Math.max(0,unit-line*2),Math.max(0,unit-line*2));
-  const g=grid[y*W+x];if(g)graphic(g,xx,yy,unit);
+  const g=grid[y*W+x];if(typeof g==='number'&&rom)romCanvasGlyph(ctx,g,xx,yy,unit);else if(typeof g==='string'&&g)graphic(g,xx,yy,unit);
  }
- out.value=Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map(g=>g||' ').join('')).join('\n');
+ out.value=Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map(g=>typeof g==='number'?g.toString(16).padStart(2,'0').toUpperCase():(g||' ')).join(rom?' ':'')).join('\n');
  $('dimensions').textContent=W+' × '+H;
 }
 const undoStack=[],redoStack=[];
@@ -148,7 +194,7 @@ function stop(e){if(pointer!==e.pointerId)return;painting=false;pointer=null;las
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',()=>{painting=false;pointer=null;last=null});
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 for(const g of glyphs){const b=document.createElement('button');b.className='glyph';b.textContent=g;b.dataset.g=g;b.title=g;b.addEventListener('click',()=>{glyph=g;erasing=false;refresh()});palette.appendChild(b);}
-function refresh(){for(const b of palette.children)b.classList.toggle('active',b.dataset.g===glyph&&!erasing);$('erase').classList.toggle('active',erasing);$('quickglyph').textContent=erasing?'⌫':glyph;}
+function refresh(){for(const b of palette.children)b.classList.toggle('active',b.dataset.g===glyph&&!erasing);$('erase').classList.toggle('active',erasing);$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;}
 $('erase').onclick=()=>{erasing=!erasing;refresh()};
 $('clear').onclick=()=>{remember();grid.fill('');redraw();setStatus('Canvas cleared')};
 $('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1)grid[y*W+x]=glyph;redraw()};
@@ -167,7 +213,7 @@ function makeSvg(foreground='black',background=null){
  const parts=[];
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const g=grid[y*W+x];
-  if(shapes[g])parts.push('<g transform="translate('+(x*16)+' '+(y*16)+')">'+shapes[g]+'</g>');
+  if(typeof g==='number'&&rom)parts.push('<g transform="translate('+(x*16)+' '+(y*16)+') scale(2)">'+romRects(g,0,0,1)+'</g>');else if(shapes[g])parts.push('<g transform="translate('+(x*16)+' '+(y*16)+')">'+shapes[g]+'</g>');
  }
  const bg=background?'<rect width="100%" height="100%" fill="'+background+'"/>':'';
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W*16+' '+H*16+'" width="'+W*16+'" height="'+H*16+'">'+bg+'<g fill="'+foreground+'">'+parts.join('')+'</g></svg>';
@@ -198,11 +244,19 @@ $('png').onclick=async()=>{
  }catch(e){setStatus('PNG export failed: '+e.message)}
  finally{URL.revokeObjectURL(url);button.disabled=false}
 };
+$('screenCodes').onclick=()=>{
+ if(!rom){setStatus('Import a C64 character ROM first');return}
+ const bytes=Uint8Array.from(grid,g=>typeof g==='number'?g:32);
+ const blob=new Blob([bytes],{type:'application/octet-stream'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='c64-screen-'+W+'x'+H+'.bin';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);
+ setStatus('Downloaded screen-code grid (row-major)');
+};
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(out.value);setStatus('Text copied')}catch{setStatus('Select text to copy')}};
 $('import').onclick=()=>{const lines=out.value.replace(/\r/g,'').split('\n');remember();grid=Array(W*H).fill('');for(let y=0;y<Math.min(H,lines.length);y++){const line=Array.from(lines[y]);for(let x=0;x<Math.min(W,line.length);x++)if(glyphs.includes(line[x]))grid[y*W+x]=line[x]}redraw();setStatus('Imported text')};
 
 $('saveProject').onclick=()=>{
- const project={format:'petscii-stencil-lab',version:1,columns:W,rows:H,grid:[...grid],selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value};
+ const project={format:'petscii-stencil-lab',version:2,columns:W,rows:H,grid:[...grid],selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,charset,requiresRom:grid.some(g=>typeof g==='number')};
  download('petscii-project.json',JSON.stringify(project,null,2),'application/json');
  setStatus('Project saved');
 };
@@ -211,16 +265,17 @@ $('projectFile').onchange=async e=>{
  const file=e.target.files&&e.target.files[0];if(!file)return;
  try{
   const data=JSON.parse(await file.text());
-  if(data.format!=='petscii-stencil-lab'||data.version!==1)throw Error('Unsupported project format');
+  if(data.format!=='petscii-stencil-lab'||![1,2].includes(data.version))throw Error('Unsupported project format');
   if(!Number.isInteger(data.columns)||!Number.isInteger(data.rows)||data.columns<1||data.columns>32||data.rows<1||data.rows>32)throw Error('Invalid dimensions');
-  if(!Array.isArray(data.grid)||data.grid.length!==data.columns*data.rows||data.grid.some(g=>g!==''&&!glyphs.includes(g)))throw Error('Invalid glyph grid');
+  if(!Array.isArray(data.grid)||data.grid.length!==data.columns*data.rows||data.grid.some(g=>g!==''&&!glyphs.includes(g)&&!(Number.isInteger(g)&&g>=0&&g<=255)))throw Error('Invalid glyph grid');
   remember();
   W=data.columns;H=data.rows;grid=[...data.grid];
   $('columns').value=String(W);$('rows').value=String(H);
-  glyph=glyphs.includes(data.selectedGlyph)?data.selectedGlyph:'█';
+  glyph=(glyphs.includes(data.selectedGlyph)||Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=255)?data.selectedGlyph:'█';
+  charset=data.charset===1?1:0;$('charset').value=String(charset);$('glyphPage').value=typeof glyph==='number'?String(Math.floor(glyph/64)):'0';drawPalette();
   erasing=!!data.eraser;
   $('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';
-  refresh();fit();setStatus('Project loaded');
+  refresh();fit();setStatus(data.requiresRom&&!rom?'Project loaded: import a C64 ROM to render screen codes':'Project loaded');
  }catch(err){setStatus('Load failed: '+err.message)}
  e.target.value='';
 };
