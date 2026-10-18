@@ -64,8 +64,8 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 <div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
 <p class="note">Grid cells automatically scale to fill the available drawing area while staying square.</p></section>
 <section class="section"><h2>Export and import</h2>
-<div class="row"><button id="svg">Download SVG</button><button id="text">Download text</button></div><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div>
-<textarea id="output" aria-label="Text composition"></textarea><p class="note">SVG exports vector geometry; text uses Unicode graphic symbols, not native C64 codes.</p>
+<div class="row"><button id="svg">Download SVG</button><button id="text">Download text</button></div><div class="row"><div class="field"><label for="pngScale">PNG resolution</label><select id="pngScale"><option value="1">1× (16 px/cell)</option><option value="2">2× (32 px/cell)</option><option value="4" selected>4× (64 px/cell)</option><option value="8">8× (128 px/cell)</option></select></div><div class="field"><label for="pngBg">Background</label><select id="pngBg"><option value="transparent">Transparent</option><option value="white" selected>White</option><option value="black">Black</option></select></div></div><div class="row"><button id="png">Download PNG bitmap</button></div><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div>
+<textarea id="output" aria-label="Text composition"></textarea><p class="note">SVG exports vector geometry. PNG exports the artwork without grid lines, at selectable resolution. Text uses Unicode symbols, not native C64 codes.</p>
 </section></aside>
 <main class="stage">
 <div class="stagebar"><span id="dimensions">16 × 16</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
@@ -154,7 +154,41 @@ $('toggle').onclick=()=>{
 };
 function download(name,txt,type){const url=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
 $('text').onclick=()=>download('petscii-composition.txt',out.value,'text/plain;charset=utf-8');
-$('svg').onclick=()=>{const parts=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){const g=grid[y*W+x];if(shapes[g])parts.push('<g transform="translate('+(x*16)+' '+(y*16)+')">'+shapes[g]+'</g>')}const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W*16+' '+H*16+'" width="'+W*16+'" height="'+H*16+'"><g fill="black">'+parts.join('')+'</g></svg>';download('petscii-composition.svg',svg,'image/svg+xml')};
+function makeSvg(foreground='black',background=null){
+ const parts=[];
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const g=grid[y*W+x];
+  if(shapes[g])parts.push('<g transform="translate('+(x*16)+' '+(y*16)+')">'+shapes[g]+'</g>');
+ }
+ const bg=background?'<rect width="100%" height="100%" fill="'+background+'"/>':'';
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W*16+' '+H*16+'" width="'+W*16+'" height="'+H*16+'">'+bg+'<g fill="'+foreground+'">'+parts.join('')+'</g></svg>';
+}
+$('svg').onclick=()=>download('petscii-composition.svg',makeSvg(),'image/svg+xml');
+$('png').onclick=async()=>{
+ const button=$('png'),scale=Number($('pngScale').value),bg=$('pngBg').value;
+ const foreground=bg==='black'?'white':'black';
+ const markup=makeSvg(foreground,bg==='transparent'?null:bg);
+ const blob=new Blob([markup],{type:'image/svg+xml;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ button.disabled=true;setStatus('Rendering PNG…');
+ try{
+  const image=new Image();
+  const loaded=new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('Could not render SVG'));});
+  image.src=url;await loaded;
+  const bmp=document.createElement('canvas');
+  bmp.width=W*16*scale;bmp.height=H*16*scale;
+  const c=bmp.getContext('2d');
+  c.imageSmoothingEnabled=false;
+  c.drawImage(image,0,0,bmp.width,bmp.height);
+  const pngBlob=await new Promise((resolve,reject)=>bmp.toBlob(b=>b?resolve(b):reject(new Error('PNG encoding failed')),'image/png'));
+  const pngUrl=URL.createObjectURL(pngBlob);
+  const a=document.createElement('a');a.href=pngUrl;a.download='petscii-composition-'+bmp.width+'x'+bmp.height+'.png';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(pngUrl),3000);
+  setStatus('PNG exported: '+bmp.width+' × '+bmp.height);
+ }catch(e){setStatus('PNG export failed: '+e.message)}
+ finally{URL.revokeObjectURL(url);button.disabled=false}
+};
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(out.value);setStatus('Text copied')}catch{setStatus('Select text to copy')}};
 $('import').onclick=()=>{const lines=out.value.replace(/\r/g,'').split('\n');grid=Array(W*H).fill('');for(let y=0;y<Math.min(H,lines.length);y++){const line=Array.from(lines[y]);for(let x=0;x<Math.min(W,line.length);x++)if(glyphs.includes(line[x]))grid[y*W+x]=line[x]}redraw();setStatus('Imported text')};
 const ro=new ResizeObserver(()=>fit());ro.observe(frame);
