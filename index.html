@@ -57,12 +57,14 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 <div class="layout">
 <aside id="sidebar" class="sidebar">
 <section class="section"><h2>Graphics palette</h2><div id="palette" class="palette"></div><p class="note">Choose a glyph, then drag to paint. The selected glyph is repeated across each cell.</p>
-<div class="row"><button id="erase">Eraser</button><button id="clear">Clear</button></div></section>
+<div class="row"><button id="erase">Eraser</button><button id="clear">Clear</button></div><div class="row"><button id="undo" disabled>↶ Undo</button><button id="redo" disabled>↷ Redo</button></div></section>
 <section class="section"><h2>Patterns</h2><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div></section>
 <section class="section"><h2>Canvas settings</h2>
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div></div>
 <div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
 <p class="note">Grid cells automatically scale to fill the available drawing area while staying square.</p></section>
+<section class="section"><h2>Project</h2><div class="row"><button id="saveProject">Save project (.json)</button><button id="loadProject">Load project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden><p class="note">Saves the editable glyph grid, dimensions, current glyph, and symmetry.</p></section>
+<section class="section"><h2>Stencil-safety preview</h2><div class="row"><button id="checkStencil">Analyze potential islands</button></div><p id="stencilReport" class="note" aria-live="polite">A preliminary geometry screening tool. Not a manufacturing certification.</p></section>
 <section class="section"><h2>Export and import</h2>
 <div class="row"><button id="svg">Download SVG</button><button id="text">Download text</button></div><div class="row"><div class="field"><label for="pngScale">PNG resolution</label><select id="pngScale"><option value="1">1× (16 px/cell)</option><option value="2">2× (32 px/cell)</option><option value="4" selected>4× (64 px/cell)</option><option value="8">8× (128 px/cell)</option></select></div><div class="field"><label for="pngBg">Background</label><select id="pngBg"><option value="transparent">Transparent</option><option value="white" selected>White</option><option value="black">Black</option></select></div></div><div class="row"><button id="png">Download PNG bitmap</button></div><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div>
 <textarea id="output" aria-label="Text composition"></textarea><p class="note">SVG exports vector geometry. PNG exports the artwork without grid lines, at selectable resolution. Text uses Unicode symbols, not native C64 codes.</p>
@@ -119,6 +121,13 @@ function redraw(){
  out.value=Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map(g=>g||' ').join('')).join('\n');
  $('dimensions').textContent=W+' × '+H;
 }
+const undoStack=[],redoStack=[];
+function snapshot(){return {W,H,grid:[...grid]};}
+function remember(){undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
+function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
+function restore(state){W=state.W;H=state.H;grid=[...state.grid];$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
+$('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
+$('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 function paint(x,y){
  if(x<0||y<0||x>=W||y>=H)return;
  const sym=$('sym').value,pts=[[x,y]];
@@ -133,7 +142,7 @@ function stroke(a,b){
  for(let i=0;i<=n;i++)paint(Math.round(a[0]+(b[0]-a[0])*i/n),Math.round(a[1]+(b[1]-a[1])*i/n));
  redraw();
 }
-canvas.addEventListener('pointerdown',e=>{if(painting)return;if(e.cancelable)e.preventDefault();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}stroke(last,last);setStatus('Drawing…');});
+canvas.addEventListener('pointerdown',e=>{if(painting)return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}stroke(last,last);setStatus('Drawing…');});
 canvas.addEventListener('pointermove',e=>{if(!painting||e.pointerId!==pointer)return;if(e.cancelable)e.preventDefault();const p=position(e);stroke(last,p);last=p;});
 function stop(e){if(pointer!==e.pointerId)return;painting=false;pointer=null;last=null;setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',()=>{painting=false;pointer=null;last=null});
@@ -141,10 +150,10 @@ for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])fram
 for(const g of glyphs){const b=document.createElement('button');b.className='glyph';b.textContent=g;b.dataset.g=g;b.title=g;b.addEventListener('click',()=>{glyph=g;erasing=false;refresh()});palette.appendChild(b);}
 function refresh(){for(const b of palette.children)b.classList.toggle('active',b.dataset.g===glyph&&!erasing);$('erase').classList.toggle('active',erasing);$('quickglyph').textContent=erasing?'⌫':glyph;}
 $('erase').onclick=()=>{erasing=!erasing;refresh()};
-$('clear').onclick=()=>{grid.fill('');redraw();setStatus('Canvas cleared')};
-$('border').onclick=()=>{for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1)grid[y*W+x]=glyph;redraw()};
-$('checker').onclick=()=>{for(let y=0;y<H;y++)for(let x=0;x<W;x++)grid[y*W+x]=(x+y)%2?glyph:'';redraw()};
-function resize(){const nw=Number($('columns').value),nh=Number($('rows').value),next=Array(nw*nh).fill('');for(let y=0;y<Math.min(H,nh);y++)for(let x=0;x<Math.min(W,nw);x++)next[y*nw+x]=grid[y*W+x];grid=next;W=nw;H=nh;fit()}
+$('clear').onclick=()=>{remember();grid.fill('');redraw();setStatus('Canvas cleared')};
+$('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1)grid[y*W+x]=glyph;redraw()};
+$('checker').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)grid[y*W+x]=(x+y)%2?glyph:'';redraw()};
+function resize(){remember();const nw=Number($('columns').value),nh=Number($('rows').value),next=Array(nw*nh).fill('');for(let y=0;y<Math.min(H,nh);y++)for(let x=0;x<Math.min(W,nw);x++)next[y*nw+x]=grid[y*W+x];grid=next;W=nw;H=nh;fit()}
 $('columns').onchange=resize;$('rows').onchange=resize;
 $('toggle').onclick=()=>{
  const closed=$('sidebar').classList.toggle('closed');
@@ -190,7 +199,75 @@ $('png').onclick=async()=>{
  finally{URL.revokeObjectURL(url);button.disabled=false}
 };
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(out.value);setStatus('Text copied')}catch{setStatus('Select text to copy')}};
-$('import').onclick=()=>{const lines=out.value.replace(/\r/g,'').split('\n');grid=Array(W*H).fill('');for(let y=0;y<Math.min(H,lines.length);y++){const line=Array.from(lines[y]);for(let x=0;x<Math.min(W,line.length);x++)if(glyphs.includes(line[x]))grid[y*W+x]=line[x]}redraw();setStatus('Imported text')};
+$('import').onclick=()=>{const lines=out.value.replace(/\r/g,'').split('\n');remember();grid=Array(W*H).fill('');for(let y=0;y<Math.min(H,lines.length);y++){const line=Array.from(lines[y]);for(let x=0;x<Math.min(W,line.length);x++)if(glyphs.includes(line[x]))grid[y*W+x]=line[x]}redraw();setStatus('Imported text')};
+
+$('saveProject').onclick=()=>{
+ const project={format:'petscii-stencil-lab',version:1,columns:W,rows:H,grid:[...grid],selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value};
+ download('petscii-project.json',JSON.stringify(project,null,2),'application/json');
+ setStatus('Project saved');
+};
+$('loadProject').onclick=()=>$('projectFile').click();
+$('projectFile').onchange=async e=>{
+ const file=e.target.files&&e.target.files[0];if(!file)return;
+ try{
+  const data=JSON.parse(await file.text());
+  if(data.format!=='petscii-stencil-lab'||data.version!==1)throw Error('Unsupported project format');
+  if(!Number.isInteger(data.columns)||!Number.isInteger(data.rows)||data.columns<1||data.columns>32||data.rows<1||data.rows>32)throw Error('Invalid dimensions');
+  if(!Array.isArray(data.grid)||data.grid.length!==data.columns*data.rows||data.grid.some(g=>g!==''&&!glyphs.includes(g)))throw Error('Invalid glyph grid');
+  remember();
+  W=data.columns;H=data.rows;grid=[...data.grid];
+  $('columns').value=String(W);$('rows').value=String(H);
+  glyph=glyphs.includes(data.selectedGlyph)?data.selectedGlyph:'█';
+  erasing=!!data.eraser;
+  $('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';
+  refresh();fit();setStatus('Project loaded');
+ }catch(err){setStatus('Load failed: '+err.message)}
+ e.target.value='';
+};
+// The geometry checker rasterizes the vector design at a coarse grid and
+// flags any empty region completely surrounded by solid design geometry.
+// This is a potential stencil island when solids are treated as cutouts.
+// It cannot account for kerf, bridge dimensions, tool size or material strength.
+function safetyCheck(){
+ const scale=8,c=document.createElement('canvas');c.width=W*scale;c.height=H*scale;
+ const t=c.getContext('2d',{willReadFrequently:true});t.fillStyle='#fff';
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const g=grid[y*W+x],X=x*scale,Y=y*scale;
+  t.beginPath();
+  if(g==='█')t.rect(X,Y,scale,scale);
+  else if(g==='▀')t.rect(X,Y,scale,scale/2);
+  else if(g==='▄')t.rect(X,Y+scale/2,scale,scale/2);
+  else if(g==='▌')t.rect(X,Y,scale/2,scale);
+  else if(g==='▐')t.rect(X+scale/2,Y,scale/2,scale);
+  else if(g==='◢'){t.moveTo(X+scale,Y);t.lineTo(X+scale,Y+scale);t.lineTo(X,Y+scale);t.closePath();}
+  else if(g==='●')t.arc(X+scale/2,Y+scale/2,scale*.406,0,Math.PI*2);
+  else if(g==='─')t.rect(X,Y+scale*.4375,scale,scale*.125);
+  else if(g==='│')t.rect(X+scale*.4375,Y,scale*.125,scale);
+  else if(g==='╱'){t.moveTo(X,Y+scale);t.lineTo(X+scale*.2,Y+scale);t.lineTo(X+scale,Y);t.lineTo(X+scale*.8,Y);t.closePath();}
+  else if(g==='┌'){t.rect(X,Y,scale,scale*.1875);t.rect(X,Y,scale*.1875,scale);}
+  else if(g==='┼'){t.rect(X,Y+scale*.4375,scale,scale*.125);t.rect(X+scale*.4375,Y,scale*.125,scale);}
+  t.fill();
+ }
+ const ww=c.width,hh=c.height,data=t.getImageData(0,0,ww,hh).data,seen=new Uint8Array(ww*hh);
+ const empty=i=>data[i*4+3]<128;
+ let islands=0,smallest=Infinity;
+ for(let i=0;i<ww*hh;i++){
+  if(seen[i]||!empty(i))continue;
+  const queue=[i];seen[i]=1;let edge=false,count=0;
+  for(let head=0;head<queue.length;head++){
+   const cur=queue[head],x=cur%ww,y=Math.floor(cur/ww);count++;
+   if(x===0||y===0||x===ww-1||y===hh-1)edge=true;
+   for(const v of [x>0?cur-1:-1,x<ww-1?cur+1:-1,y>0?cur-ww:-1,y<hh-1?cur+ww:-1]){
+    if(v>=0&&!seen[v]&&empty(v)){seen[v]=1;queue.push(v);}
+   }
+  }
+  if(!edge){islands++;smallest=Math.min(smallest,count);}
+ }
+ const msg=islands?'Potential isolated material regions: '+islands+'. Smallest approximately '+smallest+' raster samples. Consider stencil bridges.':'No completely enclosed empty regions found at this screening resolution.';
+ $('stencilReport').textContent=msg+' This is a preliminary screen only; review thin connections and manufacturing tolerances separately.';
+ setStatus('Stencil check complete');
+}
+$('checkStencil').onclick=safetyCheck;
 const ro=new ResizeObserver(()=>fit());ro.observe(frame);
 if(matchMedia('(max-width:690px)').matches){$('sidebar').classList.add('closed');$('toggle').setAttribute('aria-expanded','false')}
 refresh();requestAnimationFrame(fit);
