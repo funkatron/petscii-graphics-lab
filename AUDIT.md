@@ -56,3 +56,15 @@ WebKit testing exposed a canvas scaling regression after importing a differently
 Physical iPad/Pencil and the device's actual Files/Photos handoff remain hardware checks. Video and zipped frame sequences are not implemented in this change.
 
 Executed locally: the full suite passed **102 tests with 3 expected skips** across Chromium and WebKit iPad landscape/portrait. After adding the fast-replay frame-delay cap, all **36 animation tests passed** across the same three profiles, including the new minimum-delay regression. The existing project round-trip test now waits for asynchronous file loading before asserting the restored text. Local browser/runtime workarounds are the same as documented above; CI uses standard Playwright installations.
+
+## PNG frame ZIP follow-up (October 19, 2026)
+
+Added **Export PNG frames (.zip)** to Animation. The archive contains complete numbered PNG frames, a versioned `timing.json` with per-frame start/duration and loop metadata, an editable `project.json` snapshot, and usage instructions. Frames share GIF's indexed renderer, source snapshot and centisecond-balanced timing; variable delays and sampled replay are documented. Resolution/background controls apply to both formats. The ZIP preserves source dimensions and charset even when the editor changes during generation.
+
+A roughly 5 KB vendored MIT `fflate@0.8.3` streaming ZIP writer loads on demand. Already compressed PNG entries use store mode; the app encodes one PNG at a time, retains compressed chunks for the final Blob, and avoids keeping all uncompressed frames. Licenses, source package hash and generated-module fingerprint are recorded in `vendor/README.md`.
+
+GIF and ZIP now share progress, a Cancel control, export mutual exclusion and persistent Save links. Cancellation never publishes a partial archive and preserves the last completed download. Errors restore controls and leave artwork intact. Missing glyph checks now include numeric values in replay base/history, even when the final grid contains only legacy shapes. Project-load test helpers wait for asynchronous file handling to finish.
+
+Eight new scenarios per browser independently validate ZIP CRCs and entry contents with `adm-zip`, decode PNGs with `pngjs`, compare complete frames/timings against GIF, preserve both banks and exact inverse slots, verify snapshot isolation, exercise cancellation during module loading and PNG encoding, and recover from module/PNG failures. Physical iPad Files handoff and Apple Pencil remain hardware checks. Video encoding is not included.
+
+Final local Playwright run: **129 passed, 3 expected skips, 0 failed** in 1.6 minutes across desktop Chromium and iPad WebKit landscape/portrait. This includes all 24 new frame-export cases and the existing 108 editor/animation cases. The same documented local browser/library overrides were used; GitHub Actions uses standard Playwright browsers and system dependencies.

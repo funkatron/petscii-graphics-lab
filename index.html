@@ -10,8 +10,8 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 button,select,textarea,input{font:inherit}
-#gifDownload{display:block;padding:10px;border:1px solid #77ddc4;border-radius:9px;text-align:center}
-#gifDownload[hidden]{display:none}
+.animation-download{display:block;padding:10px;border:1px solid #77ddc4;border-radius:9px;text-align:center}
+.animation-download[hidden]{display:none}
 #quickPlay{margin-left:auto;min-width:44px}
 button,select{border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px;min-height:42px;padding:8px 11px}
 button{cursor:pointer}
@@ -75,9 +75,10 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 <div class="row"><div class="field"><label for="animationSeconds">Loop duration</label><select id="animationSeconds"><option value="1">1 second</option><option value="2">2 seconds</option><option value="4" selected>4 seconds</option><option value="8">8 seconds</option><option value="12">12 seconds</option></select></div></div>
 <div class="row"><button id="animationPlay" aria-pressed="false">▶ Play</button><button id="animationStop">Stop / edit</button></div>
 <p id="animationInfo" class="note">Replay records the order you paint, erase, and repaint. Imported drawings, patterns, and resized grids reveal in grid order. Playback never changes your drawing.</p>
-<div class="row"><div class="field"><label for="gifScale">GIF resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">GIF background</label><select id="gifBackground"><option value="dark">Dark</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
-<div class="row"><button id="exportGif">Export animated GIF</button></div><a id="gifDownload" hidden>Save animated GIF</a>
-<p class="note">GIFs loop automatically. The static exports below use your original drawing.</p></section>
+<div class="row"><div class="field"><label for="gifScale">Animation resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">Animation background</label><select id="gifBackground"><option value="dark">Dark</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
+<div class="row"><button id="exportGif">Export animated GIF</button></div><a id="gifDownload" class="animation-download" hidden>Save animated GIF</a>
+<div class="row"><button id="exportFrames">Export PNG frames (.zip)</button><button id="cancelAnimationExport" hidden>Cancel export</button></div><a id="framesDownload" class="animation-download" hidden>Save frame ZIP</a>
+<p class="note">ZIP includes numbered PNGs, frame timings, and an editable project. GIFs loop automatically. The static exports below use your original drawing.</p></section>
 <section class="section"><h2>Patterns</h2><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div></section>
 <section class="section"><h2>Canvas settings</h2>
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div></div>
@@ -103,7 +104,7 @@ const shapes={};
 let rom=null,charset=0,saveTimer=null,initialized=false;
 const PROJECT_KEY='petscii-graphics-project-v2';
 let replayBase=Array(256).fill(''),replayEvents=[];
-let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0,gifUrl=null;
+let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0;
 let W=16,H=16,grid=Array(256).fill(''),glyph='█',erasing=false,painting=false,last=null,pointer=null,unit=20;
 function setStatus(s){$('status').textContent=s}
 function romGlyphRows(code){
@@ -268,44 +269,97 @@ $('animationStop').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
 for(const id of ['animationEffect','animationSeconds'])$(id).onchange=()=>{const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
 for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseAnimation()});
-// Replay and GIF export share the exact same frame function and timing.
-$('exportGif').onclick=async()=>{
- const button=$('exportGif'),source=animationSource();
- const s={...source,grid:source.grid.slice(),base:source.base.slice(),events:source.events.slice()},bank=charset,bits=rom?.slice();
- if(!bits&&s.grid.some(g=>typeof g==='number')){setStatus('Reload C64 glyphs before exporting animation');return}
- if(s.grid.every(g=>g==='')&&!s.events.length){setStatus('Draw something first, then export an animation');return}
- button.disabled=true;setStatus('Rendering animated GIF…');
+// GIF and PNG sequences share source snapshots, exact pixels, and encoded frame durations.
+function animationExportSnapshot(){
+ const source=animationSource(),s={...source,grid:source.grid.slice(),base:source.base.slice(),events:source.events.slice()};
+ const numeric=s.grid.some(g=>typeof g==='number')||(s.effect==='replay'&&(s.base.some(g=>typeof g==='number')||s.events.some(e=>typeof e[1]==='number')));
+ if(!rom&&numeric)throw Error('Reload C64 glyphs before exporting animation');
+ if(s.grid.every(g=>g==='')&&!s.events.length)throw Error('Draw something first, then export an animation');
+ return {s,bank:charset,bits:rom?.slice(),project:projectData()};
+}
+function animationExportFrames(s){
+ let elapsed=0;return Array.from({length:animationCount(s)},(_,index)=>{
+  const startMs=Math.round(elapsed/10)*10;elapsed+=animationDelay(index,s);
+  return {index,startMs,durationMs:Math.round(elapsed/10)*10-startMs};
+ });
+}
+function animationRaster({s,bank,bits}){
+ const cell=8*s.scale,width=s.W*cell,height=s.H*cell,tiles=new Map();
+ const colors=s.background==='white'?[[255,255,255],[0,0,0]]:[[14,23,40],[217,255,242]];
+ function tileFor(g){
+  if(tiles.has(g))return tiles.get(g);const tile=new Uint8Array(cell*cell);
+  if(typeof g==='number'){
+   const rows=bits.subarray(bank*2048+g*8,bank*2048+g*8+8);
+   for(let y=0;y<cell;y++)for(let x=0;x<cell;x++)tile[y*cell+x]=rows[Math.floor(y/s.scale)]&(128>>Math.floor(x/s.scale))?1:0;
+  }else if(g){
+   const c=document.createElement('canvas');c.width=c.height=cell;const t=c.getContext('2d');t.scale(cell/16,cell/16);t.fill(new Path2D(legacyPaths[g]));const data=t.getImageData(0,0,cell,cell).data;
+   for(let i=0;i<tile.length;i++)tile[i]=data[i*4+3]>=128?1:0;
+  }
+  tiles.set(g,tile);return tile;
+ }
+ function indexedFrame(index){
+  const cells=animationCells(index,s),indexed=new Uint8Array(width*height);
+  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++)if(cells[y*s.W+x]!==''){
+   const tile=tileFor(cells[y*s.W+x]);for(let row=0;row<cell;row++)indexed.set(tile.subarray(row*cell,(row+1)*cell),(y*cell+row)*width+x*cell);
+  }
+  return indexed;
+ }
+ return {width,height,cell,colors,indexedFrame};
+}
+let animationExportTask=null;
+const animationExportUrls={};
+$('cancelAnimationExport').onclick=()=>{if(animationExportTask){animationExportTask.cancelled=true;$('cancelAnimationExport').disabled=true;setStatus('Canceling animation export…')}};
+async function exportAnimation(kind){
+ if(animationExportTask)return;
+ let snapshot;try{snapshot=animationExportSnapshot()}catch(e){setStatus(e.message);return}
+ const task={cancelled:false};animationExportTask=task;
+ for(const id of ['exportGif','exportFrames'])$(id).disabled=true;
+ $('cancelAnimationExport').hidden=false;setStatus(kind==='gif'?'Rendering animated GIF…':'Rendering PNG frames…');
+ let zip;
+ const checkpoint=()=>{if(task.cancelled)throw Error('Export canceled')};
  try{
-  const {GIFEncoder}=await import('./vendor/gifenc.esm.js');
-  const gif=GIFEncoder(),cell=8*s.scale,width=s.W*cell,height=s.H*cell,count=animationCount(s),tiles=new Map();
-  const colors=s.background==='white'?[[255,255,255],[0,0,0]]:[[14,23,40],[217,255,242]];
-  function tileFor(g){
-   if(tiles.has(g))return tiles.get(g);const tile=new Uint8Array(cell*cell);
-   if(typeof g==='number'){
-    const rows=bits.subarray(bank*2048+g*8,bank*2048+g*8+8);
-    for(let y=0;y<cell;y++)for(let x=0;x<cell;x++)tile[y*cell+x]=rows[Math.floor(y/s.scale)]&(128>>Math.floor(x/s.scale))?1:0;
-   }else if(g){
-    const c=document.createElement('canvas');c.width=c.height=cell;const t=c.getContext('2d');t.scale(cell/16,cell/16);t.fill(new Path2D(legacyPaths[g]));const data=t.getImageData(0,0,cell,cell).data;
-    for(let i=0;i<tile.length;i++)tile[i]=data[i*4+3]>=128?1:0;
-   }
-   tiles.set(g,tile);return tile;
+  const {s}=snapshot,frames=animationExportFrames(s),raster=animationRaster(snapshot),{width,height,colors}=raster;
+  let gif,addFile,zipChunks=[],pngCanvas,pngContext;
+  if(kind==='gif'){
+   const {GIFEncoder}=await import('./vendor/gifenc.esm.js');checkpoint();gif=GIFEncoder();
+  }else{
+   const {Zip,ZipPassThrough}=await import('./vendor/fflate-zip.esm.js');checkpoint();
+   zip=new Zip((error,chunk)=>{if(error)throw error;zipChunks.push(chunk)});
+   addFile=(name,bytes)=>{const file=new ZipPassThrough(name);zip.add(file);file.push(bytes,true)};
+   pngCanvas=document.createElement('canvas');pngCanvas.width=width;pngCanvas.height=height;pngContext=pngCanvas.getContext('2d');
   }
-  let elapsed=0;
-  for(let f=0;f<count;f++){
-   const cells=animationCells(f,s),indexed=new Uint8Array(width*height);
-   for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++)if(cells[y*s.W+x]!==''){
-    const tile=tileFor(cells[y*s.W+x]);for(let row=0;row<cell;row++)indexed.set(tile.subarray(row*cell,(row+1)*cell),(y*cell+row)*width+x*cell);
+  for(const frame of frames){
+   checkpoint();const indexed=raster.indexedFrame(frame.index);
+   if(kind==='gif')gif.writeFrame(indexed,width,height,{palette:colors,delay:frame.durationMs,repeat:0,dispose:2,transparent:s.background==='transparent',transparentIndex:0});
+   else{
+    const image=pngContext.createImageData(width,height);
+    for(let i=0;i<indexed.length;i++){const color=colors[indexed[i]],offset=i*4;image.data[offset]=color[0];image.data[offset+1]=color[1];image.data[offset+2]=color[2];image.data[offset+3]=s.background==='transparent'&&!indexed[i]?0:255}
+    pngContext.putImageData(image,0,0);
+    const png=await new Promise((resolve,reject)=>pngCanvas.toBlob(blob=>blob?resolve(blob):reject(Error('PNG encoding failed')),'image/png'));
+    checkpoint();const bytes=new Uint8Array(await png.arrayBuffer());checkpoint();
+    frame.file='frames/frame-'+String(frame.index+1).padStart(4,'0')+'.png';addFile(frame.file,bytes);
    }
-   const end=elapsed+animationDelay(f,s),delay=(Math.round(end/10)-Math.round(elapsed/10))*10;elapsed=end;
-   gif.writeFrame(indexed,width,height,{palette:colors,delay,repeat:0,dispose:2,transparent:s.background==='transparent',transparentIndex:0});
-   setStatus('Rendering GIF: '+(f+1)+' / '+count);await new Promise(resolve=>setTimeout(resolve,0));
+   setStatus('Rendering '+(kind==='gif'?'GIF':'PNG frames')+': '+(frame.index+1)+' / '+frames.length);
+   await new Promise(resolve=>setTimeout(resolve,0));
   }
-  gif.finish();const blob=new Blob([gif.bytes()],{type:'image/gif'}),oldUrl=gifUrl;gifUrl=URL.createObjectURL(blob);
+  checkpoint();let blob;
+  if(kind==='gif'){gif.finish();blob=new Blob([gif.bytes()],{type:'image/gif'})}
+  else{
+   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:1,effect:s.effect,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,charset:snapshot.bank,background:s.background,loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
+   addFile('timing.json',text.encode(JSON.stringify(manifest,null,2)+'\n'));
+   addFile('project.json',text.encode(JSON.stringify(snapshot.project,null,2)+'\n'));
+   addFile('README.txt',text.encode('PETSCII Graphics Lab — PNG animation frames\n\nNumbered frames are complete, grid-free images in playback order.\nUse timing.json for each frame\'s startMs and durationMs. Durations vary;\ndo not assume a fixed frame rate. The durationMs total is one loop.\nReplay holds the finished drawing for the last quarter of the loop.\nLong replays sample the recording, using the same frames as GIF export.\n\nLoad project.json in PETSCII Graphics Lab to resume editing.\nhttps://funkatron.github.io/petscii-stencil-lab/\n'));
+   zip.end();blob=new Blob(zipChunks,{type:'application/zip'});
+  }
+  checkpoint();const oldUrl=animationExportUrls[kind],url=URL.createObjectURL(blob);animationExportUrls[kind]=url;
   if(oldUrl)setTimeout(()=>URL.revokeObjectURL(oldUrl),60000);
-  const link=$('gifDownload');link.href=gifUrl;link.download='petscii-'+s.effect+'-'+width+'x'+height+'.gif';link.hidden=false;link.click();
-  setStatus('GIF ready: '+count+' frames · '+width+' × '+height+'. Tap Save animated GIF to save again.');
- }catch(e){setStatus('GIF export failed: '+e.message)}finally{button.disabled=false}
-};
+  const link=$(kind==='gif'?'gifDownload':'framesDownload');link.href=url;link.download='petscii-'+s.effect+'-'+width+'x'+height+(kind==='gif'?'.gif':'-frames.zip');link.hidden=false;link.click();
+  setStatus((kind==='gif'?'GIF':'ZIP')+' ready: '+frames.length+' frames · '+width+' × '+height+'. Tap '+(kind==='gif'?'Save animated GIF':'Save frame ZIP')+' to save again.');
+ }catch(e){setStatus(task.cancelled?'Animation export canceled':(kind==='gif'?'GIF':'Frame ZIP')+' export failed: '+e.message)}
+ finally{zip?.terminate();animationExportTask=null;for(const id of ['exportGif','exportFrames'])$(id).disabled=false;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false}
+}
+$('exportGif').onclick=()=>exportAnimation('gif');
+$('exportFrames').onclick=()=>exportAnimation('zip');
 const undoStack=[],redoStack=[];
 function snapshot(){return {W,H,grid:[...grid],charset,glyph,erasing,symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice()};}
 function remember(){stopAnimation();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}

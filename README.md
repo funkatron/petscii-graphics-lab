@@ -24,6 +24,17 @@ New strokes are recorded automatically. Older/imported artwork, patterns and res
 
 **Export animated GIF** writes a continuously looping, grid-free GIF with 8, 16 or 32 pixels per cell and a dark, white or transparent background. The export uses the same frame calculation and timing as the preview and takes a snapshot, so later edits do not change an export already in progress. C64 bitmap pixels remain sharp. A **Save animated GIF** link stays available after rendering for a direct second tap in Safari or repeat downloads. Static SVG/PNG/text/binary exports continue to use the source drawing.
 
+**Export PNG frames (.zip)** uses the same animation resolution, background, frame order and encoded timings as GIF export. The ZIP includes:
+
+- `frames/frame-0001.png`, etc.: complete, lossless PNG frames with no editing grid.
+- `timing.json`: versioned metadata, dimensions, charset, background, loop duration, and each frame's `file`, `startMs` and `durationMs`.
+- `project.json`: an editable snapshot captured when export starts.
+- `README.txt`: instructions for using the sequence.
+
+Frame delays can vary, especially the final hold in drawing replay. Preserve `timing.json` when moving frames to another tool; importing every PNG at one fixed frame rate changes the intended timing. The ZIP contains the same sampled replay frames as GIF, rather than every recorded cell change. There is no video encoder yet.
+
+Both export buttons show progress and support **Cancel export**. Editing remains available; later edits do not affect an export already in progress. **Save frame ZIP** remains available for a direct second tap or repeat download, like the GIF Save link.
+
 Animation settings and the replay recording are included in JSON and local autosave; playing/paused state is not. Exported GIFs are capped at 48 replay frames (long recordings are sampled across the whole event sequence; fast loops reduce the frame count to keep delays at least 20 ms), 24 wave frames, or one frame per scroll cell / inverse state. These are procedural animations rather than a frame-by-frame timeline editor.
 
 ## Saving
@@ -40,6 +51,7 @@ The current project also autosaves locally after edits and when leaving the page
 | PNG | Same geometry as SVG; selectable transparent, white, or black background and 16/32/64/128 pixels per cell. Black background uses white ink. |
 | Text, legacy only | Unicode approximations; spaces are empty cells. Import into the existing canvas dimensions. |
 | Text, ROM or mixed | Labeled lossless grid described below; includes dimensions and charset. |
+| PNG frame ZIP | Numbered lossless PNGs, frame timing metadata, an editable JSON snapshot and instructions. |
 | Animated GIF | Looping animation, sharp C64 pixels, selected resolution and background. |
 | `.bin` | One screen-code byte per cell, row-major, with empty cells mapped to space code 32. No load address, charset, colors, or dimensions embedded. Legacy shapes are rejected rather than silently lost. These are **screen codes, not PETSCII bytes**. |
 
@@ -91,7 +103,7 @@ npx playwright install --with-deps chromium webkit
 npm test
 ```
 
-Playwright covers desktop Chromium and iPad WebKit in landscape and portrait. Every test fails on uncaught application errors. Animation tests independently decode exported GIFs with `omggif` and inspect frame pixels, loop counts, dimensions and delays. Tests inspect downloaded file contents, numeric bytes, bitmap pixels, PNG dimensions/backgrounds, project compatibility, invalid input, persistence, symmetry, resizing, and undo/redo. Native Chromium touch dispatch verifies continuous dragging; WebKit uses real touchscreen taps plus synthetic sparse touch/pen pointer streams. Physical Apple Pencil and Safari gesture behavior still require a real iPad check.
+Playwright covers desktop Chromium and iPad WebKit in landscape and portrait. Every test fails on uncaught application errors. Animation tests independently validate ZIP archives/CRCs with `adm-zip`, decode PNG sequences with `pngjs`, and decode exported GIFs with `omggif` and inspect frame pixels, loop counts, dimensions and delays. Tests inspect downloaded file contents, numeric bytes, bitmap pixels, PNG dimensions/backgrounds, project compatibility, invalid input, persistence, symmetry, resizing, and undo/redo. Native Chromium touch dispatch verifies continuous dragging; WebKit uses real touchscreen taps plus synthetic sparse touch/pen pointer streams. Physical Apple Pencil and Safari gesture behavior still require a real iPad check.
 
 `CHROMIUM_EXECUTABLE_PATH` optionally selects an existing local Chromium; normal development and CI use Playwright's bundled browsers. GitHub Actions installs from the committed lockfile using `npm ci`.
 
