@@ -13,7 +13,9 @@ A standalone, touch-first C64 character graphics editor. [Open the editor](https
 
 ## Automatic animation
 
-Choose an effect in **Animation**, then press **Play**. The header's ▶ button also works while the sidebar is hidden. Pause freezes the preview; **Stop / edit** restores the original drawing. Painting, undo, imports and other artwork edits stop playback automatically. Playback pauses when the tab is hidden and never starts automatically on reopening a project.
+Choose an effect and **Animation speed**, then press **Play**. Speed ranges from **½ second to 12 seconds per loop**, with a faster **2-second default** for new projects. The displayed multiplier is relative to a 4-second loop: 8× = ½ second, 4× = 1 second, 2× = 2 seconds, and 1× = 4 seconds. Existing saved projects retain their selected duration. Shorter loops play faster in preview and every animation export.
+
+The header's ▶ button also works while the sidebar is hidden. Pause freezes the preview; **Stop / edit** restores the original drawing. Painting, undo, imports and other artwork edits stop playback automatically. Playback pauses when the tab is hidden and never starts automatically on reopening a project.
 
 - **Replay drawing** rebuilds the picture in the order cells were painted, including erasing, repainting and symmetry. The speed is a chosen loop duration rather than the original real-time drawing speed. The completed image holds for the last quarter of each loop.
 - **Scroll left / up** wraps the drawing across the grid.
@@ -31,11 +33,15 @@ New strokes are recorded automatically. Older/imported artwork, patterns and res
 - `project.json`: an editable snapshot captured when export starts.
 - `README.txt`: instructions for using the sequence.
 
-Frame delays can vary, especially the final hold in drawing replay. Preserve `timing.json` when moving frames to another tool; importing every PNG at one fixed frame rate changes the intended timing. The ZIP contains the same sampled replay frames as GIF, rather than every recorded cell change. There is no video encoder yet.
+Frame delays can vary, especially the final hold in drawing replay. Preserve `timing.json` when moving frames to another tool; importing every PNG at one fixed frame rate changes the intended timing. The ZIP contains the same sampled replay frames as GIF, rather than every recorded cell change. Video export is described below.
 
-Both export buttons show progress and support **Cancel export**. Editing remains available; later edits do not affect an export already in progress. **Save frame ZIP** remains available for a direct second tap or repeat download, like the GIF Save link.
+All animation export buttons show progress and support **Cancel export**. Editing remains available; later edits do not affect an export already in progress. **Save frame ZIP** remains available for a direct second tap or repeat download, like the GIF Save link.
 
-Animation settings and the replay recording are included in JSON and local autosave; playing/paused state is not. Exported GIFs are capped at 48 replay frames (long recordings are sampled across the whole event sequence; fast loops reduce the frame count to keep delays at least 20 ms), 24 wave frames, or one frame per scroll cell / inverse state. These are procedural animations rather than a frame-by-frame timeline editor.
+**Export video** creates a silent clip containing one complete animation loop at the selected speed and resolution. It uses native browser encoding, preferring **H.264 MP4**, with **VP9/VP8 WebM** as fallback. **Save video** remains available for a direct second tap or repeat download. Unsupported browsers show a clear message; GIF and PNG frames remain available.
+
+Video uses the same raster frames and explicit timestamps as GIF/ZIP, without recording the live preview or waiting for real-time playback. No camera, microphone, screen-capture permission, server upload or runtime CDN is involved. Video colors use the selected solid background; **Transparent becomes Dark** because these video codecs do not preserve alpha here. Video compression can introduce small color/edge differences; PNG frames are the lossless option. Unlike GIF's loop flag, the video file contains one finite loop; the video player controls repetition.
+
+Animation settings and the replay recording are included in JSON and local autosave; playing/paused state is not. Exported GIFs are capped at 48 replay frames (long recordings are sampled across the whole event sequence; fast loops reduce the frame count to keep delays at least 20 ms), 24 wave frames, or up to one frame per scroll cell / inverse state. Fast scrolling samples positions around the entire grid so it still completes a full cycle while keeping GIF delays at least 20 ms. These are procedural animations rather than a frame-by-frame timeline editor.
 
 ## Saving
 
@@ -52,6 +58,7 @@ The current project also autosaves locally after edits and when leaving the page
 | Text, legacy only | Unicode approximations; spaces are empty cells. Import into the existing canvas dimensions. |
 | Text, ROM or mixed | Labeled lossless grid described below; includes dimensions and charset. |
 | PNG frame ZIP | Numbered lossless PNGs, frame timing metadata, an editable JSON snapshot and instructions. |
+| Video | One silent loop at the selected speed/resolution; MP4 where supported, WebM fallback; opaque background. |
 | Animated GIF | Looping animation, sharp C64 pixels, selected resolution and background. |
 | `.bin` | One screen-code byte per cell, row-major, with empty cells mapped to space code 32. No load address, charset, colors, or dimensions embedded. Legacy shapes are rejected rather than silently lost. These are **screen codes, not PETSCII bytes**. |
 
@@ -100,10 +107,11 @@ Data-model references:
 ```sh
 npm ci
 npx playwright install --with-deps chromium webkit
+# Install FFmpeg (ffmpeg and ffprobe) using your platform package manager.
 npm test
 ```
 
-Playwright covers desktop Chromium and iPad WebKit in landscape and portrait. Every test fails on uncaught application errors. Animation tests independently validate ZIP archives/CRCs with `adm-zip`, decode PNG sequences with `pngjs`, and decode exported GIFs with `omggif` and inspect frame pixels, loop counts, dimensions and delays. Tests inspect downloaded file contents, numeric bytes, bitmap pixels, PNG dimensions/backgrounds, project compatibility, invalid input, persistence, symmetry, resizing, and undo/redo. Native Chromium touch dispatch verifies continuous dragging; WebKit uses real touchscreen taps plus synthetic sparse touch/pen pointer streams. Physical Apple Pencil and Safari gesture behavior still require a real iPad check.
+Playwright covers desktop Chromium and iPad WebKit in landscape and portrait. Every test fails on uncaught application errors. Video tests independently probe metadata and decode frames with FFmpeg/FFprobe. Animation tests independently validate ZIP archives/CRCs with `adm-zip`, decode PNG sequences with `pngjs`, and decode exported GIFs with `omggif` and inspect frame pixels, loop counts, dimensions and delays. Tests inspect downloaded file contents, numeric bytes, bitmap pixels, PNG dimensions/backgrounds, project compatibility, invalid input, persistence, symmetry, resizing, and undo/redo. Native Chromium touch dispatch verifies continuous dragging; WebKit uses real touchscreen taps plus synthetic sparse touch/pen pointer streams. Physical Apple Pencil and Safari gesture behavior still require a real iPad check.
 
 `CHROMIUM_EXECUTABLE_PATH` optionally selects an existing local Chromium; normal development and CI use Playwright's bundled browsers. GitHub Actions installs from the committed lockfile using `npm ci`.
 
