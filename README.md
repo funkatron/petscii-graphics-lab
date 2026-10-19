@@ -11,6 +11,21 @@ A standalone, touch-first C64 character graphics editor. [Open the editor](https
 - Dragging interpolates between pointer samples; each stroke is one undo operation. Secondary pointers do not paint. Symmetry repeats the selected glyph at mirrored cell positions; it does not reflect the glyph bitmap itself.
 - Grid dimensions range from 1–40, including a standard **40 × 25** C64 screen. Resize preserves the top-left overlap; undo restores cropped cells. Collapse the tools using the header button; the canvas refits without clearing artwork.
 
+## Automatic animation
+
+Choose an effect in **Animation**, then press **Play**. The header's ▶ button also works while the sidebar is hidden. Pause freezes the preview; **Stop / edit** restores the original drawing. Painting, undo, imports and other artwork edits stop playback automatically. Playback pauses when the tab is hidden and never starts automatically on reopening a project.
+
+- **Replay drawing** rebuilds the picture in the order cells were painted, including erasing, repainting and symmetry. The speed is a chosen loop duration rather than the original real-time drawing speed. The completed image holds for the last quarter of each loop.
+- **Scroll left / up** wraps the drawing across the grid.
+- **Wave rows** shifts character rows in a repeating wave.
+- **Inverse pulse** alternates numeric glyphs with their actual inverse slots. Legacy shapes blink instead.
+
+New strokes are recorded automatically. Older/imported artwork, patterns and resized canvases start a grid-order reveal; the earlier drawing process cannot be recovered. The recording stores at most 20,000 cell changes, then condenses to a reveal of the current composition. Undo/redo preserve the corresponding recording.
+
+**Export animated GIF** writes a continuously looping, grid-free GIF with 8, 16 or 32 pixels per cell and a dark, white or transparent background. The export uses the same frame calculation and timing as the preview and takes a snapshot, so later edits do not change an export already in progress. C64 bitmap pixels remain sharp. A **Save animated GIF** link stays available after rendering for a direct second tap in Safari or repeat downloads. Static SVG/PNG/text/binary exports continue to use the source drawing.
+
+Animation settings and the replay recording are included in JSON and local autosave; playing/paused state is not. Exported GIFs are capped at 48 replay frames (long recordings are sampled across the whole event sequence; fast loops reduce the frame count to keep delays at least 20 ms), 24 wave frames, or one frame per scroll cell / inverse state. These are procedural animations rather than a frame-by-frame timeline editor.
+
 ## Saving
 
 Download JSON for a portable editable backup. Version 1 legacy projects and version 2 mixed projects remain supported. Projects contain glyph codes and metadata, **not ROM bytes**. Projects reopen immediately on another device using the same built-in glyphs. `glyphSource: "builtin"` records this choice. The experimental custom-ROM project format is no longer supported; custom-character editing may be added as a dedicated future feature.
@@ -25,6 +40,7 @@ The current project also autosaves locally after edits and when leaving the page
 | PNG | Same geometry as SVG; selectable transparent, white, or black background and 16/32/64/128 pixels per cell. Black background uses white ink. |
 | Text, legacy only | Unicode approximations; spaces are empty cells. Import into the existing canvas dimensions. |
 | Text, ROM or mixed | Labeled lossless grid described below; includes dimensions and charset. |
+| Animated GIF | Looping animation, sharp C64 pixels, selected resolution and background. |
 | `.bin` | One screen-code byte per cell, row-major, with empty cells mapped to space code 32. No load address, charset, colors, or dimensions embedded. Legacy shapes are rejected rather than silently lost. These are **screen codes, not PETSCII bytes**. |
 
 Visual exports use the built-in SVG-derived bitmap data. If the glyph asset cannot load, numeric glyphs are marked on canvas; they are never silently omitted from an image export. Text, JSON, and binary screen codes do not require the ROM to preserve numeric data. Rendering preserves every source pixel, including the original inverse glyph slots.
@@ -75,7 +91,7 @@ npx playwright install --with-deps chromium webkit
 npm test
 ```
 
-Playwright covers desktop Chromium and iPad WebKit in landscape and portrait. Every test fails on uncaught application errors. Tests inspect downloaded file contents, numeric bytes, bitmap pixels, PNG dimensions/backgrounds, project compatibility, invalid input, persistence, symmetry, resizing, and undo/redo. Native Chromium touch dispatch verifies continuous dragging; WebKit uses real touchscreen taps plus synthetic sparse touch/pen pointer streams. Physical Apple Pencil and Safari gesture behavior still require a real iPad check.
+Playwright covers desktop Chromium and iPad WebKit in landscape and portrait. Every test fails on uncaught application errors. Animation tests independently decode exported GIFs with `omggif` and inspect frame pixels, loop counts, dimensions and delays. Tests inspect downloaded file contents, numeric bytes, bitmap pixels, PNG dimensions/backgrounds, project compatibility, invalid input, persistence, symmetry, resizing, and undo/redo. Native Chromium touch dispatch verifies continuous dragging; WebKit uses real touchscreen taps plus synthetic sparse touch/pen pointer streams. Physical Apple Pencil and Safari gesture behavior still require a real iPad check.
 
 `CHROMIUM_EXECUTABLE_PATH` optionally selects an existing local Chromium; normal development and CI use Playwright's bundled browsers. GitHub Actions installs from the committed lockfile using `npm ci`.
 

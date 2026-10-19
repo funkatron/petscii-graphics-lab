@@ -10,6 +10,9 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 button,select,textarea,input{font:inherit}
+#gifDownload{display:block;padding:10px;border:1px solid #77ddc4;border-radius:9px;text-align:center}
+#gifDownload[hidden]{display:none}
+#quickPlay{margin-left:auto;min-width:44px}
 button,select{border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px;min-height:42px;padding:8px 11px}
 button{cursor:pointer}
 button:focus-visible,select:focus-visible{outline:3px solid #6cddd0;outline-offset:2px}
@@ -58,7 +61,7 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 </head>
 <body>
 <div class="app">
-<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div><h1>PETSCII Graphics Lab</h1><div class="subtitle">Touch-first graphics composition</div></div></header>
+<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div><h1>PETSCII Graphics Lab</h1><div class="subtitle">Touch-first graphics composition</div></div><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
 <div class="layout">
 <aside id="sidebar" class="sidebar">
 <section class="section"><h2>C64 character glyphs</h2>
@@ -67,6 +70,14 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 <p class="note">Both sets are ready to draw. <a href="./assets/c64-glyphs.svg" target="_blank" rel="noopener">View SVG glyph sheet</a>.</p>
 <button id="retryGlyphs" hidden>Reload C64 glyphs</button></section><section class="section"><h2>Graphics palette</h2><div id="palette" class="palette"></div><div class="field"><label for="paletteMode">Palette</label><select id="paletteMode"><option value="graphics">Graphics only</option><option value="all">All screen codes</option><option value="legacy">Legacy shapes</option></select></div><div class="row"><button id="inverse">Inverse ±128</button></div><div class="field"><label for="glyphPage">Glyph page</label><select id="glyphPage"><option value="0">Codes 0–63</option><option value="1">Codes 64–127</option><option value="2">Codes 128–191</option><option value="3">Codes 192–255</option></select></div><p class="note">Choose a glyph, then drag to paint. The selected glyph is repeated across each cell.</p>
 <div class="row"><button id="erase">Eraser</button><button id="clear">Clear</button></div><div class="row"><button id="undo" disabled>↶ Undo</button><button id="redo" disabled>↷ Redo</button></div></section>
+<section class="section"><h2>Animation</h2>
+<div class="field"><label for="animationEffect">Effect</label><select id="animationEffect"><option value="replay">Replay drawing</option><option value="scroll-x">Scroll left</option><option value="scroll-y">Scroll up</option><option value="wave">Wave rows</option><option value="inverse">Inverse pulse</option></select></div>
+<div class="row"><div class="field"><label for="animationSeconds">Loop duration</label><select id="animationSeconds"><option value="1">1 second</option><option value="2">2 seconds</option><option value="4" selected>4 seconds</option><option value="8">8 seconds</option><option value="12">12 seconds</option></select></div></div>
+<div class="row"><button id="animationPlay" aria-pressed="false">▶ Play</button><button id="animationStop">Stop / edit</button></div>
+<p id="animationInfo" class="note">Replay records the order you paint, erase, and repaint. Imported drawings, patterns, and resized grids reveal in grid order. Playback never changes your drawing.</p>
+<div class="row"><div class="field"><label for="gifScale">GIF resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">GIF background</label><select id="gifBackground"><option value="dark">Dark</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
+<div class="row"><button id="exportGif">Export animated GIF</button></div><a id="gifDownload" hidden>Save animated GIF</a>
+<p class="note">GIFs loop automatically. The static exports below use your original drawing.</p></section>
 <section class="section"><h2>Patterns</h2><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div></section>
 <section class="section"><h2>Canvas settings</h2>
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div></div>
@@ -81,7 +92,7 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 <main class="stage">
 <div class="stagebar"><span id="dimensions">16 × 16</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
 <div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas"></canvas></div>
-<div class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
+<div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
 </main></div></div>
 <script>
 (async()=>{
@@ -91,6 +102,8 @@ const glyphs=['█','▀','▄','▌','▐','◢','●','─','│','╱','┌',
 const shapes={};
 let rom=null,charset=0,saveTimer=null,initialized=false;
 const PROJECT_KEY='petscii-graphics-project-v2';
+let replayBase=Array(256).fill(''),replayEvents=[];
+let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0,gifUrl=null;
 let W=16,H=16,grid=Array(256).fill(''),glyph='█',erasing=false,painting=false,last=null,pointer=null,unit=20;
 function setStatus(s){$('status').textContent=s}
 function romGlyphRows(code){
@@ -115,7 +128,7 @@ function romCanvasGlyph(target,code,x,y,s){
   for(let r=0;r<8;r++)for(let b=0;b<8;b++)if(rows[r]&(0x80>>b))t.fillRect(b,r,1,1);
   tileCache.set(key,tile);
  }
- target.imageSmoothingEnabled=false;target.drawImage(tile,x,y,s,s);
+ target.imageSmoothingEnabled=false;target.drawImage(tile,0,0,8,8,x,y,s,s);
 }
 function graphicsCode(code){const c=code%128;return c>=64&&(charset===0||c<65||c>90)}
 function drawPalette(){
@@ -173,7 +186,6 @@ function fit(){
  const width=W*unit,height=H*unit,dpr=Math.min(devicePixelRatio||1,3);
  canvas.style.width=width+'px';canvas.style.height=height+'px';
  canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
- ctx.setTransform(canvas.width/width,0,0,canvas.height/height,0,0);
  redraw();
 }
 // Canvas and SVG share the same 16-unit legacy geometry.
@@ -192,23 +204,113 @@ function textGrid(){
  if(!grid.some(g=>typeof g==='number'))return Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map(g=>g||' ').join('')).join('\n');
  return '# PETSCII-GRID 1 '+W+' '+H+' '+charset+'\n'+Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map(g=>typeof g==='number'?g.toString(16).padStart(2,'0').toUpperCase():(g||'--')).join(' ')).join('\n');
 }
-function redraw(){
- ctx.fillStyle='#111c2e';ctx.fillRect(0,0,W*unit,H*unit);
- const line=unit>12?1:.5;
+// Draw in backing-store pixels to avoid stale HiDPI transforms after WebKit canvas resizing.
+function renderGrid(cells){
+ ctx.setTransform(1,0,0,1,0,0);
+ const cellW=canvas.width/W,cellH=canvas.height/H;
+ ctx.fillStyle='#111c2e';ctx.fillRect(0,0,canvas.width,canvas.height);
+ const line=unit>12?1:.5,ratio=canvas.width/(W*unit);
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-  const xx=x*unit,yy=y*unit;
-  ctx.fillStyle='#29364a';ctx.fillRect(xx+line,yy+line,Math.max(0,unit-line*2),Math.max(0,unit-line*2));
-  const g=grid[y*W+x];if(typeof g==='number'&&rom)romCanvasGlyph(ctx,g,xx,yy,unit);else if(typeof g==='number'){ctx.strokeStyle='#ffb4c1';ctx.strokeRect(xx+unit*.2,yy+unit*.2,unit*.6,unit*.6)}else if(typeof g==='string'&&g)graphic(g,xx,yy,unit);
+  const xx=x*cellW,yy=y*cellH;
+  ctx.fillStyle='#29364a';ctx.fillRect(xx+line*ratio,yy+line*ratio,Math.max(0,cellW-line*ratio*2),Math.max(0,cellH-line*ratio*2));
+  const g=cells[y*W+x];if(typeof g==='number'&&rom)romCanvasGlyph(ctx,g,xx,yy,cellW);else if(typeof g==='number'){ctx.strokeStyle='#ffb4c1';ctx.strokeRect(xx+cellW*.2,yy+cellH*.2,cellW*.6,cellH*.6)}else if(typeof g==='string'&&g)graphic(g,xx,yy,cellW);
  }
+}
+function redraw(){
+ renderGrid(animationPreview?animationCells(animationFrame,animationSource()):grid);
  out.value=textGrid();
  clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);
  $('dimensions').textContent=W+' × '+H;
 }
+function resetReplay(){replayBase=Array(W*H).fill('');replayEvents=[];for(let i=0;i<grid.length;i++)if(grid[i]!=='')replayEvents.push([i,grid[i]])}
+function setAnimationSettings(a={effect:'replay',seconds:4,scale:2,background:'dark'}){$('animationEffect').value=a.effect;$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background}
+function animationSettings(){return {effect:$('animationEffect').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value}}
+function animationSource(){return {W,H,grid,base:replayBase,events:replayEvents,...animationSettings()}}
+function animationCount(s){return s.effect==='replay'?Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1)):s.effect==='scroll-x'?s.W:s.effect==='scroll-y'?s.H:s.effect==='inverse'?2:24}
+function animationDelay(i,s){const n=animationCount(s);return s.effect==='replay'?(i===n-1?s.seconds*250:s.seconds*750/(n-1)):s.seconds*1000/n}
+function animationCells(frame,s){
+ const n=animationCount(s),cells=s.effect==='replay'?s.base.slice():Array(s.W*s.H).fill('');
+ if(s.effect==='replay'){const end=Math.floor(frame/(n-1)*s.events.length);for(let j=0;j<end;j++){const [i,g]=s.events[j];cells[i]=g}return cells}
+ const wrap=(x,size)=>(x%size+size)%size;
+ for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
+  let xx=x,yy=y;
+  if(s.effect==='scroll-x')xx=wrap(x+frame,s.W);
+  if(s.effect==='scroll-y')yy=wrap(y+frame,s.H);
+  if(s.effect==='wave')xx=wrap(x+Math.round(Math.sin(frame/n*Math.PI*2+y/Math.max(1,s.H)*Math.PI*2)*Math.min(3,Math.max(1,s.W/4))),s.W);
+  let g=s.grid[yy*s.W+xx];if(s.effect==='inverse'&&frame%2&&g!=='')g=typeof g==='number'?g^128:'';
+  cells[y*s.W+x]=g;
+ }
+ return cells;
+}
+function animationButtons(){
+ $('animationPlay').textContent=animationPlaying?'❚❚ Pause':'▶ Play';$('quickPlay').textContent=animationPlaying?'❚❚':'▶';
+ for(const id of ['animationPlay','quickPlay']){$(id).setAttribute('aria-pressed',String(animationPlaying));$(id).setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation')}
+ $('stageHint').textContent=animationPreview?'Animation preview · tap the canvas to return to drawing.':'Draw by dragging. Tap ☰ to show or hide tools.';
+}
+function stopAnimation(){
+ animationPlaying=false;animationPreview=false;animationElapsed=0;animationFrame=0;cancelAnimationFrame(animationRAF);animationRAF=null;
+ canvas.dataset.animationFrame='';animationButtons();if(initialized)renderGrid(grid);
+}
+function pauseAnimation(){if(!animationPlaying)return;animationElapsed+=performance.now()-animationStart;animationPlaying=false;cancelAnimationFrame(animationRAF);animationRAF=null;animationButtons();setStatus('Animation paused')}
+function animationTick(now){
+ if(!animationPlaying)return;const s=animationSource(),n=animationCount(s);let time=(animationElapsed+now-animationStart)%(s.seconds*1000),index=0;
+ while(index<n-1&&time>=animationDelay(index,s)){time-=animationDelay(index,s);index++}
+ if(index!==animationFrame||canvas.dataset.animationFrame===''){animationFrame=index;renderGrid(animationCells(index,s));canvas.dataset.animationFrame=String(index)}
+ animationRAF=requestAnimationFrame(animationTick);
+}
+function toggleAnimation(){
+ if(animationPlaying){pauseAnimation();return}
+ if(grid.every(g=>g==='')&&!replayEvents.length){setStatus('Draw something first, then press Play');return}
+ animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
+}
+$('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
+$('animationStop').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
+for(const id of ['animationEffect','animationSeconds'])$(id).onchange=()=>{const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
+for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseAnimation()});
+// Replay and GIF export share the exact same frame function and timing.
+$('exportGif').onclick=async()=>{
+ const button=$('exportGif'),source=animationSource();
+ const s={...source,grid:source.grid.slice(),base:source.base.slice(),events:source.events.slice()},bank=charset,bits=rom?.slice();
+ if(!bits&&s.grid.some(g=>typeof g==='number')){setStatus('Reload C64 glyphs before exporting animation');return}
+ if(s.grid.every(g=>g==='')&&!s.events.length){setStatus('Draw something first, then export an animation');return}
+ button.disabled=true;setStatus('Rendering animated GIF…');
+ try{
+  const {GIFEncoder}=await import('./vendor/gifenc.esm.js');
+  const gif=GIFEncoder(),cell=8*s.scale,width=s.W*cell,height=s.H*cell,count=animationCount(s),tiles=new Map();
+  const colors=s.background==='white'?[[255,255,255],[0,0,0]]:[[14,23,40],[217,255,242]];
+  function tileFor(g){
+   if(tiles.has(g))return tiles.get(g);const tile=new Uint8Array(cell*cell);
+   if(typeof g==='number'){
+    const rows=bits.subarray(bank*2048+g*8,bank*2048+g*8+8);
+    for(let y=0;y<cell;y++)for(let x=0;x<cell;x++)tile[y*cell+x]=rows[Math.floor(y/s.scale)]&(128>>Math.floor(x/s.scale))?1:0;
+   }else if(g){
+    const c=document.createElement('canvas');c.width=c.height=cell;const t=c.getContext('2d');t.scale(cell/16,cell/16);t.fill(new Path2D(legacyPaths[g]));const data=t.getImageData(0,0,cell,cell).data;
+    for(let i=0;i<tile.length;i++)tile[i]=data[i*4+3]>=128?1:0;
+   }
+   tiles.set(g,tile);return tile;
+  }
+  let elapsed=0;
+  for(let f=0;f<count;f++){
+   const cells=animationCells(f,s),indexed=new Uint8Array(width*height);
+   for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++)if(cells[y*s.W+x]!==''){
+    const tile=tileFor(cells[y*s.W+x]);for(let row=0;row<cell;row++)indexed.set(tile.subarray(row*cell,(row+1)*cell),(y*cell+row)*width+x*cell);
+   }
+   const end=elapsed+animationDelay(f,s),delay=(Math.round(end/10)-Math.round(elapsed/10))*10;elapsed=end;
+   gif.writeFrame(indexed,width,height,{palette:colors,delay,repeat:0,dispose:2,transparent:s.background==='transparent',transparentIndex:0});
+   setStatus('Rendering GIF: '+(f+1)+' / '+count);await new Promise(resolve=>setTimeout(resolve,0));
+  }
+  gif.finish();const blob=new Blob([gif.bytes()],{type:'image/gif'}),oldUrl=gifUrl;gifUrl=URL.createObjectURL(blob);
+  if(oldUrl)setTimeout(()=>URL.revokeObjectURL(oldUrl),60000);
+  const link=$('gifDownload');link.href=gifUrl;link.download='petscii-'+s.effect+'-'+width+'x'+height+'.gif';link.hidden=false;link.click();
+  setStatus('GIF ready: '+count+' frames · '+width+' × '+height+'. Tap Save animated GIF to save again.');
+ }catch(e){setStatus('GIF export failed: '+e.message)}finally{button.disabled=false}
+};
 const undoStack=[],redoStack=[];
-function snapshot(){return {W,H,grid:[...grid],charset,glyph,erasing,symmetry:$('sym').value};}
-function remember(){undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
+function snapshot(){return {W,H,grid:[...grid],charset,glyph,erasing,symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice()};}
+function remember(){stopAnimation();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
-function restore(state){W=state.W;H=state.H;grid=[...state.grid];charset=state.charset;glyph=state.glyph;erasing=state.erasing;$('charset').value=String(charset);$('sym').value=state.symmetry;$('glyphPage').value=typeof glyph==='number'?String(Math.floor(glyph/64)):'0';if(typeof glyph==='string')$('paletteMode').value='legacy';else if(!graphicsCode(glyph))$('paletteMode').value='all';drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
+function restore(state){stopAnimation();setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];charset=state.charset;glyph=state.glyph;erasing=state.erasing;$('charset').value=String(charset);$('sym').value=state.symmetry;$('glyphPage').value=typeof glyph==='number'?String(Math.floor(glyph/64)):'0';if(typeof glyph==='string')$('paletteMode').value='legacy';else if(!graphicsCode(glyph))$('paletteMode').value='all';drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 function paint(x,y){
@@ -217,7 +319,7 @@ function paint(x,y){
  if(sym==='horizontal'||sym==='both')pts.push([W-1-x,y]);
  if(sym==='vertical'||sym==='both')pts.push([x,H-1-y]);
  if(sym==='both')pts.push([W-1-x,H-1-y]);
- for(const [a,b] of pts)grid[b*W+a]=erasing?'':glyph;
+ for(const [a,b] of pts){const i=b*W+a,g=erasing?'':glyph;if(grid[i]!==g){grid[i]=g;if(replayEvents.length>=20000)resetReplay();else replayEvents.push([i,g])}}
 }
 function position(e){const r=canvas.getBoundingClientRect();return [Math.floor((e.clientX-r.left)*W/r.width),Math.floor((e.clientY-r.top)*H/r.height)];}
 function stroke(a,b){
@@ -232,10 +334,10 @@ canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 function refresh(){for(const b of palette.children){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('erase').onclick=()=>{erasing=!erasing;refresh()};
-$('clear').onclick=()=>{remember();grid.fill('');redraw();setStatus('Canvas cleared')};
-$('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1)grid[y*W+x]=glyph;redraw()};
-$('checker').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)grid[y*W+x]=(x+y)%2?glyph:'';redraw()};
-function resize(){remember();const nw=Number($('columns').value),nh=Number($('rows').value),next=Array(nw*nh).fill('');for(let y=0;y<Math.min(H,nh);y++)for(let x=0;x<Math.min(W,nw);x++)next[y*nw+x]=grid[y*W+x];grid=next;W=nw;H=nh;fit()}
+$('clear').onclick=()=>{remember();grid.fill('');resetReplay();redraw();setStatus('Canvas cleared')};
+$('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1)grid[y*W+x]=glyph;resetReplay();redraw()};
+$('checker').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)grid[y*W+x]=(x+y)%2?glyph:'';resetReplay();redraw()};
+function resize(){remember();const nw=Number($('columns').value),nh=Number($('rows').value),next=Array(nw*nh).fill('');for(let y=0;y<Math.min(H,nh);y++)for(let x=0;x<Math.min(W,nw);x++)next[y*nw+x]=grid[y*W+x];grid=next;W=nw;H=nh;resetReplay();fit()}
 $('columns').onchange=resize;$('rows').onchange=resize;
 $('toggle').onclick=()=>{
  const closed=$('sidebar').classList.toggle('closed');
@@ -243,7 +345,7 @@ $('toggle').onclick=()=>{
  $('toggle').textContent=closed?'☰':'✕';
  requestAnimationFrame(()=>setTimeout(fit,230));
 };
-function download(name,txt,type){const url=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+function download(name,txt,type){const url=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
 $('text').onclick=()=>download('petscii-composition.txt',textGrid(),'text/plain;charset=utf-8');
 function makeSvg(foreground='black',background=null){
  if(!rom&&grid.some(g=>typeof g==='number'))throw Error('Glyph data unavailable; reload C64 glyphs before exporting artwork');
@@ -302,20 +404,24 @@ $('import').onclick=()=>{
    const line=Array.from(lines[y]);for(let x=0;x<Math.min(W,line.length);x++){if(line[x]===' ')continue;if(!glyphs.includes(line[x]))throw Error('Unsupported legacy glyph');next[y*W+x]=line[x]}
   }
   validateProject({format:'petscii-stencil-lab',version:2,columns:nw,rows:nh,grid:next});
-  remember();W=nw;H=nh;grid=next;charset=bank;$('charset').value=String(bank);$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
+  remember();W=nw;H=nh;grid=next;resetReplay();charset=bank;$('charset').value=String(bank);$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
  }catch(e){setStatus('Import failed: '+e.message)}
 };
-function projectData(){return {format:'petscii-stencil-lab',version:2,columns:W,rows:H,grid:[...grid],selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,charset,glyphSource:'builtin'}}
+function projectData(){return {format:'petscii-stencil-lab',version:2,columns:W,rows:H,grid:[...grid],selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,charset,glyphSource:'builtin',animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice()}}}
 function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()))}catch{setStatus('Autosave unavailable; download JSON to keep your work')}}
 function validateProject(data){
  if(data&&data.glyphSource!==undefined&&data.glyphSource!=='builtin')throw Error('Only built-in C64 glyph projects are supported');
  if(!data||data.format!=='petscii-stencil-lab'||![1,2].includes(data.version))throw Error('Unsupported project format');
  if(!Number.isInteger(data.columns)||!Number.isInteger(data.rows)||data.columns<1||data.columns>40||data.rows<1||data.rows>40)throw Error('Invalid dimensions');
  if(!Array.isArray(data.grid)||data.grid.length!==data.columns*data.rows||data.grid.some(g=>g!==''&&!glyphs.includes(g)&&!(Number.isInteger(g)&&g>=0&&g<=255)))throw Error('Invalid glyph grid');
+ const validGlyph=g=>g===''||glyphs.includes(g)||(Number.isInteger(g)&&g>=0&&g<=255);
+ if(data.drawingReplay!==undefined){const r=data.drawingReplay;if(!r||!Array.isArray(r.base)||r.base.length!==data.grid.length||r.base.some(g=>!validGlyph(g))||!Array.isArray(r.events)||r.events.length>20000||r.events.some(e=>!Array.isArray(e)||e.length!==2||!Number.isInteger(e[0])||e[0]<0||e[0]>=data.grid.length||!validGlyph(e[1])))throw Error('Invalid drawing replay');const end=r.base.slice();for(const [i,g] of r.events)end[i]=g;if(end.some((g,i)=>g!==data.grid[i]))throw Error('Replay does not match drawing')}
+ if(data.animation!==undefined){const a=data.animation;if(!a||!['replay','scroll-x','scroll-y','wave','inverse'].includes(a.effect)||![1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background))throw Error('Invalid animation settings')}
 }
 function applyProject(data){
+ stopAnimation();
 
- W=data.columns;H=data.rows;grid=[...data.grid];$('columns').value=String(W);$('rows').value=String(H);
+ W=data.columns;H=data.rows;grid=[...data.grid];if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice())}else resetReplay();setAnimationSettings(data.animation);$('columns').value=String(W);$('rows').value=String(H);
  glyph=(glyphs.includes(data.selectedGlyph)||Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=255)?data.selectedGlyph:'█';
  charset=data.charset===1?1:0;$('charset').value=String(charset);$('glyphPage').value=typeof glyph==='number'?String(Math.floor(glyph/64)):'0';
  if(typeof glyph==='string')$('paletteMode').value='legacy';else if(!graphicsCode(glyph))$('paletteMode').value='all';

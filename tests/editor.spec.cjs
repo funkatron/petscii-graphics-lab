@@ -48,7 +48,7 @@ test('project JSON save and reload round-trip',async({page})=>{
  expect(content.grid).toContain('█');
  await page.locator('#clear').click();
  await page.locator('#projectFile').setInputFiles({name:'saved.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(content))});
- expect(await page.locator('#output').inputValue()).toBe(before);
+ await expect(page.locator('#output')).toHaveValue(before);
 });
 test('SVG, text, and PNG produce downloads',async({page})=>{
  await paint(page);
