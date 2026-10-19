@@ -1,5 +1,5 @@
 const crypto=require('node:crypto');
-const {test,expect,download,loadProject,project}=require('./helpers.cjs');
+const {ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
 const originalSha='fd0d53b8480e86163ac98998976c72cc58d5dd8eb824ed7b829774e74213b420';
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('built-in SVG sheet exactly preserves all 512 source glyphs without a binary asset',async({page})=>{
@@ -19,7 +19,7 @@ test('built-in SVG sheet exactly preserves all 512 source glyphs without a binar
 });
 test('fresh editor draws authentic glyphs and exports without importing a ROM',async({page})=>{
  await expect(page.locator('#romInfo')).toContainText('Built-in C64 SVG glyphs active');await expect(page.locator('#loadRom')).toHaveCount(0);await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','64');
- await page.locator('#border').click();const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.glyphSource).toBe('builtin');expect(saved.grid[0]).toBe(64);
+ await ui(page,'#border');const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.glyphSource).toBe('builtin');expect(saved.grid[0]).toBe(64);
  expect((await download(page,'#svg')).toString()).toContain('scale(2)');expect((await download(page,'#screenCodes'))[0]).toBe(64);
  await page.reload();await expect(page.locator('#romInfo')).toContainText('Built-in');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(saved.grid);
 });
@@ -27,9 +27,9 @@ test('invalid SVG load retains legacy editing and can be retried without losing 
  await loadProject(page,project([0],1,1,{glyphSource:'builtin'}));
  await page.route('**/assets/c64-glyphs.svg',route=>route.fulfill({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg"/>'}));
  await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#romInfo')).toContainText('unavailable');await expect(page.locator('#palette button')).toHaveCount(12);
- await page.locator('#svg').click();await expect(page.locator('#status')).toContainText('Glyph data unavailable');
+ await ui(page,'#svg');await expect(page.locator('#status')).toContainText('Glyph data unavailable');
  expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([0]);
- await page.unroute('**/assets/c64-glyphs.svg');await page.locator('#retryGlyphs').click();await expect(page.locator('#romInfo')).toContainText('active');expect((await download(page,'#svg')).toString()).toContain('scale(2)');
+ await page.unroute('**/assets/c64-glyphs.svg');await ui(page,'#retryGlyphs');await expect(page.locator('#romInfo')).toContainText('active');expect((await download(page,'#svg')).toString()).toContain('scale(2)');
 });
 test('slow built-in loading cannot overwrite an existing autosaved project',async({page})=>{
  await loadProject(page,project([81],1,1,{glyphSource:'builtin'}));await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));

@@ -12,7 +12,7 @@ html,body{height:100%;margin:0}
 button,select,textarea,input{font:inherit}
 .animation-download{display:block;padding:10px;border:1px solid #77ddc4;border-radius:9px;text-align:center}
 .animation-download[hidden]{display:none}
-#quickPlay{margin-left:auto;min-width:44px}
+#quickPlay{min-width:44px}
 button,select{border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px;min-height:42px;padding:8px 11px}
 button{cursor:pointer}
 button:focus-visible,select:focus-visible{outline:3px solid #6cddd0;outline-offset:2px}
@@ -20,16 +20,14 @@ button.active{background:#176655;border-color:#77ddc4}
 button:hover{border-color:#8ba9ba}
 .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 header{height:61px;flex:none;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b4059;padding:8px 14px;background:#111d30}
-h1{font-size:1.08rem;line-height:1.2;margin:0}
+h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.08rem;line-height:1.2;margin:0}
 .subtitle{font-size:.72rem;color:#a2b8ca;margin-top:3px}
 #toggle{font-size:1.12rem;min-width:43px}
 .layout{display:flex;flex:1;min-height:0;position:relative}
-.sidebar{width:294px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:#18263a;border-right:1px solid #344761;padding:14px;transition:width .2s ease,padding .2s ease;scrollbar-width:thin}
+.sidebar{width:276px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:#18263a;border-right:1px solid #344761;padding:10px;transition:width .2s ease,padding .2s ease;scrollbar-width:thin}
 .sidebar.closed{width:0;padding:0;border:0;overflow:hidden}
-.sidebar h2{font-size:.85rem;margin:0 0 9px;color:#bfcedd}
-.section{margin-bottom:19px;padding-bottom:16px;border-bottom:1px solid #33465e}
-.palette{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;max-height:252px;overflow-y:auto;overscroll-behavior:contain;padding:3px}
-.glyph{height:49px;font-size:23px;padding:0;display:flex;align-items:center;justify-content:center;position:relative}
+.palette{display:grid;grid-template-columns:repeat(auto-fit,minmax(42px,1fr));gap:5px;padding:2px}
+.glyph{height:44px;font-size:23px;padding:0;display:flex;align-items:center;justify-content:center;position:relative}
 .glyph small{position:absolute;right:3px;bottom:1px;font:9px ui-monospace,monospace;color:#b2c5d5}
 .glyph canvas{pointer-events:none}
 .sidebar.closed{visibility:hidden}
@@ -50,6 +48,43 @@ textarea{resize:vertical;width:100%;min-height:80px;background:#0e1728;color:#e6
 canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:crosshair;image-rendering:pixelated}
 .stagefoot{font-size:.72rem;color:#9eb2c5;flex:none;text-align:center}
 #quickglyph{font-size:1rem;color:#9ee6d4}
+[hidden]{display:none!important}
+.app-title{min-width:0;flex:1}
+#glyphToggle{display:flex;align-items:center;gap:7px}
+#glyphPreview{width:24px;height:24px;flex:none}
+.tool-strip{position:sticky;top:-10px;z-index:2;background:#18263a;padding:1px 0 8px}
+.tool-strip .row{margin:0}
+.sidebar button{font-size:.79rem;padding:8px 6px}
+.sidebar select,.glyph-picker select{font-size:.84rem}
+.tool-strip button{white-space:nowrap}
+#cancelAnimationExport{width:100%;margin-top:7px;border-color:#dfb77a}
+.tool-group{border:1px solid #33465e;border-radius:9px;margin-bottom:8px}
+summary{cursor:pointer;min-height:44px;padding:12px 10px;font-size:.83rem;font-weight:600;color:#cbdbe7}
+summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radius:8px}
+.group-body{padding:0 10px 10px}
+.field+.field{margin-top:9px}
+.row .field+.field{margin-top:0}
+.full-width{width:100%}
+.help-disclosure{border-top:1px solid #33465e;margin-top:10px}
+.help-disclosure>summary{font-size:.75rem;padding:12px 0}
+.summary-badge{float:right;font-size:.65rem;color:#9ce6ca;font-weight:400;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.export-tabs{display:flex;gap:4px;margin:10px 0}
+.export-tabs button{flex:1;min-width:0;padding:8px 3px;font-size:.77rem}
+.export-tabs [aria-selected=true]{background:#176655;border-color:#77ddc4}
+[role=tabpanel]{padding-top:2px}
+.motion-summary{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:.72rem;color:#bfcedd;margin-bottom:10px}
+.motion-summary button{padding:6px 9px}
+.animation-download{margin-top:8px}
+.glyph-picker{width:320px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:#18263a;padding:10px;border-left:1px solid #344761;scrollbar-width:thin}
+.glyph-picker h2{font-size:.9rem;margin:0}
+.picker-heading{display:flex;align-items:center;justify-content:space-between;position:sticky;top:-10px;background:#18263a;padding:5px 0;z-index:1}
+.picker-heading button{min-width:42px}
+.inverse-button{align-self:flex-end;font-size:.72rem;padding:8px}
+.glyph-backdrop{position:absolute;inset:0;z-index:6;border:0;border-radius:0;background:#0005;padding:0}
+@media(max-width:1199px){
+ .glyph-picker{position:absolute;right:10px;top:10px;bottom:10px;width:min(420px,calc(100% - 20px));border:1px solid #54718c;border-radius:12px;z-index:7;box-shadow:0 10px 45px #0009}
+}
+@media(max-width:480px){header{gap:7px;padding:7px 8px}h1{font-size:.92rem}.subtitle{display:none}#glyphToggle{padding:7px;gap:4px}}
 @media(max-width:690px){
  header{height:56px}
  .sidebar{position:absolute;left:0;top:0;bottom:0;z-index:5;width:min(310px,86vw);box-shadow:12px 0 30px #0008}
@@ -61,47 +96,90 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 </head>
 <body>
 <div class="app">
-<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div><h1>PETSCII Graphics Lab</h1><div class="subtitle">Touch-first graphics composition</div></div><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
+<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1><div class="subtitle">Touch-first graphics composition</div></div><button id="glyphToggle" aria-expanded="false" aria-controls="glyphPicker" title="Choose a glyph"><canvas id="glyphPreview" width="24" height="24" aria-hidden="true"></canvas><span>Glyphs</span></button><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
 <div class="layout">
-<aside id="sidebar" class="sidebar">
-<section class="section"><h2>C64 character glyphs</h2>
-<div class="field"><label for="charset">Character set</label><select id="charset"><option value="0">Uppercase / graphics</option><option value="1">Lowercase / uppercase</option></select></div>
-<p class="note" id="romInfo">Loading C64 glyphs…</p>
-<p class="note">Both sets are ready to draw. <a href="./assets/c64-glyphs.svg" target="_blank" rel="noopener">View SVG glyph sheet</a>.</p>
-<button id="retryGlyphs" hidden>Reload C64 glyphs</button></section><section class="section"><h2>Graphics palette</h2><div id="palette" class="palette"></div><div class="field"><label for="paletteMode">Palette</label><select id="paletteMode"><option value="graphics">Graphics only</option><option value="all">All screen codes</option><option value="legacy">Legacy shapes</option></select></div><div class="row"><button id="inverse">Inverse ±128</button></div><div class="field"><label for="glyphPage">Glyph page</label><select id="glyphPage"><option value="0">Codes 0–63</option><option value="1">Codes 64–127</option><option value="2">Codes 128–191</option><option value="3">Codes 192–255</option></select></div><p class="note">Choose a glyph, then drag to paint. The selected glyph is repeated across each cell.</p>
-<div class="row"><button id="erase">Eraser</button><button id="clear">Clear</button></div><div class="row"><button id="undo" disabled>↶ Undo</button><button id="redo" disabled>↷ Redo</button></div></section>
-<section class="section"><h2>Animation</h2>
-<div class="field"><label for="animationEffect">Effect</label><select id="animationEffect"><option value="replay">Replay drawing</option><option value="scroll-x">Scroll left</option><option value="scroll-y">Scroll up</option><option value="wave">Wave rows</option><option value="inverse">Inverse pulse</option></select></div>
-<div class="row"><div class="field"><label for="animationSeconds">Animation speed</label><select id="animationSeconds"><option value="0.5">8× · ½ second / loop</option><option value="1">4× · 1 second / loop</option><option value="2" selected>2× · 2 seconds / loop</option><option value="4">1× · 4 seconds / loop</option><option value="8">½× · 8 seconds / loop</option><option value="12">⅓× · 12 seconds / loop</option></select></div></div>
-<p class="note">Shorter loops play faster. Speed applies to preview, GIF, PNG frames, and video.</p>
-<div class="row"><button id="animationPlay" aria-pressed="false">▶ Play</button><button id="animationStop">Stop / edit</button></div>
-<p id="animationInfo" class="note">Replay records the order you paint, erase, and repaint. Imported drawings, patterns, and resized grids reveal in grid order. Playback never changes your drawing.</p>
-<div class="row"><div class="field"><label for="gifScale">Animation resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">Animation background</label><select id="gifBackground"><option value="dark">Dark</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
-<div class="row"><button id="exportGif">Export animated GIF</button></div><a id="gifDownload" class="animation-download" hidden>Save animated GIF</a>
-<div class="row"><button id="exportFrames">Export PNG frames (.zip)</button><button id="cancelAnimationExport" hidden>Cancel export</button></div><a id="framesDownload" class="animation-download" hidden>Save frame ZIP</a>
-<div class="row"><button id="exportVideo">Export video</button></div><a id="videoDownload" class="animation-download" hidden>Save video</a>
-<p class="note">Video exports one loop without audio: MP4 where supported, WebM otherwise. Transparent becomes a solid dark background in video.</p>
-<p class="note">ZIP includes numbered PNGs, frame timings, and an editable project. GIFs loop automatically. The static exports below use your original drawing.</p></section>
-<section class="section"><h2>Patterns</h2><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div></section>
-<section class="section"><h2>Canvas settings</h2>
-<div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option>8</option><option selected>16</option><option>20</option><option>24</option><option>32</option></select></div></div>
+<aside id="sidebar" class="sidebar" aria-label="Drawing tools">
+<div class="tool-strip"><div class="row"><button id="erase">Eraser</button><button id="undo" disabled>↶ Undo</button><button id="redo" disabled>↷ Redo</button></div><button id="cancelAnimationExport" hidden>Cancel export</button></div>
+<details id="canvasDetails" class="tool-group" open><summary>Canvas &amp; tools</summary><div class="group-body">
+<div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option selected>16</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option selected>16</option></select></div></div>
 <div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
-<p class="note">Grid cells automatically scale to fill the available drawing area while staying square.</p></section>
-<section class="section"><h2>Project</h2><div class="row"><button id="saveProject">Save project (.json)</button><button id="loadProject">Load project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden><p class="note">Saves the editable grid, character set, glyph, and symmetry. Changes also autosave on this device; download JSON for a portable backup.</p></section>
-<section class="section"><h2>Stencil-safety preview</h2><div class="row"><button id="checkStencil">Analyze potential islands</button></div><p id="stencilReport" class="note" aria-live="polite">A preliminary geometry screening tool. Not a manufacturing certification.</p></section>
-<section class="section"><h2>Export and import</h2>
-<div class="row"><button id="svg">Download SVG</button><button id="text">Download text</button></div><div class="row"><button id="screenCodes">Download screen codes (.bin)</button></div><div class="row"><div class="field"><label for="pngScale">PNG resolution</label><select id="pngScale"><option value="1">1× (16 px/cell)</option><option value="2">2× (32 px/cell)</option><option value="4" selected>4× (64 px/cell)</option><option value="8">8× (128 px/cell)</option></select></div><div class="field"><label for="pngBg">Background</label><select id="pngBg"><option value="transparent">Transparent</option><option value="white" selected>White</option><option value="black">Black</option></select></div></div><div class="row"><button id="png">Download PNG bitmap</button></div><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div>
-<textarea id="output" aria-label="Text composition"></textarea><p class="note">Built-in SVGs use exact 8×8 C64 glyph shapes. SVG and PNG use crisp pixels. C64/mixed text is a lossless labeled hex grid (not PETSCII bytes); legacy-only text uses Unicode shapes. Binary export writes row-major screen codes and requires no legacy shapes. The C64 glyph sheet is included with the editor.</p>
-</section></aside>
+<div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div><button id="clear" class="full-width">Clear drawing</button>
+</div></details>
+<details id="animationDetails" class="tool-group"><summary>Animation</summary><div class="group-body">
+<div class="field"><label for="animationEffect">Effect</label><select id="animationEffect"><option value="replay">Replay drawing</option><option value="scroll-x">Scroll left</option><option value="scroll-y">Scroll up</option><option value="wave">Wave rows</option><option value="inverse">Inverse pulse</option></select></div>
+<div class="field"><label for="animationSeconds">Animation speed</label><select id="animationSeconds"><option value="0.5">8× · ½ second / loop</option><option value="1">4× · 1 second / loop</option><option value="2" selected>2× · 2 seconds / loop</option><option value="4">1× · 4 seconds / loop</option><option value="8">½× · 8 seconds / loop</option><option value="12">⅓× · 12 seconds / loop</option></select></div>
+<div class="row"><button id="animationPlay" aria-pressed="false">▶ Play</button><button id="animationStop">Stop / edit</button></div>
+<details class="help-disclosure"><summary>About replay &amp; speed</summary><p id="animationInfo" class="note">Replay follows the order you paint, erase, and repaint. Imported drawings, patterns, and resized grids reveal in grid order. Shorter loops play faster in the preview and all animation exports. Playback never changes your drawing.</p></details>
+</div></details>
+<details id="fileDetails" class="tool-group"><summary>Save &amp; export <span id="exportBadge" class="summary-badge"></span></summary><div class="group-body">
+<div class="row"><button id="saveProject">Save project</button><button id="loadProject">Load project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
+<p class="note">Project files keep editable art and replay. Changes also autosave on this device.</p>
+<div id="exportTabs" class="export-tabs" role="tablist" aria-label="Export mode">
+<button id="export-tab-still" role="tab" aria-selected="true" aria-controls="export-still" tabindex="0" data-export-tab="still">Still</button>
+<button id="export-tab-motion" role="tab" aria-selected="false" aria-controls="export-motion" tabindex="-1" data-export-tab="motion">Animation</button>
+<button id="export-tab-data" role="tab" aria-selected="false" aria-controls="export-data" tabindex="-1" data-export-tab="data">Data</button></div>
+<div id="export-still" role="tabpanel" aria-labelledby="export-tab-still" data-export-mode="still">
+<div class="row"><div class="field"><label for="pngScale">PNG resolution</label><select id="pngScale"><option value="1">16 px/cell</option><option value="2">32 px/cell</option><option value="4" selected>64 px/cell</option><option value="8">128 px/cell</option></select></div><div class="field"><label for="pngBg">Background</label><select id="pngBg"><option value="transparent">Transparent</option><option value="white" selected>White</option><option value="black">Black</option></select></div></div>
+<button id="png" class="full-width">Download PNG bitmap</button><div class="row"><button id="svg">Download SVG</button></div><p class="note">Grid-free artwork. SVG uses black ink on transparency.</p>
+</div>
+<div id="export-motion" role="tabpanel" aria-labelledby="export-tab-motion" data-export-mode="motion" hidden>
+<div class="motion-summary"><span id="motionSummary">Replay drawing · 2 s / loop</span><button id="editAnimation" aria-label="Edit animation settings">Edit</button></div>
+<div class="field"><label for="animationFormat">Animation format</label><select id="animationFormat"><option value="gif">Animated GIF</option><option value="video">Video (MP4 / WebM)</option><option value="frames">PNG frames (.zip)</option></select></div>
+<div class="row"><div class="field"><label for="gifScale">Animation resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">Animation background</label><select id="gifBackground"><option value="dark">Dark</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
+<div data-motion-format="gif"><button id="exportGif" class="full-width">Export animated GIF</button><a id="gifDownload" class="animation-download" hidden>Save animated GIF</a><p class="note">Loops automatically. Supports transparency.</p></div>
+<div data-motion-format="video" hidden><button id="exportVideo" class="full-width">Export video</button><a id="videoDownload" class="animation-download" hidden>Save video</a><p class="note">One silent loop. MP4 where supported; WebM otherwise. Transparent becomes dark.</p></div>
+<div data-motion-format="frames" hidden><button id="exportFrames" class="full-width">Export PNG frames (.zip)</button><a id="framesDownload" class="animation-download" hidden>Save frame ZIP</a><p class="note">Numbered PNGs, frame timings, and an editable project.</p></div>
+</div>
+<div id="export-data" role="tabpanel" aria-labelledby="export-tab-data" data-export-mode="data" hidden>
+<div class="row"><button id="text">Download text</button><button id="screenCodes">Screen codes (.bin)</button></div>
+<textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div>
+<details class="help-disclosure"><summary>Data formats</summary><p class="note">C64/mixed text is a lossless labeled hex grid with dimensions and character set, not PETSCII bytes. Legacy-only text uses Unicode approximations. Binary export writes row-major screen codes, with no dimensions or charset; legacy shapes cannot be converted safely.</p></details>
+</div></div></details>
+<details id="helpDetails" class="tool-group"><summary>Help &amp; extras</summary><div class="group-body">
+<p class="note">Open Glyphs to choose a character, then drag on the canvas. Canvas cells fit the workspace automatically. Use ☰ to hide these tools. Undo restores a whole stroke or canvas operation.</p>
+<details id="stencilDetails" class="help-disclosure"><summary>Experimental stencil check</summary><button id="checkStencil" class="full-width">Analyze potential islands</button><p id="stencilReport" class="note" aria-live="polite">A preliminary geometry screening tool for legacy shapes. Not a manufacturing certification.</p></details>
+</div></details></aside>
 <main class="stage">
 <div class="stagebar"><span id="dimensions">16 × 16</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
 <div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas"></canvas></div>
 <div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
-</main></div></div>
+</main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
+<aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
+<div class="picker-heading"><h2>Glyphs</h2><button id="glyphClose" aria-label="Close glyph picker">✕</button></div>
+<div class="row"><div class="field"><label for="glyphPage">Glyph page</label><select id="glyphPage"><option value="0">Codes 0–63</option><option value="1">Codes 64–127</option><option value="2">Codes 128–191</option><option value="3">Codes 192–255</option></select></div><button id="inverse" class="inverse-button" title="Select inverse character">Inverse ±128</button></div>
+<div id="palette" class="palette"></div>
+<details id="glyphOptions" class="help-disclosure"><summary>Character options <span id="sourceBadge" class="summary-badge">C64</span></summary>
+<div class="field"><label for="paletteMode">Palette</label><select id="paletteMode"><option value="graphics">Graphics only</option><option value="all">All screen codes</option><option value="legacy">Legacy shapes</option></select></div>
+<div class="field"><label for="charset">Character set</label><select id="charset"><option value="0">Uppercase / graphics</option><option value="1">Lowercase / uppercase</option></select></div>
+<p class="note" id="romInfo">Loading C64 glyphs…</p><button id="retryGlyphs" class="full-width" hidden>Reload C64 glyphs</button>
+<p class="note">Both character sets and inverse slots use authentic 8×8 C64 artwork. <a href="./assets/c64-glyphs.svg" target="_blank" rel="noopener">View SVG glyph sheet</a>. Legacy shapes are approximations.</p>
+</details></aside>
+</div></div>
 <script>
 (async()=>{
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d'),frame=$('frame'),palette=$('palette'),out=$('output');
+// Navigation is UI state only: it never changes artwork, history or playback.
+const widePicker=matchMedia('(min-width:1200px)');
+function setGlyphPicker(open,focus=false){
+ $('glyphPicker').hidden=!open;$('glyphToggle').setAttribute('aria-expanded',String(open));
+ $('glyphBackdrop').hidden=!open||widePicker.matches;
+ requestAnimationFrame(()=>{fit();if(open&&focus){const selected=palette.querySelector('.active')||$('glyphPage');selected.focus({preventScroll:true});selected.scrollIntoView({block:'nearest'})}});
+}
+function selectedGlyph(){if(!widePicker.matches){setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})}}
+$('glyphToggle').onclick=()=>setGlyphPicker($('glyphPicker').hidden,true);
+for(const id of ['glyphClose','glyphBackdrop'])$(id).onclick=()=>{setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('glyphPicker').hidden){setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})}});
+widePicker.addEventListener('change',()=>{$('glyphBackdrop').hidden=$('glyphPicker').hidden||widePicker.matches;requestAnimationFrame(fit)});
+const exportTabs=[...document.querySelectorAll('[data-export-tab]')];
+function selectExportTab(tab){
+ for(const item of exportTabs){const active=item===tab;item.setAttribute('aria-selected',String(active));item.tabIndex=active?0:-1}
+ for(const panel of document.querySelectorAll('[data-export-mode]'))panel.hidden=panel.dataset.exportMode!==tab.dataset.exportTab;
+}
+for(const tab of exportTabs){tab.onclick=()=>selectExportTab(tab);tab.onkeydown=e=>{let index=exportTabs.indexOf(tab);if(e.key==='ArrowRight')index=(index+1)%3;else if(e.key==='ArrowLeft')index=(index+2)%3;else if(e.key==='Home')index=0;else if(e.key==='End')index=2;else return;e.preventDefault();selectExportTab(exportTabs[index]);exportTabs[index].focus()}}
+$('animationFormat').onchange=()=>{for(const group of document.querySelectorAll('[data-motion-format]'))group.hidden=group.dataset.motionFormat!==$('animationFormat').value};
+$('editAnimation').onclick=()=>{$('animationDetails').open=true;$('animationEffect').focus();$('animationDetails').scrollIntoView({block:'nearest'})};
+function updateMotionSummary(){$('motionSummary').textContent=$('animationEffect').selectedOptions[0].textContent+' · '+$('animationSeconds').value+' s / loop'}
 const glyphs=['█','▀','▄','▌','▐','◢','●','─','│','╱','┌','┼'];
 const shapes={};
 let rom=null,charset=0,saveTimer=null,initialized=false;
@@ -146,11 +224,11 @@ function drawPalette(){
    const btn=document.createElement('button');btn.className='glyph';btn.dataset.g=String(code);btn.title='C64 screen code '+code;btn.setAttribute('aria-label',btn.title);
    const tile=document.createElement('canvas');tile.width=32;tile.height=32;tile.style.cssText='width:28px;height:28px;image-rendering:pixelated';
    romCanvasGlyph(tile.getContext('2d'),code,0,0,32);btn.appendChild(tile);const label=document.createElement('small');label.textContent=code.toString(16).padStart(2,'0').toUpperCase();btn.appendChild(label);
-   btn.onclick=()=>{glyph=code;erasing=false;refresh()};palette.appendChild(btn);
+   btn.onclick=()=>{glyph=code;erasing=false;refresh();selectedGlyph()};palette.appendChild(btn);
   }
  }else for(const g of glyphs){
   const b=document.createElement('button');b.className='glyph';b.textContent=g;b.dataset.g=g;
-  b.addEventListener('click',()=>{glyph=g;erasing=false;refresh()});palette.appendChild(b);
+  b.addEventListener('click',()=>{glyph=g;erasing=false;refresh();selectedGlyph()});palette.appendChild(b);
  }
  refresh();
 }
@@ -160,7 +238,7 @@ $('inverse').onclick=()=>{if(typeof glyph!=='number'){setStatus('Select a C64 gl
 $('charset').onchange=()=>{remember();charset=Number($('charset').value);drawPalette();redraw();setStatus('Character set changed')};
 function updateSourceInfo(){
  $('romInfo').textContent=rom?'Built-in C64 SVG glyphs active. Both character sets and inverse slots included.':'C64 glyphs unavailable; reload glyphs to use the authentic set.';
- $('retryGlyphs').hidden=!!rom;
+ $('retryGlyphs').hidden=!!rom;$('sourceBadge').textContent=rom?'C64':'Unavailable';if(!rom){$('glyphOptions').open=true;setGlyphPicker(true)}
 }
 async function loadBuiltinGlyphs(){
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),8000);let response;
@@ -227,7 +305,7 @@ function redraw(){
  $('dimensions').textContent=W+' × '+H;
 }
 function resetReplay(){replayBase=Array(W*H).fill('');replayEvents=[];for(let i=0;i<grid.length;i++)if(grid[i]!=='')replayEvents.push([i,grid[i]])}
-function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=a.effect;$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background}
+function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=a.effect;$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;updateMotionSummary()}
 function animationSettings(){return {effect:$('animationEffect').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value}}
 function animationSource(){return {W,H,grid,base:replayBase,events:replayEvents,...animationSettings()}}
 function animationCount(s){const steps=s.effect==='scroll-x'?s.W:s.effect==='scroll-y'?s.H:s.effect==='inverse'?2:24;return s.effect==='replay'?Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1)):Math.max(1,Math.min(steps,Math.floor(s.seconds*1000/20)))}
@@ -247,6 +325,7 @@ function animationCells(frame,s){
  return cells;
 }
 function animationButtons(){
+ updateMotionSummary();
  $('animationPlay').textContent=animationPlaying?'❚❚ Pause':'▶ Play';$('quickPlay').textContent=animationPlaying?'❚❚':'▶';
  for(const id of ['animationPlay','quickPlay']){$(id).setAttribute('aria-pressed',String(animationPlaying));$(id).setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation')}
  $('stageHint').textContent=animationPreview?'Animation preview · tap the canvas to return to drawing.':'Draw by dragging. Tap ☰ to show or hide tools.';
@@ -317,7 +396,7 @@ async function exportAnimation(kind){
  let snapshot;try{snapshot=animationExportSnapshot()}catch(e){setStatus(e.message);return}
  const task={cancelled:false};animationExportTask=task;
  for(const id of ['exportGif','exportFrames','exportVideo'])$(id).disabled=true;
- $('cancelAnimationExport').hidden=false;setStatus(kind==='gif'?'Rendering animated GIF…':kind==='video'?'Preparing video encoder…':'Rendering PNG frames…');
+ $('cancelAnimationExport').hidden=false;$('exportBadge').textContent='Working…';setStatus(kind==='gif'?'Rendering animated GIF…':kind==='video'?'Preparing video encoder…':'Rendering PNG frames…');
  let zip,video;
  const label=kind==='gif'?'GIF':kind==='video'?'Video':'ZIP';
  const checkpoint=()=>{if(task.cancelled)throw Error('Export canceled')};
@@ -365,8 +444,8 @@ async function exportAnimation(kind){
   checkpoint();const oldUrl=animationExportUrls[kind],url=URL.createObjectURL(blob);animationExportUrls[kind]=url;
   if(oldUrl)setTimeout(()=>URL.revokeObjectURL(oldUrl),60000);
   const link=$(kind==='gif'?'gifDownload':kind==='video'?'videoDownload':'framesDownload');link.href=url;link.download='petscii-'+s.effect+'-'+width+'x'+height+(kind==='gif'?'.gif':kind==='video'?'.'+video.extension:'-frames.zip');link.hidden=false;link.click();
-  setStatus(label+' ready: '+frames.length+' frames · '+width+' × '+height+'. Tap '+(kind==='gif'?'Save animated GIF':kind==='video'?'Save video':'Save frame ZIP')+' to save again.');
- }catch(e){setStatus(task.cancelled?'Animation export canceled':(kind==='zip'?'Frame ZIP':label)+' export failed: '+e.message)}
+  $('exportBadge').textContent=label+' ready';setStatus(label+' ready: '+frames.length+' frames · '+width+' × '+height+'. Tap '+(kind==='gif'?'Save animated GIF':kind==='video'?'Save video':'Save frame ZIP')+' to save again.');
+ }catch(e){$('exportBadge').textContent=task.cancelled?'Canceled':'Failed';setStatus(task.cancelled?'Animation export canceled':(kind==='zip'?'Frame ZIP':label)+' export failed: '+e.message)}
  finally{try{await video?.cancel()}catch{}zip?.terminate();animationExportTask=null;for(const id of ['exportGif','exportFrames','exportVideo'])$(id).disabled=false;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false}
 }
 $('exportGif').onclick=()=>exportAnimation('gif');
@@ -398,7 +477,7 @@ canvas.addEventListener('pointermove',e=>{if(!painting||e.pointerId!==pointer)re
 function stop(e){if(pointer!==e.pointerId)return;if(e.type==='pointerup')stroke(last,position(e));painting=false;pointer=null;last=null;setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',()=>{painting=false;pointer=null;last=null});
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
-function refresh(){for(const b of palette.children){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
+function refresh(){const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle='#d9fff2';if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);else{preview.save();preview.scale(1.5,1.5);preview.fill(new Path2D(legacyPaths[glyph]));preview.restore()}for(const b of palette.children){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('erase').onclick=()=>{erasing=!erasing;refresh()};
 $('clear').onclick=()=>{remember();grid.fill('');resetReplay();redraw();setStatus('Canvas cleared')};
 $('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1)grid[y*W+x]=glyph;resetReplay();redraw()};
@@ -557,9 +636,9 @@ const ro=new ResizeObserver(()=>fit());ro.observe(frame);
 if(matchMedia('(max-width:690px)').matches){$('sidebar').classList.add('closed');$('toggle').setAttribute('aria-expanded','false')}
 for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(let n=1;n<=40;n++){const o=document.createElement('option');o.value=o.textContent=n;select.appendChild(o)}select.value='16'}
 // Do not autosave until the glyph asset and existing draft have been restored.
-$('sidebar').inert=true;canvas.style.pointerEvents='none';
+$('sidebar').inert=true;$('glyphPicker').inert=true;$('glyphToggle').disabled=true;canvas.style.pointerEvents='none';
 try{await loadBuiltinGlyphs();glyph=64;$('glyphPage').value='1';updateSourceInfo()}catch{$('paletteMode').value='legacy';updateSourceInfo();setStatus('C64 glyphs unavailable; legacy drawing remains available')}
 try{const saved=JSON.parse(localStorage.getItem(PROJECT_KEY));if(saved){validateProject(saved);applyProject(saved);setStatus('Autosaved project restored'+(!rom&&grid.some(g=>typeof g==='number')?'; reload C64 glyphs to render codes':''))}}catch{setStatus('Saved draft could not be restored; load a JSON backup')}
-initialized=true;$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
+initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
 })();
 </script></body></html>

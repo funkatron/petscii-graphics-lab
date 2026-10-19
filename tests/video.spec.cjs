@@ -1,6 +1,6 @@
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{execFileSync}=require('node:child_process');
 const {GifReader}=require('omggif');
-const {test,expect,contents,download,loadProject,project}=require('./helpers.cjs');
+const {ui,test,expect,contents,download,loadProject,project}=require('./helpers.cjs');
 function decodeVideo(bytes){
  const folder=fs.mkdtempSync(path.join(os.tmpdir(),'petscii-video-')),file=path.join(folder,'video.bin');
  try{
@@ -15,10 +15,10 @@ const ink=[217,255,242],dark=[14,23,40];
 async function sample(page,extra={}){await loadProject(page,project([160,'','',''],4,1,{animation:{effect:'scroll-x',seconds:.5,scale:4,background:'dark'},...extra}))}
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('speed defaults to two seconds, supports faster replay, and persists in projects',async({page})=>{
- await expect(page.getByLabel('Animation speed',{exact:true})).toHaveValue('2');await sample(page);await page.locator('#animationEffect').selectOption('replay');
+ await expect(page.getByLabel('Animation speed',{exact:true})).toHaveValue('2');await sample(page);await ui(page,'#animationEffect','selectOption','replay');
  const gif=new GifReader(await download(page,'#exportGif'));expect(Array.from({length:gif.numFrames()},(_,i)=>gif.frameInfo(i).delay).reduce((a,b)=>a+b,0)).toBe(50);
  const p=JSON.parse(await download(page,'#saveProject'));expect(p.animation.seconds).toBe(.5);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationSeconds')).toHaveValue('0.5');
- await page.locator('#quickPlay').click();await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await page.locator('#animationSeconds').selectOption('1');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await page.locator('#animationStop').click();expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(p.grid);
+ await ui(page,'#quickPlay');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#animationSeconds','selectOption','1');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#animationStop');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(p.grid);
 });
 test('fast scrolling covers the whole grid with GIF-safe frame delays',async({page})=>{
  await loadProject(page,project([160,...Array(39).fill('')],40,1,{animation:{effect:'scroll-x',seconds:.5,scale:1,background:'dark'}}));
@@ -39,8 +39,8 @@ test('video drawing replay retains painting order, erasures and the final hold',
 });
 test('video snapshots options and dimensions during loading; transparent video becomes dark',async({page})=>{
  await sample(page,{animation:{effect:'scroll-x',seconds:.5,scale:4,background:'transparent'}});let release;const gate=new Promise(resolve=>release=resolve);let requested;const started=new Promise(resolve=>requested=resolve);
- await page.route('**/video-export.js',async r=>{requested();await gate;await r.continue()});const waiting=page.waitForEvent('download');await page.locator('#exportVideo').click();await started;
- await page.locator('#columns').selectOption('2');await page.locator('#animationSeconds').selectOption('8');await page.locator('#gifBackground').selectOption('white');release();
+ await page.route('**/video-export.js',async r=>{requested();await gate;await r.continue()});const waiting=page.waitForEvent('download');await ui(page,'#exportVideo');await started;
+ await ui(page,'#columns','selectOption','2');await ui(page,'#animationSeconds','selectOption','8');await ui(page,'#gifBackground','selectOption','white');release();
  const v=decodeVideo(await contents(await waiting));expect(v.stream.width).toBe(128);expect(Number(v.info.format.duration)).toBeCloseTo(.5,2);nearPixel(v,0,48,16,dark);await expect(page.locator('#columns')).toHaveValue('2');
 });
 test('video falls back to WebM when AVC encoding is unavailable',async({page})=>{
@@ -49,17 +49,17 @@ test('video falls back to WebM when AVC encoding is unavailable',async({page})=>
 });
 test('canceling video while loading restores export controls and permits retry',async({page})=>{
  await sample(page);let release;const gate=new Promise(resolve=>release=resolve);let requested;const started=new Promise(resolve=>requested=resolve);await page.route('**/video-export.js',async r=>{requested();await gate;await r.continue()});
- const files=[];page.on('download',d=>files.push(d));await page.locator('#exportVideo').click();await started;await expect(page.locator('#exportFrames')).toBeDisabled();await page.locator('#cancelAnimationExport').click();release();
+ const files=[];page.on('download',d=>files.push(d));await ui(page,'#exportVideo');await started;await expect(page.locator('#exportFrames')).toBeDisabled();await ui(page,'#cancelAnimationExport');release();
  await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(files).toHaveLength(0);await expect(page.locator('#videoDownload')).toBeHidden();await expect(page.locator('#exportVideo')).toBeEnabled();expect(decodeVideo(await download(page,'#exportVideo')).frames).toHaveLength(4);
 });
 test('unsupported video and module loading errors preserve the drawing and restore buttons',async({page})=>{
- await sample(page);await page.route('**/video-export.js',r=>r.abort());await page.locator('#exportVideo').click();await expect(page.locator('#status')).toContainText('Video export failed');await expect(page.locator('#exportVideo')).toBeEnabled();await page.unroute('**/video-export.js');
- await page.addInitScript(()=>Object.defineProperty(window,'VideoEncoder',{value:undefined,configurable:true}));await page.reload();await page.locator('.app[data-ready=true]').waitFor();await page.locator('#exportVideo').click();await expect(page.locator('#status')).toContainText('Video encoding is unavailable');await expect(page.locator('#exportGif')).toBeEnabled();expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([160,'','','']);
+ await sample(page);await page.route('**/video-export.js',r=>r.abort());await ui(page,'#exportVideo');await expect(page.locator('#status')).toContainText('Video export failed');await expect(page.locator('#exportVideo')).toBeEnabled();await page.unroute('**/video-export.js');
+ await page.addInitScript(()=>Object.defineProperty(window,'VideoEncoder',{value:undefined,configurable:true}));await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#exportVideo');await expect(page.locator('#status')).toContainText('Video encoding is unavailable');await expect(page.locator('#exportGif')).toBeEnabled();expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([160,'','','']);
 });
 test('canceling native video finalization keeps the previous completed video available',async({page})=>{
  await sample(page);const previous=await download(page,'#exportVideo'),url=await page.locator('#videoDownload').getAttribute('href');
  let release;const gate=new Promise(resolve=>release=resolve);await page.exposeFunction('waitForVideoFlush',()=>gate);
  await page.evaluate(()=>{const original=VideoEncoder.prototype.flush;VideoEncoder.prototype.flush=async function(){document.documentElement.dataset.videoFlush='waiting';await window.waitForVideoFlush();return original.call(this)}});
- const files=[];page.on('download',d=>files.push(d));await page.locator('#exportVideo').click();await expect(page.locator('html')).toHaveAttribute('data-video-flush','waiting');await page.locator('#cancelAnimationExport').click();release();
+ const files=[];page.on('download',d=>files.push(d));await ui(page,'#exportVideo');await expect(page.locator('html')).toHaveAttribute('data-video-flush','waiting');await ui(page,'#cancelAnimationExport');release();
  await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(files).toHaveLength(0);await expect(page.locator('#videoDownload')).toHaveAttribute('href',url);await expect(page.locator('#exportVideo')).toBeEnabled();expect(await download(page,'#videoDownload')).toEqual(previous);
 });

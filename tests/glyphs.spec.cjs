@@ -1,5 +1,5 @@
 const fs=require('node:fs');
-const {test,expect,download,loadProject,project}=require('./helpers.cjs');
+const {ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
 function reference(){
  const svg=fs.readFileSync('assets/c64-glyphs.svg','utf8'),bytes=Buffer.alloc(4096);
  for(const match of svg.matchAll(/<symbol id="c64-(\d)-(\d+)"[^>]*>([\s\S]*?)<\/symbol>/g)){
@@ -9,16 +9,16 @@ function reference(){
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('palette filters letters, highlights selection, and selects inverse glyphs',async({page})=>{
  await expect(page.locator('#palette button')).toHaveCount(64);await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','64');
- await page.locator('#inverse').click();await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','192');
- await page.locator('#charset').selectOption('1');await expect(page.locator('#palette button')).toHaveCount(38);
- await page.locator('#paletteMode').selectOption('all');await page.locator('#glyphPage').selectOption('0');await expect(page.locator('#palette button')).toHaveCount(64);
+ await ui(page,'#inverse');await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','192');
+ await ui(page,'#charset','selectOption','1');await expect(page.locator('#palette button')).toHaveCount(38);
+ await ui(page,'#paletteMode','selectOption','all');await ui(page,'#glyphPage','selectOption','0');await expect(page.locator('#palette button')).toHaveCount(64);
  await page.getByRole('button',{name:'C64 screen code 0',exact:true}).click();await expect(page.locator('#palette button.active')).toHaveAttribute('aria-pressed','true');
- await page.locator('#paletteMode').selectOption('legacy');await expect(page.locator('#palette button')).toHaveCount(12);
+ await ui(page,'#paletteMode','selectOption','legacy');await expect(page.locator('#palette button')).toHaveCount(12);
 });
 test('both banks and inverse slots match source pixels in canvas, SVG, and PNG',async({page})=>{
  const bytes=reference();await loadProject(page,project([0,128]));
  for(const bank of [0,1]){
-  if(bank)await page.locator('#charset').selectOption('1');
+  if(bank)await ui(page,'#charset','selectOption','1');
   const svg=(await download(page,'#svg')).toString();expect(svg).toContain('viewBox="0 0 32 16"');expect(svg).toContain('scale(2)');
   const first=svg.split('scale(2)">')[1].split('</g>')[0];
   for(let y=0;y<8;y++)for(let x=0;x<8;x++)expect(first.includes(`<rect x="${x}" y="${y}" width="1" height="1"/>`)).toBe(!!(bytes[bank*2048+y]&(128>>x)));
@@ -30,17 +30,17 @@ test('both banks and inverse slots match source pixels in canvas, SVG, and PNG',
 });
 test('binary screen codes preserve zero, inverse, row order, and empty cells',async({page})=>{
  await loadProject(page,project([0,128,'',255],2,2));expect(await download(page,'#screenCodes')).toEqual(Buffer.from([0,128,32,255]));
- await loadProject(page,project([0,'█']));await page.locator('#screenCodes').click();await expect(page.locator('#status')).toContainText('legacy shapes cannot be converted');
+ await loadProject(page,project([0,'█']));await ui(page,'#screenCodes');await expect(page.locator('#status')).toContainText('legacy shapes cannot be converted');
 });
 test('mixed text round trips dimensions, bank, and empty cells',async({page})=>{
  await loadProject(page,project([0,'█','',128],2,2,{charset:1}));const text=(await download(page,'#text')).toString();expect(text).toBe('# PETSCII-GRID 1 2 2 1\n00 █\n-- 80');
- await page.locator('#clear').click();await page.locator('#output').fill(text);await page.locator('#import').click();expect(await page.locator('#output').inputValue()).toBe(text);
+ await ui(page,'#clear');await ui(page,'#output','fill',text);await ui(page,'#import');expect(await page.locator('#output').inputValue()).toBe(text);
  const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.grid).toEqual([0,'█','',128]);expect(saved.charset).toBe(1);
- await page.locator('#undo').click();expect(await page.locator('#output').inputValue()).not.toContain('00');await page.locator('#redo').click();expect(await page.locator('#output').inputValue()).toBe(text);
+ await ui(page,'#undo');expect(await page.locator('#output').inputValue()).not.toContain('00');await ui(page,'#redo');expect(await page.locator('#output').inputValue()).toBe(text);
 });
 test('bad project and text imports do not modify artwork or undo history',async({page})=>{
- await page.locator('#paletteMode').selectOption('legacy');await page.locator('#palette button').first().click();await page.locator('#border').click();const before=await page.locator('#output').inputValue();
+ await ui(page,'#paletteMode','selectOption','legacy');await ui(page,'#palette button');await ui(page,'#border');const before=await page.locator('#output').inputValue();
  for(const data of [null,{},project([256]),project([0],41,1),project(['bogus']),{...project([0]),version:99},project([0],1,1,{glyphSource:'custom'})]){await loadProject(page,data);await expect(page.locator('#status')).toContainText('Load failed');expect(await page.locator('#output').inputValue()).toBe(before)}
- await page.locator('#output').fill('# PETSCII-GRID 1 2 1 0\n00 XX');await page.locator('#import').click();await expect(page.locator('#status')).toContainText('Import failed');expect(JSON.parse(await download(page,'#saveProject')).grid[0]).toBe('█');
- await page.locator('#undo').click();expect(await page.locator('#output').inputValue()).not.toContain('█');
+ await ui(page,'#output','fill','# PETSCII-GRID 1 2 1 0\n00 XX');await ui(page,'#import');await expect(page.locator('#status')).toContainText('Import failed');expect(JSON.parse(await download(page,'#saveProject')).grid[0]).toBe('█');
+ await ui(page,'#undo');expect(await page.locator('#output').inputValue()).not.toContain('█');
 });

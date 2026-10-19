@@ -1,7 +1,7 @@
-const { test, expect } = require('./helpers.cjs');
+const {ui, test, expect }=require('./helpers.cjs');
 test.beforeEach(async ({page}) => {
   await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
-  await expect(page.locator('#canvas')).toBeVisible();await page.locator('#paletteMode').selectOption('legacy');await page.locator('#palette button').first().click();
+  await expect(page.locator('#canvas')).toBeVisible();await ui(page,'#paletteMode','selectOption','legacy');await ui(page,'#palette button');
 });
 async function paint(page,x=.25,y=.25){
  const box=await page.locator('#canvas').boundingBox();
@@ -15,22 +15,22 @@ test('canvas scales within frame and palette toggles',async({page})=>{
  const c=await canvas.boundingBox(),f=await frame.boundingBox();
  expect(c.width).toBeLessThanOrEqual(f.width);
  expect(c.height).toBeLessThanOrEqual(f.height);
- await page.locator('#toggle').click();
+ await ui(page,'#toggle');
  await expect(page.locator('#sidebar')).toHaveClass(/closed/);
- await page.locator('#toggle').click();
+ await ui(page,'#toggle');
  await expect(page.locator('#sidebar')).not.toHaveClass(/closed/);
 });
 test('drag painting is undoable and redoable',async({page})=>{
  await paint(page);
  const result=await page.locator('#output').inputValue();
  expect(result).toContain('█');
- await page.locator('#undo').click();
+ await ui(page,'#undo');
  expect(await page.locator('#output').inputValue()).not.toContain('█');
- await page.locator('#redo').click();
+ await ui(page,'#redo');
  expect(await page.locator('#output').inputValue()).toBe(result);
 });
 test('symmetry paints mirrored positions',async({page})=>{
- await page.locator('#sym').selectOption('both');
+ await ui(page,'#sym','selectOption','both');
  await paint(page,.12,.12);
  const lines=(await page.locator('#output').inputValue()).split('\n');
  expect(lines[1][1]).toBe('█');
@@ -39,21 +39,21 @@ test('symmetry paints mirrored positions',async({page})=>{
 test('project JSON save and reload round-trip',async({page})=>{
  await paint(page);
  const before=await page.locator('#output').inputValue();
- const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#saveProject').click()]);
+ const [download]=await Promise.all([page.waitForEvent('download'),ui(page,'#saveProject')]);
  expect(download.suggestedFilename()).toMatch(/\.json$/);
  const savedStream=await download.createReadStream();const savedChunks=[];
  for await(const chunk of savedStream)savedChunks.push(chunk);
  const content=JSON.parse(Buffer.concat(savedChunks).toString('utf8'));
  expect(content.format).toBe('petscii-stencil-lab');
  expect(content.grid).toContain('█');
- await page.locator('#clear').click();
+ await ui(page,'#clear');
  await page.locator('#projectFile').setInputFiles({name:'saved.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(content))});
  await expect(page.locator('#output')).toHaveValue(before);
 });
 test('SVG, text, and PNG produce downloads',async({page})=>{
  await paint(page);
  for(const [selector,ext] of [['#svg','.svg'],['#text','.txt'],['#png','.png']]){
-  const [download]=await Promise.all([page.waitForEvent('download'),page.locator(selector).click()]);
+  const [download]=await Promise.all([page.waitForEvent('download'),ui(page,selector)]);
   expect(download.suggestedFilename()).toContain(ext);
   const stream=await download.createReadStream();const chunks=[];
   for await(const c of stream)chunks.push(c);
@@ -63,14 +63,14 @@ test('SVG, text, and PNG produce downloads',async({page})=>{
  }
 });
 test('safety analysis reports potentially enclosed regions',async({page})=>{
- await page.locator('#border').click();
- await page.locator('#checkStencil').click();
+ await ui(page,'#border');
+ await ui(page,'#checkStencil');
  await expect(page.locator('#stencilReport')).toContainText('Potential isolated material regions');
 });
 test('import text is undoable',async({page})=>{
- await page.locator('#output').fill('█▀\n▄█');
- await page.locator('#import').click();
+ await ui(page,'#output','fill','█▀\n▄█');
+ await ui(page,'#import');
  expect(await page.locator('#output').inputValue()).toContain('█▀');
- await page.locator('#undo').click();
+ await ui(page,'#undo');
  expect(await page.locator('#output').inputValue()).not.toContain('█▀');
 });

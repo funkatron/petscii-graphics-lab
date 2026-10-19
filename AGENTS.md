@@ -23,7 +23,7 @@ Published app: https://funkatron.github.io/petscii-stencil-lab/
 - iPad Safari is a primary target; desktop keyboard/mouse should also work.
 - Dragging a finger/stylus across the canvas must paint every crossed cell (interpolate between samples). Keep pointer capture and suppress page scrolling **only inside the active drawing region**; ordinary scrolling elsewhere should work.
 - Canvas should scale to maximize the available bounding box while preserving square cells and full-grid visibility. Resizing or collapsing controls must not clear artwork.
-- Keep glyph palette, grid settings, symmetry and export functions visible in a left sidebar while drawing, with a single-tap hide/show control. Narrow-screen overlay behavior is acceptable.
+- Keep settings in a compact, collapsible left sidebar. Glyph selection lives in its own panel, reached from an always-visible header Glyphs button. Dock it on wide screens (1200px+); use an overlay on smaller screens. Never nest the palette scroll box inside the settings scroller.
 - Support touch-friendly hit targets and give visible selection/editing feedback.
 - Glyph selection must show actual pixel-rendered C64 glyph previews, not depend on platform Unicode font substitution.
 - Avoid ordinary alphabet letters and numbers in the **graphics drawing palette** unless the user specifically requests them. UI labels and metadata can of course use text.
@@ -83,6 +83,13 @@ Published app: https://funkatron.github.io/petscii-stencil-lab/
 - Tests independently decode video with FFmpeg and inspect metadata/timestamps with FFprobe. CI installs FFmpeg. Exercise native MP4/WebM, replay order/erasures, selected duration/resolution, transparent-to-dark behavior, unsupported encoders, module failure, source edits during loading, and cancellation during loading/finalization. Do not substitute mocked encoders for the native output checks.
 - ZIP regressions independently validate CRCs and PNG pixels with development-only `adm-zip` and `pngjs`, compare all frames/timings to GIF, preserve both banks/inverse slots, snapshot edits during loading, and exercise cancellation and encoder failures.
 - Tests use development-only `omggif` as an independent decoder to verify frame contents, order, erasures, dimensions, repeat count, timing and transparency. Also cover preview pause/stop/edit safety, recording persistence, invalid imports and encoder-load failures.
+
+## Compact workspace navigation
+- Settings use native disclosures: Canvas & tools (initially open), Animation, Save & export, and Help & extras. Eraser/Undo/Redo and an active export's Cancel stay in a sticky toolbar. Experimental stencil controls live under Help.
+- Save & export groups project save/load with keyboard-accessible Still / Animation / Data tabs. Animation has one format selector for GIF, video or PNG frames ZIP, sharing resolution/background. Keep prior Save links alive when changing tabs/formats. An Edit shortcut reveals effect/speed settings; the export summary reflects loaded/undone settings too.
+- Navigation is UI-only: disclosures, tabs and picker visibility must not mutate artwork/history or start/stop playback. Keep animation export cancellation accessible even when its section is collapsed. Never put navigation state into project JSON.
+- The glyph panel has one scroll surface for the entire panel; the palette grid has no nested overflow. Show bitmap selection in the header. Selecting a glyph closes the overlay on smaller screens, leaves a wide dock open, and returns focus to Glyphs when closing. Close button, Escape and outside backdrop dismiss without painting. Picker remains usable when settings are hidden. Preserve the existing Canvas ResizeObserver fitting behavior.
+- Browser test helpers reveal controls through real disclosure/tab/picker clicks before interacting. Dedicated layout tests assert default compactness, keyboard navigation, independent scroll, responsive picker selection/dismissal, and export cancellation while collapsed.
 
 ## Future features to explore
 - C64-inspired screen colors and palette options.

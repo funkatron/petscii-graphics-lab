@@ -11,6 +11,14 @@ A standalone, touch-first C64 character graphics editor. [Open the editor](https
 - Dragging interpolates between pointer samples; each stroke is one undo operation. Secondary pointers do not paint. Symmetry repeats the selected glyph at mirrored cell positions; it does not reflect the glyph bitmap itself.
 - Grid dimensions range from 1–40, including a standard **40 × 25** C64 screen. Resize preserves the top-left overlap; undo restores cropped cells. Collapse the tools using the header button; the canvas refits without clearing artwork.
 
+## Workspace
+
+**Glyphs** in the header opens a dedicated picker with the selected glyph's bitmap preview. It docks to the right on wide screens and opens over the canvas on iPad-sized screens, closing when you select a character. Close it with ✕, Escape, or the shaded area outside. The picker scrolls independently of the settings; its glyph grid has no nested scrolling box. **Character options** holds palette mode, character set, and glyph-source details.
+
+The left tools use disclosures for **Canvas & tools**, **Animation**, **Save & export**, and **Help & extras**. Eraser and undo/redo remain at the top. Use ☰ to hide the settings and enlarge the canvas; Glyphs and header Play remain available.
+
+**Save & export** keeps editable project save/load together with three tabs: **Still** (PNG/SVG), **Animation** (GIF/video/PNG frame ZIP), and **Data** (text/screen codes and text import). Choose an animation format to see its options and Save link. Resolution/background are shared between animation formats; the **Edit** shortcut opens effect/speed settings. Changing sections or tabs preserves artwork and generated download links. Export cancellation stays at the top of the tools even when Save & export is closed.
+
 ## Automatic animation
 
 Choose an effect and **Animation speed**, then press **Play**. Speed ranges from **½ second to 12 seconds per loop**, with a faster **2-second default** for new projects. The displayed multiplier is relative to a 4-second loop: 8× = ½ second, 4× = 1 second, 2× = 2 seconds, and 1× = 4 seconds. Existing saved projects retain their selected duration. Shorter loops play faster in preview and every animation export.
