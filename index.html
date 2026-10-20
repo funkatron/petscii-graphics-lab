@@ -38,6 +38,7 @@ a{color:#9ce6ca}
 .field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:85px}
 label{font-size:.77rem;color:#b2c5d5}
 .field select{width:100%}
+.field input[type=number]{width:100%;min-height:42px;padding:8px 11px;border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px}
 textarea{resize:vertical;width:100%;min-height:80px;background:#0e1728;color:#e6f4ed;border:1px solid #45556e;border-radius:8px;font:12px/1.45 ui-monospace,monospace;padding:8px}
 .note{font-size:.72rem;color:#9eb2c5;line-height:1.45}
 .stage{min-width:0;min-height:0;flex:1;display:flex;flex-direction:column;padding:12px;gap:9px;background:radial-gradient(circle at 50% 38%,#192c40,#0e1728 75%)}
@@ -127,7 +128,7 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 <div class="field"><label for="animationFormat">Animation format</label><select id="animationFormat"><option value="gif">Animated GIF</option><option value="video">Video (MP4 / WebM)</option><option value="frames">PNG frames (.zip)</option></select></div>
 <div class="row"><div class="field"><label for="gifScale">Animation resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">Animation background</label><select id="gifBackground"><option value="dark">Dark</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
 <div data-motion-format="gif"><button id="exportGif" class="full-width">Export animated GIF</button><a id="gifDownload" class="animation-download" hidden>Save animated GIF</a><p class="note">Loops automatically. Supports transparency.</p></div>
-<div data-motion-format="video" hidden><button id="exportVideo" class="full-width">Export video</button><a id="videoDownload" class="animation-download" hidden>Save video</a><p class="note">One silent loop. MP4 where supported; WebM otherwise. Transparent becomes dark.</p></div>
+<div data-motion-format="video" hidden><div class="field"><label for="videoRepeats">Video repetitions (total loops)</label><input id="videoRepeats" type="number" min="1" max="100" step="1" inputmode="numeric" value="1" aria-describedby="videoDuration"></div><p id="videoDuration" class="note" aria-live="polite">1 loop × 2 s = 2 s total. 1 plays once.</p><button id="exportVideo" class="full-width">Export video</button><a id="videoDownload" class="animation-download" hidden>Save video</a><p class="note">Silent video with the chosen number of loops. MP4 where supported; WebM otherwise. Transparent becomes dark.</p></div>
 <div data-motion-format="frames" hidden><button id="exportFrames" class="full-width">Export PNG frames (.zip)</button><a id="framesDownload" class="animation-download" hidden>Save frame ZIP</a><p class="note">Numbered PNGs, frame timings, and an editable project.</p></div>
 </div>
 <div id="export-data" role="tabpanel" aria-labelledby="export-tab-data" data-export-mode="data" hidden>
@@ -179,10 +180,17 @@ function selectExportTab(tab){
 for(const tab of exportTabs){tab.onclick=()=>selectExportTab(tab);tab.onkeydown=e=>{let index=exportTabs.indexOf(tab);if(e.key==='ArrowRight')index=(index+1)%3;else if(e.key==='ArrowLeft')index=(index+2)%3;else if(e.key==='Home')index=0;else if(e.key==='End')index=2;else return;e.preventDefault();selectExportTab(exportTabs[index]);exportTabs[index].focus()}}
 $('animationFormat').onchange=()=>{for(const group of document.querySelectorAll('[data-motion-format]'))group.hidden=group.dataset.motionFormat!==$('animationFormat').value};
 $('editAnimation').onclick=()=>{$('animationDetails').open=true;$('animationEffect').focus();$('animationDetails').scrollIntoView({block:'nearest'})};
-function updateMotionSummary(){$('motionSummary').textContent=$('animationEffect').selectedOptions[0].textContent+' · '+$('animationSeconds').value+' s / loop'}
+function validVideoRepeats(n){return Number.isInteger(n)&&n>=1&&n<=100}
+function updateVideoDuration(){
+ const count=Number($('videoRepeats').value),seconds=Number($('animationSeconds').value);
+ $('videoDuration').textContent=validVideoRepeats(count)?count+' '+(count===1?'loop':'loops')+' × '+seconds+' s = '+Number((count*seconds).toFixed(2))+' s total. 1 plays once.':'Enter a whole number from 1 to 100.';
+ $('videoRepeats').setAttribute('aria-invalid',String(!validVideoRepeats(count)));
+}
+$('videoRepeats').oninput=()=>{const count=Number($('videoRepeats').value);if(validVideoRepeats(count)){videoRepeats=count;autosave()}updateVideoDuration()};
+function updateMotionSummary(){$('motionSummary').textContent=$('animationEffect').selectedOptions[0].textContent+' · '+$('animationSeconds').value+' s / loop';updateVideoDuration()}
 const glyphs=['█','▀','▄','▌','▐','◢','●','─','│','╱','┌','┼'];
 const shapes={};
-let rom=null,charset=0,saveTimer=null,initialized=false;
+let rom=null,charset=0,saveTimer=null,initialized=false,videoRepeats=1;
 const PROJECT_KEY='petscii-graphics-project-v2';
 let replayBase=Array(256).fill(''),replayEvents=[];
 let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0;
@@ -305,8 +313,8 @@ function redraw(){
  $('dimensions').textContent=W+' × '+H;
 }
 function resetReplay(){replayBase=Array(W*H).fill('');replayEvents=[];for(let i=0;i<grid.length;i++)if(grid[i]!=='')replayEvents.push([i,grid[i]])}
-function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=a.effect;$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;updateMotionSummary()}
-function animationSettings(){return {effect:$('animationEffect').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value}}
+function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=a.effect;$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;videoRepeats=a.videoRepeats??1;$('videoRepeats').value=String(videoRepeats);updateMotionSummary()}
+function animationSettings(){return {effect:$('animationEffect').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value,videoRepeats}}
 function animationSource(){return {W,H,grid,base:replayBase,events:replayEvents,...animationSettings()}}
 function animationCount(s){const steps=s.effect==='scroll-x'?s.W:s.effect==='scroll-y'?s.H:s.effect==='inverse'?2:24;return s.effect==='replay'?Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1)):Math.max(1,Math.min(steps,Math.floor(s.seconds*1000/20)))}
 function animationDelay(i,s){const n=animationCount(s);return s.effect==='replay'?(i===n-1?s.seconds*250:s.seconds*750/(n-1)):s.seconds*1000/n}
@@ -393,6 +401,7 @@ const animationExportUrls={};
 $('cancelAnimationExport').onclick=()=>{if(animationExportTask){animationExportTask.cancelled=true;$('cancelAnimationExport').disabled=true;Promise.resolve(animationExportTask.stop?.()).catch(()=>{});setStatus('Canceling animation export…')}};
 async function exportAnimation(kind){
  if(animationExportTask)return;
+ if(kind==='video'&&!validVideoRepeats(Number($('videoRepeats').value))){setStatus('Video repetitions must be a whole number from 1 to 100');$('videoRepeats').focus();return}
  let snapshot;try{snapshot=animationExportSnapshot()}catch(e){setStatus(e.message);return}
  const task={cancelled:false};animationExportTask=task;
  for(const id of ['exportGif','exportFrames','exportVideo'])$(id).disabled=true;
@@ -401,7 +410,7 @@ async function exportAnimation(kind){
  const label=kind==='gif'?'GIF':kind==='video'?'Video':'ZIP';
  const checkpoint=()=>{if(task.cancelled)throw Error('Export canceled')};
  try{
-  const {s}=snapshot,frames=animationExportFrames(s),raster=animationRaster(snapshot),{width,height,colors}=raster;
+  const {s}=snapshot,frames=animationExportFrames(s),repetitions=kind==='video'?s.videoRepeats:1,totalFrames=frames.length*repetitions,raster=animationRaster(snapshot),{width,height,colors}=raster;
   let gif,addFile,zipChunks=[],pngCanvas,pngContext;
   if(kind==='gif'){
    const {GIFEncoder}=await import('./vendor/gifenc.esm.js');checkpoint();gif=GIFEncoder();
@@ -414,21 +423,21 @@ async function exportAnimation(kind){
    addFile=(name,bytes)=>{const file=new ZipPassThrough(name);zip.add(file);file.push(bytes,true)};
    }
   }
-  for(const frame of frames){
+  for(let repetition=0;repetition<repetitions;repetition++)for(const frame of frames){
    checkpoint();const indexed=raster.indexedFrame(frame.index);
    if(kind==='gif')gif.writeFrame(indexed,width,height,{palette:colors,delay:frame.durationMs,repeat:0,dispose:2,transparent:s.background==='transparent',transparentIndex:0});
    else{
     const image=pngContext.createImageData(width,height);
     for(let i=0;i<indexed.length;i++){const color=colors[indexed[i]],offset=i*4;image.data[offset]=color[0];image.data[offset+1]=color[1];image.data[offset+2]=color[2];image.data[offset+3]=kind==='zip'&&s.background==='transparent'&&!indexed[i]?0:255}
     pngContext.putImageData(image,0,0);
-    if(kind==='video'){await video.add(frame);checkpoint()}
+    if(kind==='video'){await video.add({...frame,startMs:repetition*s.seconds*1000+frame.startMs});checkpoint()}
     else{
     const png=await new Promise((resolve,reject)=>pngCanvas.toBlob(blob=>blob?resolve(blob):reject(Error('PNG encoding failed')),'image/png'));
     checkpoint();const bytes=new Uint8Array(await png.arrayBuffer());checkpoint();
     frame.file='frames/frame-'+String(frame.index+1).padStart(4,'0')+'.png';addFile(frame.file,bytes);
     }
    }
-   setStatus('Rendering '+(kind==='gif'?'GIF':kind==='video'?'video':'PNG frames')+': '+(frame.index+1)+' / '+frames.length);
+   setStatus('Rendering '+(kind==='gif'?'GIF':kind==='video'?'video':'PNG frames')+': '+(repetition*frames.length+frame.index+1)+' / '+totalFrames);
    await new Promise(resolve=>setTimeout(resolve,0));
   }
   checkpoint();let blob;
@@ -443,8 +452,8 @@ async function exportAnimation(kind){
   }
   checkpoint();const oldUrl=animationExportUrls[kind],url=URL.createObjectURL(blob);animationExportUrls[kind]=url;
   if(oldUrl)setTimeout(()=>URL.revokeObjectURL(oldUrl),60000);
-  const link=$(kind==='gif'?'gifDownload':kind==='video'?'videoDownload':'framesDownload');link.href=url;link.download='petscii-'+s.effect+'-'+width+'x'+height+(kind==='gif'?'.gif':kind==='video'?'.'+video.extension:'-frames.zip');link.hidden=false;link.click();
-  $('exportBadge').textContent=label+' ready';setStatus(label+' ready: '+frames.length+' frames · '+width+' × '+height+'. Tap '+(kind==='gif'?'Save animated GIF':kind==='video'?'Save video':'Save frame ZIP')+' to save again.');
+  const link=$(kind==='gif'?'gifDownload':kind==='video'?'videoDownload':'framesDownload');link.href=url;link.download='petscii-'+s.effect+'-'+width+'x'+height+(kind==='video'&&repetitions>1?'-'+repetitions+'x':'')+(kind==='gif'?'.gif':kind==='video'?'.'+video.extension:'-frames.zip');link.hidden=false;link.click();
+  $('exportBadge').textContent=label+' ready';setStatus(label+' ready: '+totalFrames+' frames · '+width+' × '+height+(kind==='video'?' · '+repetitions+' '+(repetitions===1?'loop':'loops')+' · '+Number((s.seconds*repetitions).toFixed(2))+' s':'')+'. Tap '+(kind==='gif'?'Save animated GIF':kind==='video'?'Save video':'Save frame ZIP')+' to save again.');
  }catch(e){$('exportBadge').textContent=task.cancelled?'Canceled':'Failed';setStatus(task.cancelled?'Animation export canceled':(kind==='zip'?'Frame ZIP':label)+' export failed: '+e.message)}
  finally{try{await video?.cancel()}catch{}zip?.terminate();animationExportTask=null;for(const id of ['exportGif','exportFrames','exportVideo'])$(id).disabled=false;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false}
 }
@@ -561,7 +570,7 @@ function validateProject(data){
  if(!Array.isArray(data.grid)||data.grid.length!==data.columns*data.rows||data.grid.some(g=>g!==''&&!glyphs.includes(g)&&!(Number.isInteger(g)&&g>=0&&g<=255)))throw Error('Invalid glyph grid');
  const validGlyph=g=>g===''||glyphs.includes(g)||(Number.isInteger(g)&&g>=0&&g<=255);
  if(data.drawingReplay!==undefined){const r=data.drawingReplay;if(!r||!Array.isArray(r.base)||r.base.length!==data.grid.length||r.base.some(g=>!validGlyph(g))||!Array.isArray(r.events)||r.events.length>20000||r.events.some(e=>!Array.isArray(e)||e.length!==2||!Number.isInteger(e[0])||e[0]<0||e[0]>=data.grid.length||!validGlyph(e[1])))throw Error('Invalid drawing replay');const end=r.base.slice();for(const [i,g] of r.events)end[i]=g;if(end.some((g,i)=>g!==data.grid[i]))throw Error('Replay does not match drawing')}
- if(data.animation!==undefined){const a=data.animation;if(!a||!['replay','scroll-x','scroll-y','wave','inverse'].includes(a.effect)||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background))throw Error('Invalid animation settings')}
+ if(data.animation!==undefined){const a=data.animation;if(!a||!['replay','scroll-x','scroll-y','wave','inverse'].includes(a.effect)||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background)||(a.videoRepeats!==undefined&&!validVideoRepeats(a.videoRepeats)))throw Error('Invalid animation settings')}
 }
 function applyProject(data){
  stopAnimation();
