@@ -15,9 +15,17 @@ A standalone, touch-first C64 character graphics editor. [Open the editor](https
 
 **Glyphs** in the header opens a dedicated picker with the selected glyph's bitmap preview. It docks to the right on wide screens and opens over the canvas on iPad-sized screens, closing when you select a character. Close it with ✕, Escape, or the shaded area outside. The picker scrolls independently of the settings; its glyph grid has no nested scrolling box. **Character options** holds palette mode, character set, and glyph-source details.
 
-The left tools use disclosures for **Canvas & tools**, **Animation**, **Save & export**, and **Help & extras**. Eraser and undo/redo remain at the top. Use ☰ to hide the settings and enlarge the canvas; Glyphs and header Play remain available.
+The left tools use disclosures for **Canvas & tools**, **Colors**, **Animation**, **Save & export**, and **Help & extras**. Eraser and undo/redo remain at the top. Use ☰ to hide the settings and enlarge the canvas; Glyphs and header Play remain available.
 
 **Save & export** keeps editable project save/load together with three tabs: **Still** (PNG/SVG), **Animation** (GIF/video/PNG frame ZIP), and **Data** (text/screen codes and text import). Choose an animation format to see its options and Save link. Resolution/background are shared between animation formats; the **Edit** shortcut opens effect/speed settings. Changing sections or tabs preserves artwork and generated download links. Export cancellation stays at the top of the tools even when Save & export is closed.
+
+## C64 colors
+
+Open **Colors** in the tools, choose **Ink** or **Background**, then tap a swatch. All 16 colors follow C64 hardware color-number order (0–F), using [Philip “Pepto” Timmermann’s PAL RGB palette](https://www.pepto.de/projects/colorvic/2001/). RGB is an approximation of the C64’s analog output; displays and VIC-II revisions vary.
+
+Colors apply to the **whole composition**, including legacy shapes. Default ink is Light blue (14), on Blue (6). **Swap ink / background** reverses them. Color changes support undo/redo, JSON save/load, and device autosave. Earlier projects without color metadata use these C64 defaults. This is a global two-color composition, not per-character color RAM editing.
+
+Canvas, glyph previews, SVG, PNG, GIF, PNG frame sequences and video use the selected colors. **Canvas color** is the default export background; still exports can instead use white, black or transparency, and animation exports offer white or transparency. Transparent GIF/PNG omit the background; video uses the selected canvas background instead. Changing colors during an export does not alter its captured artwork. Use JSON to preserve colors: text and binary screen-code files contain glyph data only.
 
 ## Automatic animation
 
@@ -32,12 +40,12 @@ The header's ▶ button also works while the sidebar is hidden. Pause freezes th
 
 New strokes are recorded automatically. Older/imported artwork, patterns and resized canvases start a grid-order reveal; the earlier drawing process cannot be recovered. The recording stores at most 20,000 cell changes, then condenses to a reveal of the current composition. Undo/redo preserve the corresponding recording.
 
-**Export animated GIF** writes a continuously looping, grid-free GIF with 8, 16 or 32 pixels per cell and a dark, white or transparent background. The export uses the same frame calculation and timing as the preview and takes a snapshot, so later edits do not change an export already in progress. C64 bitmap pixels remain sharp. A **Save animated GIF** link stays available after rendering for a direct second tap in Safari or repeat downloads. Static SVG/PNG/text/binary exports continue to use the source drawing.
+**Export animated GIF** writes a continuously looping, grid-free GIF with 8, 16 or 32 pixels per cell and the canvas color, white or transparent background. The export uses the same frame calculation and timing as the preview and takes a snapshot, so later edits do not change an export already in progress. C64 bitmap pixels remain sharp. A **Save animated GIF** link stays available after rendering for a direct second tap in Safari or repeat downloads. Static SVG/PNG/text/binary exports continue to use the source drawing.
 
 **Export PNG frames (.zip)** uses the same animation resolution, background, frame order and encoded timings as GIF export. The ZIP includes:
 
 - `frames/frame-0001.png`, etc.: complete, lossless PNG frames with no editing grid.
-- `timing.json`: versioned metadata, dimensions, charset, background, loop duration, and each frame's `file`, `startMs` and `durationMs`.
+- `timing.json`: versioned metadata, dimensions, charset, background, C64 color indices and palette identifier, loop duration, and each frame's `file`, `startMs` and `durationMs`.
 - `project.json`: an editable snapshot captured when export starts.
 - `README.txt`: instructions for using the sequence.
 
@@ -47,7 +55,7 @@ All animation export buttons show progress and support **Cancel export**. Editin
 
 **Export video** creates a silent clip with **1–100 repetitions** at the selected speed and resolution. Under **Save & export → Animation → Video**, enter **Video repetitions (total loops)**; 1 means play once. The duration hint shows loop length × count = total video length (for example, 2 seconds × 5 loops = 10 seconds). The count is saved in projects/autosave, defaults to 1 for earlier projects, and applies to both MP4 and WebM. Each repeat includes the full animation, including the drawing replay’s final hold. It uses native browser encoding, preferring **H.264 MP4**, with **VP9/VP8 WebM** as fallback. **Save video** remains available for a direct second tap or repeat download. Unsupported browsers show a clear message; GIF and PNG frames remain available.
 
-Video uses the same raster frames and explicit timestamps as GIF/ZIP, without recording the live preview or waiting for real-time playback. No camera, microphone, screen-capture permission, server upload or runtime CDN is involved. Video colors use the selected solid background; **Transparent becomes Dark** because these video codecs do not preserve alpha here. Video compression can introduce small color/edge differences; PNG frames are the lossless option. The chosen repetitions are encoded into a finite video file, so playback does not depend on the video player supporting looping. Preview and GIF looping and PNG ZIP timelines are unaffected by the video repetition setting.
+Video uses the same raster frames and explicit timestamps as GIF/ZIP, without recording the live preview or waiting for real-time playback. No camera, microphone, screen-capture permission, server upload or runtime CDN is involved. Video colors use the selected solid background; **Transparent uses the selected canvas background** because these video codecs do not preserve alpha here. Video compression can introduce small color/edge differences; PNG frames are the lossless option. The chosen repetitions are encoded into a finite video file, so playback does not depend on the video player supporting looping. Preview and GIF looping and PNG ZIP timelines are unaffected by the video repetition setting.
 
 Animation settings and the replay recording are included in JSON and local autosave; playing/paused state is not. Exported GIFs are capped at 48 replay frames (long recordings are sampled across the whole event sequence; fast loops reduce the frame count to keep delays at least 20 ms), 24 wave frames, or up to one frame per scroll cell / inverse state. Fast scrolling samples positions around the entire grid so it still completes a full cycle while keeping GIF delays at least 20 ms. These are procedural animations rather than a frame-by-frame timeline editor.
 
@@ -61,12 +69,12 @@ The current project also autosaves locally after edits and when leaving the page
 
 | Format | Contents |
 | --- | --- |
-| SVG | Vector paths for legacy geometry and exact filled squares for ROM bits. Black foreground, transparent background, no editing grid. |
-| PNG | Same geometry as SVG; selectable transparent, white, or black background and 16/32/64/128 pixels per cell. Black background uses white ink. |
+| SVG | Vector paths for legacy geometry and exact filled squares for ROM bits. Selected C64 ink, canvas/white/black/transparent background, no editing grid. |
+| PNG | Same geometry as SVG; selected C64 ink, canvas/transparent/white/black background, and 16/32/64/128 pixels per cell. |
 | Text, legacy only | Unicode approximations; spaces are empty cells. Import into the existing canvas dimensions. |
 | Text, ROM or mixed | Labeled lossless grid described below; includes dimensions and charset. |
 | PNG frame ZIP | Numbered lossless PNGs, frame timing metadata, an editable JSON snapshot and instructions. |
-| Video | One silent loop at the selected speed/resolution; MP4 where supported, WebM fallback; opaque background. |
+| Video | Selected number of silent loops at the chosen speed/resolution; MP4 where supported, WebM fallback; opaque background. |
 | Animated GIF | Looping animation, sharp C64 pixels, selected resolution and background. |
 | `.bin` | One screen-code byte per cell, row-major, with empty cells mapped to space code 32. No load address, charset, colors, or dimensions embedded. Legacy shapes are rejected rather than silently lost. These are **screen codes, not PETSCII bytes**. |
 

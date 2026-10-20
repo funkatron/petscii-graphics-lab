@@ -56,7 +56,7 @@ test('transparent and black PNG backgrounds preserve expected pixels and resolut
   await ui(page,'#pngBg','selectOption',bg);await ui(page,'#pngScale','selectOption','2');const png=await download(page,'#png');
   expect(png.readUInt32BE(16)).toBe(64);expect(png.readUInt32BE(20)).toBe(32);
   const colors=await page.evaluate(async data=>{const i=new Image();i.src='data:image/png;base64,'+data;await i.decode();const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const t=c.getContext('2d');t.drawImage(i,0,0);return [[8,8],[8,24],[48,8]].map(([x,y])=>Array.from(t.getImageData(x,y,1,1).data))},png.toString('base64'));
-  expect(colors[0]).toEqual(bg==='black'?[255,255,255,255]:[0,0,0,255]);expect(colors[1]).toEqual(bg==='black'?[0,0,0,255]:[0,0,0,0]);expect(colors[2]).toEqual(colors[1]);
+  expect(colors[0]).toEqual([108,94,181,255]);expect(colors[1]).toEqual(bg==='black'?[0,0,0,255]:[0,0,0,0]);expect(colors[2]).toEqual(colors[1]);
  }
 });
 test('narrow overlay closes fully and canvas remains usable',async({page})=>{

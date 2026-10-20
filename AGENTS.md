@@ -85,14 +85,23 @@ Published app: https://funkatron.github.io/petscii-stencil-lab/
 - Tests use development-only `omggif` as an independent decoder to verify frame contents, order, erasures, dimensions, repeat count, timing and transparency. Also cover preview pause/stop/edit safety, recording persistence, invalid imports and encoder-load failures.
 
 ## Compact workspace navigation
-- Settings use native disclosures: Canvas & tools (initially open), Animation, Save & export, and Help & extras. Eraser/Undo/Redo and an active export's Cancel stay in a sticky toolbar. Experimental stencil controls live under Help.
+- Settings use native disclosures: Canvas & tools (initially open), Colors, Animation, Save & export, and Help & extras. Eraser/Undo/Redo and an active export's Cancel stay in a sticky toolbar. Experimental stencil controls live under Help.
 - Save & export groups project save/load with keyboard-accessible Still / Animation / Data tabs. Animation has one format selector for GIF, video or PNG frames ZIP, sharing resolution/background. Keep prior Save links alive when changing tabs/formats. An Edit shortcut reveals effect/speed settings; the export summary reflects loaded/undone settings too.
 - Navigation is UI-only: disclosures, tabs and picker visibility must not mutate artwork/history or start/stop playback. Keep animation export cancellation accessible even when its section is collapsed. Never put navigation state into project JSON.
 - The glyph panel has one scroll surface for the entire panel; the palette grid has no nested overflow. Show bitmap selection in the header. Selecting a glyph closes the overlay on smaller screens, leaves a wide dock open, and returns focus to Glyphs when closing. Close button, Escape and outside backdrop dismiss without painting. Picker remains usable when settings are hidden. Preserve the existing Canvas ResizeObserver fitting behavior.
 - Browser test helpers reveal controls through real disclosure/tab/picker clicks before interacting. Dedicated layout tests assert default compactness, keyboard navigation, independent scroll, responsive picker selection/dismissal, and export cancellation while collapsed.
 
+## C64 color picker
+- `C64_COLORS` is the 16-entry Pepto PAL palette, in hardware index order. Reference: https://www.pepto.de/projects/colorvic/2001/ (gamma-corrected hex table). Treat RGB as an approximation of analog C64 output, not a unique exact hardware RGB specification.
+- `colors: {ink, background}` contains global indices 0–15 in v2 JSON. Validate integers atomically; absent metadata defaults to ink 14 / background 6. This replaces the earlier mint/UI-colored appearance. Color zero is valid. Colors recolor the whole composition; no per-cell color RAM or colored replay events are implemented.
+- Colors is a compact native disclosure with Ink/Background targets, one 16-swatch grid, accessible names/pressed states and Swap. Target selection is UI-only; actual color changes and swaps are undoable and stop preview. Preserve colors through project imports, history and autosave.
+- Bitmap tiles and header previews use selected ink; invalidate their cache on color changes. Canvas background matches selected color, with contrasting editing guides excluded from exports.
+- SVG/PNG share the still-export background selector (default canvas; optional white/black/transparent). Never replace selected ink with automatic black/white. Animation retains the serialized `background: "dark"` token for Canvas color; resolve it using the snapshotted C64 background. White and transparent overrides still work; transparent video falls back to the snapshotted canvas background.
+- Animation source snapshots clone global color indices before awaiting encoders. GIF, ZIP and video use the same two indexed RGB colors. Frame ZIP metadata includes `colorPalette: "pepto-pal"` and `colors`; project.json preserves indices too. Glyph-only text/binary formats intentionally do not embed colors.
+- Color tests independently inspect all swatch RGB values, canvas/preview pixels, SVG/PNG/GIF/ZIP contents, decoded repeated-video colors, snapshot isolation, legacy shapes, equal colors, black index 0, validation, autosave and undo. Shared FFmpeg test helpers are in tests/video-utils.cjs.
+
 ## Future features to explore
-- C64-inspired screen colors and palette options.
+- Per-character color RAM editing and color-aware text/data formats.
 - Tile stamp, line/rectangle/fill tools, selection/move/duplicate and motif libraries.
 - Keyboard shortcuts, improved undo workflow, zoom, and optional grid guides.
 - Export/import of C64-oriented character grids and metadata when reliably encoded.

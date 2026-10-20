@@ -4,7 +4,7 @@ test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[da
 async function clickCell(page,x,y){const b=await page.locator('#canvas').boundingBox(),cols=+(await page.locator('#columns').inputValue()),rows=+(await page.locator('#rows').inputValue());await page.mouse.click(b.x+b.width*(x+.5)/cols,b.y+b.height*(y+.5)/rows)}
 function decoded(buffer){const r=new GifReader(buffer),frames=[];for(let i=0;i<r.numFrames();i++){const rgba=new Uint8Array(r.width*r.height*4);r.decodeAndBlitFrameRGBA(i,rgba);frames.push({rgba,info:r.frameInfo(i)})}return {r,frames}}
 function rgbaAt(gif,frame,x,y){const at=(y*gif.r.width+x)*4;return Array.from(gif.frames[frame].rgba.slice(at,at+4))}
-const ink=[217,255,242,255],dark=[14,23,40,255];
+const ink=[108,94,181,255],dark=[53,40,121,255];
 test('replay records paint, erase, repaint and symmetry without losing undo history',async({page})=>{
  await loadProject(page,project(Array(8).fill(''),4,2,{selectedGlyph:160}));
  await clickCell(page,3,0);await clickCell(page,0,0);await ui(page,'#erase');await clickCell(page,3,0);await ui(page,'#erase');await clickCell(page,3,0);
@@ -16,7 +16,7 @@ test('replay records paint, erase, repaint and symmetry without losing undo hist
 test('preview changes pixels, pauses, stops, and never alters the saved grid',async({page})=>{
  const original=[160,'','',''];await loadProject(page,project(original,4,1));await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#animationSeconds','selectOption','1');
  const pixels=()=>page.locator('#canvas').evaluate(c=>{const t=c.getContext('2d');return Array.from({length:4},(_,x)=>Array.from(t.getImageData(Math.floor(c.width*(x+.5)/4),Math.floor(c.height/2),1,1).data))});
- await expect.poll(pixels).toEqual([ink,[41,54,74,255],[41,54,74,255],[41,54,74,255]]);
+ await expect.poll(pixels).toEqual([ink,[53,40,121,255],[53,40,121,255],[53,40,121,255]]);
  const before=await pixels();await ui(page,'#quickPlay');
  await expect.poll(pixels).not.toEqual(before);
  await ui(page,'#quickPlay');const paused=await pixels();await page.waitForTimeout(350);expect(await pixels()).toEqual(paused);
@@ -49,7 +49,7 @@ test('every effect exports and legacy glyphs render on a white background',async
  await loadProject(page,project(['█','','',''],2,2,{selectedGlyph:'█'}));await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','white');
  for(const effect of ['replay','scroll-y','wave']){
   await ui(page,'#animationEffect','selectOption',effect);const g=decoded(await download(page,'#exportGif'));expect(g.r.width).toBe(16);expect(g.r.height).toBe(16);expect(g.r.numFrames()).toBeGreaterThan(1);
-  expect(g.frames.reduce((sum,f)=>sum+f.info.delay,0)).toBe(400);expect(g.frames.some((_,i)=>rgbaAt(g,i,4,4).slice(0,3).every(v=>v===0))).toBe(true);
+  expect(g.frames.reduce((sum,f)=>sum+f.info.delay,0)).toBe(400);expect(g.frames.some((_,i)=>rgbaAt(g,i,4,4).slice(0,3).every((v,c)=>v===ink[c]))).toBe(true);
  }
 });
 test('project round-trip retains replay and animation settings but never autoplays',async({page})=>{

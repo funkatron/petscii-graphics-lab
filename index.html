@@ -26,6 +26,7 @@ h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.08rem;l
 .layout{display:flex;flex:1;min-height:0;position:relative}
 .sidebar{width:276px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:#18263a;border-right:1px solid #344761;padding:10px;transition:width .2s ease,padding .2s ease;scrollbar-width:thin}
 .sidebar.closed{width:0;padding:0;border:0;overflow:hidden}
+.color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}.color-grid button{min-height:44px;border:2px solid #66768a;font-weight:bold}.color-grid button[aria-pressed=true]{outline:3px solid #eef5fa;outline-offset:1px}#inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{background:#176655;border-color:#77ddc4}.color-chip{display:inline-block;width:14px;height:14px;border:1px solid #95a4b4;border-radius:3px;vertical-align:middle;margin-right:4px}.color-name{display:block;font-size:.67rem;margin-top:3px}#glyphPreview{background:var(--art-bg)}.glyph{color:var(--art-ink)}
 .palette{display:grid;grid-template-columns:repeat(auto-fit,minmax(42px,1fr));gap:5px;padding:2px}
 .glyph{height:44px;font-size:23px;padding:0;display:flex;align-items:center;justify-content:center;position:relative}
 .glyph small{position:absolute;right:3px;bottom:1px;font:9px ui-monospace,monospace;color:#b2c5d5}
@@ -106,6 +107,9 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 <div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
 <div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div><button id="clear" class="full-width">Clear drawing</button>
 </div></details>
+<details id="colorDetails" class="tool-group"><summary>Colors <span id="colorSummary" class="summary-badge" aria-hidden="true"></span></summary><div class="group-body">
+<div class="row"><button id="inkTarget" aria-pressed="true">Ink<span id="inkName" class="color-name"></span></button><button id="backgroundTarget" aria-pressed="false">Background<span id="backgroundName" class="color-name"></span></button></div>
+<div id="colorPalette" class="color-grid" role="group" aria-label="C64 color palette"></div><button id="swapColors" class="full-width">Swap ink / background</button><p class="note">Colors apply to the whole drawing. All 16 C64 colors, using the Pepto PAL palette.</p></div></details>
 <details id="animationDetails" class="tool-group"><summary>Animation</summary><div class="group-body">
 <div class="field"><label for="animationEffect">Effect</label><select id="animationEffect"><option value="replay">Replay drawing</option><option value="scroll-x">Scroll left</option><option value="scroll-y">Scroll up</option><option value="wave">Wave rows</option><option value="inverse">Inverse pulse</option></select></div>
 <div class="field"><label for="animationSeconds">Animation speed</label><select id="animationSeconds"><option value="0.5">8× · ½ second / loop</option><option value="1">4× · 1 second / loop</option><option value="2" selected>2× · 2 seconds / loop</option><option value="4">1× · 4 seconds / loop</option><option value="8">½× · 8 seconds / loop</option><option value="12">⅓× · 12 seconds / loop</option></select></div>
@@ -120,21 +124,21 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 <button id="export-tab-motion" role="tab" aria-selected="false" aria-controls="export-motion" tabindex="-1" data-export-tab="motion">Animation</button>
 <button id="export-tab-data" role="tab" aria-selected="false" aria-controls="export-data" tabindex="-1" data-export-tab="data">Data</button></div>
 <div id="export-still" role="tabpanel" aria-labelledby="export-tab-still" data-export-mode="still">
-<div class="row"><div class="field"><label for="pngScale">PNG resolution</label><select id="pngScale"><option value="1">16 px/cell</option><option value="2">32 px/cell</option><option value="4" selected>64 px/cell</option><option value="8">128 px/cell</option></select></div><div class="field"><label for="pngBg">Background</label><select id="pngBg"><option value="transparent">Transparent</option><option value="white" selected>White</option><option value="black">Black</option></select></div></div>
-<button id="png" class="full-width">Download PNG bitmap</button><div class="row"><button id="svg">Download SVG</button></div><p class="note">Grid-free artwork. SVG uses black ink on transparency.</p>
+<div class="row"><div class="field"><label for="pngScale">PNG resolution</label><select id="pngScale"><option value="1">16 px/cell</option><option value="2">32 px/cell</option><option value="4" selected>64 px/cell</option><option value="8">128 px/cell</option></select></div><div class="field"><label for="pngBg">Background</label><select id="pngBg"><option value="transparent">Transparent</option><option value="canvas" selected>Canvas color</option><option value="white">White</option><option value="black">Black</option></select></div></div>
+<button id="png" class="full-width">Download PNG bitmap</button><div class="row"><button id="svg">Download SVG</button></div><p class="note">Grid-free artwork in your selected ink color. Background applies to PNG and SVG.</p>
 </div>
 <div id="export-motion" role="tabpanel" aria-labelledby="export-tab-motion" data-export-mode="motion" hidden>
 <div class="motion-summary"><span id="motionSummary">Replay drawing · 2 s / loop</span><button id="editAnimation" aria-label="Edit animation settings">Edit</button></div>
 <div class="field"><label for="animationFormat">Animation format</label><select id="animationFormat"><option value="gif">Animated GIF</option><option value="video">Video (MP4 / WebM)</option><option value="frames">PNG frames (.zip)</option></select></div>
-<div class="row"><div class="field"><label for="gifScale">Animation resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">Animation background</label><select id="gifBackground"><option value="dark">Dark</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
+<div class="row"><div class="field"><label for="gifScale">Animation resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">Animation background</label><select id="gifBackground"><option value="dark">Canvas color</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
 <div data-motion-format="gif"><button id="exportGif" class="full-width">Export animated GIF</button><a id="gifDownload" class="animation-download" hidden>Save animated GIF</a><p class="note">Loops automatically. Supports transparency.</p></div>
-<div data-motion-format="video" hidden><div class="field"><label for="videoRepeats">Video repetitions (total loops)</label><input id="videoRepeats" type="number" min="1" max="100" step="1" inputmode="numeric" value="1" aria-describedby="videoDuration"></div><p id="videoDuration" class="note" aria-live="polite">1 loop × 2 s = 2 s total. 1 plays once.</p><button id="exportVideo" class="full-width">Export video</button><a id="videoDownload" class="animation-download" hidden>Save video</a><p class="note">Silent video with the chosen number of loops. MP4 where supported; WebM otherwise. Transparent becomes dark.</p></div>
+<div data-motion-format="video" hidden><div class="field"><label for="videoRepeats">Video repetitions (total loops)</label><input id="videoRepeats" type="number" min="1" max="100" step="1" inputmode="numeric" value="1" aria-describedby="videoDuration"></div><p id="videoDuration" class="note" aria-live="polite">1 loop × 2 s = 2 s total. 1 plays once.</p><button id="exportVideo" class="full-width">Export video</button><a id="videoDownload" class="animation-download" hidden>Save video</a><p class="note">Silent video with the chosen number of loops. MP4 where supported; WebM otherwise. Transparent uses the canvas background in video.</p></div>
 <div data-motion-format="frames" hidden><button id="exportFrames" class="full-width">Export PNG frames (.zip)</button><a id="framesDownload" class="animation-download" hidden>Save frame ZIP</a><p class="note">Numbered PNGs, frame timings, and an editable project.</p></div>
 </div>
 <div id="export-data" role="tabpanel" aria-labelledby="export-tab-data" data-export-mode="data" hidden>
 <div class="row"><button id="text">Download text</button><button id="screenCodes">Screen codes (.bin)</button></div>
 <textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div>
-<details class="help-disclosure"><summary>Data formats</summary><p class="note">C64/mixed text is a lossless labeled hex grid with dimensions and character set, not PETSCII bytes. Legacy-only text uses Unicode approximations. Binary export writes row-major screen codes, with no dimensions or charset; legacy shapes cannot be converted safely.</p></details>
+<details class="help-disclosure"><summary>Data formats</summary><p class="note">C64/mixed text stores glyphs, dimensions and character set in a labeled hex grid, not PETSCII bytes. Legacy-only text uses Unicode approximations. Text and binary omit colors; JSON keeps them. Binary is row-major screen codes without dimensions or charset; legacy shapes cannot be converted safely.</p></details>
 </div></div></details>
 <details id="helpDetails" class="tool-group"><summary>Help &amp; extras</summary><div class="group-body">
 <p class="note">Open Glyphs to choose a character, then drag on the canvas. Canvas cells fit the workspace automatically. Use ☰ to hide these tools. Undo restores a whole stroke or canvas operation.</p>
@@ -188,6 +192,21 @@ function updateVideoDuration(){
 }
 $('videoRepeats').oninput=()=>{const count=Number($('videoRepeats').value);if(validVideoRepeats(count)){videoRepeats=count;autosave()}updateVideoDuration()};
 function updateMotionSummary(){$('motionSummary').textContent=$('animationEffect').selectedOptions[0].textContent+' · '+$('animationSeconds').value+' s / loop';updateVideoDuration()}
+// C64 hardware color order; Pepto PAL RGB approximation (see README).
+const C64_COLORS=[['Black','#000000'],['White','#ffffff'],['Red','#68372b'],['Cyan','#70a4b2'],['Purple','#6f3d86'],['Green','#588d43'],['Blue','#352879'],['Yellow','#b8c76f'],['Orange','#6f4f25'],['Brown','#433900'],['Light red','#9a6759'],['Dark gray','#444444'],['Gray','#6c6c6c'],['Light green','#9ad284'],['Light blue','#6c5eb5'],['Light gray','#959595']];
+let colors={ink:14,background:6},colorTarget='ink';
+const colorHex=key=>C64_COLORS[colors[key]][1];
+const colorRGB=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+function updateColorUI(){
+ document.documentElement.style.setProperty('--art-ink',colorHex('ink'));document.documentElement.style.setProperty('--art-bg',colorHex('background'));
+ for(const key of ['ink','background']){$(key+'Name').textContent=C64_COLORS[colors[key]][0];$(key+'Target').setAttribute('aria-pressed',String(colorTarget===key))}
+ $('colorSummary').innerHTML=['ink','background'].map(key=>'<span class="color-chip" style="background:'+colorHex(key)+'"></span>').join('');
+ $('colorPalette').innerHTML='';
+ C64_COLORS.forEach(([name,hex],index)=>{const button=document.createElement('button'),rgb=colorRGB(hex);button.textContent=index.toString(16).toUpperCase();button.style.background=hex;button.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>125?'#000':'#fff';button.title=name+' · '+hex;button.setAttribute('aria-label','C64 color '+index+': '+name);button.setAttribute('aria-pressed',String(colors[colorTarget]===index));button.onclick=()=>{if(colors[colorTarget]===index)return;remember();setColors({...colors,[colorTarget]:index});drawPalette();redraw();setStatus(name+' '+colorTarget+' color selected');$('colorPalette').children[index].focus({preventScroll:true})};$('colorPalette').appendChild(button)});
+}
+function setColors(value={ink:14,background:6}){colors={...value};tileCache.clear();updateColorUI()}
+for(const key of ['ink','background'])$(key+'Target').onclick=()=>{colorTarget=key;updateColorUI()};
+$('swapColors').onclick=()=>{if(colors.ink===colors.background)return;remember();setColors({ink:colors.background,background:colors.ink});drawPalette();redraw();setStatus('Ink and background swapped')};
 const glyphs=['█','▀','▄','▌','▐','◢','●','─','│','╱','┌','┼'];
 const shapes={};
 let rom=null,charset=0,saveTimer=null,initialized=false,videoRepeats=1;
@@ -210,11 +229,11 @@ function romRects(code,x,y,pixel){
 const tileCache=new Map();
 function romCanvasGlyph(target,code,x,y,s){
  const rows=romGlyphRows(code);if(!rows)return;
- const key=charset+':'+code;
+ const key=charset+':'+code+':'+colors.ink;
  let tile=tileCache.get(key);
  if(!tile){
   tile=document.createElement('canvas');tile.width=tile.height=8;
-  const t=tile.getContext('2d');t.fillStyle='#d9fff2';
+  const t=tile.getContext('2d');t.fillStyle=colorHex('ink');
   for(let r=0;r<8;r++)for(let b=0;b<8;b++)if(rows[r]&(0x80>>b))t.fillRect(b,r,1,1);
   tileCache.set(key,tile);
  }
@@ -230,7 +249,7 @@ function drawPalette(){
   for(let code=start;code<start+64;code++){
    if($('paletteMode').value==='graphics'&&!graphicsCode(code))continue;
    const btn=document.createElement('button');btn.className='glyph';btn.dataset.g=String(code);btn.title='C64 screen code '+code;btn.setAttribute('aria-label',btn.title);
-   const tile=document.createElement('canvas');tile.width=32;tile.height=32;tile.style.cssText='width:28px;height:28px;image-rendering:pixelated';
+   const tile=document.createElement('canvas');tile.width=32;tile.height=32;tile.style.cssText='width:28px;height:28px;image-rendering:pixelated;background:'+colorHex('background');
    romCanvasGlyph(tile.getContext('2d'),code,0,0,32);btn.appendChild(tile);const label=document.createElement('small');label.textContent=code.toString(16).padStart(2,'0').toUpperCase();btn.appendChild(label);
    btn.onclick=()=>{glyph=code;erasing=false;refresh();selectedGlyph()};palette.appendChild(btn);
   }
@@ -288,7 +307,7 @@ const legacyPaths={
 };
 for(const g of glyphs)shapes[g]='<path d="'+legacyPaths[g]+'"/>';
 function graphic(g,x,y,s){
- ctx.save();ctx.translate(x,y);ctx.scale(s/16,s/16);ctx.fillStyle='#d9fff2';ctx.fill(new Path2D(legacyPaths[g]));ctx.restore();
+ ctx.save();ctx.translate(x,y);ctx.scale(s/16,s/16);ctx.fillStyle=colorHex('ink');ctx.fill(new Path2D(legacyPaths[g]));ctx.restore();
 }
 function textGrid(){
  if(!grid.some(g=>typeof g==='number'))return Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map(g=>g||' ').join('')).join('\n');
@@ -298,11 +317,12 @@ function textGrid(){
 function renderGrid(cells){
  ctx.setTransform(1,0,0,1,0,0);
  const cellW=canvas.width/W,cellH=canvas.height/H;
- ctx.fillStyle='#111c2e';ctx.fillRect(0,0,canvas.width,canvas.height);
- const line=unit>12?1:.5,ratio=canvas.width/(W*unit);
+ ctx.fillStyle=colorHex('background');ctx.fillRect(0,0,canvas.width,canvas.height);
+ const line=unit>12?1:.5,ratio=canvas.width/(W*unit),bg=colorRGB(colorHex('background'));
+ ctx.strokeStyle=bg[0]*.299+bg[1]*.587+bg[2]*.114>125?'rgba(0,0,0,.2)':'rgba(255,255,255,.2)';ctx.lineWidth=line*ratio;
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const xx=x*cellW,yy=y*cellH;
-  ctx.fillStyle='#29364a';ctx.fillRect(xx+line*ratio,yy+line*ratio,Math.max(0,cellW-line*ratio*2),Math.max(0,cellH-line*ratio*2));
+  ctx.strokeRect(xx,yy,cellW,cellH);
   const g=cells[y*W+x];if(typeof g==='number'&&rom)romCanvasGlyph(ctx,g,xx,yy,cellW);else if(typeof g==='number'){ctx.strokeStyle='#ffb4c1';ctx.strokeRect(xx+cellW*.2,yy+cellH*.2,cellW*.6,cellH*.6)}else if(typeof g==='string'&&g)graphic(g,xx,yy,cellW);
  }
 }
@@ -315,7 +335,7 @@ function redraw(){
 function resetReplay(){replayBase=Array(W*H).fill('');replayEvents=[];for(let i=0;i<grid.length;i++)if(grid[i]!=='')replayEvents.push([i,grid[i]])}
 function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=a.effect;$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;videoRepeats=a.videoRepeats??1;$('videoRepeats').value=String(videoRepeats);updateMotionSummary()}
 function animationSettings(){return {effect:$('animationEffect').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value,videoRepeats}}
-function animationSource(){return {W,H,grid,base:replayBase,events:replayEvents,...animationSettings()}}
+function animationSource(){return {W,H,grid,base:replayBase,events:replayEvents,colors:{...colors},...animationSettings()}}
 function animationCount(s){const steps=s.effect==='scroll-x'?s.W:s.effect==='scroll-y'?s.H:s.effect==='inverse'?2:24;return s.effect==='replay'?Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1)):Math.max(1,Math.min(steps,Math.floor(s.seconds*1000/20)))}
 function animationDelay(i,s){const n=animationCount(s);return s.effect==='replay'?(i===n-1?s.seconds*250:s.seconds*750/(n-1)):s.seconds*1000/n}
 function animationCells(frame,s){
@@ -375,7 +395,7 @@ function animationExportFrames(s){
 }
 function animationRaster({s,bank,bits}){
  const cell=8*s.scale,width=s.W*cell,height=s.H*cell,tiles=new Map();
- const colors=s.background==='white'?[[255,255,255],[0,0,0]]:[[14,23,40],[217,255,242]];
+ const colors=[s.background==='white'?[255,255,255]:colorRGB(C64_COLORS[s.colors.background][1]),colorRGB(C64_COLORS[s.colors.ink][1])];
  function tileFor(g){
   if(tiles.has(g))return tiles.get(g);const tile=new Uint8Array(cell*cell);
   if(typeof g==='number'){
@@ -444,7 +464,7 @@ async function exportAnimation(kind){
   if(kind==='gif'){gif.finish();blob=new Blob([gif.bytes()],{type:'image/gif'})}
   else if(kind==='video'){setStatus('Finalizing video…');blob=await video.finish()}
   else{
-   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:1,effect:s.effect,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,charset:snapshot.bank,background:s.background,loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
+   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:1,effect:s.effect,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,charset:snapshot.bank,background:s.background,colorPalette:'pepto-pal',colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
    addFile('timing.json',text.encode(JSON.stringify(manifest,null,2)+'\n'));
    addFile('project.json',text.encode(JSON.stringify(snapshot.project,null,2)+'\n'));
    addFile('README.txt',text.encode('PETSCII Graphics Lab — PNG animation frames\n\nNumbered frames are complete, grid-free images in playback order.\nUse timing.json for each frame\'s startMs and durationMs. Durations vary;\ndo not assume a fixed frame rate. The durationMs total is one loop.\nReplay holds the finished drawing for the last quarter of the loop.\nLong replays sample the recording, using the same frames as GIF export.\n\nLoad project.json in PETSCII Graphics Lab to resume editing.\nhttps://funkatron.github.io/petscii-stencil-lab/\n'));
@@ -461,10 +481,10 @@ $('exportGif').onclick=()=>exportAnimation('gif');
 $('exportFrames').onclick=()=>exportAnimation('zip');
 $('exportVideo').onclick=()=>exportAnimation('video');
 const undoStack=[],redoStack=[];
-function snapshot(){return {W,H,grid:[...grid],charset,glyph,erasing,symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice()};}
+function snapshot(){return {W,H,grid:[...grid],charset,glyph,erasing,colors:{...colors},symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice()};}
 function remember(){stopAnimation();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
-function restore(state){stopAnimation();setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];charset=state.charset;glyph=state.glyph;erasing=state.erasing;$('charset').value=String(charset);$('sym').value=state.symmetry;$('glyphPage').value=typeof glyph==='number'?String(Math.floor(glyph/64)):'0';if(typeof glyph==='string')$('paletteMode').value='legacy';else if(!graphicsCode(glyph))$('paletteMode').value='all';drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
+function restore(state){stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];charset=state.charset;glyph=state.glyph;erasing=state.erasing;$('charset').value=String(charset);$('sym').value=state.symmetry;$('glyphPage').value=typeof glyph==='number'?String(Math.floor(glyph/64)):'0';if(typeof glyph==='string')$('paletteMode').value='legacy';else if(!graphicsCode(glyph))$('paletteMode').value='all';drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 function paint(x,y){
@@ -486,7 +506,7 @@ canvas.addEventListener('pointermove',e=>{if(!painting||e.pointerId!==pointer)re
 function stop(e){if(pointer!==e.pointerId)return;if(e.type==='pointerup')stroke(last,position(e));painting=false;pointer=null;last=null;setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',()=>{painting=false;pointer=null;last=null});
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
-function refresh(){const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle='#d9fff2';if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);else{preview.save();preview.scale(1.5,1.5);preview.fill(new Path2D(legacyPaths[glyph]));preview.restore()}for(const b of palette.children){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
+function refresh(){const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);else{preview.save();preview.scale(1.5,1.5);preview.fill(new Path2D(legacyPaths[glyph]));preview.restore()}for(const b of palette.children){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('erase').onclick=()=>{erasing=!erasing;refresh()};
 $('clear').onclick=()=>{remember();grid.fill('');resetReplay();redraw();setStatus('Canvas cleared')};
 $('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1)grid[y*W+x]=glyph;resetReplay();redraw()};
@@ -501,7 +521,7 @@ $('toggle').onclick=()=>{
 };
 function download(name,txt,type){const url=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
 $('text').onclick=()=>download('petscii-composition.txt',textGrid(),'text/plain;charset=utf-8');
-function makeSvg(foreground='black',background=null){
+function makeSvg(foreground=colorHex('ink'),background=colorHex('background')){
  if(!rom&&grid.some(g=>typeof g==='number'))throw Error('Glyph data unavailable; reload C64 glyphs before exporting artwork');
  const parts=[];
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
@@ -511,11 +531,11 @@ function makeSvg(foreground='black',background=null){
  const bg=background?'<rect width="100%" height="100%" fill="'+background+'"/>':'';
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W*16+' '+H*16+'" width="'+W*16+'" height="'+H*16+'">'+bg+'<g fill="'+foreground+'">'+parts.join('')+'</g></svg>';
 }
-$('svg').onclick=()=>{try{download('petscii-composition.svg',makeSvg(),'image/svg+xml')}catch(e){setStatus(e.message)}};
+function stillBackground(){const bg=$('pngBg').value;return bg==='transparent'?null:bg==='canvas'?colorHex('background'):bg}
+$('svg').onclick=()=>{try{download('petscii-composition.svg',makeSvg(undefined,stillBackground()),'image/svg+xml')}catch(e){setStatus(e.message)}};
 $('png').onclick=async()=>{
- const button=$('png'),scale=Number($('pngScale').value),bg=$('pngBg').value,exportW=W,exportH=H;
- const foreground=bg==='black'?'white':'black';
- let markup;try{markup=makeSvg(foreground,bg==='transparent'?null:bg)}catch(e){setStatus(e.message);return}
+ const button=$('png'),scale=Number($('pngScale').value),exportW=W,exportH=H;
+ let markup;try{markup=makeSvg(undefined,stillBackground())}catch(e){setStatus(e.message);return}
  const blob=new Blob([markup],{type:'image/svg+xml;charset=utf-8'});
  const url=URL.createObjectURL(blob);
  button.disabled=true;setStatus('Rendering PNG…');
@@ -532,7 +552,7 @@ $('png').onclick=async()=>{
   const pngUrl=URL.createObjectURL(pngBlob);
   const a=document.createElement('a');a.href=pngUrl;a.download='petscii-composition-'+bmp.width+'x'+bmp.height+'.png';
   document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(pngUrl),3000);
+  setTimeout(()=>URL.revokeObjectURL(pngUrl),60000);
   setStatus('PNG exported: '+bmp.width+' × '+bmp.height);
  }catch(e){setStatus('PNG export failed: '+e.message)}
  finally{URL.revokeObjectURL(url);button.disabled=false}
@@ -561,9 +581,10 @@ $('import').onclick=()=>{
   remember();W=nw;H=nh;grid=next;resetReplay();charset=bank;$('charset').value=String(bank);$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
  }catch(e){setStatus('Import failed: '+e.message)}
 };
-function projectData(){return {format:'petscii-stencil-lab',version:2,columns:W,rows:H,grid:[...grid],selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,charset,glyphSource:'builtin',animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice()}}}
+function projectData(){return {format:'petscii-stencil-lab',version:2,columns:W,rows:H,grid:[...grid],selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,charset,glyphSource:'builtin',colors:{...colors},animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice()}}}
 function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()))}catch{setStatus('Autosave unavailable; download JSON to keep your work')}}
 function validateProject(data){
+ if(data?.colors!==undefined){const c=data.colors;if(!c||!['ink','background'].every(key=>Number.isInteger(c[key])&&c[key]>=0&&c[key]<16))throw Error('Invalid C64 colors')}
  if(data&&data.glyphSource!==undefined&&data.glyphSource!=='builtin')throw Error('Only built-in C64 glyph projects are supported');
  if(!data||data.format!=='petscii-stencil-lab'||![1,2].includes(data.version))throw Error('Unsupported project format');
  if(!Number.isInteger(data.columns)||!Number.isInteger(data.rows)||data.columns<1||data.columns>40||data.rows<1||data.rows>40)throw Error('Invalid dimensions');
@@ -575,7 +596,7 @@ function validateProject(data){
 function applyProject(data){
  stopAnimation();
 
- W=data.columns;H=data.rows;grid=[...data.grid];if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice())}else resetReplay();setAnimationSettings(data.animation);$('columns').value=String(W);$('rows').value=String(H);
+ setColors(data.colors);W=data.columns;H=data.rows;grid=[...data.grid];if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice())}else resetReplay();setAnimationSettings(data.animation);$('columns').value=String(W);$('rows').value=String(H);
  glyph=(glyphs.includes(data.selectedGlyph)||Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=255)?data.selectedGlyph:'█';
  charset=data.charset===1?1:0;$('charset').value=String(charset);$('glyphPage').value=typeof glyph==='number'?String(Math.floor(glyph/64)):'0';
  if(typeof glyph==='string')$('paletteMode').value='legacy';else if(!graphicsCode(glyph))$('paletteMode').value='all';
@@ -648,6 +669,6 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
 $('sidebar').inert=true;$('glyphPicker').inert=true;$('glyphToggle').disabled=true;canvas.style.pointerEvents='none';
 try{await loadBuiltinGlyphs();glyph=64;$('glyphPage').value='1';updateSourceInfo()}catch{$('paletteMode').value='legacy';updateSourceInfo();setStatus('C64 glyphs unavailable; legacy drawing remains available')}
 try{const saved=JSON.parse(localStorage.getItem(PROJECT_KEY));if(saved){validateProject(saved);applyProject(saved);setStatus('Autosaved project restored'+(!rom&&grid.some(g=>typeof g==='number')?'; reload C64 glyphs to render codes':''))}}catch{setStatus('Saved draft could not be restored; load a JSON backup')}
-initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
+updateColorUI();initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
 })();
 </script></body></html>

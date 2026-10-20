@@ -3,7 +3,7 @@ const AdmZip=require('adm-zip');
 const {PNG}=require('pngjs');
 const {GifReader}=require('omggif');
 const {ui,test,expect,contents,download,loadProject,project}=require('./helpers.cjs');
-const ink=[217,255,242,255],dark=[14,23,40,255];
+const ink=[108,94,181,255],dark=[53,40,121,255];
 function unpack(buffer){const zip=new AdmZip(buffer);expect(zip.test()).toBe(true);const timing=JSON.parse(zip.readAsText('timing.json')),frames=timing.frames.map(f=>PNG.sync.read(zip.readFile(f.file)));return {zip,timing,frames}}
 function pixel(png,x,y){return Array.from(png.data.subarray((y*png.width+x)*4,(y*png.width+x)*4+4))}
 function matchesGif(sequence,buffer){

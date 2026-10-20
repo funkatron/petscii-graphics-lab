@@ -22,10 +22,10 @@ test('both banks and inverse slots match source pixels in canvas, SVG, and PNG',
   const svg=(await download(page,'#svg')).toString();expect(svg).toContain('viewBox="0 0 32 16"');expect(svg).toContain('scale(2)');
   const first=svg.split('scale(2)">')[1].split('</g>')[0];
   for(let y=0;y<8;y++)for(let x=0;x<8;x++)expect(first.includes(`<rect x="${x}" y="${y}" width="1" height="1"/>`)).toBe(!!(bytes[bank*2048+y]&(128>>x)));
-  const ink=await page.locator('#canvas').evaluate(c=>{const t=c.getContext('2d'),bits=[];for(let y=0;y<8;y++)for(let x=0;x<16;x++){const d=t.getImageData(Math.floor((x+.5)*c.width/16),Math.floor((y+.5)*c.height/8),1,1).data;bits.push(d[0]===217&&d[1]===255&&d[2]===242)}return bits});
+  const ink=await page.locator('#canvas').evaluate(c=>{const t=c.getContext('2d'),bits=[];for(let y=0;y<8;y++)for(let x=0;x<16;x++){const d=t.getImageData(Math.floor((x+.5)*c.width/16),Math.floor((y+.5)*c.height/8),1,1).data;bits.push(d[0]===108&&d[1]===94&&d[2]===181)}return bits});
   const expected=Array.from({length:128},(_,i)=>{const y=Math.floor(i/16),x=i%16;return !!(bytes[bank*2048+(x<8?0:128*8)+y]&(128>>(x%8)))});expect(ink).toEqual(expected);
-  const png=await download(page,'#png');expect(png.readUInt32BE(16)).toBe(128);expect(png.readUInt32BE(20)).toBe(64);
-  const pixels=await page.evaluate(async data=>{const i=new Image();i.src='data:image/png;base64,'+data;await i.decode();const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const t=c.getContext('2d');t.drawImage(i,0,0);const bits=[];for(let y=0;y<8;y++)for(let x=0;x<16;x++)bits.push(t.getImageData(x*8+4,y*8+4,1,1).data[0]===0);return bits},png.toString('base64'));expect(pixels).toEqual(expected);
+  await ui(page,'#pngBg','selectOption','transparent');const png=await download(page,'#png');expect(png.readUInt32BE(16)).toBe(128);expect(png.readUInt32BE(20)).toBe(64);
+  const pixels=await page.evaluate(async data=>{const i=new Image();i.src='data:image/png;base64,'+data;await i.decode();const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const t=c.getContext('2d');t.drawImage(i,0,0);const bits=[];for(let y=0;y<8;y++)for(let x=0;x<16;x++)bits.push(t.getImageData(x*8+4,y*8+4,1,1).data[3]===255);return bits},png.toString('base64'));expect(pixels).toEqual(expected);
  }
 });
 test('binary screen codes preserve zero, inverse, row order, and empty cells',async({page})=>{
