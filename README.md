@@ -23,9 +23,9 @@ The left tools use disclosures for **Canvas & tools**, **Colors**, **Animation**
 
 Open **Colors** in the tools, choose **Ink** or **Background**, then tap a swatch. All 16 colors follow C64 hardware color-number order (0–F), using [Philip “Pepto” Timmermann’s PAL RGB palette](https://www.pepto.de/projects/colorvic/2001/). RGB is an approximation of the C64’s analog output; displays and VIC-II revisions vary.
 
-Colors apply to the **whole composition**, including legacy shapes. Default ink is Light blue (14), on Blue (6). **Swap ink / background** reverses them. Color changes support undo/redo, JSON save/load, and device autosave. Earlier projects without color metadata use these C64 defaults. This is a global two-color composition, not per-character color RAM editing.
+**Ink** sets the brush color: each painted cell keeps its own foreground color, including legacy shapes. Painting the same glyph again applies the new ink. The background is shared. **Recolor entire drawing** applies brush ink to all occupied cells; **Swap brush / background** swaps those two settings without recoloring existing cells. Default ink is Light blue (14), on Blue (6). Strokes, recoloring, symmetry, resizing, patterns, undo/redo, JSON save/load, autosave and drawing replay preserve cell colors. Earlier files inherit their saved global ink (or Light blue if absent).
 
-Canvas, glyph previews, SVG, PNG, GIF, PNG frame sequences and video use the selected colors. **Canvas color** is the default export background; still exports can instead use white, black or transparency, and animation exports offer white or transparency. Transparent GIF/PNG omit the background; video uses the selected canvas background instead. Changing colors during an export does not alter its captured artwork. Use JSON to preserve colors: text and binary screen-code files contain glyph data only.
+Canvas, glyph previews, SVG, PNG, GIF, PNG frame sequences and video use the selected colors. **Canvas color** is the default export background; still exports can instead use white, black or transparency, and animation exports offer white or transparency. Transparent GIF/PNG omit the background; video uses the selected canvas background instead. Changing colors during an export does not alter its captured artwork. Use JSON to preserve the editable composition and colored replay. Text and binary screen-code files contain glyph data only; **Export color RAM .bin** supplies a separate row-major byte per cell (palette index 0–15, including empty cells), with the same dimensions as screen-code output. Neither binary file embeds dimensions, character set or a load address.
 
 ## Automatic animation
 
@@ -76,7 +76,8 @@ The current project also autosaves locally after edits and when leaving the page
 | PNG frame ZIP | Numbered lossless PNGs, frame timing metadata, an editable JSON snapshot and instructions. |
 | Video | Selected number of silent loops at the chosen speed/resolution; MP4 where supported, WebM fallback; opaque background. |
 | Animated GIF | Looping animation, sharp C64 pixels, selected resolution and background. |
-| `.bin` | One screen-code byte per cell, row-major, with empty cells mapped to space code 32. No load address, charset, colors, or dimensions embedded. Legacy shapes are rejected rather than silently lost. These are **screen codes, not PETSCII bytes**. |
+| Color RAM `.bin` | One C64 foreground palette index (0–15) per cell, row-major. Pair with the screen-code file. No metadata or load address. |
+| Screen `.bin` | One screen-code byte per cell, row-major, with empty cells mapped to space code 32. No load address, charset, colors, or dimensions embedded. Legacy shapes are rejected rather than silently lost. These are **screen codes, not PETSCII bytes**. |
 
 Visual exports use the built-in SVG-derived bitmap data. If the glyph asset cannot load, numeric glyphs are marked on canvas; they are never silently omitted from an image export. Text, JSON, and binary screen codes do not require the ROM to preserve numeric data. Rendering preserves every source pixel, including the original inverse glyph slots.
 
@@ -135,5 +136,5 @@ Playwright covers desktop Chromium and iPad WebKit in landscape and portrait. Ev
 
 - No physical iPad/Pencil hardware test is available in automated CI.
 - The optional coarse stencil analysis supports legacy shapes only; ROM compositions receive an explicit unsupported message.
-- SVG/PNG match artwork geometry and orientation; their export colors intentionally differ from the editor's dark editing theme.
+- SVG/PNG match artwork geometry and orientation; their foreground colors match each cell; export background overrides are explicit.
 - Text exported by the early experimental ROM version was an ambiguous unlabelled mixed string. It cannot be reliably auto-detected; use its JSON project as the migration path.

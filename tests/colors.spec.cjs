@@ -10,7 +10,7 @@ test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[da
 test('all sixteen C64 swatches use documented RGB values and update bitmap previews and canvas',async({page})=>{
  await loadProject(page,project([160,''],2,1,{selectedGlyph:160}));await ui(page,'#inkTarget');await expect(page.locator('#colorPalette button')).toHaveCount(16);
  const swatches=await page.locator('#colorPalette button').evaluateAll(buttons=>buttons.map(b=>getComputedStyle(b).backgroundColor));expect(swatches).toEqual(hex.map((_,i)=>'rgb('+rgb(i).join(', ')+')'));
- await choose(page,'ink',2);await expect(page.locator('#inkName')).toHaveText('Red');await expect(page.locator('#inkTarget')).toHaveAttribute('aria-pressed','true');
+ await choose(page,'ink',2);await ui(page,'#recolorDrawing');await expect(page.locator('#inkName')).toHaveText('Red');await expect(page.locator('#inkTarget')).toHaveAttribute('aria-pressed','true');
  expect(await canvasPixels(page)).toEqual([[...rgb(2),255],[...rgb(6),255]]);
  expect(await page.locator('#glyphPreview').evaluate(c=>Array.from(c.getContext('2d').getImageData(12,12,1,1).data))).toEqual([...rgb(2),255]);
  await choose(page,'background',1);expect(await canvasPixels(page)).toEqual([[...rgb(2),255],[255,255,255,255]]);await expect(page.locator('#backgroundName')).toHaveText('White');await expect(page.locator('#colorPalette button:nth-child(2)')).toHaveAttribute('aria-pressed','true');
@@ -36,10 +36,10 @@ test('GIF and frame ZIP preserve selected colors, transparency, and snapshot met
 });
 test('native repeated video snapshots colors before encoder loading and uses canvas background for transparency',async({page})=>{
  await loadProject(page,project([160,'','',''],4,1,{colors:{ink:7,background:6},animation:{effect:'scroll-x',seconds:.5,scale:4,background:'transparent',videoRepeats:3}}));let release,requested;const gate=new Promise(r=>release=r),started=new Promise(r=>requested=r);await page.route('**/video-export.js',async route=>{requested();await gate;await route.continue()});
- const waiting=page.waitForEvent('download');await ui(page,'#exportVideo');await started;await choose(page,'ink',3);await choose(page,'background',0);release();
+ const waiting=page.waitForEvent('download');await ui(page,'#exportVideo');await started;await choose(page,'ink',3);await choose(page,'background',0);await ui(page,'#recolorDrawing');release();
  const v=decodeVideo(await contents(await waiting));expect(Number(v.info.format.duration)).toBeCloseTo(1.5,2);expect(v.frames).toHaveLength(12);for(let f=0;f<12;f++)for(let x=0;x<4;x++)nearPixel(v,f,x*32+16,16,rgb(x===(4-f%4)%4?7:6));expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:3,background:0});
 });
 test('legacy geometry, black ink, swapped colors, and identical colors remain editable and exportable',async({page})=>{
- await loadProject(page,project(['█',''],2,1,{selectedGlyph:'█',colors:{ink:0,background:1}}));expect(await canvasPixels(page)).toEqual([[0,0,0,255],[255,255,255,255]]);await ui(page,'#swapColors');expect(await canvasPixels(page)).toEqual([[255,255,255,255],[0,0,0,255]]);await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:0,background:1});
- await choose(page,'ink',3);await choose(page,'background',3);const gif=new GifReader(await download(page,'#exportGif')),data=new Uint8Array(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(gif.numFrames()-1,data);expect(Array.from(data.slice(0,4))).toEqual([...rgb(3),255]);expect(Array.from(data.slice(-4))).toEqual([...rgb(3),255]);
+ await loadProject(page,project(['█',''],2,1,{selectedGlyph:'█',colors:{ink:0,background:1}}));expect(await canvasPixels(page)).toEqual([[0,0,0,255],[255,255,255,255]]);await ui(page,'#swapColors');await ui(page,'#recolorDrawing');expect(await canvasPixels(page)).toEqual([[255,255,255,255],[0,0,0,255]]);await ui(page,'#undo');await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:0,background:1});
+ await choose(page,'ink',3);await choose(page,'background',3);await ui(page,'#recolorDrawing');const gif=new GifReader(await download(page,'#exportGif')),data=new Uint8Array(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(gif.numFrames()-1,data);expect(Array.from(data.slice(0,4))).toEqual([...rgb(3),255]);expect(Array.from(data.slice(-4))).toEqual([...rgb(3),255]);
 });
