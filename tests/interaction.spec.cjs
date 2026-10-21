@@ -19,7 +19,10 @@ test('iPad real touch tap draws and scroll suppression stays within drawing regi
   const outside=new Event('touchmove',{bubbles:true,cancelable:true});sidebar.dispatchEvent(outside);
   return {inside:inside.defaultPrevented,outside:outside.defaultPrevented,action:getComputedStyle(canvas).touchAction};
  });expect(result).toEqual({inside:true,outside:false,action:'none'});
- await reveal(page,'#animationEffect');await reveal(page,'#output');
+ // Downloads have their own dialog. Open settings disclosures to exercise
+ // scrolling in the actual sidebar rather than relying on export controls.
+ await reveal(page,'#border');await reveal(page,'#recolorDrawing');await reveal(page,'#animationEffect');
+ expect(await page.locator('#sidebar').evaluate(e=>e.scrollHeight-e.clientHeight)).toBeGreaterThan(0);
  await page.locator('#sidebar').evaluate(e=>e.scrollBy(0,500));
  await expect.poll(()=>page.locator('#sidebar').evaluate(e=>e.scrollTop)).toBeGreaterThan(0);
 });
