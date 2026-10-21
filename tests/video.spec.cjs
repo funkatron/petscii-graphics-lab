@@ -5,7 +5,7 @@ const ink=[108,94,181],dark=[53,40,121];
 async function sample(page,extra={}){await loadProject(page,project([160,'','',''],4,1,{animation:{effect:'scroll-x',seconds:.5,scale:4,background:'dark'},...extra}))}
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('speed defaults to two seconds, supports faster replay, and persists in projects',async({page})=>{
- await expect(page.getByLabel('Animation speed',{exact:true})).toHaveValue('2');await sample(page);await ui(page,'#animationEffect','selectOption','replay');
+ await expect(page.getByLabel('Loop duration',{exact:true})).toHaveValue('2');await sample(page);await ui(page,'#animationEffect','selectOption','replay');
  const gif=new GifReader(await download(page,'#exportGif'));expect(Array.from({length:gif.numFrames()},(_,i)=>gif.frameInfo(i).delay).reduce((a,b)=>a+b,0)).toBe(50);
  const p=JSON.parse(await download(page,'#saveProject'));expect(p.animation.seconds).toBe(.5);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationSeconds')).toHaveValue('0.5');
  await ui(page,'#quickPlay');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#animationSeconds','selectOption','1');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#animationStop');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(p.grid);

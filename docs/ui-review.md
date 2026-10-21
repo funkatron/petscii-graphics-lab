@@ -1,6 +1,6 @@
 # UI review: drawing flow and predictable actions
 
-Reviewed 21 October 2026 against the live application and current implementation. These are design recommendations, not usability-test findings or statements attributed to Asa Raskin. The goal is reducing attention spent managing the editor while retaining useful creative control.
+Reviewed 21 October 2026 against the live application and current implementation. The goal is reducing attention spent managing the editor while retaining useful creative control.
 
 ## Main finding
 
@@ -40,6 +40,17 @@ The successful features to preserve are the large automatically fitted canvas, a
 - Second: explicit preview state and the download sheet.
 - Third: glyph navigation/pinning and staged canvas resize.
 - Retain the existing appearance and familiar positions where practical. Evaluate each step with the same drawing tasks before adding further navigation layers.
+
+## Implemented workspace changes
+
+- Persistent drawing strip with glyph preview, direct ink access, Paint/Eraser, symmetry state and Undo/Redo, independent of settings visibility.
+- Header Download artwork opens a responsive dialog with Image / Animation / C64 data tabs, format selection, grid-free output preview and actual dimensions/timing. Project open/editable downloads have a separate menu. Closing the dialog leaves export work running with accessible progress/cancellation.
+- Explicit animation preview/effect/paused state and Return to drawing; loop durations use seconds.
+- Neutral white-on-black glyph thumbnails, bank-specific recent selections/favorites, visual family filters and optional tablet pinning. Page, bank, inverse and legacy access remain available.
+- Canvas dimensions stage together with a crop preview and Apply/Cancel; applying is one undoable operation. Whole-drawing actions use separate disclosures.
+- Device-save status and a persistent failure notice, plus 44 px primary controls. Small-screen labels collapse while accessible names remain.
+
+Potential follow-ups: an independently floating ink palette, optional hexadecimal labels, and testing reach/occlusion with a physical Apple Pencil. These can be evaluated after using the new layout.
 
 ## Validation tasks for the redesign
 
