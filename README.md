@@ -37,6 +37,11 @@ The header's ▶ button also works while the sidebar is hidden. Pause freezes th
 - **Scroll left / up** wraps the drawing across the grid.
 - **Wave rows** shifts character rows in a repeating wave.
 - **Inverse pulse** alternates numeric glyphs with their actual inverse slots. Legacy shapes blink instead.
+- **Color cycle** rotates each cell’s ink through all 16 C64 colors, retaining the differences between source colors. It starts with the original cell colors.
+- **Rainbow wave** sends diagonal bands of eight C64 colors across the drawing.
+- **Warm glow** cycles through brown, orange, red, light red, yellow and white, then back through the warm shades.
+
+Color effects keep the glyphs and shared background fixed. Rainbow wave and Warm glow remap inks to their color ramps; they do not modify the saved cell colors. Select an effect and press **Play**; **Stop / edit** restores the original colors. The existing **Animation speed** control changes the loop duration for preview, GIF, video and PNG frame ZIP. Still exports always use the original drawing.
 
 New strokes are recorded automatically. Older/imported artwork, patterns and resized canvases start a grid-order reveal; the earlier drawing process cannot be recovered. The recording stores at most 20,000 cell changes, then condenses to a reveal of the current composition. Undo/redo preserve the corresponding recording.
 
