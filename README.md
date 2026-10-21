@@ -17,7 +17,7 @@ A standalone, touch-first C64 character graphics editor. [Open the editor](https
 
 The left tools use disclosures for **Canvas & tools**, **Colors**, **Animation**, **Save & export**, and **Help & extras**. Eraser and undo/redo remain at the top. Use ☰ to hide the settings and enlarge the canvas; Glyphs and header Play remain available.
 
-**Save & export** keeps editable project save/load together with three tabs: **Still** (PNG/SVG), **Animation** (GIF/video/PNG frame ZIP), and **Data** (text/screen codes and text import). Choose an animation format to see its options and Save link. Resolution/background are shared between animation formats; the **Edit** shortcut opens effect/speed settings. Changing sections or tabs preserves artwork and generated download links. Export cancellation stays at the top of the tools even when Save & export is closed.
+**Save & export** keeps editable project save/load together with three tabs: **Still** (PNG/SVG), **Animation** (GIF/video/PNG frame ZIP), and **Data** (text/screen codes and text import). Choose an animation format to see its options and a single Download button. Resolution/background are shared between animation formats; the **Edit** shortcut opens effect/speed settings. Changing sections or tabs preserves artwork and completed downloads. Export cancellation stays at the top of the tools even when Save & export is closed.
 
 ## C64 colors
 
@@ -45,9 +45,9 @@ Color effects keep the glyphs and shared background fixed. Rainbow wave and Warm
 
 New strokes are recorded automatically. Older/imported artwork, patterns and resized canvases start a grid-order reveal; the earlier drawing process cannot be recovered. The recording stores at most 20,000 cell changes, then condenses to a reveal of the current composition. Undo/redo preserve the corresponding recording.
 
-**Export animated GIF** writes a continuously looping, grid-free GIF with 8, 16 or 32 pixels per cell and the canvas color, white or transparent background. The export uses the same frame calculation and timing as the preview and takes a snapshot, so later edits do not change an export already in progress. C64 bitmap pixels remain sharp. A **Save animated GIF** link stays available after rendering for a direct second tap in Safari or repeat downloads. Static SVG/PNG/text/binary exports continue to use the source drawing.
+**Download GIF** writes a continuously looping, grid-free GIF with 8, 16 or 32 pixels per cell and the canvas color, white or transparent background. The export uses the same frame calculation and timing as the preview and takes a snapshot, so later edits do not change an export already in progress. C64 bitmap pixels remain sharp. The same **Download GIF** button reuses the completed file for a second tap in Safari or repeat downloads. Changes to the artwork or output settings regenerate it automatically. Static SVG/PNG/text/binary exports continue to use the source drawing.
 
-**Export PNG frames (.zip)** uses the same animation resolution, background, frame order and encoded timings as GIF export. The ZIP includes:
+**Download frame ZIP** uses the same animation resolution, background, frame order and encoded timings as GIF export. The ZIP includes:
 
 - `frames/frame-0001.png`, etc.: complete, lossless PNG frames with no editing grid.
 - `timing.json`: versioned metadata, dimensions, charset, background, C64 color indices and palette identifier, loop duration, and each frame's `file`, `startMs` and `durationMs`.
@@ -56,9 +56,9 @@ New strokes are recorded automatically. Older/imported artwork, patterns and res
 
 Frame delays can vary, especially the final hold in drawing replay. Preserve `timing.json` when moving frames to another tool; importing every PNG at one fixed frame rate changes the intended timing. The ZIP contains the same sampled replay frames as GIF, rather than every recorded cell change. Video export is described below.
 
-All animation export buttons show progress and support **Cancel export**. Editing remains available; later edits do not affect an export already in progress. **Save frame ZIP** remains available for a direct second tap or repeat download, like the GIF Save link.
+All animation export buttons show progress and support **Cancel export**. Editing remains available; later edits do not affect an export already in progress. The same **Download frame ZIP** button downloads the completed archive again when the artwork and settings are unchanged.
 
-**Export video** creates a silent clip with **1–100 repetitions** at the selected speed and resolution. Under **Save & export → Animation → Video**, enter **Video repetitions (total loops)**; 1 means play once. The duration hint shows loop length × count = total video length (for example, 2 seconds × 5 loops = 10 seconds). The count is saved in projects/autosave, defaults to 1 for earlier projects, and applies to both MP4 and WebM. Each repeat includes the full animation, including the drawing replay’s final hold. It uses native browser encoding, preferring **H.264 MP4**, with **VP9/VP8 WebM** as fallback. **Save video** remains available for a direct second tap or repeat download. Unsupported browsers show a clear message; GIF and PNG frames remain available.
+**Download video** creates a silent clip with **1–100 repetitions** at the selected speed and resolution. Under **Save & export → Animation → Video**, enter **Video repetitions (total loops)**; 1 means play once. The duration hint shows loop length × count = total video length (for example, 2 seconds × 5 loops = 10 seconds). The count is saved in projects/autosave, defaults to 1 for earlier projects, and applies to both MP4 and WebM. Each repeat includes the full animation, including the drawing replay’s final hold. It uses native browser encoding, preferring **H.264 MP4**, with **VP9/VP8 WebM** as fallback. The same **Download video** button reuses the finished clip when nothing has changed. Unsupported browsers show a clear message; GIF and PNG frames remain available.
 
 Video uses the same raster frames and explicit timestamps as GIF/ZIP, without recording the live preview or waiting for real-time playback. No camera, microphone, screen-capture permission, server upload or runtime CDN is involved. Video colors use the selected solid background; **Transparent uses the selected canvas background** because these video codecs do not preserve alpha here. Video compression can introduce small color/edge differences; PNG frames are the lossless option. The chosen repetitions are encoded into a finite video file, so playback does not depend on the video player supporting looping. Preview and GIF looping and PNG ZIP timelines are unaffected by the video repetition setting.
 
@@ -143,3 +143,7 @@ Playwright covers desktop Chromium and iPad WebKit in landscape and portrait. Ev
 - The optional coarse stencil analysis supports legacy shapes only; ROM compositions receive an explicit unsupported message.
 - SVG/PNG match artwork geometry and orientation; their foreground colors match each cell; export background overrides are explicit.
 - Text exported by the early experimental ROM version was an ambiguous unlabelled mixed string. It cannot be reliably auto-detected; use its JSON project as the migration path.
+
+## UI review
+
+[Drawing-flow review and prioritized recommendations](docs/ui-review.md) documents the next interface improvements separately from implemented features.

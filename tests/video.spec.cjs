@@ -19,7 +19,7 @@ test('native video exports a complete loop at selected dimensions and speed',asy
  await sample(page);const before=JSON.parse(await download(page,'#saveProject')),buffer=await download(page,'#exportVideo'),video=decodeVideo(buffer);
  expect(video.stream.width).toBe(128);expect(video.stream.height).toBe(32);expect(video.info.streams).toHaveLength(1);expect(Number(video.info.format.duration)).toBeCloseTo(.5,2);expect(video.frames).toHaveLength(4);
  for(let f=0;f<4;f++)for(let x=0;x<4;x++)nearPixel(video,f,x*32+16,16,x===(4-f)%4?ink:dark);
- await expect(page.locator('#videoDownload')).toBeVisible();expect(await download(page,'#videoDownload')).toEqual(buffer);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await expect(page.locator('#exportGif')).toBeEnabled();
+ await expect(page.locator('#exportVideo')).toBeVisible();expect(await download(page,'#exportVideo')).toEqual(buffer);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await expect(page.locator('#exportGif')).toBeEnabled();
 });
 test('video drawing replay retains painting order, erasures and the final hold',async({page})=>{
  await sample(page,{grid:[160,'','',''],drawingReplay:{base:['','','',''],events:[[3,160],[0,160],[3,'']]},animation:{effect:'replay',seconds:2,scale:4,background:'dark'}});
@@ -35,23 +35,23 @@ test('video snapshots options and dimensions during loading; transparent video b
 });
 test('video falls back to WebM when AVC encoding is unavailable',async({page})=>{
  await page.addInitScript(()=>{const probe=VideoEncoder.isConfigSupported.bind(VideoEncoder);VideoEncoder.isConfigSupported=config=>config.codec.startsWith('avc')?Promise.resolve({supported:false,config}):probe(config)});await page.reload();await page.locator('.app[data-ready=true]').waitFor();await sample(page);await ui(page,'#videoRepeats','fill','3');
- const v=decodeVideo(await download(page,'#exportVideo'));await expect(page.locator('#videoDownload')).toHaveAttribute('download',/\.webm$/);expect(['vp8','vp9']).toContain(v.stream.codec_name);expect(Number(v.info.format.duration)).toBeCloseTo(1.5,2);expect(v.frames).toHaveLength(12);for(let f=0;f<12;f++)for(let x=0;x<4;x++)nearPixel(v,f,x*32+16,16,x===(4-f%4)%4?ink:dark);
+ const v=decodeVideo(await download(page,'#exportVideo'));await expect(page.locator('#exportVideo')).toHaveAttribute('data-download-name',/\.webm$/);expect(['vp8','vp9']).toContain(v.stream.codec_name);expect(Number(v.info.format.duration)).toBeCloseTo(1.5,2);expect(v.frames).toHaveLength(12);for(let f=0;f<12;f++)for(let x=0;x<4;x++)nearPixel(v,f,x*32+16,16,x===(4-f%4)%4?ink:dark);
 });
 test('canceling video while loading restores export controls and permits retry',async({page})=>{
  await sample(page);let release;const gate=new Promise(resolve=>release=resolve);let requested;const started=new Promise(resolve=>requested=resolve);await page.route('**/video-export.js',async r=>{requested();await gate;await r.continue()});
  const files=[];page.on('download',d=>files.push(d));await ui(page,'#exportVideo');await started;await expect(page.locator('#exportFrames')).toBeDisabled();await ui(page,'#cancelAnimationExport');release();
- await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(files).toHaveLength(0);await expect(page.locator('#videoDownload')).toBeHidden();await expect(page.locator('#exportVideo')).toBeEnabled();expect(decodeVideo(await download(page,'#exportVideo')).frames).toHaveLength(4);
+ await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(files).toHaveLength(0);await expect(page.locator('#exportVideo')).not.toHaveAttribute('data-download-url',/./);await expect(page.locator('#exportVideo')).toBeEnabled();expect(decodeVideo(await download(page,'#exportVideo')).frames).toHaveLength(4);
 });
 test('unsupported video and module loading errors preserve the drawing and restore buttons',async({page})=>{
  await sample(page);await page.route('**/video-export.js',r=>r.abort());await ui(page,'#exportVideo');await expect(page.locator('#status')).toContainText('Video export failed');await expect(page.locator('#exportVideo')).toBeEnabled();await page.unroute('**/video-export.js');
  await page.addInitScript(()=>Object.defineProperty(window,'VideoEncoder',{value:undefined,configurable:true}));await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#exportVideo');await expect(page.locator('#status')).toContainText('Video encoding is unavailable');await expect(page.locator('#exportGif')).toBeEnabled();expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([160,'','','']);
 });
 test('canceling native video finalization keeps the previous completed video available',async({page})=>{
- await sample(page);await ui(page,'#videoRepeats','fill','3');const previous=await download(page,'#exportVideo'),url=await page.locator('#videoDownload').getAttribute('href');
+ await sample(page);await ui(page,'#videoRepeats','fill','3');const previous=await download(page,'#exportVideo'),url=await page.locator('#exportVideo').getAttribute('data-download-url');
  let release;const gate=new Promise(resolve=>release=resolve);await page.exposeFunction('waitForVideoFlush',()=>gate);
  await page.evaluate(()=>{const original=VideoEncoder.prototype.flush;VideoEncoder.prototype.flush=async function(){document.documentElement.dataset.videoFlush='waiting';await window.waitForVideoFlush();return original.call(this)}});
- const files=[];page.on('download',d=>files.push(d));await ui(page,'#exportVideo');await expect(page.locator('html')).toHaveAttribute('data-video-flush','waiting');await ui(page,'#cancelAnimationExport');release();
- await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(files).toHaveLength(0);await expect(page.locator('#videoDownload')).toHaveAttribute('href',url);await expect(page.locator('#exportVideo')).toBeEnabled();expect(await download(page,'#videoDownload')).toEqual(previous);
+ await ui(page,'#animationSeconds','selectOption','1');const files=[];page.on('download',d=>files.push(d));await ui(page,'#exportVideo');await expect(page.locator('html')).toHaveAttribute('data-video-flush','waiting');await ui(page,'#cancelAnimationExport');release();
+ await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(files).toHaveLength(0);await expect(page.locator('#exportVideo')).toHaveAttribute('data-download-url',url);await expect(page.locator('#exportVideo')).toBeEnabled();await ui(page,'#animationSeconds','selectOption','0.5');expect(await download(page,'#exportVideo')).toEqual(previous);
 });
 
 test('video repetition count encodes three complete loops with continuous timestamps',async({page})=>{
@@ -59,7 +59,7 @@ test('video repetition count encodes three complete loops with continuous timest
  const v=decodeVideo(await download(page,'#exportVideo'));expect(Number(v.info.format.duration)).toBeCloseTo(1.5,2);expect(v.frames).toHaveLength(12);
  for(let f=0;f<12;f++)for(let x=0;x<4;x++)nearPixel(v,f,x*32+16,16,x===(4-f%4)%4?ink:dark);
  const frames=v.info.frames.filter(f=>f.media_type==='video');for(let i=0;i<12;i++)expect(Number(frames[i].best_effort_timestamp_time)).toBeCloseTo(Math.floor(i/4)*.5+[0,.13,.25,.38][i%4],3);
- await expect(page.locator('#videoDownload')).toHaveAttribute('download',/-3x\.(mp4|webm)$/);await expect(page.locator('#status')).toContainText('3 loops · 1.5 s');
+ await expect(page.locator('#exportVideo')).toHaveAttribute('data-download-name',/-3x\.(mp4|webm)$/);await expect(page.locator('#status')).toContainText('3 loops · 1.5 s');
  // GIF remains one timeline with its own infinite-loop flag.
  const gif=new GifReader(await download(page,'#exportGif'));expect(gif.numFrames()).toBe(4);expect(Array.from({length:4},(_,i)=>gif.frameInfo(i).delay).reduce((a,b)=>a+b,0)).toBe(50);
 });
@@ -78,8 +78,8 @@ test('video repetitions persist, restore through undo, and reject invalid import
  await ui(page,'#videoRepeats','fill','100');await expect(page.locator('#videoDuration')).toContainText('50 s total');expect(JSON.parse(await download(page,'#saveProject')).animation.videoRepeats).toBe(100);
 });
 test('invalid video repetitions preserve last valid settings and previous successful download',async({page})=>{
- await sample(page);const previous=await download(page,'#exportVideo'),url=await page.locator('#videoDownload').getAttribute('href');const files=[];page.on('download',d=>files.push(d));
- for(const count of ['', '0','-1','1.5','101']){await ui(page,'#videoRepeats','fill',count);await expect(page.locator('#videoRepeats')).toHaveAttribute('aria-invalid','true');await ui(page,'#exportVideo');await expect(page.locator('#status')).toHaveText('Video repetitions must be a whole number from 1 to 100');await expect(page.locator('#videoDownload')).toHaveAttribute('href',url)}
+ await sample(page);const previous=await download(page,'#exportVideo'),url=await page.locator('#exportVideo').getAttribute('data-download-url');const files=[];page.on('download',d=>files.push(d));
+ for(const count of ['', '0','-1','1.5','101']){await ui(page,'#videoRepeats','fill',count);await expect(page.locator('#videoRepeats')).toHaveAttribute('aria-invalid','true');await ui(page,'#exportVideo');await expect(page.locator('#status')).toHaveText('Video repetitions must be a whole number from 1 to 100');await expect(page.locator('#exportVideo')).toHaveAttribute('data-download-url',url)}
  expect(files).toHaveLength(0);expect(JSON.parse(await download(page,'#saveProject')).animation.videoRepeats).toBe(1);
- await ui(page,'#videoRepeats','fill','2');await expect(page.locator('#videoRepeats')).toHaveAttribute('aria-invalid','false');expect(decodeVideo(await download(page,'#exportVideo')).frames).toHaveLength(8);expect(await download(page,'#videoDownload')).not.toEqual(previous);
+ await ui(page,'#videoRepeats','fill','2');await expect(page.locator('#videoRepeats')).toHaveAttribute('aria-invalid','false');expect(decodeVideo(await download(page,'#exportVideo')).frames).toHaveLength(8);expect(await download(page,'#exportVideo')).not.toEqual(previous);
 });

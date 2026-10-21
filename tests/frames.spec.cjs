@@ -26,7 +26,7 @@ test('ZIP replay preserves recorded erasures, timing, source project and repeat 
  expect(s.timing.frames.map(f=>[f.startMs,f.durationMs])).toEqual([[0,1000],[1000,1000],[2000,1000],[3000,1000]]);
  expect(s.frames.map(p=>[pixel(p,4,4),pixel(p,20,4)])).toEqual([[dark,dark],[dark,ink],[ink,ink],[ink,dark]]);
  expect(JSON.parse(s.zip.readAsText('project.json'))).toEqual(before);expect(s.zip.readAsText('README.txt')).toContain('do not assume a fixed frame rate');
- await expect(page.locator('#framesDownload')).toBeVisible();expect(await download(page,'#framesDownload')).toEqual(buffer);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ await expect(page.locator('#exportFrames')).toBeVisible();expect(await download(page,'#exportFrames')).toEqual(buffer);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
  matchesGif(s,await download(page,'#exportGif'));
 });
 test('transparent PNG sequences retain both banks and verbatim inverse glyphs',async({page})=>{
@@ -63,24 +63,24 @@ test('canceling ZIP generation restores controls and permits a new export',async
  await loadProject(page,project([160]));let release;const gate=new Promise(resolve=>release=resolve);let requested;const started=new Promise(resolve=>requested=resolve);
  await page.route('**/vendor/fflate-zip.esm.js',async r=>{requested();await gate;await r.continue()});
  const downloads=[];page.on('download',d=>downloads.push(d));await ui(page,'#exportFrames');await started;await expect(page.locator('#exportGif')).toBeDisabled();await ui(page,'#cancelAnimationExport');release();
- await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(downloads).toHaveLength(0);await expect(page.locator('#framesDownload')).toBeHidden();await expect(page.locator('#exportGif')).toBeEnabled();await expect(page.locator('#exportFrames')).toBeEnabled();await expect(page.locator('#cancelAnimationExport')).toBeHidden();
+ await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(downloads).toHaveLength(0);await expect(page.locator('#exportFrames')).not.toHaveAttribute('data-download-url',/./);await expect(page.locator('#exportGif')).toBeEnabled();await expect(page.locator('#exportFrames')).toBeEnabled();await expect(page.locator('#cancelAnimationExport')).toBeHidden();
  expect(unpack(await download(page,'#exportFrames')).timing.frames).toHaveLength(2);
 });
 test('ZIP module and PNG encoding failures recover without modifying artwork',async({page})=>{
  await loadProject(page,project([160]));await page.route('**/vendor/fflate-zip.esm.js',r=>r.abort());await ui(page,'#exportFrames');await expect(page.locator('#status')).toContainText('Frame ZIP export failed');await expect(page.locator('#exportFrames')).toBeEnabled();expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([160]);
  await page.unroute('**/vendor/fflate-zip.esm.js');
  await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.toBlob;let failed=false;HTMLCanvasElement.prototype.toBlob=function(callback,...args){if(!failed){failed=true;callback(null)}else original.call(this,callback,...args)}});
- await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#exportFrames');await expect(page.locator('#status')).toContainText('PNG encoding failed');await expect(page.locator('#framesDownload')).toBeHidden();await expect(page.locator('#exportFrames')).toBeEnabled();expect(unpack(await download(page,'#exportFrames')).timing.frames).toHaveLength(2);
+ await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#exportFrames');await expect(page.locator('#status')).toContainText('PNG encoding failed');await expect(page.locator('#exportFrames')).not.toHaveAttribute('data-download-url',/./);await expect(page.locator('#exportFrames')).toBeEnabled();expect(unpack(await download(page,'#exportFrames')).timing.frames).toHaveLength(2);
 });
 test('animation exports reject unavailable numeric replay history even if final artwork is legacy',async({page})=>{
  await page.route('**/assets/c64-glyphs.svg',r=>r.abort());await page.reload();await page.locator('.app[data-ready=true]').waitFor();
  await loadProject(page,project(['█'],1,1,{drawingReplay:{base:[''],events:[[0,160],[0,'█']]}}));
  for(const selector of ['#exportGif','#exportFrames']){await ui(page,selector);await expect(page.locator('#status')).toHaveText('Reload C64 glyphs before exporting animation')}
- await expect(page.locator('#framesDownload')).toBeHidden();await expect(page.locator('#exportFrames')).toBeEnabled();
+ await expect(page.locator('#exportFrames')).not.toHaveAttribute('data-download-url',/./);await expect(page.locator('#exportFrames')).toBeEnabled();
 });
 test('canceling during PNG encoding keeps the prior completed ZIP available',async({page})=>{
- await loadProject(page,project([160,''],2,1));const previous=await download(page,'#exportFrames'),url=await page.locator('#framesDownload').getAttribute('href');
+ await loadProject(page,project([160,''],2,1));const previous=await download(page,'#exportFrames'),url=await page.locator('#exportFrames').getAttribute('data-download-url');
  await page.evaluate(()=>{const original=HTMLCanvasElement.prototype.toBlob;HTMLCanvasElement.prototype.toBlob=function(callback,...args){document.documentElement.dataset.pngEncoding='true';window.releasePNG=()=>original.call(this,callback,...args)}});
- const downloads=[];page.on('download',d=>downloads.push(d));await ui(page,'#exportFrames');await expect(page.locator('html')).toHaveAttribute('data-png-encoding','true');await ui(page,'#cancelAnimationExport');await page.evaluate(()=>window.releasePNG());
- await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(downloads).toHaveLength(0);await expect(page.locator('#framesDownload')).toHaveAttribute('href',url);await expect(page.locator('#exportGif')).toBeEnabled();expect(await download(page,'#framesDownload')).toEqual(previous);
+ await ui(page,'#animationSeconds','selectOption','1');const downloads=[];page.on('download',d=>downloads.push(d));await ui(page,'#exportFrames');await expect(page.locator('html')).toHaveAttribute('data-png-encoding','true');await ui(page,'#cancelAnimationExport');await page.evaluate(()=>window.releasePNG());
+ await expect(page.locator('#status')).toHaveText('Animation export canceled');expect(downloads).toHaveLength(0);await expect(page.locator('#exportFrames')).toHaveAttribute('data-download-url',url);await expect(page.locator('#exportGif')).toBeEnabled();await ui(page,'#animationSeconds','selectOption','4');expect(await download(page,'#exportFrames')).toEqual(previous);
 });

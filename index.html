@@ -10,8 +10,6 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 button,select,textarea,input{font:inherit}
-.animation-download{display:block;padding:10px;border:1px solid #77ddc4;border-radius:9px;text-align:center}
-.animation-download[hidden]{display:none}
 #quickPlay{min-width:44px}
 button,select{border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px;min-height:42px;padding:8px 11px}
 button{cursor:pointer}
@@ -76,7 +74,6 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 [role=tabpanel]{padding-top:2px}
 .motion-summary{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:.72rem;color:#bfcedd;margin-bottom:10px}
 .motion-summary button{padding:6px 9px}
-.animation-download{margin-top:8px}
 .glyph-picker{width:320px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:#18263a;padding:10px;border-left:1px solid #344761;scrollbar-width:thin}
 .glyph-picker h2{font-size:.9rem;margin:0}
 .picker-heading{display:flex;align-items:center;justify-content:space-between;position:sticky;top:-10px;background:#18263a;padding:5px 0;z-index:1}
@@ -125,15 +122,15 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 <button id="export-tab-data" role="tab" aria-selected="false" aria-controls="export-data" tabindex="-1" data-export-tab="data">Data</button></div>
 <div id="export-still" role="tabpanel" aria-labelledby="export-tab-still" data-export-mode="still">
 <div class="row"><div class="field"><label for="pngScale">PNG resolution</label><select id="pngScale"><option value="1">16 px/cell</option><option value="2">32 px/cell</option><option value="4" selected>64 px/cell</option><option value="8">128 px/cell</option></select></div><div class="field"><label for="pngBg">Background</label><select id="pngBg"><option value="transparent">Transparent</option><option value="canvas" selected>Canvas color</option><option value="white">White</option><option value="black">Black</option></select></div></div>
-<button id="png" class="full-width">Download PNG bitmap</button><div class="row"><button id="svg">Download SVG</button></div><p class="note">Grid-free artwork with each cell’s ink color. Background applies to PNG and SVG.</p>
+<button id="png" class="full-width">Download PNG</button><div class="row"><button id="svg">Download SVG</button></div><p class="note">Grid-free artwork with each cell’s ink color. Background applies to PNG and SVG.</p>
 </div>
 <div id="export-motion" role="tabpanel" aria-labelledby="export-tab-motion" data-export-mode="motion" hidden>
 <div class="motion-summary"><span id="motionSummary">Replay drawing · 2 s / loop</span><button id="editAnimation" aria-label="Edit animation settings">Edit</button></div>
 <div class="field"><label for="animationFormat">Animation format</label><select id="animationFormat"><option value="gif">Animated GIF</option><option value="video">Video (MP4 / WebM)</option><option value="frames">PNG frames (.zip)</option></select></div>
 <div class="row"><div class="field"><label for="gifScale">Animation resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">Animation background</label><select id="gifBackground"><option value="dark">Canvas color</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
-<div data-motion-format="gif"><button id="exportGif" class="full-width">Export animated GIF</button><a id="gifDownload" class="animation-download" hidden>Save animated GIF</a><p class="note">Loops automatically. Supports transparency.</p></div>
-<div data-motion-format="video" hidden><div class="field"><label for="videoRepeats">Video repetitions (total loops)</label><input id="videoRepeats" type="number" min="1" max="100" step="1" inputmode="numeric" value="1" aria-describedby="videoDuration"></div><p id="videoDuration" class="note" aria-live="polite">1 loop × 2 s = 2 s total. 1 plays once.</p><button id="exportVideo" class="full-width">Export video</button><a id="videoDownload" class="animation-download" hidden>Save video</a><p class="note">Silent video with the chosen number of loops. MP4 where supported; WebM otherwise. Transparent uses the canvas background in video.</p></div>
-<div data-motion-format="frames" hidden><button id="exportFrames" class="full-width">Export PNG frames (.zip)</button><a id="framesDownload" class="animation-download" hidden>Save frame ZIP</a><p class="note">Numbered PNGs, frame timings, and an editable project.</p></div>
+<div data-motion-format="gif"><button id="exportGif" class="full-width">Download GIF</button><p class="note">Loops automatically. Supports transparency.</p></div>
+<div data-motion-format="video" hidden><div class="field"><label for="videoRepeats">Video repetitions (total loops)</label><input id="videoRepeats" type="number" min="1" max="100" step="1" inputmode="numeric" value="1" aria-describedby="videoDuration"></div><p id="videoDuration" class="note" aria-live="polite">1 loop × 2 s = 2 s total. 1 plays once.</p><button id="exportVideo" class="full-width">Download video</button><p class="note">Silent video with the chosen number of loops. MP4 where supported; WebM otherwise. Transparent uses the canvas background in video.</p></div>
+<div data-motion-format="frames" hidden><button id="exportFrames" class="full-width">Download frame ZIP</button><p class="note">Numbered PNGs, frame timings, and an editable project.</p></div>
 </div>
 <div id="export-data" role="tabpanel" aria-labelledby="export-tab-data" data-export-mode="data" hidden>
 <div class="row"><button id="text">Download text</button><button id="screenCodes">Screen codes (.bin)</button></div><button id="colorRam" class="full-width">Export color RAM (.bin)</button>
@@ -436,13 +433,21 @@ function animationRaster({s,bank,bits}){
  return {width,height,cell,colors,indexedFrame};
 }
 let animationExportTask=null;
-const animationExportUrls={};
+const animationDownloads={};
+const animationDownloadButtons={gif:'exportGif',video:'exportVideo',zip:'exportFrames'};
+const animationDownloadLabels={gif:'Download GIF',video:'Download video',zip:'Download frame ZIP'};
+function downloadReadyFile(file){const a=document.createElement('a');a.href=file.url;a.download=file.name;document.body.append(a);a.click();a.remove()}
+
 $('cancelAnimationExport').onclick=()=>{if(animationExportTask){animationExportTask.cancelled=true;$('cancelAnimationExport').disabled=true;Promise.resolve(animationExportTask.stop?.()).catch(()=>{});setStatus('Canceling animation export…')}};
 async function exportAnimation(kind){
  if(animationExportTask)return;
  if(kind==='video'&&!validVideoRepeats(Number($('videoRepeats').value))){setStatus('Video repetitions must be a whole number from 1 to 100');$('videoRepeats').focus();return}
  let snapshot;try{snapshot=animationExportSnapshot()}catch(e){setStatus(e.message);return}
+ const key=JSON.stringify(snapshot.project),cached=animationDownloads[kind];
+ if(cached?.key===key){downloadReadyFile(cached);$('exportBadge').textContent=(kind==='gif'?'GIF':kind==='video'?'Video':'ZIP')+' ready';setStatus('Download requested. Tap '+animationDownloadLabels[kind]+' again if needed.');return}
+ const button=$(animationDownloadButtons[kind]);
  const task={cancelled:false};animationExportTask=task;
+ button.textContent='Preparing '+(kind==='gif'?'GIF':kind==='video'?'video':'frame ZIP')+'…';
  for(const id of ['exportGif','exportFrames','exportVideo'])$(id).disabled=true;
  $('cancelAnimationExport').hidden=false;$('exportBadge').textContent='Working…';setStatus(kind==='gif'?'Rendering animated GIF…':kind==='video'?'Preparing video encoder…':'Rendering PNG frames…');
  let zip,video;
@@ -489,12 +494,14 @@ async function exportAnimation(kind){
    addFile('README.txt',text.encode('PETSCII Graphics Lab — PNG animation frames\n\nNumbered frames are complete, grid-free images in playback order.\nUse timing.json for each frame\'s startMs and durationMs. Durations vary;\ndo not assume a fixed frame rate. The durationMs total is one loop.\nReplay holds the finished drawing for the last quarter of the loop.\nLong replays sample the recording, using the same frames as GIF export.\n\nLoad project.json in PETSCII Graphics Lab to resume editing.\nhttps://funkatron.github.io/petscii-stencil-lab/\n'));
    zip.end();blob=new Blob(zipChunks,{type:'application/zip'});
   }
-  checkpoint();const oldUrl=animationExportUrls[kind],url=URL.createObjectURL(blob);animationExportUrls[kind]=url;
-  if(oldUrl)setTimeout(()=>URL.revokeObjectURL(oldUrl),60000);
-  const link=$(kind==='gif'?'gifDownload':kind==='video'?'videoDownload':'framesDownload');link.href=url;link.download='petscii-'+s.effect+'-'+width+'x'+height+(kind==='video'&&repetitions>1?'-'+repetitions+'x':'')+(kind==='gif'?'.gif':kind==='video'?'.'+video.extension:'-frames.zip');link.hidden=false;link.click();
-  $('exportBadge').textContent=label+' ready';setStatus(label+' ready: '+totalFrames+' frames · '+width+' × '+height+(kind==='video'?' · '+repetitions+' '+(repetitions===1?'loop':'loops')+' · '+Number((s.seconds*repetitions).toFixed(2))+' s':'')+'. Tap '+(kind==='gif'?'Save animated GIF':kind==='video'?'Save video':'Save frame ZIP')+' to save again.');
+  checkpoint();const old=animationDownloads[kind],url=URL.createObjectURL(blob);
+  const name='petscii-'+s.effect+'-'+width+'x'+height+(kind==='video'&&repetitions>1?'-'+repetitions+'x':'')+(kind==='gif'?'.gif':kind==='video'?'.'+video.extension:'-frames.zip');
+  const file={key,url,name};animationDownloads[kind]=file;
+  if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);
+  button.dataset.downloadUrl=url;button.dataset.downloadName=name;downloadReadyFile(file);
+  $('exportBadge').textContent=label+' ready';setStatus(label+' ready: '+totalFrames+' frames · '+width+' × '+height+(kind==='video'?' · '+repetitions+' '+(repetitions===1?'loop':'loops')+' · '+Number((s.seconds*repetitions).toFixed(2))+' s':'')+'. Tap '+animationDownloadLabels[kind]+' again if the download did not start.');
  }catch(e){$('exportBadge').textContent=task.cancelled?'Canceled':'Failed';setStatus(task.cancelled?'Animation export canceled':(kind==='zip'?'Frame ZIP':label)+' export failed: '+e.message)}
- finally{try{await video?.cancel()}catch{}zip?.terminate();animationExportTask=null;for(const id of ['exportGif','exportFrames','exportVideo'])$(id).disabled=false;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false}
+ finally{try{await video?.cancel()}catch{}zip?.terminate();animationExportTask=null;button.textContent=animationDownloadLabels[kind];for(const id of ['exportGif','exportFrames','exportVideo'])$(id).disabled=false;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false}
 }
 $('exportGif').onclick=()=>exportAnimation('gif');
 $('exportFrames').onclick=()=>exportAnimation('zip');

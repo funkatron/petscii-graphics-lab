@@ -34,7 +34,7 @@ test('drawing replay GIF contains the recorded states and holds the finished dra
  expect(rgbaAt(g,2,20,4)).toEqual(ink);expect(rgbaAt(g,2,4,4)).toEqual(ink);
  expect(rgbaAt(g,3,20,4)).toEqual(dark);expect(rgbaAt(g,3,4,4)).toEqual(ink);
  expect(g.frames.map(f=>f.info.delay)).toEqual([100,100,100,100]);
- await expect(page.locator('#gifDownload')).toBeVisible();const again=await download(page,'#gifDownload');expect(again).toEqual(buffer);
+ await expect(page.locator('#exportGif')).toBeVisible();const again=await download(page,'#exportGif');expect(again).toEqual(buffer);
 });
 test('scroll GIF wraps cells and encodes loop duration and selected resolution',async({page})=>{
  await loadProject(page,project([160,'','',''],4,1));await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#animationSeconds','selectOption','2');await ui(page,'#gifScale','selectOption','2');
