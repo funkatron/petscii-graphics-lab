@@ -41,3 +41,6 @@ test('C64 animation respects rightward scroll and independent square color waves
  const expected=Array.from({length:8},(_,f)=>{const x=Math.floor(f/8*4),level=((f/8-x/8)%1+1)%1<.5?7:0;return {screen:Array.from({length:4},(_,i)=>i===x?160:32),ink:ramp[level],x}}).filter((s,i,a)=>i===0||s.x!==a[i-1].x||s.ink!==a[i-1].ink);
  expect(snapshots).toHaveLength(expected.length);snapshots.forEach((s,i)=>{expect(s.screen.slice(0,4)).toEqual(expected[i].screen);expect(s.colors[expected[i].x]).toBe(expected[i].ink)});
 });
+test('C64 player repeats movement four times and colors twice within one two-second loop',async({page})=>{
+ await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,14,14,14],animation:{effect:'scroll-x',colorEffect:'color-wave',motionCycles:4,colorCycles:2,seconds:2,scale:1,background:'dark'}}));await ui(page,'#c64Mode','selectOption','animation');await ui(page,'#c64Repeats','fill','1');const {snapshots}=emulate(await download(page,'#exportC64'),{stopAfterTicks:130}),ramp=[2,8,7,13,3,14,6,4];expect(snapshots).toHaveLength(16);snapshots.forEach((s,f)=>{const x=(4-f%4)%4;expect(s.screen.slice(0,4)).toEqual(Array.from({length:4},(_,i)=>i===x?160:32));expect(s.colors[x]).toBe(ramp[(x+f%8)%8]);expect(Math.abs(s.tick-Math.round(f*120/16))).toBeLessThanOrEqual(2)});
+});

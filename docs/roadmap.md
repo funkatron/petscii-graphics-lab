@@ -15,7 +15,8 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Scroll left, right, up, or down with explicit direction controls.
 - [x] Set movement-wave and color-wave directions independently.
 - [x] Choose sine, triangle, square, sawtooth, or reverse sawtooth for each wave.
-- [x] Adjust Animation speed from Slower to Faster, or set the exact loop duration.
+- [x] Set independent movement/color rates of 1, 2, 4, 8, or 16 cycles inside an overall loop duration.
+- [x] Keep cycle boundaries aligned across preview and every output; warn for undersampled combinations.
 - [x] Keep controls contextual and share saved settings across preview and downloads.
 
 ## Run artwork on a C64 — first player implemented

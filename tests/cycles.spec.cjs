@@ -1,0 +1,35 @@
+const {GifReader}=require('omggif'),AdmZip=require('adm-zip'),{PNG}=require('pngjs');
+const {test,expect,ui,download,loadProject,project,contents}=require('./helpers.cjs');
+const ramp=[2,8,7,13,3,14,6,4],hex=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'],rgb=i=>[0,2,4].map(n=>parseInt(hex[i].slice(n,n+2),16)),wrap=(x,n)=>(x%n+n)%n;
+const anim={effect:'scroll-x',colorEffect:'color-wave',seconds:8,scale:1,background:'dark'};
+function frame(gif,f){const b=new Uint8Array(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(f,b);return Buffer.from(b)}
+function pixel(b,w,x,y=4){const i=(y*w+x)*4;return [...b.subarray(i,i+3)]}
+test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
+for(const cycles of [1,2,4,8,16])test(cycles+' movement cycles and independent color cycles preserve total loop duration and exact GIF/ZIP frames',async({page})=>{
+ const colorCycles=Math.max(1,cycles/2);await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,14,14,14],animation:{...anim,motionCycles:cycles,colorCycles}}));
+ const before=JSON.parse(await download(page,'#saveProject')),gif=new GifReader(await download(page,'#exportGif')),zip=new AdmZip(await download(page,'#exportFrames')),timing=JSON.parse(zip.readAsText('timing.json')),n=gif.numFrames();
+ expect(n%cycles).toBe(0);expect(n%colorCycles).toBe(0);expect(n/cycles).toBeGreaterThanOrEqual(4);expect(timing).toMatchObject({motionCycles:cycles,colorCycles,durationMs:8000});expect(timing.frames.reduce((v,f)=>v+f.durationMs,0)).toBe(8000);
+ for(let f=0;f<n;f++){const b=frame(gif,f),mp=(f%(n/cycles))/(n/cycles),cp=(f%(n/colorCycles))/(n/colorCycles),x=wrap(-Math.floor(mp*4),4);for(let col=0;col<4;col++)expect(pixel(b,32,col*8+4)).toEqual(rgb(col===x?ramp[(x+Math.floor(cp*8))%8]:6));expect(Buffer.from(PNG.sync.read(zip.readFile(timing.frames[f].file)).data)).toEqual(b);expect(timing.frames[f].durationMs).toBeGreaterThanOrEqual(20)}
+ expect(JSON.parse(zip.readAsText('project.json'))).toEqual(before);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+});
+test('waveform repeats sixteen complete periods without aliasing while color-only cycles keep geometry fixed',async({page})=>{
+ await loadProject(page,project([160,'','','',160,'','',''],4,2,{animation:{...anim,effect:'wave',colorEffect:'none',motionCycles:16}}));let gif=new GifReader(await download(page,'#exportGif')),n=gif.numFrames();expect(n).toBe(384);for(let c=1;c<16;c++)for(const f of [0,6,12,18])expect(frame(gif,c*24+f)).toEqual(frame(gif,f));expect(frame(gif,0)).not.toEqual(frame(gif,6));
+ await loadProject(page,project([160,'',160,''],4,1,{cellColors:[2,14,2,14],animation:{...anim,effect:'none',colorCycles:16}}));gif=new GifReader(await download(page,'#exportGif'));n=gif.numFrames();expect(n).toBe(128);for(let f=0;f<n;f++){const b=frame(gif,f);for(const col of [0,2])expect(pixel(b,32,col*8+4)).toEqual(rgb(ramp[(col+f%8)%8]));for(const col of [1,3])expect(pixel(b,32,col*8+4)).toEqual(rgb(6))}
+});
+test('replay repeats the drawing and its final hold within each cycle',async({page})=>{
+ await loadProject(page,project([160,160],2,1,{drawingReplay:{base:['',''],events:[[0,160],[1,160]]},animation:{...anim,effect:'replay',colorEffect:'none',motionCycles:4}}));const gif=new GifReader(await download(page,'#exportGif'));expect(gif.numFrames()).toBe(16);for(let c=0;c<4;c++){expect(pixel(frame(gif,c*4),16,4)).toEqual(rgb(6));expect(pixel(frame(gif,c*4+3),16,4)).toEqual(rgb(14));expect(pixel(frame(gif,c*4+3),16,12)).toEqual(rgb(14));}
+});
+test('cycle controls preserve duration, persistence and history and reject invalid values atomically',async({page})=>{
+ await loadProject(page,project([160,'','',''],4,1,{animation:anim}));await ui(page,'#animationCycles','selectOption','4');await ui(page,'#animationColorCycles','selectOption','8');await expect(page.locator('#animationSeconds')).toHaveValue('8');const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#quickPlay');await ui(page,'#animationColorCycles','selectOption','16');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#animationSeconds')).toHaveValue('8');await ui(page,'#animationStop');await ui(page,'#clear');await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).animation).toMatchObject({motionCycles:4,colorCycles:16,seconds:8});
+ await loadProject(page,before);await page.waitForTimeout(350);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationCycles')).toHaveValue('4');await expect(page.locator('#animationColorCycles')).toHaveValue('8');
+ for(const value of [0,3,-1,1.5,'4',null,32])for(const key of ['motionCycles','colorCycles']){await loadProject(page,{...before,animation:{...before.animation,[key]:value}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
+});
+test('undersampled cycles warn and block playback and exports until duration is increased',async({page})=>{
+ await loadProject(page,project([160,'','',''],4,1,{animation:{...anim,effect:'wave',colorEffect:'none',motionCycles:16,seconds:.5}}));await ui(page,'#animationDetails > summary'); // toggle twice to leave the disclosure open regardless of helper
+ if(!await page.locator('#animationDetails').evaluate(e=>e.open))await page.locator('#animationDetails > summary').click();await expect(page.locator('#animationWarning')).toContainText('Increase Loop duration');await expect(page.locator('#quickPlay')).toBeDisabled();await ui(page,'#exportGif');await expect(page.locator('#status')).toContainText('reduce cycles');
+ await ui(page,'#animationSeconds','selectOption','2');await expect(page.locator('#animationWarning')).toBeHidden();await ui(page,'#quickPlay');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');
+});
+test('async video snapshots independent rates and encodes all cycles inside one selected loop',async({page})=>{
+ const {decodeVideo,nearPixel}=require('./video-utils.cjs');await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,14,14,14],animation:{...anim,seconds:2,scale:4,motionCycles:4,colorCycles:2}}));
+ let release,started;const gate=new Promise(r=>release=r),loading=new Promise(r=>started=r);await page.route('**/video-export.js',async route=>{started();await gate;await route.continue()});const waiting=page.waitForEvent('download');await ui(page,'#exportVideo');await loading;await ui(page,'#animationCycles','selectOption','1');await ui(page,'#animationColorCycles','selectOption','16');release();const video=decodeVideo(await contents(await waiting)),n=video.frames.length;expect(n).toBe(16);expect(Number(video.info.format.duration)).toBeCloseTo(2,2);for(let f=0;f<n;f++){const x=wrap(-f,4),ink=ramp[(x+f%8)%8];for(let col=0;col<4;col++)nearPixel(video,f,col*32+16,16,rgb(col===x?ink:6))}
+});

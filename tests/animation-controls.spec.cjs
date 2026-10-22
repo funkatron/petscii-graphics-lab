@@ -45,13 +45,6 @@ test('context controls persist and reject malformed options without altering the
  for(const key of ['scrollDirection','waveDirection','waveShape','colorWaveDirection','colorWaveShape']){await loadProject(page,{...before,animation:{...before.animation,[key]:'invalid'}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
  await ui(page,'#quickPlay');await expect(page.locator('#previewBanner')).toBeVisible();await ui(page,'#waveShape','selectOption','sawtooth');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#animationStop');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(before.grid);
 });
-test('speed slider and exact duration stay synchronized and control scroll export timing',async({page})=>{
- await loadProject(page,project([160,'','',''],4,1,{animation:{...settings,effect:'scroll-x',scrollDirection:'right'}}));
- await ui(page,'#animationSpeed','press','End');await expect(page.locator('#animationSeconds')).toHaveValue('0.5');await expect(page.locator('#animationSpeed')).toHaveAttribute('aria-valuetext','0.5 seconds per loop');
- const gif=new GifReader(await download(page,'#exportGif'));expect(Array.from({length:gif.numFrames()},(_,i)=>gif.frameInfo(i).delay*10).reduce((a,b)=>a+b,0)).toBe(500);
- await ui(page,'#animationSeconds','selectOption','8');await expect(page.locator('#animationSpeed')).toHaveValue('1');await ui(page,'#quickPlay');await ui(page,'#animationSpeed','press','Home');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#animationSeconds')).toHaveValue('12');
- const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.animation).toMatchObject({scrollDirection:'right',seconds:12});await page.waitForTimeout(350);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationSpeed')).toHaveValue('0');await expect(page.locator('#animationSeconds')).toHaveValue('12');
-});
 test('nondefault directions and waveforms survive async snapshotting and drive video output',async({page})=>{
  const {decodeVideo,nearPixel}=require('./video-utils.cjs'),{contents}=require('./helpers.cjs');
  await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,14,14,14],animation:{...settings,effect:'scroll-x',scrollDirection:'right',colorEffect:'color-wave',colorWaveDirection:'right',colorWaveShape:'square',seconds:1,scale:4}}));
@@ -61,7 +54,7 @@ test('nondefault directions and waveforms survive async snapshotting and drive v
  for(let f=0;f<8;f++)assertFrame(f,(x,color)=>expect(cell(frame(gif,f),128,x*4,0)).toEqual(color));
  await loadProject(page,before);const video=decodeVideo(await download(page,'#exportVideo'));expect(video.frames).toHaveLength(8);expect(Number(video.info.format.duration)).toBeCloseTo(1,2);for(let f=0;f<8;f++)assertFrame(f,(x,color)=>nearPixel(video,f,x*32+16,16,color));
 });
-test('fresh projects expose stable animation defaults and an accessible speed value',async({page})=>{
- await expect(page.locator('#animationEffect')).toHaveValue('none');await expect(page.locator('#waveDirection')).toHaveValue('up');await expect(page.locator('#waveShape')).toHaveValue('sine');await expect(page.locator('#colorWaveDirection')).toHaveValue('up-left');await expect(page.locator('#colorWaveShape')).toHaveValue('sawtooth');await expect(page.locator('#animationSpeed')).toHaveAttribute('aria-valuetext','2 seconds per loop');
+test('fresh projects expose stable animation defaults and independent cycle values',async({page})=>{
+ await expect(page.locator('#animationEffect')).toHaveValue('none');await expect(page.locator('#waveDirection')).toHaveValue('up');await expect(page.locator('#waveShape')).toHaveValue('sine');await expect(page.locator('#colorWaveDirection')).toHaveValue('up-left');await expect(page.locator('#colorWaveShape')).toHaveValue('sawtooth');await expect(page.locator('#animationCycles')).toHaveValue('1');await expect(page.locator('#animationColorCycles')).toHaveValue('1');await expect(page.locator('#animationSeconds')).toHaveValue('2');
  await ui(page,'#animationEffect','selectOption','wave');await expect(page.locator('#waveDirection')).toBeVisible();await expect(page.locator('#scrollDirection')).toBeHidden();await ui(page,'#animationColor','selectOption','color-wave');await expect(page.locator('#colorWaveShape')).toBeVisible();
 });

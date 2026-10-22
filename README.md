@@ -98,8 +98,9 @@ The editor opens version 1 legacy projects and version 2 projects containing C64
 1. Open **☰ → Animation**.
 2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
 3. Set the direction and waveform controls that appear for your selected effects.
-4. Drag **Animation speed** toward **Faster** or **Slower**, or choose an exact **Loop duration**. A shorter duration plays faster. New projects start at two seconds per loop; choices range from half a second to 12 seconds.
-5. Press **Play**, or use **▶** in the header.
+4. Choose **Loop duration**, the length of the complete timeline: half a second to 12 seconds.
+5. Set **Movement cycles per loop** and **Color cycles per loop** independently: **1×, 2×, 4×, 8×, or 16×**. More cycles make that effect faster without changing the overall loop duration.
+6. Press **Play**, or use **▶** in the header.
 
 **Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
 
@@ -117,6 +118,10 @@ The canvas is read-only during playback and while paused. Choose **Return to dra
 | **Warm glow** | Ink moves through brown, orange, red, light red, yellow, and white, then back. |
 
 Movement carries each cell’s ink with its glyph. Color animation then changes the resulting ink; Rainbow wave uses the cell’s new position. Both choices share one loop duration. The shared background stays fixed. Still-image downloads use the original drawing, even when an animation is paused.
+
+For example, an **8-second loop** with **4× movement** and **8× color** repeats movement every 2 seconds and color every 1 second. Both return to their starting phase at the loop boundary. Video repetitions still count complete 8-second loops.
+
+Very short loops cannot represent every high cycle rate reliably. If a warning appears, increase **Loop duration** or reduce cycles. Preview and animation downloads wait for a supported combination instead of silently skipping whole cycles. Repeated replay completes and holds the finished drawing within each cycle.
 
 ### Shape a wave
 
