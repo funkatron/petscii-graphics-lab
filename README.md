@@ -157,7 +157,7 @@ Open **Download artwork**, choose a tab and format, then use its **Download** bu
 | Share a repeating animation | **Animation → Animated GIF** | An animation that loops continuously |
 | Save a video with a set duration | **Animation → Video (MP4 / WebM)** | A silent clip with 1–100 complete loops |
 | Edit frames elsewhere | **Animation → PNG frames (.zip)** | Full PNG images, timings, and an editable project |
-| Run artwork on a C64 | **C64 data → C64 program** | A runnable still or animation `.prg`, with colors and playback code |
+| Run artwork on a C64 | **C64 data → C64 program** | A runnable still or animation, as a `.prg` program or `.d64` virtual disk |
 | Work with text or C64 bytes | **C64 data → Raw bytes & text** | Text, screen-code bytes, or separate color bytes |
 
 Image backgrounds can use the canvas color, white, black, or transparency. Animation backgrounds can use the canvas color, white, or transparency. **Video uses the canvas color when Transparent is selected.**
@@ -198,8 +198,9 @@ Frame durations can differ, especially during the final hold in replay. Use `tim
 1. Choose **Download artwork → C64 data**.
 2. Set **C64 program** to **Still drawing** or **Selected animation**.
 3. For animation, set **C64 repetitions**: 0 repeats continuously; 1–100 plays that many loops and holds the last frame.
-4. Choose **Download C64 program (.prg)**. Load it in a standard C64 emulator or transfer it to your C64, then `RUN`.
-5. Press **RUN/STOP** to exit.
+4. Choose **C64 file format**: **Program (.prg)** for a direct program, or **Disk image (.d64)** for a virtual 1541 floppy containing that program.
+5. Use the Download button. Load the program in a standard C64 emulator or transfer it to your C64, then `RUN`. For a D64, attach the disk as device 8, type `LOAD "*",8,1`, then `RUN`.
+6. Press **RUN/STOP** to exit.
 
 The program uses the C64’s own character ROM, your cell colors, and your canvas background. Drawings must fit within 40×25 cells and use authentic C64 glyphs. Smaller drawings appear at the top left. Large or very fast animations may exceed memory or processing limits; the exporter explains what to change.
 

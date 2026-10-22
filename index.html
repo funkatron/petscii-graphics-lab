@@ -191,6 +191,7 @@ dialog::backdrop{background:#0009}
 </div>
 <div id="export-data" role="tabpanel" aria-labelledby="export-tab-data" data-export-mode="data" hidden>
 <div class="field"><label for="c64Mode">C64 program</label><select id="c64Mode"><option value="still">Still drawing</option><option value="animation">Selected animation</option></select></div>
+<div class="field"><label for="c64Format">C64 file format</label><select id="c64Format"><option value="prg">Program (.prg)</option><option value="d64">Disk image (.d64)</option></select></div><p class="note" id="c64DiskHelp" hidden>Virtual 1541 disk containing PICTURE or ANIMATION. Attach as device 8, then LOAD "*",8,1 and RUN. The disk contains the same player as the PRG download.</p>
 <div id="c64LoopSettings" hidden><div class="field"><label for="c64Repeats">C64 repetitions (0 = continuous)</label><input id="c64Repeats" type="number" min="0" max="100" step="1" inputmode="numeric" value="0"></div><p class="note" id="c64MotionSummary"></p></div>
 <button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note">Runs on a standard C64 or emulator. Up to 40 × 25 cells, placed at the top left. Uses the canvas background and the C64’s own character ROM. Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
 <details class="help-disclosure" id="rawDataDetails"><summary>Raw bytes &amp; text</summary>
@@ -709,23 +710,27 @@ $('png').onclick=async()=>{
  finally{URL.revokeObjectURL(url);button.disabled=false}
 };
 $('c64Mode').onchange=()=>{$('c64LoopSettings').hidden=$('c64Mode').value!=='animation'};
+function updateC64Format(){const disk=$('c64Format').value==='d64';animationDownloadLabels.c64=disk?'Download C64 disk (.d64)':'Download C64 program (.prg)';if(!animationExportTask)$('exportC64').textContent=animationDownloadLabels.c64;$('c64DiskHelp').hidden=!disk}
+$('c64Format').onchange=updateC64Format;
 $('exportC64').onclick=async()=>{
  if(animationExportTask)return;
- const moving=$('c64Mode').value==='animation',repetitions=moving?Number($('c64Repeats').value):1;
+ const moving=$('c64Mode').value==='animation',repetitions=moving?Number($('c64Repeats').value):1,format=$('c64Format').value;
+ const outputLabel=format==='d64'?'C64 disk':'C64 program';
  if((moving&&$('c64Repeats').value.trim()==='')||!Number.isInteger(repetitions)||repetitions<0||repetitions>100){setStatus('C64 repetitions must be a whole number from 0 to 100');$('c64Repeats').focus();return}
  const source=animationSource(),s={...source,grid:source.grid.slice(),inks:source.inks.slice(),base:source.base.slice(),baseColors:source.baseColors.slice(),events:source.events.map(e=>e.slice()),eventColors:source.eventColors.slice()},bank=charset;
- const key=JSON.stringify({project:projectData(),moving,repetitions}),cached=animationDownloads.c64;
- if(cached?.key===key){downloadReadyFile(cached);setStatus('C64 program download requested');return}
+ const key=JSON.stringify({project:projectData(),moving,repetitions,format}),cached=animationDownloads.c64;
+ if(cached?.key===key){downloadReadyFile(cached);setStatus(outputLabel+' download requested');return}
  const task={cancelled:false};animationExportTask=task;
  for(const id of Object.values(animationDownloadButtons))$(id).disabled=true;
- $('cancelAnimationExport').hidden=false;$('cancelSheetDownload').hidden=false;$('exportC64').textContent='Preparing C64 program…';setStatus('Preparing C64 program…');
+ $('cancelAnimationExport').hidden=false;$('cancelSheetDownload').hidden=false;$('exportC64').textContent='Preparing '+outputLabel+'…';setStatus('Preparing '+outputLabel+'…');
  try{
   if(moving&&animationPlan(s).warning)throw Error(animationPlan(s).warning);
-  const {createC64Program}=await import('./c64-export.js');if(task.cancelled)throw Error('Export canceled');
+  const {createC64Program,createD64Disk}=await import('./c64-export.js');if(task.cancelled)throw Error('Export canceled');
   const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}];
   const result=createC64Program({columns:s.W,rows:s.H,charset:bank,background:s.colors.background,ink:s.colors.ink,frames,repetitions});if(task.cancelled)throw Error('Export canceled');
-  const file={key,url:URL.createObjectURL(new Blob([result.bytes],{type:'application/octet-stream'})),name:'petscii-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.prg'},old=animationDownloads.c64;
-  animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent='C64 program ready';setStatus('C64 program: '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+result.bytes.length+' bytes. RUN/STOP exits.');
+  const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
+  const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:'petscii-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
+  animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?'C64 disk ready':'C64 program ready';setStatus('C64 '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.');
  }catch(e){setStatus('C64 export failed: '+e.message)}
  finally{animationExportTask=null;for(const id of Object.values(animationDownloadButtons))$(id).disabled=false;$('exportC64').textContent=animationDownloadLabels.c64;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false;$('cancelSheetDownload').hidden=true}
 };

@@ -1,6 +1,6 @@
 # Run your artwork on a Commodore 64
 
-Use **Download artwork → C64 data → Download C64 program (.prg)** to create a runnable still or animation.
+Use **Download artwork → C64 data** to create a runnable still or animation. Choose a direct PRG program or a D64 virtual floppy disk.
 
 The program includes a small player and your character/color data. It uses the C64’s own character ROM; it does not include another copy of that ROM.
 
@@ -11,7 +11,7 @@ The program includes a small player and your character/color data. It uses the C
 3. Open **Download artwork → C64 data**.
 4. Under **C64 program**, choose **Still drawing** or **Selected animation**.
 5. For animation, set **C64 repetitions**. **0** repeats continuously. **1–100** plays that many complete loops, then holds the last frame.
-6. Choose **Download C64 program (.prg)**.
+6. Set **C64 file format** to **Program (.prg)** or **Disk image (.d64)**, then use the Download button.
 
 Smaller drawings appear at the **top left** of the C64 screen. The rest of the screen is blank. The canvas background also becomes the C64 border color.
 
@@ -22,7 +22,7 @@ Image resolution and export-background choices do not affect C64 output. A C64 p
 ### In VICE
 
 1. Start a standard C64 emulation.
-2. Use **File → Autostart disk/tape image** and select the downloaded `.prg`. Menu wording may vary by VICE interface.
+2. Use **File → Autostart disk/tape image** and select the downloaded `.prg` or `.d64`. Menu wording may vary by VICE interface.
 3. If it loads without starting, type `RUN` and press Return.
 4. Press the emulated **RUN/STOP** key to exit. The player clears the picture and returns to BASIC.
 
@@ -37,7 +37,18 @@ LOAD "PICTURE",8,1
 RUN
 ```
 
-Replace `PICTURE` with the filename as your device displays it. Device-specific menus and transfer tools can differ. A D64 disk-image download is not included yet.
+Replace `PICTURE` with the filename as your device displays it. Device-specific menus and transfer tools can differ.
+
+### Use a D64 virtual disk
+
+A D64 is a file representing a 1541 floppy disk. It contains one program, named **PICTURE** for a still or **ANIMATION** for an animation. It has the same player, colors, timing, repetitions, and memory limits as the PRG download.
+
+1. Download **Disk image (.d64)**.
+2. Attach or mount it as device 8 in an emulator or a storage device that supports D64 images.
+3. Type `LOAD "*",8,1` and press Return. The asterisk selects the first program on the disk.
+4. Type `RUN` and press Return.
+
+A physical 1541 cannot read a D64 file directly: it needs a compatible tool to write the image to an actual floppy. Hardware transfer and full-machine loading tests remain to be done. This option packages one drawing; it does not add a multi-picture disk menu or stream animation from disk.
 
 Start from ordinary C64 BASIC. The first player does not target cartridge environments, alternative KERNAL firmware, accelerators, or other Commodore models.
 
@@ -75,8 +86,11 @@ Automated tests download the actual PRG and execute it with the independent **py
 - Timing at PAL and NTSC CPU speeds, with a simulated 60 Hz KERNAL clock.
 - RUN/STOP exit, balanced stack, restored scratch/display state, and writes staying inside screen/color memory.
 - Rejection of unsupported sizes, invalid screen codes, excessive memory, invalid repeats, and excessive update work.
+- D64 directory, file-sector chains, allocation records, full/partial final sectors, and disk capacity. Tests extract the PRG independently, compare it byte for byte with the direct download, and execute the extracted program with py65.
 
 The tests simulate the clock and documented KERNAL calls. **They do not emulate the VIC-II/CIA chips, actual KERNAL ROM, disk loading, or a physical C64.** Full VICE and real hardware testing remain open work.
+
+The D64 writer was also checked locally with **VICE c1541 3.7.1**: disk validation and file extraction passed for partial sectors, exact 254-byte sector boundaries, track-density changes, and a full 664-block data area. Extracted files matched their inputs byte for byte. This checks disk structure; it is not a full emulated-drive loading test.
 
 ## What is in the `.bin` files?
 
@@ -127,6 +141,6 @@ These commands follow the [VICE monitor manual](https://vice-emu.sourceforge.io/
 
 - Verify loading, video output, timing, and stopping in full VICE emulation and on physical PAL/NTSC C64s.
 - Evaluate scan-synchronized updates and more compact native effect routines.
-- Consider D64 packaging using the approach described in the [c1541 manual](https://vice-emu.sourceforge.io/vice_14.html).
+- Validate D64 loading with a full emulated drive and physical storage devices. The image layout follows the [VICE D64 specification](https://vice-emu.sourceforge.io/vice_17.html); the [c1541 utility](https://vice-emu.sourceforge.io/vice_14.html) can inspect or extract it.
 
 Other Commodore models need separate players and compatibility checks.

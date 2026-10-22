@@ -1,3 +1,33 @@
+// Standard 35-track D64, with one closed PRG and no appended error table.
+// Layout: https://vice-emu.sourceforge.io/vice_17.html (D64 disk image format).
+export function createD64Disk(prg,filename='PICTURE'){
+ if(!(prg instanceof Uint8Array)||prg.length<3)throw Error('A PRG with a load address and program data is required');
+ if(!/^[A-Z0-9 -]{1,16}$/.test(filename))throw Error('Invalid C64 disk filename');
+ const blocks=Math.ceil(prg.length/254);
+ if(blocks>664)throw Error('Program exceeds the 35-track D64 disk capacity');
+ const disk=new Uint8Array(174848),offsets=[0],counts=[0];let offset=0;
+ for(let t=1;t<=35;t++){offsets[t]=offset;counts[t]=t<=17?21:t<=24?19:t<=30?18:17;offset+=counts[t]*256}
+ const bam=disk.subarray(offsets[18],offsets[18]+256);
+ bam.set([18,1,0x41,0]);
+ for(let t=1;t<=35;t++){bam[t*4]=counts[t];for(let s=0;s<counts[t];s++)bam[t*4+1+(s>>3)]|=1<<(s&7)}
+ const allocate=(t,s)=>{bam[t*4]--;bam[t*4+1+(s>>3)]&=~(1<<(s&7));return offsets[t]+s*256};
+ allocate(18,0);allocate(18,1);
+ bam.fill(0xa0,0x90,0xab);
+ bam.set(new TextEncoder().encode('PETSCII LAB'),0x90);bam.set([0x50,0x4c],0xa2);bam.set([0x32,0x41],0xa5);
+ // Allocate near the directory first, with the standard ten-sector interleave.
+ const chain=[];
+ for(const t of [...Array.from({length:17},(_,i)=>17-i),...Array.from({length:17},(_,i)=>19+i)]){
+  const used=new Set();let s=0;
+  while(used.size<counts[t]&&chain.length<blocks){while(used.has(s))s=(s+1)%counts[t];used.add(s);chain.push([t,s]);allocate(t,s);s=(s+10)%counts[t]}
+  if(chain.length===blocks)break;
+ }
+ const directory=disk.subarray(offsets[18]+256,offsets[18]+512);
+ directory.set([0,255,0x82,...chain[0]]);directory.fill(0xa0,5,21);directory.set(new TextEncoder().encode(filename),5);
+ directory[30]=blocks&255;directory[31]=blocks>>8;
+ chain.forEach(([t,s],i)=>{const pos=offsets[t]+s*256,start=i*254,length=Math.min(254,prg.length-start),next=chain[i+1];disk[pos]=next?next[0]:0;disk[pos+1]=next?next[1]:length+1;disk.set(prg.subarray(start,start+length),pos+2)});
+ return disk;
+}
+
 // C64 PRG exporter. No character ROM is embedded: the VIC-II selects the machine's own ROM.
 // Each frame: 16-bit 60 Hz duration, then changed runs [addressLo,addressHi,count,value].
 // Address 0 ends a frame; duration 0 ends a loop; $FFFF redirects the stream. Frame zero initializes both planes once.
