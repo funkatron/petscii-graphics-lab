@@ -1,98 +1,206 @@
 # PETSCII Graphics Lab
 
-A standalone, touch-first C64 character graphics editor. [Open the editor](https://funkatron.github.io/petscii-stencil-lab/).
+Draw with Commodore 64 character graphics using a finger, Apple Pencil, or mouse.
 
-## Drawing
+**[Open the editor](https://funkatron.github.io/petscii-graphics-lab/)** — it runs in your browser. No installation or extra glyph download is needed.
 
-- Both C64 sets are available immediately from the built-in [SVG glyph sheet](assets/c64-glyphs.svg): **512 exact 8×8 glyphs**, including inverse slots. Select a glyph and drag with a finger, Pencil, or mouse. No ROM import is needed.
+## Draw your first picture
 
-- The default **Graphics only** palette excludes ordinary letters and digits. Switch to **All screen codes** to inspect all 256 codes in either bank, or **Legacy shapes** to edit earlier artwork. Labels are hexadecimal screen codes; **Inverse ±128** selects the opposite half of the ROM.
-- The character set applies to the whole composition, as on a single-bank C64 screen. Switching it changes how every numeric screen code renders and is undoable.
-- Dragging interpolates between pointer samples; each stroke is one undo operation. Secondary pointers do not paint. Symmetry repeats the selected glyph at mirrored cell positions; it does not reflect the glyph bitmap itself.
-- Grid dimensions range from 1–40, including a standard **40 × 25** C64 screen. Resize preserves the top-left overlap; undo restores cropped cells. Collapse the tools using the header button; the canvas refits without clearing artwork.
+1. Open **Glyphs** and choose a shape. A *glyph* is one 8×8 character image.
+2. Tap **Ink** and choose a color.
+3. If settings cover the canvas, tap **☰** to hide them. Drag across the canvas to draw.
+4. Use **Undo** to reverse your last stroke. Use **Redo** to restore it.
+5. Choose **Project → Download editable project** to keep a file you can edit later.
 
-## Workspace
+To share a picture instead, choose **Download artwork → Image → Download PNG**.
 
-**Glyphs** in the drawing strip opens a dedicated picker with the selected glyph's bitmap preview. It docks to the right on wide screens and opens over the canvas on iPad-sized screens, closing when you select a character. Close it with ✕, Escape, or the shaded area outside. The picker scrolls independently of the settings; its glyph grid has no nested scrolling box. **Character options** holds palette mode, character set, and glyph-source details.
+## Find a control
 
-The persistent drawing strip keeps **Glyphs, Ink, Paint/Eraser, Symmetry and Undo/Redo** available when settings are hidden. Use ☰ for the compact **Canvas setup**, **Colors**, **Animation**, and **Help & extras** disclosures. Canvas dimensions are staged together: inspect the crop preview, then Apply size or Cancel. Applying both dimensions is one undoable edit.
+The drawing strip stays visible when settings are hidden. Tap **☰** to show or hide settings and give the canvas more space.
 
-**Download artwork** opens a separate responsive panel with **Image**, **Animation**, and **C64 data** tabs. Choose the format and use its single Download action. The grid-free preview shows final pixel dimensions and animation duration/frame count. Close the panel to keep drawing while an animation encodes; progress/cancellation remain accessible. The separate **Project** menu opens an editable project or downloads a JSON backup.
-
-Glyph browsing includes **Recently used**, **Favorites** (☆), and visual families alongside exact screen-code pages. Favorites and recents are bank-specific, saved on this device, and do not enter project files. White-on-black thumbnails stay readable regardless of drawing colors; the brush preview keeps the actual ink. **Pin** keeps the glyph panel beside the canvas at tablet widths (700 px+), while smaller screens retain a dismissible overlay. The panel always has one scroll surface.
-
-Animation previews show the effect name, paused state and **Return to drawing**. The header reports **Saved on this device**; a failed autosave displays a persistent backup notice, including on small screens.
-
-**Save & export** keeps editable project save/load together with three tabs: **Still** (PNG/SVG), **Animation** (GIF/video/PNG frame ZIP), and **Data** (text/screen codes and text import). Choose an animation format to see its options and a single Download button. Resolution/background are shared between animation formats; the **Edit** shortcut opens effect/speed settings. Changing sections or tabs preserves artwork and completed downloads. Export cancellation stays at the top of the tools even when Save & export is closed.
-
-## C64 colors
-
-Open **Colors** in the tools, choose **Ink** or **Background**, then tap a swatch. All 16 colors follow C64 hardware color-number order (0–F), using [Philip “Pepto” Timmermann’s PAL RGB palette](https://www.pepto.de/projects/colorvic/2001/). RGB is an approximation of the C64’s analog output; displays and VIC-II revisions vary.
-
-**Ink** sets the brush color: each painted cell keeps its own foreground color, including legacy shapes. Painting the same glyph again applies the new ink. The background is shared. **Recolor entire drawing** applies brush ink to all occupied cells; **Swap brush / background** swaps those two settings without recoloring existing cells. Default ink is Light blue (14), on Blue (6). Strokes, recoloring, symmetry, resizing, patterns, undo/redo, JSON save/load, autosave and drawing replay preserve cell colors. Earlier files inherit their saved global ink (or Light blue if absent).
-
-Canvas, brush previews, SVG, PNG, GIF, PNG frame sequences and video use the selected colors. Palette thumbnails use neutral white-on-black for contrast. **Canvas color** is the default export background; still exports can instead use white, black or transparency, and animation exports offer white or transparency. Transparent GIF/PNG omit the background; video uses the selected canvas background instead. Changing colors during an export does not alter its captured artwork. Use JSON to preserve the editable composition and colored replay. Text and binary screen-code files contain glyph data only; **Export color RAM .bin** supplies a separate row-major byte per cell (palette index 0–15, including empty cells), with the same dimensions as screen-code output. Neither binary file embeds dimensions, character set or a load address.
-
-## Automatic animation
-
-Choose an effect and **Loop duration**, then press **Play**. Durations range from **½ second to 12 seconds per loop**, with a **2-second default** for new projects. Existing saved projects retain their selected duration. Shorter loops play faster in preview and every animation export.
-
-The header's ▶ button also works while the sidebar is hidden. Pause freezes the preview; **Return to drawing** restores the original drawing. Painting, undo, imports and other artwork edits stop playback automatically. Playback pauses when the tab is hidden and never starts automatically on reopening a project.
-
-- **Replay drawing** rebuilds the picture in the order cells were painted, including erasing, repainting and symmetry. The speed is a chosen loop duration rather than the original real-time drawing speed. The completed image holds for the last quarter of each loop.
-- **Scroll left / up** wraps the drawing across the grid.
-- **Wave rows** shifts character rows in a repeating wave.
-- **Inverse pulse** alternates numeric glyphs with their actual inverse slots. Legacy shapes blink instead.
-- **Color cycle** rotates each cell’s ink through all 16 C64 colors, retaining the differences between source colors. It starts with the original cell colors.
-- **Rainbow wave** sends diagonal bands of eight C64 colors across the drawing.
-- **Warm glow** cycles through brown, orange, red, light red, yellow and white, then back through the warm shades.
-
-Color effects keep the glyphs and shared background fixed. Rainbow wave and Warm glow remap inks to their color ramps; they do not modify the saved cell colors. Select an effect and press **Play**; **Return to drawing** restores the original colors. The existing **Loop duration** control changes the loop duration for preview, GIF, video and PNG frame ZIP. Still exports always use the original drawing.
-
-New strokes are recorded automatically. Older/imported artwork, patterns and resized canvases start a grid-order reveal; the earlier drawing process cannot be recovered. The recording stores at most 20,000 cell changes, then condenses to a reveal of the current composition. Undo/redo preserve the corresponding recording.
-
-**Download GIF** writes a continuously looping, grid-free GIF with 8, 16 or 32 pixels per cell and the canvas color, white or transparent background. The export uses the same frame calculation and timing as the preview and takes a snapshot, so later edits do not change an export already in progress. C64 bitmap pixels remain sharp. The same **Download GIF** button reuses the completed file for a second tap in Safari or repeat downloads. Changes to the artwork or output settings regenerate it automatically. Static SVG/PNG/text/binary exports continue to use the source drawing.
-
-**Download frame ZIP** uses the same animation resolution, background, frame order and encoded timings as GIF export. The ZIP includes:
-
-- `frames/frame-0001.png`, etc.: complete, lossless PNG frames with no editing grid.
-- `timing.json`: versioned metadata, dimensions, charset, background, C64 color indices and palette identifier, loop duration, and each frame's `file`, `startMs` and `durationMs`.
-- `project.json`: an editable snapshot captured when export starts.
-- `README.txt`: instructions for using the sequence.
-
-Frame delays can vary, especially the final hold in drawing replay. Preserve `timing.json` when moving frames to another tool; importing every PNG at one fixed frame rate changes the intended timing. The ZIP contains the same sampled replay frames as GIF, rather than every recorded cell change. Video export is described below.
-
-All animation export buttons show progress and support **Cancel export**. Editing remains available; later edits do not affect an export already in progress. The same **Download frame ZIP** button downloads the completed archive again when the artwork and settings are unchanged.
-
-**Download video** creates a silent clip with **1–100 repetitions** at the selected speed and resolution. Under **Download artwork → Animation → Video**, enter **Video repetitions (total loops)**; 1 means play once. The duration hint shows loop length × count = total video length (for example, 2 seconds × 5 loops = 10 seconds). The count is saved in projects/autosave, defaults to 1 for earlier projects, and applies to both MP4 and WebM. Each repeat includes the full animation, including the drawing replay’s final hold. It uses native browser encoding, preferring **H.264 MP4**, with **VP9/VP8 WebM** as fallback. The same **Download video** button reuses the finished clip when nothing has changed. Unsupported browsers show a clear message; GIF and PNG frames remain available.
-
-Video uses the same raster frames and explicit timestamps as GIF/ZIP, without recording the live preview or waiting for real-time playback. No camera, microphone, screen-capture permission, server upload or runtime CDN is involved. Video colors use the selected solid background; **Transparent uses the selected canvas background** because these video codecs do not preserve alpha here. Video compression can introduce small color/edge differences; PNG frames are the lossless option. The chosen repetitions are encoded into a finite video file, so playback does not depend on the video player supporting looping. Preview and GIF looping and PNG ZIP timelines are unaffected by the video repetition setting.
-
-Animation settings and the replay recording are included in JSON and local autosave; playing/paused state is not. Exported GIFs are capped at 48 replay frames (long recordings are sampled across the whole event sequence; fast loops reduce the frame count to keep delays at least 20 ms), 24 wave frames, or up to one frame per scroll cell / inverse state. Fast scrolling samples positions around the entire grid so it still completes a full cycle while keeping GIF delays at least 20 ms. These are procedural animations rather than a frame-by-frame timeline editor.
-
-## Saving
-
-Download JSON for a portable editable backup. Version 1 legacy projects and version 2 mixed projects remain supported. Projects contain glyph codes and metadata, **not ROM bytes**. Projects reopen immediately on another device using the same built-in glyphs. `glyphSource: "builtin"` records this choice. The experimental custom-ROM project format is no longer supported; custom-character editing may be added as a dedicated future feature.
-
-The current project also autosaves locally after edits and when leaving the page. Browser storage is device/site specific and may be cleared or unavailable in private browsing. It is a convenience, not a replacement for JSON backups. Undo history is session-only. One browser draft is stored; multiple tabs use last-write-wins behavior.
-
-## Export formats
-
-| Format | Contents |
+| You want to… | Use |
 | --- | --- |
-| SVG | Vector paths for legacy geometry and exact filled squares for ROM bits. Selected C64 ink, canvas/white/black/transparent background, no editing grid. |
-| PNG | Same geometry as SVG; selected C64 ink, canvas/transparent/white/black background, and 16/32/64/128 pixels per cell. |
-| Text, legacy only | Unicode approximations; spaces are empty cells. Import into the existing canvas dimensions. |
-| Text, ROM or mixed | Labeled lossless grid described below; includes dimensions and charset. |
-| PNG frame ZIP | Numbered lossless PNGs, frame timing metadata, an editable JSON snapshot and instructions. |
-| Video | Selected number of silent loops at the chosen speed/resolution; MP4 where supported, WebM fallback; opaque background. |
-| Animated GIF | Looping animation, sharp C64 pixels, selected resolution and background. |
-| Color RAM `.bin` | One C64 foreground palette index (0–15) per cell, row-major. Pair with the screen-code file. No metadata or load address. |
-| Screen `.bin` | One screen-code byte per cell, row-major, with empty cells mapped to space code 32. No load address, charset, colors, or dimensions embedded. Legacy shapes are rejected rather than silently lost. These are **screen codes, not PETSCII bytes**. |
+| Choose a shape | **Glyphs** |
+| Change the brush color | **Ink** |
+| Draw or erase | **Paint** / **Eraser** |
+| Repeat strokes across an axis | **Symmetry** |
+| Reverse or restore an edit | **Undo** / **Redo** |
+| Change canvas dimensions | **☰ → Canvas setup** |
+| Change the shared background | **☰ → Colors → Background** |
+| Choose an animation | **☰ → Animation** |
+| Keep or open editable artwork | **Project** |
+| Download a still, animation, or C64 data | **Download artwork** |
 
-Visual exports use the built-in SVG-derived bitmap data. If the glyph asset cannot load, numeric glyphs are marked on canvas; they are never silently omitted from an image export. Text, JSON, and binary screen codes do not require the ROM to preserve numeric data. Rendering preserves every source pixel, including the original inverse glyph slots.
+## Choose glyphs
 
-### Lossless text grid
+The editor includes **512 authentic 8×8 glyphs**: two character sets with 256 glyphs each. The default **Graphics only** view leaves out ordinary letters and digits.
+
+Use **Browse glyphs** to choose a screen-code page, shape family, **Recently used**, or **Favorites**. Tap **☆** to add the selected glyph to Favorites. Favorites and recent selections are stored on this device. Each character set has its own list.
+
+On wide screens, the picker sits beside the canvas. On smaller screens, it appears over the canvas and closes after selection. **Pin** keeps it beside the canvas where space allows. Close it with **✕**, **Escape**, or the shaded area outside the picker.
+
+Open **Character options** for these choices:
+
+- **All screen codes** includes letters, numbers, and every code in the selected set.
+- **Character set** switches between uppercase/graphics and lowercase/uppercase. This affects the whole drawing; **Undo** restores the previous set.
+- **Legacy shapes** provides the earlier approximate shapes.
+
+**Inverse ±128** selects the corresponding inverse slot. The editor preserves the actual C64 inverse glyphs.
+
+Small glyph labels use hexadecimal screen codes. You can draw without learning those numbers. See [C64 terms and data](#c64-terms-and-data) when you need them.
+
+## Draw, color, and resize
+
+### Change colors
+
+Each painted cell keeps its own **Ink** color. Changing the brush affects future strokes. Paint over a cell to give it the current glyph and ink.
+
+The **Background** color is shared by the whole canvas.
+
+| Control | What changes |
+| --- | --- |
+| **Ink** | Brush color for future strokes |
+| **Background** | Shared canvas background |
+| **Swap brush / background** | Those two settings; existing cell ink stays the same |
+| **Whole drawing color → Recolor entire drawing** | Ink in every occupied cell; this is undoable |
+
+The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic/2001/), an RGB approximation of C64 color. The default is Light blue ink on Blue. Glyph thumbnails stay white on black so their shapes remain visible at any brush color.
+
+### Repeat a stroke or change the whole drawing
+
+**Symmetry** places the selected glyph in matching cell positions across the chosen axis. It repeats the glyph without flipping its pixels.
+
+For **Border**, **Checkerboard**, or **Clear drawing**, open **Canvas setup → Whole drawing actions**. Each operation can be undone.
+
+### Resize the canvas
+
+1. Open **Canvas setup**.
+2. Choose **Columns** and **Rows**. Each can be 1–40; a standard C64 screen is 40×25.
+3. Inspect the preview and its count of painted cells that will be cropped.
+4. Choose **Apply size**, or **Cancel** to keep the current size.
+
+Resizing keeps the overlapping artwork at the top left. Applying both dimensions is one undoable edit, including any cropped cells.
+
+## Keep an editable project
+
+**Project → Download editable project** saves a JSON project file containing the drawing, cell colors, animation settings, and drawing replay. Use **Open project** to resume editing on this or another device.
+
+The editor also keeps **one automatic draft on this device**. Look for **Saved on this device**. If saving fails, the editor shows a backup notice.
+
+- Download an editable project before clearing browser storage or changing devices. Browser storage may be cleared or unavailable, including in private browsing.
+- Undo history lasts for the current session; it is not included in the project file.
+- If several tabs edit the draft, the last tab to save replaces it.
+
+The editor opens version 1 legacy projects and version 2 projects containing C64 codes, legacy shapes, or both. It does not open the earlier experimental custom-ROM format. Project files store glyph codes and settings, without the ROM binary.
+
+## Preview an animation
+
+1. Open **☰ → Animation**.
+2. Choose an **Effect**.
+3. Choose **Loop duration**. A shorter duration plays faster. New projects start at two seconds per loop; choices range from half a second to 12 seconds.
+4. Press **Play**, or use **▶** in the header.
+
+**Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
+
+Painting and other artwork edits stop the preview. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
+
+| Effect | What you see |
+| --- | --- |
+| **Replay drawing** | Paint, erase, and repaint actions appear in recorded order. The finished picture holds for the last quarter of the loop. |
+| **Scroll left / Scroll up** | The drawing moves across the grid and wraps around. |
+| **Wave rows** | Rows shift in a repeating wave. |
+| **Inverse pulse** | C64 glyphs alternate with their inverse slots. Legacy shapes blink. |
+| **Color cycle** | Each cell cycles through all 16 inks, starting with its original color. |
+| **Rainbow wave** | Diagonal bands of eight C64 colors move across the drawing. |
+| **Warm glow** | Ink moves through brown, orange, red, light red, yellow, and white, then back. |
+
+Color effects keep the glyphs and shared background fixed. Still-image downloads use the original drawing, even when an animation is paused.
+
+### What replay records
+
+New strokes are recorded automatically. Replay follows their order at the selected loop duration; it does not reproduce the pauses you took while drawing.
+
+Imported artwork without a recording, patterns, and resized canvases reveal in grid order: left to right, then down. After 20,000 cell changes, the recording is condensed to a reveal of the current picture. Undo/redo retain the matching recording.
+
+Long recordings use selected points from the recording instead of showing every change as a separate frame. The editor creates effects and drawing replays; it does not provide a manual frame timeline.
+
+## Download artwork
+
+Open **Download artwork**, choose a tab and format, then use its **Download** button. The preview shows output dimensions in pixels and, for animations, duration and frame count. Editing grid lines are omitted.
+
+| Goal | Tab and format | Result |
+| --- | --- | --- |
+| Share a still picture | **Image → PNG image** | A still image at 16, 32, 64, or 128 pixels per cell |
+| Scale a picture | **Image → SVG vector** | Shapes that scale without blurring |
+| Share a repeating animation | **Animation → Animated GIF** | An animation that loops continuously |
+| Save a video with a set duration | **Animation → Video (MP4 / WebM)** | A silent clip with 1–100 complete loops |
+| Edit frames elsewhere | **Animation → PNG frames (.zip)** | Full PNG images, timings, and an editable project |
+| Work with text or C64 bytes | **C64 data** | Text, screen-code bytes, or separate color bytes |
+
+Image backgrounds can use the canvas color, white, black, or transparency. Animation backgrounds can use the canvas color, white, or transparency. **Video uses the canvas color when Transparent is selected.**
+
+GIF, video, and frame ZIP share resolution choices of 8, 16, or 32 pixels per cell. PNG frames preserve exact pixels; video compression may slightly change colors and edges.
+
+### Video repetitions
+
+In **Animation → Video (MP4 / WebM)**, set **Video repetitions (total loops)**. One plays once; the maximum is 100.
+
+For example: **2 seconds per loop × 5 repetitions = a 10-second video**.
+
+The editor prefers H.264 MP4 and uses VP9/VP8 WebM when needed. If the browser cannot encode video, use GIF or PNG frames. Videos contain no audio and require no camera, microphone, or screen-recording permission.
+
+Repetitions change the video file only. GIF and preview looping, and the frame ZIP’s one-loop timeline, keep their existing behavior.
+
+### While a file is being prepared
+
+Animation downloads show progress and provide **Cancel export**. You can close the download panel and keep drawing. Each export uses a copy of the artwork and settings from when it started.
+
+Tap the same animation Download button again to reuse the completed file. Changing artwork or output settings makes the editor prepare a new file. Canceling or failing to prepare a file preserves the previous completed download.
+
+### Use a frame ZIP
+
+Keep these files together:
+
+| File | Purpose |
+| --- | --- |
+| `frames/frame-0001.png`, and later numbers | Complete images in playback order |
+| `timing.json` | Dimensions, character set, colors, loop duration, and each frame’s start time and duration |
+| `project.json` | Editable artwork captured when export started |
+| `README.txt` | Instructions for the frame sequence |
+
+Frame durations can differ, especially during the final hold in replay. Use `timing.json` when importing frames into another tool. Giving every frame the same duration can change the animation’s timing.
+
+## C64 terms and data
+
+You can skip this section for ordinary drawing and image downloads.
+
+| Term | Meaning here |
+| --- | --- |
+| **Glyph** | One 8×8 character image |
+| **Cell** | One position in the canvas grid |
+| **ROM** | Read-only memory; the original C64 stores its character patterns here |
+| **Character set / bank** | One collection of 256 glyphs |
+| **Screen code** | A number selecting a glyph in the chosen bank |
+| **PETSCII** | A separate C64 text encoding; screen-code bytes are not PETSCII bytes |
+| **Row-major** | Left to right across the top row, then each row below it |
+| **Inverse glyph** | A glyph from the inverse half of the character set; actual source slots are preserved |
+
+### Text and binary formats
+
+- **Legacy-only text:** Unicode approximations. Spaces represent empty cells. Import uses existing canvas dimensions.
+- **C64 or mixed text:** a labeled grid with dimensions and character set. It preserves codes, legacy symbols, and empty cells, but omits cell colors.
+- **Screen codes (.bin):** one byte per cell in row-major order. Empty cells become space code 32. Legacy shapes cannot be converted.
+- **Color RAM (.bin):** one foreground color index, 0–15, per cell, including empty cells. Pair it with the screen-code file.
+
+Binary files omit dimensions, character set, and a C64 load address. Screen-code files also omit colors. Use the editable JSON project to preserve the full drawing and replay.
+
+### Use the binary files on a C64
+
+The two `.bin` files describe a **still picture**. They are data, not runnable programs, and contain no animation timing.
+
+See [Use your artwork on a Commodore 64](docs/c64-output.md) for the file contents, an emulator reference workflow, and a proposal for exporting runnable C64 animations as `.prg` files.
+
+### Labeled text example
 
 ```text
 # PETSCII-GRID 1 2 2 1
@@ -100,56 +208,60 @@ Visual exports use the built-in SVG-derived bitmap data. If the glyph asset cann
 -- 80
 ```
 
-Header fields: format version, columns, rows, charset bank (0 or 1). Each row contains exactly `columns` space-separated tokens: two hexadecimal digits for a screen code, `--` for an empty cell, or one supported legacy symbol. Imports validate the whole document before changing artwork. This format preserves empty cells separately from explicit space code `20` and preserves mixed legacy/ROM art.
+The header gives **format version, columns, rows, and bank**. Here it means version 1, two columns, two rows, bank 1.
 
-## SVG assets and provenance
+Each row must have one space-separated token per column:
 
-`assets/c64-glyphs.svg` contains an 8×8 `<symbol>` for each bank/screen-code pair (`c64-0-0` through `c64-1-255`), plus a viewable 16-column, 32-row sheet. Each shape is a vector rectangle covering a contiguous horizontal run of source pixels. No font substitution, tracing, smoothing, or synthesized inverse glyphs is involved.
+- Two hexadecimal digits, such as `00` or `80`: a screen code.
+- `--`: an empty cell.
+- A supported legacy symbol, such as `█`: that shape.
 
-Converted from `characters.901225-01.bin` obtained from the [Zimmers C64 firmware archive](https://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c64/). Source fingerprint:
+An empty cell differs from a deliberately placed space glyph (screen code `20` in hexadecimal). Import checks the whole document before changing the drawing.
 
-```text
-SHA-256 fd0d53b8480e86163ac98998976c72cc58d5dd8eb824ed7b829774e74213b420
-MD5     12a4202f5331d45af846af6c58fba946
-```
+## If something does not work
 
-The repository includes the converted artwork, not the original ROM binary. SVG conversion retains ROM-derived shapes; it is not a claim of a separate license for those shapes. The SVGs were included at the project owner's request.
+| What you notice | Next step |
+| --- | --- |
+| C64 glyphs are unavailable | Open **Glyphs → Character options → Reload C64 glyphs**. Numeric codes are retained; legacy editing remains available. |
+| A backup notice appears | Use **Project → Download editable project**. |
+| An animation download does not start | Tap its Download button again to reuse the completed file. |
+| Video encoding is unavailable | Choose GIF or PNG frames. |
+| An early experimental text file cannot be read | Use its JSON project; that old mixed-text format cannot be detected reliably. |
 
-The editor reads the integer rectangle geometry into an in-memory bitmap table to reuse the existing accurate drawing/export pipeline. No original ROM file, encoded byte array, or third-party download is needed. The editor has no ROM-import workflow. Startup validates all 512 symbols before exposing editing and delays autosave until restoration completes. A failed SVG load leaves legacy editing available, preserves numeric project codes, and offers **Reload C64 glyphs**. Image export is blocked until the glyph data is available.
+Image export waits for C64 glyph data rather than omitting unavailable glyphs. Text, JSON, and screen-code files can still preserve numeric codes.
 
-To reproduce the asset from a locally supplied ROM:
+The optional stencil check under **Help & extras** analyzes legacy shapes only. Physical iPad/Pencil gestures and Files/Photos handoffs still need testing on a real device.
 
-```sh
-python3 scripts/build_glyphs.py /path/to/characters.901225-01.bin
-```
+## Develop or maintain the editor
 
-Tests reconstruct all 512 glyphs from the SVG and compare the complete source SHA-256, check known uppercase/lowercase shapes, and preserve the source's one-bit `@`/inverse-`@` discrepancy in both banks. Inverse slots are intentionally copied exactly rather than regenerated by negating the first 128 glyphs.
+Start with [AGENTS.md](AGENTS.md) for project rules and the [maintainer reference](docs/maintainer-reference.md) for file formats, rendering, timing, glyph provenance, and export requirements.
 
-Data-model references:
+Tests need Node.js/npm, Python 3, and FFmpeg with `ffprobe`. GitHub Actions uses Node.js 22.
 
-- [Commodore 64 Programmer's Reference Guide, character definitions](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_3/page_104.html): 256 glyphs per set, eight bytes per glyph; ROM-mapped charset offsets.
-- [Michael Steil's Ultimate Commodore Charset / PETSCII / Keyboard Reference](https://www.pagetable.com/232): ROM-derived glyphs sorted by screen code, inverse forms, and the distinction between PETSCII and screen codes.
-
-## Development and verification
+Run from the repository directory:
 
 ```sh
 npm ci
 npx playwright install --with-deps chromium webkit
-# Install FFmpeg (ffmpeg and ffprobe) using your platform package manager.
+```
+
+Install FFmpeg with your platform’s package manager, then run:
+
+```sh
 npm test
 ```
 
-Playwright covers desktop Chromium and iPad WebKit in landscape and portrait. Every test fails on uncaught application errors. Video tests independently probe metadata and decode frames with FFmpeg/FFprobe. Animation tests independently validate ZIP archives/CRCs with `adm-zip`, decode PNG sequences with `pngjs`, and decode exported GIFs with `omggif` and inspect frame pixels, loop counts, dimensions and delays. Tests inspect downloaded file contents, numeric bytes, bitmap pixels, PNG dimensions/backgrounds, project compatibility, invalid input, persistence, symmetry, resizing, and undo/redo. Native Chromium touch dispatch verifies continuous dragging; WebKit uses real touchscreen taps plus synthetic sparse touch/pen pointer streams. Physical Apple Pencil and Safari gesture behavior still require a real iPad check.
+Playwright tests desktop Chromium and iPad WebKit in landscape and portrait. Tests inspect downloaded files, pixels, timing, saved projects, touch input, and undo/redo. Video checks decode output independently with FFmpeg/FFprobe.
 
-`CHROMIUM_EXECUTABLE_PATH` optionally selects an existing local Chromium; normal development and CI use Playwright's bundled browsers. GitHub Actions installs from the committed lockfile using `npm ci`.
+`CHROMIUM_EXECUTABLE_PATH` can select a local Chromium executable. Standard development and CI use Playwright’s browser builds and the committed npm lockfile.
 
-## Remaining limitations
+## Other documentation
 
-- No physical iPad/Pencil hardware test is available in automated CI.
-- The optional coarse stencil analysis supports legacy shapes only; ROM compositions receive an explicit unsupported message.
-- SVG/PNG match artwork geometry and orientation; their foreground colors match each cell; export background overrides are explicit.
-- Text exported by the early experimental ROM version was an ambiguous unlabelled mixed string. It cannot be reliably auto-detected; use its JSON project as the migration path.
+- [Planned work](docs/roadmap.md): combined movement/color effects and native C64 output.
 
-## UI review
-
-[Drawing-flow review and prioritized recommendations](docs/ui-review.md) documents the next interface improvements separately from implemented features.
+- [C64 output guide](docs/c64-output.md): binary files today and a proposed runnable animation export.
+- [Maintainer reference](docs/maintainer-reference.md): implementation contracts and source references.
+- [UI review](docs/ui-review.md): layout decisions, implemented changes, and follow-ups.
+- [Audit history](AUDIT.md): earlier findings and results from each development stage.
+- [Bundled dependencies](vendor/README.md): versions, build fingerprints, and licenses.
+- [Project license](LICENSE): BSD 3-Clause terms for the project code.

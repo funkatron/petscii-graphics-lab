@@ -1,0 +1,221 @@
+# Maintainer reference
+
+Use this document when changing rendering, project files, animation, exports, or workspace behavior. The requirements here supplement [AGENTS.md](../AGENTS.md).
+
+For drawing instructions, start with the [user guide](../README.md).
+
+## Find the relevant requirements
+
+| Working on | Read |
+| --- | --- |
+| Glyph loading, rendering, or saved files | [Built-in glyphs](#built-in-glyphs-and-project-files) |
+| Preview, replay, GIF, ZIP, or video | [Animation and export](#animation-and-export) |
+| Download buttons and cached files | [Download actions](#download-actions) |
+| Animated colors | [Color cycling](#color-cycling) |
+| Panels, controls, or resizing | [Workspace navigation](#workspace-navigation) |
+| Brush and cell colors | [C64 colors](#c64-colors) |
+| Source data and rebuilding glyphs | [Glyph provenance](#glyph-provenance-and-rebuilding) |
+
+## Terms used here
+
+- **Glyph:** one 8×8 character image.
+- **ROM:** read-only memory; the original C64 character patterns live here.
+- **CI:** the automated checks run by GitHub Actions.
+- **Bank / character set:** one collection of 256 glyphs.
+- **Screen code:** the number selecting a glyph within a bank.
+- **PETSCII:** a separate C64 text encoding. Screen-code files are not PETSCII streams.
+- **Row-major order:** left to right across each row, starting at the top.
+- **Snapshot:** a copy of artwork and settings taken before export work starts.
+- **Raster:** an image represented by pixels.
+- **Indexed palette:** a color table; each pixel stores an entry number.
+- **Frame:** one still image in an animation.
+- **Codec:** the method used to encode or decode video.
+- **Encoder backpressure:** waiting for the encoder to accept a frame before sending more work.
+- **Muxer:** the component that packages encoded video into an MP4 or WebM file.
+- **Atomic validation/publication:** accept the whole input or publish the completed output; do not leave a partial result.
+- **Asynchronous work:** work that can finish later while the editor remains usable.
+- **Tree-shaken bundle:** a packaged module with unused code removed.
+- **Blob URL:** a temporary browser address for a generated file.
+- **Centisecond:** one hundredth of a second; GIF timing uses this unit.
+- **CDN:** an external content-delivery service. Bundled encoders do not need a runtime CDN request.
+- **WebAssembly (WASM):** a browser code format; the video exporter uses native browser encoding instead.
+- **CRC:** a checksum used to detect damaged archive entries.
+
+## Built-in glyphs and project files
+
+- **Built-in source.** The editor is a ready-to-draw C64 graphics tool. Both character sets and inverse slots load from **`assets/c64-glyphs.svg`**. There is no ROM-import or ROM-storage workflow. The project owner explicitly deprioritized experimental custom-project backward compatibility; do not reintroduce that complexity by default.
+
+- **Asset contents.** The project owner requested converted SVG artwork without the original ROM binary. The sheet contains 512 vector symbols (IDs such as `c64-0-64`) plus a viewable 16-column, 32-row layout. Keep source history and fingerprints in this document, linked from README. Do not add the original binary or an encoded ROM byte array.
+
+- **Rebuild tool.** `scripts/build_glyphs.py` reproducibly converts a developer-supplied 4 KB reference ROM into horizontal integer rectangle runs. This is a development tool, not an editor flow.
+
+- **Byte layout.** Startup reads SVG geometry into an in-memory bitmap table; address = `bank * 2048 + screenCode * 8`. The most significant bit (MSB) is the left pixel; bytes run top to bottom. Full SVG reconstruction SHA-256 must match `fd0d53b8480e86163ac98998976c72cc58d5dd8eb824ed7b829774e74213b420`. Preserve the source's one-bit @/inverse-@ discrepancy. Read inverse slots verbatim; never synthesize them by negating the first 128 glyphs.
+
+- **Startup and failure.** Startup awaits validated SVG data before restoring local state and enabling editing. Suppress autosave until restoration completes, so a slow asset cannot erase the saved draft. Failed loads preserve numeric project codes, mark unavailable glyphs, block image export, and offer retry; legacy editing remains usable.
+
+- **Palette codes.** Default palette filters to graphics codes 64–127 and 192–255 (excluding second-bank alphabet codes 65–90 and 193–218). All codes and legacy shapes are explicitly selectable. Previews use cached bitmap canvases, accessible labels, pressed states, and inverse selection toggles bit 7.
+
+- **Rendering.** Render bitmaps without smoothing, directly in the canvas’s internal pixel buffer. Avoid depending on a saved high-DPI scaling transform after WebKit resizes. SVG exports literal pixel rectangles; PNG converts the SVG into pixels. Legacy canvas and SVG share path geometry.
+
+- **Screen-code binary.** Binary export is a row-major screen-code grid, empty cells map to 32, and nonempty legacy shapes are rejected. It is not PETSCII and contains no dimensions, charset, load address, or colors.
+
+- **Text grid.** Text containing numeric codes uses `# PETSCII-GRID 1 columns rows charset`, followed by space-separated hex codes, `--` empty cells, or legacy symbols. Validate the whole input before changing artwork. Legacy-only Unicode text remains supported.
+
+- **JSON compatibility.** JSON format remains v2, with `format: "petscii-stencil-lab"`. Keep this saved-file identifier after the repository rename. Accept earlier v1/v2 standard/legacy files. New saves include `glyphSource: "builtin"`; reject explicitly custom-source files instead of silently replacing their artwork. No custom compatibility migration is needed. Keep numeric code `0`; do not drop it through a check that treats zero as false.
+
+- **Dimensions and saving.** Grid dimensions 1–40 include 40×25. Undo covers strokes, resize/crop, imports, patterns and charset changes. Autosave (`petscii-graphics-project-v2`) stores one device-local draft; explicit JSON downloads are portable backups. Undo history is session-only; if several tabs save, the last save replaces the draft.
+
+- **Stencil check.** Stencil analysis explicitly refuses numeric glyph compositions rather than reporting a misleading success.
+
+- **Coverage.** Regression tests cover all 512 SVG symbols/fingerprint, known glyph shapes, both banks/inverse pixels in canvas/SVG/PNG, real Chromium touch dragging, real WebKit taps plus synthetic touch/pen streams, exports, storage, input rejection, resize, sidebar and undo. Physical iPad/Pencil verification remains a hardware check.
+
+## Animation and export
+
+- **Duration.** Speed is stored as `animation.seconds`, selected through **Loop duration**: 0.5/1/2/4/8/12 seconds per loop. New projects default to 2 seconds; imported/autosaved explicit durations remain unchanged. Labels show seconds per loop. Speed affects preview and all exports; it is not an original wall-clock recording rate.
+
+- **Fast loops.** Cap procedural frame count for fast loops so GIF durations remain at least 20 ms. Scroll positions use `floor(frame / count * dimension)` to cover a complete cycle even when frames are sampled. Other formats share this same sampled timeline.
+
+- **Effects and playback.** The Animation section offers drawing replay, scrolling left/up, row waves, inverse pulse, Color cycle, Rainbow wave and Warm glow. Header Play/Pause remains accessible with collapsed tools. Playback is opt-in, pauses in hidden tabs, and is never restored as playing from JSON/autosave.
+
+- **Preview state.** Preview is derived from the original grid; never mutate artwork/history/text/autosave on animation ticks. Painting and structural edits stop preview first. Pause holds the preview, Return to drawing restores the original grid.
+
+- **Replay recording.** `drawingReplay` contains a same-size `base` grid and `[cellIndex, glyph]` events, including erasures. New changes record in actual input order. Patterns, resizing and imported projects without recordings reset to a row-major reveal. At 20,000 events condense to current art. History snapshots include the recording.
+
+- **Replay validation.** Validate replay length, indices, values and final reconstruction against the project grid before mutation. v2 saves add optional `animation` settings and `drawingReplay`; earlier standard files continue loading with defaults.
+
+- **Shared frames.** Preview/GIF/PNG frame sequences share `animationCells`, frame counts and delays. Replay holds the final picture for 25% of the loop and limits frame count to keep GIF delays at least 20 ms. Animation export snapshots source grid, replay, bank, glyph bits, options and editable project before awaiting work; never pick up later edits mid-export.
+
+### Frame-count limits
+
+The shared timeline uses these limits before reducing frame count for fast loops. Frame delays must remain at least 20 ms.
+
+| Effect | Frame count or upper limit |
+| --- | --- |
+| Replay | 2–48 frames; sample long recordings across their full event order |
+| Wave rows | Up to 24 frames |
+| Scroll | Up to one frame per cell along the scrolling axis |
+| Inverse pulse | Up to two states |
+| Color cycle / Rainbow wave / Warm glow | Up to 16 / 8 / 10 ramp steps |
+
+### GIF and frame ZIP
+
+- **GIF encoding.** Export uses vendored MIT `gifenc@1.0.3`, dynamically imported only for GIF encoding. Keep its license/provenance in `vendor/`. GIFs use an indexed palette with background/transparent index 0 and C64 ink indices 1–16, full frames, disposal 2, repeat forever, and centisecond-balanced delays. Resolution is 8/16/32 pixels per cell.
+
+- **Temporary downloads.** Keep the most recent GIF Blob URL alive for the single Download button; revoke replaced links after a grace period. Ordinary downloads retain a 60-second grace period for Safari handoffs.
+
+- **Shared raster.** GIF, ZIP and video share `animationRaster` (indexed pixels) and `animationExportFrames` (centisecond-balanced durations). Validate numeric data in replay base/events as well as the final grid when glyphs are unavailable.
+
+- **ZIP encoding.** Frame ZIP uses a lazily loaded, tree-shaken MIT `fflate@0.8.3` streaming writer. Store already compressed PNGs without another compression pass. Keep its license and build fingerprint in `vendor/`.
+
+- **ZIP contents.** ZIP contains complete numbered PNG frames in `frames/`, `timing.json` (`petscii-animation-frames`, version 1), original `project.json`, and `README.txt`. Frame metadata supplies `file`, `startMs`, `durationMs`; all durations must sum to the chosen loop duration. Replay sampling and final hold match GIF. Do not imply a constant frame rate or every cell event is separately exported.
+
+- **Export lifecycle.** Allow only one animation export at once; disable all three export buttons during work, provide Cancel, and restore controls on success/failure/cancellation. Cancellation must never publish an incomplete archive. Retain prior successful GIF/ZIP/video downloads and revoke replaced URLs after a grace period. Editing remains available during export.
+
+### Video output
+
+- **Video module.** `video-export.js` integrates a lazy, unmodified tree-shaken **MPL-2.0 mediabunny@1.61.6** bundle. Retain its copyright/license and pinned source/build provenance in `vendor/`. Prefer native AVC/H.264 MP4, then VP9/VP8 WebM, probing with exact dimensions. No WASM/CDN/backend or media capture permissions. Initialize the HTML media backend before probing WebCodecs to avoid GTK/WPE WebKit initialization failures.
+
+- **Video repetitions.** Video exports 1–100 complete silent loops using explicit frame timestamps/durations and awaited encoder backpressure. `animation.videoRepeats` is optional in v2 imports (default 1), must be an integer from 1–100, and persists through autosave/projects/history. The video-only number input shows total duration; invalid drafts do not replace the last valid saved count, and invalid video exports preserve previous completed downloads. Snapshot the count before async loading, offset each loop by `seconds * 1000`, request a keyframe at each loop boundary, and keep frame raster indices local to the loop. Use an outer loop rather than allocating a repeated-frame array; progress and cancellation span all loops.
+
+  GIF/ZIP timelines and preview remain unchanged. Do not force the shared timings onto a fixed-frame-rate grid during video packaging. For video, Transparent uses the captured canvas background. GIF/PNG retain transparency. Document lossy compression and unsupported-browser behavior.
+
+- **Video cleanup.** Video output/cancellation must close encoders and finalize or cancel the muxer. A canceled or failed output must never replace the last successful cached file. Snapshot artwork/options before module loading, and keep editor mutations independent of ongoing export.
+
+### Independent export checks
+
+- **Video tests.** Tests independently decode video with FFmpeg and inspect metadata/timestamps with FFprobe. CI installs FFmpeg. Exercise native MP4/WebM, replay order/erasures, selected duration/resolution, transparent-to-dark behavior, unsupported encoders, module failure, source edits during loading, and cancellation during loading/finalization. Do not substitute mocked encoders for the native output checks.
+
+- **ZIP tests.** ZIP regressions independently validate CRCs and PNG pixels with development-only `adm-zip` and `pngjs`, compare all frames/timings to GIF, preserve both banks/inverse slots, snapshot edits during loading, and exercise cancellation and encoder failures.
+
+- **GIF tests.** Tests use development-only `omggif` as an independent decoder to verify frame contents, order, erasures, dimensions, repeat count, timing and transparency. Also cover preview pause/stop/edit safety, recording persistence, invalid imports and encoder-load failures.
+
+## Download actions
+
+- **Visible actions.** Still artwork offers Download PNG / Download SVG. Animation offers exactly one Download GIF, Download video, or Download frame ZIP button per selected format. Do not expose separate Generate/Export and Save controls for the same artifact.
+
+- **Cached file identity.** `animationDownloads` retains one successful `{key,url,name}` result per format. `key` serializes the complete snapshotted project (including artwork, cell colors, recording, charset, effect, speed, scale, background and repetitions). Compare it before reusing a file; edits during async generation must not make that older result appear current. Repeat taps with matching source download immediately without rendering again, preserving Safari's user-gesture handoff. New inputs regenerate automatically.
+
+- **Progress and recovery.** Primary buttons retain their labels after success/cancel/failure, show Preparing during generation, and disable during any active animation download. Keep progress and cancellation accessible. Cache publication is atomic after completion/checkpoint; failed or canceled attempts preserve the previous result. Replaced URLs get the existing 60-second grace period. Cache state is session-only and never enters project JSON.
+
+- **Download tests.** Tests exercise the real single button for repeat downloads, inspect stable file URLs / bytes, assert regeneration after artwork/settings changes, and retain native video, cancellation, snapshot and failure checks. Primary buttons expose cached file metadata in `data-download-url` / `data-download-name` for regression inspection, not as separate visible actions.
+
+## Color cycling
+
+- **Color ramps.** `COLOR_CYCLES` defines C64 index ramps for `color-cycle` (all 16 colors, starts at each source ink), `color-wave` (eight chromatic inks with diagonal x+y offsets), and `color-glow` (warm shades with a return path). Source inks absent from a restricted ramp start at that ramp’s first color; repeated colors use their first position.
+
+- **Source preservation.** These effects change derived frame inks only. Preserve glyph codes, empty cells, shared background, saved cell colors, replay and history. Return to drawing and still exports retain the original art. Keep effect selection in the existing compact select and use existing loop speed, resolution, background, repetition and export controls.
+
+- **Frame calculation.** Frame count equals the ramp length, capped by the shared minimum 20 ms frame budget. Use floor(frame/count * ramp.length) for phase, without duplicating the first frame at the end. Preview/GIF/ZIP/video must share the same color calculation and source snapshot. Persist effect names in v2 animation metadata and reject unknown effects atomically.
+
+- **Color-effect tests.** Regression tests independently decode all color-effect GIF/ZIP frames, verify exact palette colors, geometry/alpha/background/timing, confirm preview pause/stop and still/project preservation, exercise export snapshots during edits, and decode repeated native video cycles.
+
+## Workspace navigation
+
+- **Persistent controls.** Keep Glyphs/brush preview, direct ink access, Paint/Eraser, Symmetry and Undo/Redo in a persistent drawing strip outside the settings scroller. Primary touch targets are at least 44 px. Compact visual labels on phones must retain accessible names; symmetry must expose its active state.
+
+- **Settings and resize.** Settings use initially closed Canvas setup, Colors, Animation and Help disclosures. Broad pattern/clear/recolor actions live under explicitly scoped disclosures. Stage columns and rows together, show the proposed crop, and apply once with one undo entry; Cancel leaves art/history unchanged.
+
+- **Download panel.** Header Download artwork opens a native responsive dialog with keyboard-accessible Image / Animation / C64 data tabs, format selection and exact grid-free output previews. Retain one action per chosen format, existing download caches and snapshot isolation.
+
+  Project open/editable JSON download live in a separate Project menu. Dialog navigation must not alter art/history/playback. Closing it keeps export work running; progress and Cancel remain accessible outside it and inside when open.
+
+- **Preview labels.** Animation preview shows effect name and paused state plus Return to drawing. Loop duration labels use seconds. Static previews/exports always show original art; motion previews use the shared derived frames and selected output background. Display actual output dimensions and sampled frame counts, including video repetitions.
+
+- **Glyph panel.** Glyph picker retains one independent scrolling surface and authentic high-contrast white-on-black thumbnails. Recents (maximum 16) and favorites store validated bank/code pairs in device-local UI preferences, never project JSON. Families preserve the graphics-only filter; exact pages, both banks, inverses and legacy options remain accessible.
+
+  Pin is optional at widths 700 px+; normal wide-screen docking starts at 1200 px. Overlay selection dismisses; docked selection stays open. Escape/close/backdrop restore focus without painting. Never nest the palette in settings.
+
+- **Save feedback.** Autosave success says Saved on this device; storage failure needs a persistent visible backup notice even at small widths. UI preferences must not prevent art restoration or editing if storage is unavailable.
+
+- **Navigation tests.** Preserve Canvas ResizeObserver fitting and stroke interpolation. Browser test helpers reveal controls through real dialog/disclosure/tab/picker clicks. Historical resize helpers apply each requested change; dedicated workspace tests exercise staging both dimensions and a single undo.
+
+## C64 colors
+
+- **Palette.** `C64_COLORS` is the 16-entry Pepto PAL palette, in hardware index order. Reference: https://www.pepto.de/projects/colorvic/2001/ (gamma-corrected hex table). Treat RGB as an approximation of analog C64 output, not a unique exact hardware RGB specification.
+
+- **Color arrays.** `colors: {ink, background}` stores brush ink and shared background indices 0–15. `cellColors` parallels `grid` with one foreground index per cell, including empty cells. Missing arrays in earlier v1/v2 projects inherit global ink (default 14); color 0 is valid. Validate array lengths and integer ranges before mutation.
+
+- **Color actions.** Colors uses Ink/Background targets, a 16-swatch grid, Swap brush / background, and explicit Recolor entire drawing. Brush selection changes future strokes and glyph previews only. Swap changes brush/background settings without changing cell ink. Recolor changes occupied cells, records color edits in replay, and is undoable. Color changes stop preview and persist in history, JSON and autosave.
+
+- **Painting and resize.** Painting checks both glyph and ink, so stamping an unchanged glyph can recolor it. Erasing writes the current brush index to the emptied cell. Symmetry applies brush ink to all stamped cells; patterns and text import use brush ink. Resize preserves overlap colors and fills new empty cells with brush ink.
+
+- **Replay colors.** `drawingReplay.baseColors` and `eventColors` parallel the base grid and two-tuple glyph events. Infer missing arrays from global ink for older recordings. Validate that both final glyphs and colors reconstruct the saved composition, including empty cells. History and async export snapshots clone these arrays. Reset recordings preserve empty-cell color state; events include color-only edits.
+
+- **Tile cache.** Bitmap tile cache keys include bank, code and cell ink. Drawing-strip brush previews use brush ink; palette thumbnails use white on neutral black for reliable contrast. Canvas and SVG/PNG use each cell’s color; SVG keeps literal pixel rectangles. Still background overrides remain explicit.
+
+- **Frame colors.** `animationCells` returns `{cells, inks}` so replay, scrolling, waves and inverse effects move colors with glyphs. GIF/ZIP/video share the same indexed raster with index 0 reserved for background/transparency and indices 1–16 for C64 inks, preserving opaque black and inks equal to the background under transparency. Video falls back to the snapshotted canvas background. Retain snapshot isolation while editing during export.
+
+- **Color RAM.** Color RAM export is one byte per cell, row-major, values 0–15 including empty cells. Screen-code and text exports remain glyph-only. Neither binary has dimensions, character set or a load address. JSON preserves all cell colors and replay.
+
+- **Color tests.** Tests inspect swatch RGB, brush-only selection, same-glyph repaint, recoloring, symmetry, resize, patterns, undo/autosave, old file defaults and invalid array/replay rejection. Independently inspect SVG/PNG/GIF/ZIP pixels, opaque black with transparency, inverse slots, colored replay and decoded native repeated-video colors. Shared FFmpeg helpers are in tests/video-utils.cjs.
+
+## Glyph provenance and rebuilding
+
+The built-in [glyph sheet](../assets/c64-glyphs.svg) contains 512 symbols: `c64-0-0` through `c64-1-255`. Each uses an 8×8 viewBox. The viewable sheet has 16 columns and 32 rows.
+
+Shapes use integer rectangles covering horizontal runs of source pixels. There is no font substitution, tracing, smoothing, or generated inversion.
+
+The source was `characters.901225-01.bin` from the [Zimmers C64 firmware archive](https://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c64/).
+
+```text
+SHA-256 fd0d53b8480e86163ac98998976c72cc58d5dd8eb824ed7b829774e74213b420
+MD5     12a4202f5331d45af846af6c58fba946
+```
+
+The repository contains converted artwork at the project owner's request. The original ROM binary is excluded. Conversion retains ROM-derived shapes and does not establish a separate license for them.
+
+### Rebuild from a local reference ROM
+
+You need Python 3 and a local 4 KB reference ROM. From the repository root, run:
+
+```sh
+python3 scripts/build_glyphs.py /path/to/characters.901225-01.bin
+```
+
+This writes `assets/c64-glyphs.svg`. Tests reconstruct all 512 glyphs and compare the complete SHA-256, including the source's one-bit `@`/inverse-`@` difference in both banks.
+
+### Format and source references
+
+- [Commodore 64 Programmer's Reference Guide: character definitions](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_3/page_104.html): character-set sizes and memory offsets.
+- [Michael Steil's Commodore Charset / PETSCII / Keyboard Reference](https://www.pagetable.com/232): screen-code ordering, inverse glyphs, and PETSCII distinctions.
+- [C64 output guide](c64-output.md): current binary exports and a proposed native animation player.
