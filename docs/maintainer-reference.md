@@ -170,6 +170,8 @@ The shared timeline uses these limits before reducing frame count for fast loops
 
 - **Save feedback.** Autosave success says Saved on this device; storage failure needs a persistent visible backup notice even at small widths. UI preferences must not prevent art restoration or editing if storage is unavailable.
 
+- **Resize scheduling.** Coalesce ResizeObserver notifications into one requestAnimationFrame fit; do not write canvas layout inside observer delivery. This avoids WebKit resize-loop errors during disclosure, dialog, and contextual-control changes.
+
 - **Navigation tests.** Preserve Canvas ResizeObserver fitting and stroke interpolation. Browser test helpers reveal controls through real dialog/disclosure/tab/picker clicks. Historical resize helpers apply each requested change; dedicated workspace tests exercise staging both dimensions and a single undo.
 
 ## C64 colors

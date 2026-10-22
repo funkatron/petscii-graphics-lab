@@ -61,3 +61,7 @@ test('nondefault directions and waveforms survive async snapshotting and drive v
  for(let f=0;f<8;f++)assertFrame(f,(x,color)=>expect(cell(frame(gif,f),128,x*4,0)).toEqual(color));
  await loadProject(page,before);const video=decodeVideo(await download(page,'#exportVideo'));expect(video.frames).toHaveLength(8);expect(Number(video.info.format.duration)).toBeCloseTo(1,2);for(let f=0;f<8;f++)assertFrame(f,(x,color)=>nearPixel(video,f,x*32+16,16,color));
 });
+test('fresh projects expose stable animation defaults and an accessible speed value',async({page})=>{
+ await expect(page.locator('#animationEffect')).toHaveValue('none');await expect(page.locator('#waveDirection')).toHaveValue('up');await expect(page.locator('#waveShape')).toHaveValue('sine');await expect(page.locator('#colorWaveDirection')).toHaveValue('up-left');await expect(page.locator('#colorWaveShape')).toHaveValue('sawtooth');await expect(page.locator('#animationSpeed')).toHaveAttribute('aria-valuetext','2 seconds per loop');
+ await ui(page,'#animationEffect','selectOption','wave');await expect(page.locator('#waveDirection')).toBeVisible();await expect(page.locator('#scrollDirection')).toBeHidden();await ui(page,'#animationColor','selectOption','color-wave');await expect(page.locator('#colorWaveShape')).toBeVisible();
+});
