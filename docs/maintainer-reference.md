@@ -239,3 +239,9 @@ This writes `assets/c64-glyphs.svg`. Tests reconstruct all 512 glyphs and compar
 - Tests use pinned development dependency `py65==1.2.0`, installed in CI, to execute actual downloaded PRG machine code. Documented KERNAL STOP/CHROUT calls and the clock are stubbed. Assert screen/color RAM, both banks, inverse/code-zero values, row stride, loop order and timing at PAL/NTSC CPU speeds, low-byte wrap, scratch/register restoration, sprite-pointer boundaries, stack balance, and exit. This does not emulate VIC-II/CIA chips, IRQ latency, actual KERNAL ROM, disk loading, or physical hardware. Full VICE and hardware checks remain open.
 
 KERNAL call contracts: [STOP `$FFE1`](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_5/page_301.html) returns Z set for RUN/STOP; [CHROUT `$FFD2`](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_5/page_278.html) sends the clear-screen character after STOP restores default channels. The normal IRQ calls UDTIM; the player must not increment the clock itself.
+
+## CI environment
+
+GitHub Actions uses the official `mcr.microsoft.com/playwright:v1.58.2-noble` image, matching the pinned npm package. Update both versions together. The image supplies browser builds and OS dependencies; installing them from the runner's slow Ubuntu mirror previously consumed the entire job deadline before tests began. FFmpeg and a Python virtual environment with `py65==1.2.0` provide independent export checks.
+
+Run CI with one worker for stable headless WebKit resource use. The two serial multi-effect/project-color scenarios have explicit 60-second limits; their assertions are unchanged. Playwright's 25-minute global timeout leaves time to upload reports inside the 30-minute job budget. Source: [Playwright CI guidance](https://playwright.dev/docs/ci) and [Docker image guidance](https://playwright.dev/docs/docker).

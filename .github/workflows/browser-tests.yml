@@ -9,20 +9,26 @@ permissions:
 jobs:
   playwright:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    # Match @playwright/test in package-lock.json. Browsers and OS dependencies are included.
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --init --shm-size=1gb
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm ci
-      - run: npx playwright install --with-deps chromium webkit
-      - run: sudo apt-get install -y ffmpeg
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: python3 -m pip install py65==1.2.0
-      - run: npm test
+      - name: Install export validation tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ffmpeg python3 python3-venv
+          python3 -m venv /tmp/petscii-test-venv
+          /tmp/petscii-test-venv/bin/python -m pip install py65==1.2.0
+          echo "/tmp/petscii-test-venv/bin" >> "$GITHUB_PATH"
+      - name: Run browser and export checks
+        run: npm test -- --workers=1 --global-timeout=1500000
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -85,7 +85,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 5. For genuine C64 glyph support, verify known character shapes and the distinction between PETSCII and screen codes against suitable sources and add deterministic rendering tests.
 
-6. Keep the GitHub Actions workflow functional. Report what tests actually ran and their results. Never claim browser behavior passed based only on source inspection.
+6. Keep the GitHub Actions workflow functional. CI uses the version-matched official Playwright container and one worker; update the container tag with the pinned npm version. Report what tests actually ran and their results. Never claim browser behavior passed based only on source inspection.
 
 7. Preserve current numeric v2 C64 projects. Reject v1, Unicode-shape, and custom-ROM projects atomically. Do not reintroduce abandoned format conversions.
 
