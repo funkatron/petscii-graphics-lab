@@ -14,10 +14,10 @@ async function reveal(page,selector){
   if(await page.locator('#glyphBackdrop').isVisible())await page.locator('#glyphClose').click();
   if(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed')))await page.locator('#toggle').click();
  }
+ if(location.mode)await page.locator('[data-export-tab="'+location.mode+'"]').click();
  // Open disclosures from outside in, using actual user controls.
  const details=await target.evaluate(e=>{const ids=[];for(let p=e.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS'&&p.id)ids.unshift(p.id);return ids});
  for(const id of details)if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click();
- if(location.mode)await page.locator('[data-export-tab="'+location.mode+'"]').click();
  if(selector==='#png'||selector==='#svg')await page.locator('#stillFormat').selectOption(selector.slice(1));
  if(location.format)await page.locator('#animationFormat').selectOption(location.format);
 }

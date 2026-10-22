@@ -11,7 +11,7 @@
 html,body{height:100%;margin:0}
 button,select,textarea,input{font:inherit}
 #quickPlay{min-width:44px}
-button,select{border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px;min-height:42px;padding:8px 11px}
+button,select{border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px;min-height:44px;padding:8px 11px}
 button{cursor:pointer}
 button:focus-visible,select:focus-visible{outline:3px solid #6cddd0;outline-offset:2px}
 button.active{background:#176655;border-color:#77ddc4}
@@ -37,7 +37,7 @@ a{color:#9ce6ca}
 .field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:85px}
 label{font-size:.77rem;color:#b2c5d5}
 .field select{width:100%}
-.field input[type=number]{width:100%;min-height:42px;padding:8px 11px;border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px}
+.field input[type=number]{width:100%;min-height:44px;padding:8px 11px;border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px}
 textarea{resize:vertical;width:100%;min-height:80px;background:#0e1728;color:#e6f4ed;border:1px solid #45556e;border-radius:8px;font:12px/1.45 ui-monospace,monospace;padding:8px}
 .note{font-size:.72rem;color:#9eb2c5;line-height:1.45}
 .stage{min-width:0;min-height:0;flex:1;display:flex;flex-direction:column;padding:12px;gap:9px;background:radial-gradient(circle at 50% 38%,#192c40,#0e1728 75%)}
@@ -111,6 +111,7 @@ button,select,.field input[type=number]{min-height:44px}
 dialog{color:#eef5fa;background:#18263a;border:1px solid #54718c;border-radius:14px;width:min(820px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:18px;overscroll-behavior:contain}
 dialog::backdrop{background:#0009}
 .dialog-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.dialog-heading h2{font-size:1.1rem;margin:0}
+.download-layout:has(#export-data:not([hidden])){grid-template-columns:minmax(0,1fr)}
 .download-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
 #downloadFigure{margin:16px 0;padding:14px;background:#101b2c;border-radius:10px;align-self:start;min-width:0}
 #downloadPreview,#resizePreview{width:auto;height:auto;max-height:260px;margin:auto;background:repeating-conic-gradient(#304055 0 25%,#1c2a3b 0 50%) 0/16px 16px;cursor:default}
@@ -138,10 +139,11 @@ dialog::backdrop{background:#0009}
 <div class="row"><button id="inkTarget" aria-pressed="true">Ink<span id="inkName" class="color-name"></span></button><button id="backgroundTarget" aria-pressed="false">Background<span id="backgroundName" class="color-name"></span></button></div>
 <div id="colorPalette" class="color-grid" role="group" aria-label="C64 color palette"></div><button id="swapColors" class="full-width">Swap brush / background</button><details id="recolorDetails" class="help-disclosure"><summary>Whole drawing color</summary><button id="recolorDrawing" class="full-width">Recolor entire drawing</button></details><p class="note">Ink sets the brush color. Each cell keeps its own ink; the background is shared. All 16 C64 colors, using the Pepto PAL palette.</p></div></details>
 <details id="animationDetails" class="tool-group"><summary>Animation</summary><div class="group-body">
-<div class="field"><label for="animationEffect">Effect</label><select id="animationEffect"><option value="replay">Replay drawing</option><option value="scroll-x">Scroll left</option><option value="scroll-y">Scroll up</option><option value="wave">Wave rows</option><option value="inverse">Inverse pulse</option><option value="color-cycle">Color cycle</option><option value="color-wave">Rainbow wave</option><option value="color-glow">Warm glow</option></select></div>
+<div class="field"><label for="animationEffect">Movement / reveal</label><select id="animationEffect"><option value="none">Still drawing</option><option value="replay">Replay drawing</option><option value="scroll-x">Scroll left</option><option value="scroll-y">Scroll up</option><option value="wave">Wave rows</option><option value="inverse">Inverse pulse</option></select></div>
+<div class="field"><label for="animationColor">Color animation</label><select id="animationColor"><option value="none">Original colors</option><option value="color-cycle">Color cycle</option><option value="color-wave">Rainbow wave</option><option value="color-glow">Warm glow</option></select></div>
 <div class="field"><label for="animationSeconds">Loop duration</label><select id="animationSeconds"><option value="0.5">½ second</option><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="4">4 seconds</option><option value="8">8 seconds</option><option value="12">12 seconds</option></select></div>
 <div class="row"><button id="animationPlay" aria-pressed="false">▶ Play</button><button id="animationStop">Return to drawing</button></div>
-<details class="help-disclosure"><summary>About replay &amp; speed</summary><p id="animationInfo" class="note">Replay follows the order you paint, erase, and repaint. Imported drawings, patterns, and resized grids reveal in grid order. Shorter loops play faster in the preview and all animation exports. Color cycle rotates all 16 inks; Rainbow wave sends color bands diagonally across cells; Warm glow cycles through warm shades. These effects keep the background fixed. Playback never changes your drawing.</p></details>
+<details class="help-disclosure"><summary>About replay &amp; speed</summary><p id="animationInfo" class="note">Replay follows the order you paint, erase, and repaint. Imported drawings, patterns, and resized grids reveal in grid order. Shorter loops play faster in the preview and all animation exports. Color cycle rotates all 16 inks; Rainbow wave sends color bands diagonally across cells; Warm glow cycles through warm shades. Choose movement and color animation independently; both share one loop duration. Movement carries cell colors with the glyphs, then the color effect changes the ink. Rainbow bands follow destination positions. These effects keep the background fixed. Playback never changes your drawing.</p></details>
 </div></details>
 <details id="helpDetails" class="tool-group"><summary>Help &amp; extras</summary><div class="group-body">
 <p class="note">Open Glyphs to choose a character, then drag on the canvas. Canvas cells fit the workspace automatically. Use ☰ to hide these tools. Undo restores a whole stroke or canvas operation.</p>
@@ -181,8 +183,12 @@ dialog::backdrop{background:#0009}
 <div data-motion-format="frames" hidden><button id="exportFrames" class="full-width">Download frame ZIP</button><p class="note">Numbered PNGs, frame timings, and an editable project.</p></div>
 </div>
 <div id="export-data" role="tabpanel" aria-labelledby="export-tab-data" data-export-mode="data" hidden>
+<div class="field"><label for="c64Mode">C64 program</label><select id="c64Mode"><option value="still">Still drawing</option><option value="animation">Selected animation</option></select></div>
+<div id="c64LoopSettings" hidden><div class="field"><label for="c64Repeats">C64 repetitions (0 = continuous)</label><input id="c64Repeats" type="number" min="0" max="100" step="1" inputmode="numeric" value="0"></div><p class="note" id="c64MotionSummary"></p></div>
+<button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note">Runs on a standard C64 or emulator. Up to 40 × 25 cells, placed at the top left. Uses the canvas background and the C64’s own character ROM. Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
+<details class="help-disclosure" id="rawDataDetails"><summary>Raw bytes &amp; text</summary>
 <div class="row"><button id="text">Download text</button><button id="screenCodes">Screen codes (.bin)</button></div><button id="colorRam" class="full-width">Export color RAM (.bin)</button>
-<textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div>
+<textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div></details>
 <details class="help-disclosure"><summary>Data formats</summary><p class="note">C64/mixed text stores glyphs, dimensions and character set in a labeled hex grid, not PETSCII bytes. Legacy-only text uses Unicode approximations. Text and screen codes omit colors; export color RAM separately (one index 0–15 per cell, row-major). JSON keeps all colors. Binary is row-major screen codes without dimensions or charset; legacy shapes cannot be converted safely.</p></details>
 </div></div>
 </div><figure id="downloadFigure"><canvas id="downloadPreview" aria-label="Artwork output preview"></canvas><figcaption id="downloadDimensions" class="note"></figcaption><p id="downloadDescription" class="note"></p></figure></div><div id="downloadStatus" class="status" role="status"></div><button id="cancelSheetDownload" hidden>Cancel export</button></dialog>
@@ -231,7 +237,8 @@ function updateVideoDuration(){
  $('videoRepeats').setAttribute('aria-invalid',String(!validVideoRepeats(count)));updateDownloadPreview();
 }
 $('videoRepeats').oninput=()=>{const count=Number($('videoRepeats').value);if(validVideoRepeats(count)){videoRepeats=count;autosave()}updateVideoDuration()};
-function updateMotionSummary(){$('motionSummary').textContent=$('animationEffect').selectedOptions[0].textContent+' · '+$('animationSeconds').value+' s / loop';updateVideoDuration()}
+function animationName(){const motion=$('animationEffect').selectedOptions[0].textContent,color=$('animationColor').selectedOptions[0].textContent;return $('animationColor').value==='none'?motion:$('animationEffect').value==='none'?color:motion+' + '+color}
+function updateMotionSummary(){$('motionSummary').textContent=animationName()+' · '+$('animationSeconds').value+' s / loop';$('c64MotionSummary').textContent=$('motionSummary').textContent;updateVideoDuration()}
 // C64 hardware color order; Pepto PAL RGB approximation (see README).
 const C64_COLORS=[['Black','#000000'],['White','#ffffff'],['Red','#68372b'],['Cyan','#70a4b2'],['Purple','#6f3d86'],['Green','#588d43'],['Blue','#352879'],['Yellow','#b8c76f'],['Orange','#6f4f25'],['Brown','#433900'],['Light red','#9a6759'],['Dark gray','#444444'],['Gray','#6c6c6c'],['Light green','#9ad284'],['Light blue','#6c5eb5'],['Light gray','#959595']];
 // Ordered color ramps, using C64 hardware palette indices. Repeated warm shades form a return path.
@@ -419,36 +426,41 @@ function redraw(){
 }
 function recordCell(i){if(replayEvents.length>=20000){resetReplay();return}replayEvents.push([i,grid[i]]);replayEventColors.push(cellColors[i])}
 function resetReplay(){replayBase=Array(W*H).fill('');replayBaseColors=cellColors.slice();replayEvents=[];replayEventColors=[];for(let i=0;i<grid.length;i++)if(grid[i]!=='')recordCell(i)}
-function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=a.effect;$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;videoRepeats=a.videoRepeats??1;$('videoRepeats').value=String(videoRepeats);updateMotionSummary()}
-function animationSettings(){return {effect:$('animationEffect').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value,videoRepeats}}
+function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=COLOR_CYCLES[a.effect]?'none':a.effect;$('animationColor').value=a.colorEffect??(COLOR_CYCLES[a.effect]?a.effect:'none');$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;videoRepeats=a.videoRepeats??1;$('videoRepeats').value=String(videoRepeats);updateMotionSummary()}
+function animationSettings(){return {effect:$('animationEffect').value,colorEffect:$('animationColor').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value,videoRepeats}}
 function animationSource(){return {W,H,grid,inks:cellColors,base:replayBase,baseColors:replayBaseColors,events:replayEvents,eventColors:replayEventColors,colors:{...colors},...animationSettings()}}
-function animationCount(s){const steps=s.effect==='scroll-x'?s.W:s.effect==='scroll-y'?s.H:s.effect==='inverse'?2:(COLOR_CYCLES[s.effect]?.length??24);return s.effect==='replay'?Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1)):Math.max(1,Math.min(steps,Math.floor(s.seconds*1000/20)))}
-function animationDelay(i,s){const n=animationCount(s);return s.effect==='replay'?(i===n-1?s.seconds*250:s.seconds*750/(n-1)):s.seconds*1000/n}
+function animationCount(s){
+ const colorSteps=COLOR_CYCLES[s.colorEffect]?.length??1;
+ if(s.effect==='replay'&&colorSteps===1)return Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1));
+ const steps=s.effect==='scroll-x'?s.W:s.effect==='scroll-y'?s.H:s.effect==='inverse'?2:s.effect==='wave'?24:s.effect==='replay'?Math.max(4,Math.ceil(s.events.length/.75)+1):1;
+ return Math.max(1,Math.min(s.effect==='replay'?48:Infinity,Math.max(steps,colorSteps),Math.floor(s.seconds*1000/20)));
+}
+function animationDelay(i,s){const n=animationCount(s);return s.effect==='replay'&&s.colorEffect==='none'?(i===n-1?s.seconds*250:s.seconds*750/(n-1)):s.seconds*1000/n}
 function animationCells(frame,s){
- const n=animationCount(s),cells=s.effect==='replay'?s.base.slice():Array(s.W*s.H).fill(''),inks=s.effect==='replay'?s.baseColors.slice():s.inks.slice();
- if(s.effect==='replay'){const end=Math.floor(frame/(n-1)*s.events.length);for(let j=0;j<end;j++){const [i,g]=s.events[j];cells[i]=g;inks[i]=s.eventColors[j]}return {cells,inks}}
- const cycle=COLOR_CYCLES[s.effect];
- if(cycle){
-  const phase=Math.floor(frame/n*cycle.length);
-  for(let i=0;i<s.grid.length;i++)if(s.grid[i]!==''){
-   const start=Math.max(0,cycle.indexOf(s.inks[i])),offset=s.effect==='color-wave'?i%s.W+Math.floor(i/s.W):0;
-   inks[i]=cycle[(start+offset+phase)%cycle.length];
+ const n=animationCount(s),phase=frame/n,cells=s.effect==='replay'?s.base.slice():Array(s.W*s.H).fill(''),inks=s.effect==='replay'?s.baseColors.slice():s.inks.slice();
+ if(s.effect==='replay'){
+  const progress=s.colorEffect==='none'?frame/(n-1):Math.min(1,phase/.75),end=Math.floor(progress*s.events.length);
+  for(let j=0;j<end;j++){const [i,g]=s.events[j];cells[i]=g;inks[i]=s.eventColors[j]}
+ }else{
+  const wrap=(x,size)=>(x%size+size)%size;
+  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
+   let xx=x,yy=y;
+   if(s.effect==='scroll-x')xx=wrap(x+Math.floor(phase*s.W),s.W);
+   if(s.effect==='scroll-y')yy=wrap(y+Math.floor(phase*s.H),s.H);
+   if(s.effect==='wave')xx=wrap(x+Math.round(Math.sin(phase*Math.PI*2+y/Math.max(1,s.H)*Math.PI*2)*Math.min(3,Math.max(1,s.W/4))),s.W);
+   let g=s.grid[yy*s.W+xx];if(s.effect==='inverse'&&Math.floor(phase*2)&&g!=='')g=typeof g==='number'?g^128:'';
+   cells[y*s.W+x]=g;inks[y*s.W+x]=s.inks[yy*s.W+xx];
   }
-  return {cells:s.grid.slice(),inks};
  }
- const wrap=(x,size)=>(x%size+size)%size;
- for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
-  let xx=x,yy=y;
-  if(s.effect==='scroll-x')xx=wrap(x+Math.floor(frame/n*s.W),s.W);
-  if(s.effect==='scroll-y')yy=wrap(y+Math.floor(frame/n*s.H),s.H);
-  if(s.effect==='wave')xx=wrap(x+Math.round(Math.sin(frame/n*Math.PI*2+y/Math.max(1,s.H)*Math.PI*2)*Math.min(3,Math.max(1,s.W/4))),s.W);
-  let g=s.grid[yy*s.W+xx];if(s.effect==='inverse'&&frame%2&&g!=='')g=typeof g==='number'?g^128:'';
-  cells[y*s.W+x]=g;inks[y*s.W+x]=s.inks[yy*s.W+xx];
+ const cycle=COLOR_CYCLES[s.colorEffect];
+ if(cycle)for(let i=0;i<cells.length;i++)if(cells[i]!==''){
+  const start=Math.max(0,cycle.indexOf(inks[i])),offset=s.colorEffect==='color-wave'?i%s.W+Math.floor(i/s.W):0;
+  inks[i]=cycle[(start+offset+Math.floor(phase*cycle.length))%cycle.length];
  }
  return {cells,inks};
 }
 function animationButtons(){
- updateMotionSummary();$('previewBanner').hidden=!animationPreview;$('previewLabel').textContent='Animation preview · '+$('animationEffect').selectedOptions[0].textContent+(animationPlaying?'':' · Paused');
+ updateMotionSummary();$('previewBanner').hidden=!animationPreview;$('previewLabel').textContent='Animation preview · '+animationName()+(animationPlaying?'':' · Paused');
  $('animationPlay').textContent=animationPlaying?'❚❚ Pause':'▶ Play';$('quickPlay').textContent=animationPlaying?'❚❚':'▶';
  for(const id of ['animationPlay','quickPlay']){$(id).setAttribute('aria-pressed',String(animationPlaying));$(id).setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation')}
  $('stageHint').textContent=animationPreview?'Animation preview · tap the canvas to return to drawing.':'Draw by dragging. Tap ☰ to show or hide tools.';
@@ -471,7 +483,7 @@ function toggleAnimation(){
 }
 $('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
 $('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
-for(const id of ['animationEffect','animationSeconds'])$(id).onchange=()=>{const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
+for(const id of ['animationEffect','animationColor','animationSeconds'])$(id).onchange=()=>{const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
 for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseAnimation()});
 // GIF and PNG sequences share source snapshots, exact pixels, and encoded frame durations.
@@ -513,8 +525,8 @@ function animationRaster({s,bank,bits}){
 }
 let animationExportTask=null;
 const animationDownloads={};
-const animationDownloadButtons={gif:'exportGif',video:'exportVideo',zip:'exportFrames'};
-const animationDownloadLabels={gif:'Download GIF',video:'Download video',zip:'Download frame ZIP'};
+const animationDownloadButtons={gif:'exportGif',video:'exportVideo',zip:'exportFrames',c64:'exportC64'};
+const animationDownloadLabels={gif:'Download GIF',video:'Download video',zip:'Download frame ZIP',c64:'Download C64 program (.prg)'};
 function downloadReadyFile(file){const a=document.createElement('a');a.href=file.url;a.download=file.name;document.body.append(a);a.click();a.remove()}
 
 $('cancelAnimationExport').onclick=()=>{if(animationExportTask){animationExportTask.cancelled=true;$('cancelAnimationExport').disabled=true;Promise.resolve(animationExportTask.stop?.()).catch(()=>{});setStatus('Canceling animation export…')}};
@@ -527,7 +539,7 @@ async function exportAnimation(kind){
  const button=$(animationDownloadButtons[kind]);
  const task={cancelled:false};animationExportTask=task;
  button.textContent='Preparing '+(kind==='gif'?'GIF':kind==='video'?'video':'frame ZIP')+'…';
- for(const id of ['exportGif','exportFrames','exportVideo'])$(id).disabled=true;
+ for(const id of ['exportGif','exportFrames','exportVideo','exportC64'])$(id).disabled=true;
  $('cancelAnimationExport').hidden=false;$('cancelSheetDownload').hidden=false;$('exportBadge').textContent='Working…';setStatus(kind==='gif'?'Rendering animated GIF…':kind==='video'?'Preparing video encoder…':'Rendering PNG frames…');
  let zip,video;
  const label=kind==='gif'?'GIF':kind==='video'?'Video':'ZIP';
@@ -567,10 +579,10 @@ async function exportAnimation(kind){
   if(kind==='gif'){gif.finish();blob=new Blob([gif.bytes()],{type:'image/gif'})}
   else if(kind==='video'){setStatus('Finalizing video…');blob=await video.finish()}
   else{
-   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:1,effect:s.effect,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,charset:snapshot.bank,background:s.background,colorPalette:'pepto-pal',colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
+   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:1,effect:s.effect,colorEffect:s.colorEffect,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,charset:snapshot.bank,background:s.background,colorPalette:'pepto-pal',colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
    addFile('timing.json',text.encode(JSON.stringify(manifest,null,2)+'\n'));
    addFile('project.json',text.encode(JSON.stringify(snapshot.project,null,2)+'\n'));
-   addFile('README.txt',text.encode("PETSCII Graphics Lab: PNG animation frames\n\nSTART HERE\n1. Open frames/ to find the numbered PNG pictures in playback order.\n2. Keep timing.json with the pictures. It gives each frame's startMs\n   (start time) and durationMs (how long to show it), in milliseconds.\n3. To edit the artwork again, open project.json in PETSCII Graphics Lab.\n\nTIMING\nFrame durations can differ: do not assume a fixed frame rate.\nThe durationMs values add up to one complete loop.\nDrawing replay holds the finished picture for the last quarter of the loop.\nLong replays use selected points from the recording, matching GIF export.\n\nWHAT THESE FILES ARE\nEach PNG is a complete picture without editing grid lines.\nThese are image frames for modern software, not runnable C64 programs.\nFor C64 binary data and the proposed native player, see the C64 output guide.\n\nEditor: https://funkatron.github.io/petscii-graphics-lab/\nC64 guide: https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md\n"));
+   addFile('README.txt',text.encode("PETSCII Graphics Lab: PNG animation frames\n\nSTART HERE\n1. Open frames/ to find the numbered PNG pictures in playback order.\n2. Keep timing.json with the pictures. It gives each frame's startMs\n   (start time) and durationMs (how long to show it), in milliseconds.\n3. To edit the artwork again, open project.json in PETSCII Graphics Lab.\n\nTIMING\nFrame durations can differ: do not assume a fixed frame rate.\nThe durationMs values add up to one complete loop.\nDrawing replay holds the finished picture for the last quarter of the loop.\nLong replays use selected points from the recording, matching GIF export.\n\nWHAT THESE FILES ARE\nEach PNG is a complete picture without editing grid lines.\nThese are image frames for modern software, not runnable C64 programs.\nFor runnable C64 programs and binary data, see the C64 output guide.\n\nEditor: https://funkatron.github.io/petscii-graphics-lab/\nC64 guide: https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md\n"));
    zip.end();blob=new Blob(zipChunks,{type:'application/zip'});
   }
   checkpoint();const old=animationDownloads[kind],url=URL.createObjectURL(blob);
@@ -580,7 +592,7 @@ async function exportAnimation(kind){
   button.dataset.downloadUrl=url;button.dataset.downloadName=name;downloadReadyFile(file);
   $('exportBadge').textContent=label+' ready';setStatus(label+' ready: '+totalFrames+' frames · '+width+' × '+height+(kind==='video'?' · '+repetitions+' '+(repetitions===1?'loop':'loops')+' · '+Number((s.seconds*repetitions).toFixed(2))+' s':'')+'. Tap '+animationDownloadLabels[kind]+' again if the download did not start.');
  }catch(e){$('exportBadge').textContent=task.cancelled?'Canceled':'Failed';setStatus(task.cancelled?'Animation export canceled':(kind==='zip'?'Frame ZIP':label)+' export failed: '+e.message)}
- finally{try{await video?.cancel()}catch{}zip?.terminate();animationExportTask=null;button.textContent=animationDownloadLabels[kind];for(const id of ['exportGif','exportFrames','exportVideo'])$(id).disabled=false;$('cancelAnimationExport').hidden=true;$('cancelSheetDownload').hidden=true;$('cancelAnimationExport').disabled=false}
+ finally{try{await video?.cancel()}catch{}zip?.terminate();animationExportTask=null;button.textContent=animationDownloadLabels[kind];for(const id of ['exportGif','exportFrames','exportVideo','exportC64'])$(id).disabled=false;$('cancelAnimationExport').hidden=true;$('cancelSheetDownload').hidden=true;$('cancelAnimationExport').disabled=false}
 }
 $('exportGif').onclick=()=>exportAnimation('gif');
 $('exportFrames').onclick=()=>exportAnimation('zip');
@@ -663,6 +675,26 @@ $('png').onclick=async()=>{
  }catch(e){setStatus('PNG export failed: '+e.message)}
  finally{URL.revokeObjectURL(url);button.disabled=false}
 };
+$('c64Mode').onchange=()=>{$('c64LoopSettings').hidden=$('c64Mode').value!=='animation'};
+$('exportC64').onclick=async()=>{
+ if(animationExportTask)return;
+ const moving=$('c64Mode').value==='animation',repetitions=moving?Number($('c64Repeats').value):1;
+ if((moving&&$('c64Repeats').value.trim()==='')||!Number.isInteger(repetitions)||repetitions<0||repetitions>100){setStatus('C64 repetitions must be a whole number from 0 to 100');$('c64Repeats').focus();return}
+ const source=animationSource(),s={...source,grid:source.grid.slice(),inks:source.inks.slice(),base:source.base.slice(),baseColors:source.baseColors.slice(),events:source.events.map(e=>e.slice()),eventColors:source.eventColors.slice()},bank=charset;
+ const key=JSON.stringify({project:projectData(),moving,repetitions}),cached=animationDownloads.c64;
+ if(cached?.key===key){downloadReadyFile(cached);setStatus('C64 program download requested');return}
+ const task={cancelled:false};animationExportTask=task;
+ for(const id of Object.values(animationDownloadButtons))$(id).disabled=true;
+ $('cancelAnimationExport').hidden=false;$('cancelSheetDownload').hidden=false;$('exportC64').textContent='Preparing C64 program…';setStatus('Preparing C64 program…');
+ try{
+  const {createC64Program}=await import('./c64-export.js');if(task.cancelled)throw Error('Export canceled');
+  const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}];
+  const result=createC64Program({columns:s.W,rows:s.H,charset:bank,background:s.colors.background,ink:s.colors.ink,frames,repetitions});if(task.cancelled)throw Error('Export canceled');
+  const file={key,url:URL.createObjectURL(new Blob([result.bytes],{type:'application/octet-stream'})),name:'petscii-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.prg'},old=animationDownloads.c64;
+  animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent='C64 program ready';setStatus('C64 program: '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+result.bytes.length+' bytes. RUN/STOP exits.');
+ }catch(e){setStatus('C64 export failed: '+e.message)}
+ finally{animationExportTask=null;for(const id of Object.values(animationDownloadButtons))$(id).disabled=false;$('exportC64').textContent=animationDownloadLabels.c64;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false;$('cancelSheetDownload').hidden=true}
+};
 $('colorRam').onclick=()=>{download('c64-colors-'+W+'x'+H+'.bin',Uint8Array.from(cellColors),'application/octet-stream');setStatus('Downloaded color RAM (one palette index per cell, row-major)')};
 $('screenCodes').onclick=()=>{
  if(grid.some(g=>typeof g==='string'&&g)){setStatus('Screen-code export requires ROM codes only; legacy shapes cannot be converted safely');return}
@@ -702,7 +734,7 @@ function validateProject(data){
  const validGlyph=g=>g===''||glyphs.includes(g)||(Number.isInteger(g)&&g>=0&&g<=255);
  if(data.drawingReplay!==undefined){const r=data.drawingReplay;if(!r||!Array.isArray(r.base)||r.base.length!==data.grid.length||r.base.some(g=>!validGlyph(g))||!Array.isArray(r.events)||r.events.length>20000||r.events.some(e=>!Array.isArray(e)||e.length!==2||!Number.isInteger(e[0])||e[0]<0||e[0]>=data.grid.length||!validGlyph(e[1])))throw Error('Invalid drawing replay');const end=r.base.slice();for(const [i,g] of r.events)end[i]=g;if(end.some((g,i)=>g!==data.grid[i]))throw Error('Replay does not match drawing')}
  if(data.drawingReplay){const r=data.drawingReplay;if((r.baseColors!==undefined&&!validColors(r.baseColors,data.grid.length))||(r.eventColors!==undefined&&!validColors(r.eventColors,r.events.length)))throw Error('Invalid replay colors');const ink=data.colors?.ink??14,end=r.baseColors?.slice()??Array(data.grid.length).fill(ink);r.events.forEach(([i],j)=>end[i]=r.eventColors?.[j]??ink);if(end.some((c,i)=>c!==(data.cellColors?.[i]??ink)))throw Error('Replay colors do not match drawing')}
- if(data.animation!==undefined){const a=data.animation;if(!a||!['replay','scroll-x','scroll-y','wave','inverse',...Object.keys(COLOR_CYCLES)].includes(a.effect)||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background)||(a.videoRepeats!==undefined&&!validVideoRepeats(a.videoRepeats)))throw Error('Invalid animation settings')}
+ if(data.animation!==undefined){const a=data.animation;if(!a||!['none','replay','scroll-x','scroll-y','wave','inverse',...Object.keys(COLOR_CYCLES)].includes(a.effect)||(a.colorEffect!==undefined&&!['none',...Object.keys(COLOR_CYCLES)].includes(a.colorEffect))||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background)||(a.videoRepeats!==undefined&&!validVideoRepeats(a.videoRepeats)))throw Error('Invalid animation settings')}
 }
 function applyProject(data){
  stopAnimation();

@@ -96,7 +96,7 @@ The editor opens version 1 legacy projects and version 2 projects containing C64
 ## Preview an animation
 
 1. Open **☰ → Animation**.
-2. Choose an **Effect**.
+2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll left** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
 3. Choose **Loop duration**. A shorter duration plays faster. New projects start at two seconds per loop; choices range from half a second to 12 seconds.
 4. Press **Play**, or use **▶** in the header.
 
@@ -106,6 +106,7 @@ Painting and other artwork edits stop the preview. Playback pauses when the brow
 
 | Effect | What you see |
 | --- | --- |
+| **Still drawing / Original colors** | Disable movement or color animation independently. |
 | **Replay drawing** | Paint, erase, and repaint actions appear in recorded order. The finished picture holds for the last quarter of the loop. |
 | **Scroll left / Scroll up** | The drawing moves across the grid and wraps around. |
 | **Wave rows** | Rows shift in a repeating wave. |
@@ -114,7 +115,7 @@ Painting and other artwork edits stop the preview. Playback pauses when the brow
 | **Rainbow wave** | Diagonal bands of eight C64 colors move across the drawing. |
 | **Warm glow** | Ink moves through brown, orange, red, light red, yellow, and white, then back. |
 
-Color effects keep the glyphs and shared background fixed. Still-image downloads use the original drawing, even when an animation is paused.
+Movement carries each cell’s ink with its glyph. Color animation then changes the resulting ink; Rainbow wave uses the cell’s new position. Both choices share one loop duration. The shared background stays fixed. Still-image downloads use the original drawing, even when an animation is paused.
 
 ### What replay records
 
@@ -135,7 +136,8 @@ Open **Download artwork**, choose a tab and format, then use its **Download** bu
 | Share a repeating animation | **Animation → Animated GIF** | An animation that loops continuously |
 | Save a video with a set duration | **Animation → Video (MP4 / WebM)** | A silent clip with 1–100 complete loops |
 | Edit frames elsewhere | **Animation → PNG frames (.zip)** | Full PNG images, timings, and an editable project |
-| Work with text or C64 bytes | **C64 data** | Text, screen-code bytes, or separate color bytes |
+| Run artwork on a C64 | **C64 data → C64 program** | A runnable still or animation `.prg`, with colors and playback code |
+| Work with text or C64 bytes | **C64 data → Raw bytes & text** | Text, screen-code bytes, or separate color bytes |
 
 Image backgrounds can use the canvas color, white, black, or transparency. Animation backgrounds can use the canvas color, white, or transparency. **Video uses the canvas color when Transparent is selected.**
 
@@ -170,6 +172,18 @@ Keep these files together:
 
 Frame durations can differ, especially during the final hold in replay. Use `timing.json` when importing frames into another tool. Giving every frame the same duration can change the animation’s timing.
 
+### Run a C64 program
+
+1. Choose **Download artwork → C64 data**.
+2. Set **C64 program** to **Still drawing** or **Selected animation**.
+3. For animation, set **C64 repetitions**: 0 repeats continuously; 1–100 plays that many loops and holds the last frame.
+4. Choose **Download C64 program (.prg)**. Load it in a standard C64 emulator or transfer it to your C64, then `RUN`.
+5. Press **RUN/STOP** to exit.
+
+The program uses the C64’s own character ROM, your cell colors, and your canvas background. Drawings must fit within 40×25 cells and use authentic C64 glyphs. Smaller drawings appear at the top left. Large or very fast animations may exceed memory or processing limits; the exporter explains what to change.
+
+This first player has automated CPU-emulation checks. Full VICE and physical C64 verification remain to be done. See the [C64 output guide](docs/c64-output.md) for loading instructions and timing limits.
+
 ## C64 terms and data
 
 You can skip this section for ordinary drawing and image downloads.
@@ -198,7 +212,7 @@ Binary files omit dimensions, character set, and a C64 load address. Screen-code
 
 The two `.bin` files describe a **still picture**. They are data, not runnable programs, and contain no animation timing.
 
-See [Use your artwork on a Commodore 64](docs/c64-output.md) for the file contents, an emulator reference workflow, and a proposal for exporting runnable C64 animations as `.prg` files.
+See [Use your artwork on a Commodore 64](docs/c64-output.md) for the file contents, an emulator reference workflow, and runnable still/animation `.prg` downloads.
 
 ### Labeled text example
 
@@ -236,13 +250,14 @@ The optional stencil check under **Help & extras** analyzes legacy shapes only. 
 
 Start with [AGENTS.md](AGENTS.md) for project rules and the [maintainer reference](docs/maintainer-reference.md) for file formats, rendering, timing, glyph provenance, and export requirements.
 
-Tests need Node.js/npm, Python 3, and FFmpeg with `ffprobe`. GitHub Actions uses Node.js 22.
+Tests need Node.js/npm, Python 3 with the py65 CPU emulator, and FFmpeg with `ffprobe`. GitHub Actions uses Node.js 22.
 
 Run from the repository directory:
 
 ```sh
 npm ci
 npx playwright install --with-deps chromium webkit
+python3 -m pip install py65==1.2.0
 ```
 
 Install FFmpeg with your platform’s package manager, then run:
@@ -251,15 +266,15 @@ Install FFmpeg with your platform’s package manager, then run:
 npm test
 ```
 
-Playwright tests desktop Chromium and iPad WebKit in landscape and portrait. Tests inspect downloaded files, pixels, timing, saved projects, touch input, and undo/redo. Video checks decode output independently with FFmpeg/FFprobe.
+Playwright tests desktop Chromium and iPad WebKit in landscape and portrait. Tests inspect downloaded files, pixels, timing, saved projects, touch input, and undo/redo. Video checks decode output independently with FFmpeg/FFprobe. C64 checks execute downloaded PRGs with py65, using simulated KERNAL calls and a clock. Use a Python virtual environment if your platform requires one.
 
 `CHROMIUM_EXECUTABLE_PATH` can select a local Chromium executable. Standard development and CI use Playwright’s browser builds and the committed npm lockfile.
 
 ## Other documentation
 
-- [Planned work](docs/roadmap.md): combined movement/color effects and native C64 output.
+- [Planned work](docs/roadmap.md): completed animation/player milestones and requested follow-ups.
 
-- [C64 output guide](docs/c64-output.md): binary files today and a proposed runnable animation export.
+- [C64 output guide](docs/c64-output.md): raw binary files and runnable still/animation programs.
 - [Maintainer reference](docs/maintainer-reference.md): implementation contracts and source references.
 - [UI review](docs/ui-review.md): layout decisions, implemented changes, and follow-ups.
 - [Audit history](AUDIT.md): earlier findings and results from each development stage.

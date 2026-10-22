@@ -55,7 +55,7 @@ test('every effect exports and legacy glyphs render on a white background',async
 test('project round-trip retains replay and animation settings but never autoplays',async({page})=>{
  await loadProject(page,project(['',''],2,1,{selectedGlyph:160}));await clickCell(page,1,0);
  await ui(page,'#animationEffect','selectOption','wave');await ui(page,'#animationSeconds','selectOption','8');await ui(page,'#gifScale','selectOption','4');await ui(page,'#gifBackground','selectOption','transparent');
- const before=JSON.parse(await download(page,'#saveProject'));expect(before.animation).toEqual({effect:'wave',seconds:8,scale:4,background:'transparent',videoRepeats:1});
+ const before=JSON.parse(await download(page,'#saveProject'));expect(before.animation).toEqual({effect:'wave',colorEffect:'none',seconds:8,scale:4,background:'transparent',videoRepeats:1});
  await page.reload();await page.locator('.app[data-ready=true]').waitFor();const after=JSON.parse(await download(page,'#saveProject'));expect(after.drawingReplay).toEqual(before.drawingReplay);expect(after.animation).toEqual(before.animation);await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');
  await ui(page,'#clear');await loadProject(page,before);expect(JSON.parse(await download(page,'#saveProject')).drawingReplay).toEqual(before.drawingReplay);
 });

@@ -119,9 +119,10 @@ Write for a novice who may be reading in short sessions.
 
 ## Future features to explore
 
-Track requested features in the [roadmap](docs/roadmap.md). Combined movement and color cycling is planned; the current editor selects one effect at a time.
+Track requested features in the [roadmap](docs/roadmap.md). Movement/reveal and color animation now have independent selections sharing one loop. Keep both settings in snapshots and project validation.
 
-- Runnable C64 still/animation export. Follow the staged proposal in [C64 output](docs/c64-output.md); PRG/D64 output is not implemented yet.
+- C64 still/animation PRG export is implemented in `c64-export.js`. Preserve its shared frame input, bounded memory, CPU-work checks, RUN/STOP exit, and emulator tests. Full VICE/hardware verification and D64 packaging remain follow-ups; see [C64 output](docs/c64-output.md).
+- Remove legacy shapes and obsolete compatibility paths as a coordinated cleanup. The owner is the only user; backward compatibility is not a priority. Do not add new compatibility machinery solely to retain abandoned formats.
 - Color-aware text/data import formats.
 - Tile stamp, line/rectangle/fill tools, selection/move/duplicate and motif libraries.
 - Keyboard shortcuts, improved undo workflow, zoom, and optional grid guides.

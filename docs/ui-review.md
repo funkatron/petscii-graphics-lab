@@ -32,6 +32,8 @@ The review aimed to preserve:
 | Optional palette pinning | Implemented | Keep choosing glyphs beside the canvas where space allows |
 | Staged canvas resizing | Implemented | Inspect a crop, Apply or Cancel, and undo both dimensions together |
 | Whole-drawing action groups | Implemented | Find Border, Checkerboard, Clear, and Recolor separately from brush changes |
+| Independent movement and color controls | Implemented | Combine effects or use either alone without separate workspaces |
+| C64 program with optional animation repeats | Implemented | Download runnable artwork; raw bytes/text stay in a disclosure |
 | Loop duration in seconds | Implemented | Set animation timing without interpreting a speed multiplier |
 | Device-save status and backup notice | Implemented | Know where the draft is kept and what to do if saving fails |
 

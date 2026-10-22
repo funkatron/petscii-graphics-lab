@@ -1,37 +1,28 @@
 # Planned work
 
-These features are planned, not available in the editor yet. For current features, use the [user guide](../README.md).
+This page tracks requested work and completed milestones. For current controls, use the [user guide](../README.md).
 
-## Combine movement and color cycling
+## Combine movement and color cycling — implemented
 
-- [ ] Allow a movement animation and a color-cycling animation to run at the same time.
+- [x] Choose movement and color effects independently, including color-only animation.
+- [x] Move glyphs and their cell colors, then calculate animated inks at destination positions.
+- [x] Share one loop duration and frame calculation across preview, GIF, video, PNG frame ZIP, and C64 programs.
+- [x] Preserve source artwork, replay, project settings, and history.
+- [x] Test all nine movement/color combinations and exported pixels.
 
-**Example:** scroll the drawing left while its cell colors cycle through the C64 palette.
+## Run artwork on a C64 — first player implemented
 
-### What the feature should support
+- [x] Export a runnable still-picture PRG with both character sets and per-cell colors.
+- [x] Play sampled replay, color cycling, movement, inverse effects, and combinations using compressed changed runs.
+- [x] Support continuous playback, 1–100 repetitions, and RUN/STOP exit.
+- [x] Check geometry, memory budget, estimated playback work, and actual 6502 CPU execution.
+- [ ] Verify in full VICE emulation and on physical PAL/NTSC C64 hardware.
+- [ ] Evaluate raster-synchronized updates, procedural native effects, and optional D64 packaging.
 
-- Choose movement and color effects independently.
-- Combine **Scroll left**, **Scroll up**, or **Wave rows** with **Color cycle**, **Rainbow wave**, or **Warm glow**.
-- Keep each effect usable on its own.
-- Make the combination match in preview, GIF, video, and PNG frame ZIP.
-- Preserve original glyphs, cell colors, shared background, replay, and undo history.
-- Store both choices in editable projects. Define how existing single-effect projects reopen.
-
-### Decisions for implementation
-
-1. Define effect order: move glyphs and their cell colors, then calculate animated ink colors.
-2. Define whether the two effects share one loop duration, and label that timing clearly.
-3. Reuse the shared frame calculation across every output format.
-4. Test visible results, timing, save/load, cancellation, and edits during export.
-
-## Run artwork on a C64
-
-- [ ] Export a runnable still-picture PRG.
-- [ ] Add native C64 drawing replay and color cycling.
-- [ ] Extend playback to movement and inverse effects.
-
-See the [C64 output guide](c64-output.md) for the proposed format, memory limits, transfer considerations, and testing stages.
+See the [C64 output guide](c64-output.md) for loading instructions, timing, memory limits, and verification scope.
 
 ## Other ideas
+
+- [ ] Remove legacy approximate shapes and obsolete backward-compatibility code. The current owner is the only user; compatibility is not a priority. Audit the palette, renderers, imports, project validation, exports, tests, and documentation together, keeping the authentic C64 workflow intact.
 
 The [UI review](ui-review.md#follow-ups-to-evaluate) tracks layout experiments. [AGENTS.md](../AGENTS.md#future-features-to-explore) lists other possible editing features.
