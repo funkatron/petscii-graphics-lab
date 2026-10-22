@@ -10,6 +10,14 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Preserve source artwork, replay, project settings, and history.
 - [x] Test all nine movement/color combinations and exported pixels.
 
+## Shape animation effects — implemented
+
+- [x] Scroll left, right, up, or down with explicit direction controls.
+- [x] Set movement-wave and color-wave directions independently.
+- [x] Choose sine, triangle, square, sawtooth, or reverse sawtooth for each wave.
+- [x] Adjust Animation speed from Slower to Faster, or set the exact loop duration.
+- [x] Keep controls contextual and share saved settings across preview and downloads.
+
 ## Run artwork on a C64 — first player implemented
 
 - [x] Export a runnable still-picture PRG with both character sets and per-cell colors.

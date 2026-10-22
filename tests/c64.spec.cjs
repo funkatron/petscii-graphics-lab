@@ -34,3 +34,10 @@ test('C64 lazy loading captures both effects and ink before later editing',async
 test('long C64 frame delays use both timer bytes across repeated clock wrap',async({page})=>{
  await loadProject(page,project([0,160],2,1,{animation:{effect:'inverse',colorEffect:'none',seconds:12,scale:1,background:'dark'}}));await ui(page,'#c64Mode','selectOption','animation');await ui(page,'#c64Repeats','fill','1');const {snapshots}=emulate(await download(page,'#exportC64'),{clockHz:100000,stopAfterTicks:750,startJiffy:245});expect(snapshots).toHaveLength(2);expect(snapshots[0].screen.slice(0,2)).toEqual([0,160]);expect(snapshots[1].screen.slice(0,2)).toEqual([128,32]);expect(Math.abs(snapshots[1].tick-snapshots[0].tick-360)).toBeLessThanOrEqual(2);
 });
+test('C64 animation respects rightward scroll and independent square color waves',async({page})=>{
+ await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,14,14,14],animation:{effect:'scroll-x',scrollDirection:'right',colorEffect:'color-wave',colorWaveDirection:'right',colorWaveShape:'square',seconds:1,scale:1,background:'dark'}}));await ui(page,'#c64Mode','selectOption','animation');await ui(page,'#c64Repeats','fill','1');
+ const {snapshots}=emulate(await download(page,'#exportC64'),{stopAfterTicks:70}),ramp=[2,8,7,13,3,14,6,4];
+ // Consecutive equal states may be omitted by the independent CPU observer.
+ const expected=Array.from({length:8},(_,f)=>{const x=Math.floor(f/8*4),level=((f/8-x/8)%1+1)%1<.5?7:0;return {screen:Array.from({length:4},(_,i)=>i===x?160:32),ink:ramp[level],x}}).filter((s,i,a)=>i===0||s.x!==a[i-1].x||s.ink!==a[i-1].ink);
+ expect(snapshots).toHaveLength(expected.length);snapshots.forEach((s,i)=>{expect(s.screen.slice(0,4)).toEqual(expected[i].screen);expect(s.colors[expected[i].x]).toBe(expected[i].ink)});
+});

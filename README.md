@@ -96,9 +96,10 @@ The editor opens version 1 legacy projects and version 2 projects containing C64
 ## Preview an animation
 
 1. Open **☰ → Animation**.
-2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll left** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
-3. Choose **Loop duration**. A shorter duration plays faster. New projects start at two seconds per loop; choices range from half a second to 12 seconds.
-4. Press **Play**, or use **▶** in the header.
+2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
+3. Set the direction and waveform controls that appear for your selected effects.
+4. Drag **Animation speed** toward **Faster** or **Slower**, or choose an exact **Loop duration**. A shorter duration plays faster. New projects start at two seconds per loop; choices range from half a second to 12 seconds.
+5. Press **Play**, or use **▶** in the header.
 
 **Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
 
@@ -108,14 +109,30 @@ The canvas is read-only during playback and while paused. Choose **Return to dra
 | --- | --- |
 | **Still drawing / Original colors** | Disable movement or color animation independently. |
 | **Replay drawing** | Paint, erase, and repaint actions appear in recorded order. The finished picture holds for the last quarter of the loop. |
-| **Scroll left / Scroll up** | The drawing moves across the grid and wraps around. |
-| **Wave rows** | Rows shift in a repeating wave. |
+| **Scroll horizontally / Scroll vertically** | The drawing wraps around. **Scroll direction** chooses left, right, up, or down. |
+| **Wave rows / columns** | Rows or columns shift in a repeating wave. Choose its travel direction and waveform. |
 | **Inverse pulse** | C64 glyphs alternate with their inverse slots. Legacy shapes blink. |
 | **Color cycle** | Each cell cycles through all 16 inks, starting with its original color. |
-| **Rainbow wave** | Diagonal bands of eight C64 colors move across the drawing. |
+| **Rainbow wave** | Bands of eight C64 colors change the ink. Choose a cardinal or diagonal direction and a waveform. Glyphs remain stationary with **Still drawing**. |
 | **Warm glow** | Ink moves through brown, orange, red, light red, yellow, and white, then back. |
 
 Movement carries each cell’s ink with its glyph. Color animation then changes the resulting ink; Rainbow wave uses the cell’s new position. Both choices share one loop duration. The shared background stays fixed. Still-image downloads use the original drawing, even when an animation is paused.
+
+### Shape a wave
+
+Wave controls appear only when their effect is selected. Movement and color waves have separate directions and waveforms. **Wave direction** is the direction the pattern travels: Up/Down shifts rows sideways; Left/Right shifts columns vertically.
+
+| Waveform | How it changes |
+| --- | --- |
+| **Sine** | Smooth, rounded motion |
+| **Triangle** | Even rise and fall |
+| **Square** | Switches between two levels |
+| **Sawtooth** | Rises steadily, then jumps back |
+| **Reverse sawtooth** | Falls steadily, then jumps back |
+
+Character movement uses whole cells, so even smooth waveforms appear stepped on a small grid. Color waveforms choose from eight palette inks. A square color wave switches between two ramp positions.
+
+Settings apply to preview, GIF, video, PNG frames, and C64 animation programs, and are saved with the editable project.
 
 ### What replay records
 

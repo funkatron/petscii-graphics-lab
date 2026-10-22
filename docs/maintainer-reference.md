@@ -71,11 +71,14 @@ For drawing instructions, start with the [user guide](../README.md).
 
 ## Animation and export
 
-- **Duration.** Speed is stored as `animation.seconds`, selected through **Loop duration**: 0.5/1/2/4/8/12 seconds per loop. New projects default to 2 seconds; imported/autosaved explicit durations remain unchanged. Labels show seconds per loop. Speed affects preview and all exports; it is not an original wall-clock recording rate.
+- **Effect controls.** Persist optional `scrollDirection` / `waveDirection` (left/right/up/down), `waveShape` / `colorWaveShape` (sine/triangle/square/sawtooth/reverse-sawtooth), and `colorWaveDirection` (cardinal or hyphenated diagonal). Validate present values atomically. Defaults preserve existing frames: scroll-x left, scroll-y up, movement wave up/sine, color wave up-left/sawtooth. Hide irrelevant controls. Snapshots, history, cache keys, JSON and ZIP metadata retain all five fields.
+- **Directions and waveforms.** Scroll source coordinates advance for left/up, retreat for right/down; frame count uses the chosen axis. Movement waves travel along the selected direction, shifting rows horizontally for up/down and columns vertically for left/right. Sample one periodic signed waveform, round displacement to whole cells and wrap. Sine starts at zero rising; triangle starts at zero rising; square starts high; sawtooth rises -1 to +1; reverse sawtooth falls +1 to -1. Color waves map phase plus signed cell offsets through their independent waveform into the eight-color ramp; default sawtooth retains the original exact integer ramp steps. Color effects never move glyphs. All outputs, including PRG, use the shared frame calculation.
+
+- **Duration.** The Animation speed slider runs from slow to fast across 12/8/4/2/1/0.5 seconds and stays synchronized with the exact Loop duration select. Expose seconds-per-loop as accessible value text. Speed is stored as `animation.seconds`, selected through **Loop duration**: 0.5/1/2/4/8/12 seconds per loop. New projects default to 2 seconds; imported/autosaved explicit durations remain unchanged. Labels show seconds per loop. Speed affects preview and all exports; it is not an original wall-clock recording rate.
 
 - **Fast loops.** Cap procedural frame count for fast loops so GIF durations remain at least 20 ms. Scroll positions use `floor(frame / count * dimension)` to cover a complete cycle even when frames are sampled. Other formats share this same sampled timeline.
 
-- **Effects and playback.** The Animation section offers drawing replay, scrolling left/up, row waves, inverse pulse, Color cycle, Rainbow wave and Warm glow. Header Play/Pause remains accessible with collapsed tools. Playback is opt-in, pauses in hidden tabs, and is never restored as playing from JSON/autosave.
+- **Effects and playback.** The Animation section offers drawing replay, scrolling in four directions, row/column waves, inverse pulse, Color cycle, Rainbow wave and Warm glow. Header Play/Pause remains accessible with collapsed tools. Playback is opt-in, pauses in hidden tabs, and is never restored as playing from JSON/autosave.
 
 - **Preview state.** Preview is derived from the original grid; never mutate artwork/history/text/autosave on animation ticks. The canvas is read-only throughout preview, including pause: ignore pointer down/move/up without changing artwork, replay, history, autosave, or playback. Starting playback cancels any held stroke and releases its capture. Structural edits stop preview first. Pause holds the preview; Return to drawing restores the original grid and explicitly enables painting.
 
@@ -92,7 +95,7 @@ The shared timeline uses these limits before reducing frame count for fast loops
 | Effect | Frame count or upper limit |
 | --- | --- |
 | Replay | 2–48 frames; sample long recordings across their full event order |
-| Wave rows | Up to 24 frames |
+| Wave rows / columns | Up to 24 frames |
 | Scroll | Up to one frame per cell along the scrolling axis |
 | Inverse pulse | Up to two states |
 | Color cycle / Rainbow wave / Warm glow | Up to 16 / 8 / 10 ramp steps |
