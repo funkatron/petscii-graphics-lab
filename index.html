@@ -45,6 +45,7 @@ textarea{resize:vertical;width:100%;min-height:80px;background:#0e1728;color:#e6
 .status{font-size:.77rem;color:#9ce6ca}
 #dimensions{font-size:.77rem;color:#a8bacc}
 .canvas-frame{flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #304861;border-radius:12px;background:#0d192b;padding:9px;touch-action:none;overscroll-behavior:contain}
+canvas.preview-locked{cursor:default}
 canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:crosshair;image-rendering:pixelated}
 .stagefoot{font-size:.72rem;color:#9eb2c5;flex:none;text-align:center}
 #quickglyph{font-size:1rem;color:#9ee6d4}
@@ -151,7 +152,7 @@ dialog::backdrop{background:#0009}
 </div></details></aside>
 <main class="stage">
 <div class="stagebar"><span id="dimensions">16 × 16</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
-<div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="returnDrawing">Return to drawing</button></div><div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas"></canvas></div>
+<div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="returnDrawing">Return to drawing</button></div><div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
 <div class="task-progress"><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
 <aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
@@ -463,7 +464,8 @@ function animationButtons(){
  updateMotionSummary();$('previewBanner').hidden=!animationPreview;$('previewLabel').textContent='Animation preview · '+animationName()+(animationPlaying?'':' · Paused');
  $('animationPlay').textContent=animationPlaying?'❚❚ Pause':'▶ Play';$('quickPlay').textContent=animationPlaying?'❚❚':'▶';
  for(const id of ['animationPlay','quickPlay']){$(id).setAttribute('aria-pressed',String(animationPlaying));$(id).setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation')}
- $('stageHint').textContent=animationPreview?'Animation preview · tap the canvas to return to drawing.':'Draw by dragging. Tap ☰ to show or hide tools.';
+ canvas.classList.toggle('preview-locked',animationPreview);
+ $('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':'Draw by dragging. Tap ☰ to show or hide tools.';
 }
 function stopAnimation(){
  animationPlaying=false;animationPreview=false;animationElapsed=0;animationFrame=0;cancelAnimationFrame(animationRAF);animationRAF=null;
@@ -479,7 +481,7 @@ function animationTick(now){
 function toggleAnimation(){
  if(animationPlaying){pauseAnimation();return}
  if(grid.every(g=>g==='')&&!replayEvents.length){setStatus('Draw something first, then press Play');return}
- animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
+ cancelStroke();animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
 }
 $('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
 $('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
@@ -618,10 +620,11 @@ function stroke(a,b){
  for(let i=0;i<=n;i++)paint(Math.round(a[0]+(b[0]-a[0])*i/n),Math.round(a[1]+(b[1]-a[1])*i/n));
  redraw();
 }
-canvas.addEventListener('pointerdown',e=>{if(painting||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}stroke(last,last);setStatus('Drawing…');});
-canvas.addEventListener('pointermove',e=>{if(!painting||e.pointerId!==pointer)return;if(e.cancelable)e.preventDefault();const p=position(e);stroke(last,p);last=p;});
-function stop(e){if(pointer!==e.pointerId)return;if(e.type==='pointerup')stroke(last,position(e));painting=false;pointer=null;last=null;setStatus('Stroke complete')}
-canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',()=>{painting=false;pointer=null;last=null});
+canvas.addEventListener('pointerdown',e=>{if(animationPreview){if(e.cancelable)e.preventDefault();return}if(painting||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}stroke(last,last);setStatus('Drawing…');});
+canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.pointerId!==pointer)return;if(e.cancelable)e.preventDefault();const p=position(e);stroke(last,p);last=p;});
+function cancelStroke(){const active=pointer;painting=false;pointer=null;last=null;if(active!==null)try{canvas.releasePointerCapture(active)}catch{}}
+function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview&&e.type==='pointerup')stroke(last,position(e));cancelStroke();if(!animationPreview)setStatus('Stroke complete')}
+canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 function refresh(){$('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;$('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');$('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);else{preview.save();preview.scale(1.5,1.5);preview.fill(new Path2D(legacyPaths[glyph]));preview.restore()}for(const b of palette.children){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(!erasing));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===charset&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};

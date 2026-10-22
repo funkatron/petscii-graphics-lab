@@ -77,7 +77,7 @@ For drawing instructions, start with the [user guide](../README.md).
 
 - **Effects and playback.** The Animation section offers drawing replay, scrolling left/up, row waves, inverse pulse, Color cycle, Rainbow wave and Warm glow. Header Play/Pause remains accessible with collapsed tools. Playback is opt-in, pauses in hidden tabs, and is never restored as playing from JSON/autosave.
 
-- **Preview state.** Preview is derived from the original grid; never mutate artwork/history/text/autosave on animation ticks. Painting and structural edits stop preview first. Pause holds the preview, Return to drawing restores the original grid.
+- **Preview state.** Preview is derived from the original grid; never mutate artwork/history/text/autosave on animation ticks. The canvas is read-only throughout preview, including pause: ignore pointer down/move/up without changing artwork, replay, history, autosave, or playback. Starting playback cancels any held stroke and releases its capture. Structural edits stop preview first. Pause holds the preview; Return to drawing restores the original grid and explicitly enables painting.
 
 - **Replay recording.** `drawingReplay` contains a same-size `base` grid and `[cellIndex, glyph]` events, including erasures. New changes record in actual input order. Patterns, resizing and imported projects without recordings reset to a row-major reveal. At 20,000 events condense to current art. History snapshots include the recording.
 

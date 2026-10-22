@@ -102,7 +102,7 @@ The editor opens version 1 legacy projects and version 2 projects containing C64
 
 **Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
 
-Painting and other artwork edits stop the preview. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
+The canvas is read-only during playback and while paused. Choose **Return to drawing** before painting. Other artwork edits stop the preview. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
 
 | Effect | What you see |
 | --- | --- |

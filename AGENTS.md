@@ -100,7 +100,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 - **Built-in artwork:** both banks and inverse slots come from `assets/c64-glyphs.svg`. Keep the original ROM binary out of the repository. There is no user-facing ROM import.
 - **Editable files:** keep the existing v2 JSON identifier and numeric code 0. The repository rename does not change saved-file identifiers. Custom-ROM compatibility is not a current priority.
 - **Colors:** preserve one ink index per cell and one shared background. A brush color change affects future strokes. Recoloring the entire drawing is a separate undoable action.
-- **Animation:** previews use derived frames and leave source artwork intact. Loop duration controls preview and all animation downloads. Videos support 1–100 complete loops.
+- **Animation:** previews use derived frames and leave source artwork intact. The canvas is read-only during playing and paused previews; Return to drawing enables painting. Loop duration controls preview and all animation downloads. Videos support 1–100 complete loops.
 - **Downloads:** one action per selected format. Snapshot artwork before asynchronous work. Keep progress, cancellation, and the last completed download available.
 - **Workspace:** keep drawing/recovery controls visible, glyph browsing independent, and canvas resizing staged with Apply/Cancel and one undo entry.
 - **Details:** use the [maintainer reference](docs/maintainer-reference.md) for exact bytes, hashes, timing, schema validation, encoder behavior, and regression coverage.

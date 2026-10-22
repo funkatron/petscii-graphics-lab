@@ -22,8 +22,8 @@ test('preview changes pixels, pauses, stops, and never alters the saved grid',as
  await ui(page,'#quickPlay');const paused=await pixels();await page.waitForTimeout(350);expect(await pixels()).toEqual(paused);
  expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(original);
  await ui(page,'#animationStop');expect(await pixels()).toEqual(before);
- await ui(page,'#quickPlay');await clickCell(page,1,0);await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');
- await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(original);
+ await ui(page,'#quickPlay');await clickCell(page,1,0);await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');
+ expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(original);
 });
 test('drawing replay GIF contains the recorded states and holds the finished drawing',async({page})=>{
  await loadProject(page,project(['','',''],3,1,{selectedGlyph:160}));await clickCell(page,2,0);await clickCell(page,0,0);await ui(page,'#erase');await clickCell(page,2,0);
@@ -86,4 +86,31 @@ test('fast long replays keep GIF frame delays at least twenty milliseconds',asyn
  const events=Array.from({length:80},(_,i)=>[0,i%2===0?160:'']);
  await loadProject(page,project([''],1,1,{drawingReplay:{base:[''],events}}));await ui(page,'#animationSeconds','selectOption','1');
  const g=decoded(await download(page,'#exportGif'));expect(g.r.numFrames()).toBe(38);expect(g.frames.every(f=>f.info.delay>=2)).toBe(true);expect(g.frames.reduce((n,f)=>n+f.info.delay,0)).toBe(100);
+});
+
+test('playing and paused previews ignore mouse, touch and pen input without changing projects or history',async({page,hasTouch})=>{
+ await loadProject(page,project([160,'','',''],4,1,{selectedGlyph:81,cellColors:[2,3,4,5],animation:{effect:'scroll-x',colorEffect:'color-wave',seconds:1,scale:1,background:'dark'}}));
+ const before=JSON.parse(await download(page,'#saveProject'));await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('petscii-graphics-project-v2')))).toEqual(before);const draft=await page.evaluate(()=>JSON.stringify(localStorage)),undo=await page.locator('#undo').isEnabled(),redo=await page.locator('#redo').isEnabled();
+ await ui(page,'#quickPlay');
+ for(const playing of [true,false]){
+  if(!playing)await ui(page,'#quickPlay');
+  await expect(page.locator('#stageHint')).toContainText('read-only');
+  if(hasTouch)await page.locator('#canvas').tap({position:{x:20,y:20}});else await clickCell(page,1,0);
+  await page.locator('#canvas').evaluate(c=>{const r=c.getBoundingClientRect();for(const pointerType of ['mouse','touch','pen']){
+   const send=(type,x)=>c.dispatchEvent(new PointerEvent(type,{pointerType,pointerId:17,isPrimary:true,button:0,clientX:r.left+r.width*x,clientY:r.top+r.height*.5,bubbles:true,cancelable:true}));
+   send('pointerdown',.3);send('pointermove',.9);send('pointerup',.9);
+  }});
+  await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed',String(playing));await expect(page.locator('#previewBanner')).toBeVisible();
+  expect(await page.locator('#undo').isEnabled()).toBe(undo);expect(await page.locator('#redo').isEnabled()).toBe(redo);expect(await page.evaluate(()=>JSON.stringify(localStorage))).toBe(draft);
+  expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ }
+ await ui(page,'#returnDrawing');await clickCell(page,1,0);const edited=JSON.parse(await download(page,'#saveProject'));expect(edited.grid).toEqual([160,81,'','']);await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+});
+test('starting playback during a held stroke cancels the pointer before later moves or release can paint',async({page})=>{
+ await loadProject(page,project(['','','',''],4,1,{selectedGlyph:160}));
+ await page.locator('#canvas').evaluate(c=>{const r=c.getBoundingClientRect();c.dispatchEvent(new PointerEvent('pointerdown',{pointerId:29,pointerType:'pen',isPrimary:true,clientX:r.left+r.width*.1,clientY:r.top+r.height*.5,bubbles:true,cancelable:true}))});
+ await ui(page,'#quickPlay');
+ await page.locator('#canvas').evaluate(c=>{const r=c.getBoundingClientRect();for(const type of ['pointermove','pointerup'])c.dispatchEvent(new PointerEvent(type,{pointerId:29,pointerType:'pen',isPrimary:true,clientX:r.left+r.width*.9,clientY:r.top+r.height*.5,bubbles:true,cancelable:true}))});
+ await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([160,'','','']);
+ await ui(page,'#returnDrawing');await clickCell(page,1,0);expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([160,160,'','']);await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([160,'','','']);
 });
