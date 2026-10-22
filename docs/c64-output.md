@@ -48,13 +48,13 @@ Start from ordinary C64 BASIC. The first player does not target cartridge enviro
 | Glyphs | Both authentic character sets, including inverse slots and screen code 0 |
 | Colors | One foreground ink per cell and one shared background |
 | Still drawing | Original artwork, held until RUN/STOP |
-| Animation | Replay, scrolling, row waves, inverse, color effects, and their combinations |
+| Animation | Replay, scrolling, row/column waves, inverse, color effects, and their combinations |
 | Repetitions | Continuous, or 1–100 loops followed by a held final frame |
 | Canvas | 1–40 columns and 1–25 rows, placed at the top left |
 | Larger/unsupported drawings | Export stops with an explanation; it never silently crops |
 | Memory / speed | Export checks program size and estimated update work; simplify or slow the animation if rejected |
 
-Legacy approximate shapes cannot be exported to a C64 program. Choose authentic C64 glyphs instead. An intermediate replay frame containing a legacy shape is also unsupported.
+The editor uses authentic numeric C64 glyphs throughout. Animation cycle counts, directions, and waveform settings use the same sampled frames as modern outputs.
 
 The player stores the same **sampled frames** used by GIF, video, and frame ZIP, as character/color changes. It does not run a native mathematical implementation of each effect. Long replays may skip recorded steps, just as the other animation downloads do.
 
@@ -74,7 +74,7 @@ Automated tests download the actual PRG and execute it with the independent **py
 - Combined movement/color frames, repeated playback, held final frames, and clock-byte wrap.
 - Timing at PAL and NTSC CPU speeds, with a simulated 60 Hz KERNAL clock.
 - RUN/STOP exit, balanced stack, restored scratch/display state, and writes staying inside screen/color memory.
-- Rejection of unsupported sizes, legacy shapes, excessive memory, invalid repeats, and excessive update work.
+- Rejection of unsupported sizes, invalid screen codes, excessive memory, invalid repeats, and excessive update work.
 
 The tests simulate the clock and documented KERNAL calls. **They do not emulate the VIC-II/CIA chips, actual KERNAL ROM, disk loading, or a physical C64.** Full VICE and real hardware testing remain open work.
 

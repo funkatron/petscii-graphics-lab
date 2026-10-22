@@ -51,21 +51,21 @@ For drawing instructions, start with the [user guide](../README.md).
 
 - **Byte layout.** Startup reads SVG geometry into an in-memory bitmap table; address = `bank * 2048 + screenCode * 8`. The most significant bit (MSB) is the left pixel; bytes run top to bottom. Full SVG reconstruction SHA-256 must match `fd0d53b8480e86163ac98998976c72cc58d5dd8eb824ed7b829774e74213b420`. Preserve the source's one-bit @/inverse-@ discrepancy. Read inverse slots verbatim; never synthesize them by negating the first 128 glyphs.
 
-- **Startup and failure.** Startup awaits validated SVG data before restoring local state and enabling editing. Suppress autosave until restoration completes, so a slow asset cannot erase the saved draft. Failed loads preserve numeric project codes, mark unavailable glyphs, block image export, and offer retry; legacy editing remains usable.
+- **Startup and failure.** Startup awaits validated SVG data before restoring local state and enabling editing. Suppress autosave until restoration completes, so a slow asset cannot erase the saved draft. Failed loads preserve numeric project codes, mark unavailable glyphs, block image export, and offer retry, and block painting and glyph patterns until authentic artwork is available. Screen-code/text/JSON backups remain available.
 
-- **Palette codes.** Default palette filters to graphics codes 64–127 and 192–255 (excluding second-bank alphabet codes 65–90 and 193–218). All codes and legacy shapes are explicitly selectable. Previews use cached bitmap canvases, accessible labels, pressed states, and inverse selection toggles bit 7.
+- **Palette codes.** Default palette includes the solid block 160 alongside graphics codes 64–127 and 192–255 (excluding second-bank alphabet codes 65–90 and 193–218). All numeric screen codes are explicitly selectable. Previews use cached bitmap canvases, accessible labels, pressed states, and inverse selection toggles bit 7, switching to All screen codes when the resulting glyph is outside the graphics filter. Page availability follows actual filtered membership; page 128–191 remains available for the solid block.
 
-- **Rendering.** Render bitmaps without smoothing, directly in the canvas’s internal pixel buffer. Avoid depending on a saved high-DPI scaling transform after WebKit resizes. SVG exports literal pixel rectangles; PNG converts the SVG into pixels. Legacy canvas and SVG share path geometry.
+- **Rendering.** Render bitmaps without smoothing, directly in the canvas’s internal pixel buffer. Avoid depending on a saved high-DPI scaling transform after WebKit resizes. SVG exports literal pixel rectangles; PNG converts the SVG into pixels.
 
-- **Screen-code binary.** Binary export is a row-major screen-code grid, empty cells map to 32, and nonempty legacy shapes are rejected. It is not PETSCII and contains no dimensions, charset, load address, or colors.
+- **Screen-code binary.** Binary export is a row-major screen-code grid, empty cells map to 32. It is not PETSCII and contains no dimensions, charset, load address, or colors.
 
-- **Text grid.** Text containing numeric codes uses `# PETSCII-GRID 1 columns rows charset`, followed by space-separated hex codes, `--` empty cells, or legacy symbols. Validate the whole input before changing artwork. Legacy-only Unicode text remains supported.
+- **Text grid.** Use `# PETSCII-GRID 1 columns rows charset`, followed by space-separated two-digit hex codes or `--` empty cells. Require the header and validate the whole input before changing artwork. Unicode-only and mixed-shape text imports are removed. Blank drawings use the same explicit header and empty tokens.
 
-- **JSON compatibility.** JSON format remains v2, with `format: "petscii-stencil-lab"`. Keep this saved-file identifier after the repository rename. Accept earlier v1/v2 standard/legacy files. New saves include `glyphSource: "builtin"`; reject explicitly custom-source files instead of silently replacing their artwork. No custom compatibility migration is needed. Keep numeric code `0`; do not drop it through a check that treats zero as false.
+- **JSON compatibility.** JSON format remains v2, with `format: "petscii-stencil-lab"`. Keep this saved-file identifier after the repository rename. Accept numeric v2 C64 files only; reject v1 and string glyphs in both artwork and replay. New saves include `glyphSource: "builtin"`; reject explicitly custom-source files instead of silently replacing their artwork. No custom compatibility migration is needed. Keep numeric code `0`; do not drop it through a check that treats zero as false.
 
 - **Dimensions and saving.** Grid dimensions 1–40 include 40×25. Undo covers strokes, resize/crop, imports, patterns and charset changes. Autosave (`petscii-graphics-project-v2`) stores one device-local draft; explicit JSON downloads are portable backups. Undo history is session-only; if several tabs save, the last save replaces the draft.
 
-- **Stencil check.** Stencil analysis explicitly refuses numeric glyph compositions rather than reporting a misleading success.
+- **Removed paths.** There is no legacy-shape palette, Unicode/path renderer, geometry checker, v1 project reader, or single-effect color normalization. Do not add migrations for those abandoned formats. The format identifier remains unchanged for current numeric projects.
 
 - **Coverage.** Regression tests cover all 512 SVG symbols/fingerprint, known glyph shapes, both banks/inverse pixels in canvas/SVG/PNG, real Chromium touch dragging, real WebKit taps plus synthetic touch/pen streams, exports, storage, input rejection, resize, sidebar and undo. Physical iPad/Pencil verification remains a hardware check.
 
@@ -86,13 +86,13 @@ For drawing instructions, start with the [user guide](../README.md).
 
 - **Replay validation.** Validate replay length, indices, values and final reconstruction against the project grid before mutation. v2 saves add optional `animation` settings and `drawingReplay`; earlier standard files continue loading with defaults.
 
-- **Shared frames.** Preview/GIF/PNG frame sequences share `animationCells`, frame counts and delays. Replay holds the final picture for 25% of the loop and limits frame count to keep GIF delays at least 20 ms. Animation export snapshots source grid, replay, bank, glyph bits, options and editable project before awaiting work; never pick up later edits mid-export.
+- **Shared frames.** Preview/GIF/PNG frame sequences share `animationCells`, frame counts and delays. Replay holds the final picture for the last 25% of each cycle and limits frame count to keep GIF delays at least 20 ms. Animation export snapshots source grid, replay, bank, glyph bits, options and editable project before awaiting work; never pick up later edits mid-export.
 
 ### Frame-count limits
 
-The shared timeline uses these limits before reducing frame count for fast loops. Frame delays must remain at least 20 ms.
+These are per-cycle sampling targets. Independent cycle counts multiply those targets; the shared timeline reduces samples to fit the whole-loop 20 ms frame budget while preserving integer cycle subdivisions. Unsupported rates show a warning.
 
-| Effect | Frame count or upper limit |
+| Effect | Per-cycle sampling target |
 | --- | --- |
 | Replay | 2–48 frames; sample long recordings across their full event order |
 | Wave rows / columns | Up to 24 frames |
@@ -148,7 +148,7 @@ The shared timeline uses these limits before reducing frame count for fast loops
 
 - **Source preservation.** These effects change derived frame inks only. Preserve glyph codes, empty cells, shared background, saved cell colors, replay and history. Return to drawing and still exports retain the original art. Keep movement/reveal and color animation in separate compact selects and use existing loop speed, resolution, background, repetition and export controls.
 
-- **Frame calculation.** For color alone, frame count equals the ramp length. For combinations use the larger motion/ramp count, capped by the shared minimum 20 ms frame budget. Combined replay uses a uniform timeline with up to 48 frames and reaches completion at 75% of the loop; plain replay retains its variable final hold. Use floor(frame/count * ramp.length) for phase, without duplicating the first frame at the end. Preview/GIF/ZIP/video must share the same color calculation and source snapshot. Persist independent `animation.effect` and `animation.colorEffect` (`none` or a named color ramp) in v2 metadata and reject unknown effects atomically. The movement control adds `none` for a still drawing. Existing single color-effect settings normalize to movement `none` plus the color effect. Apply movement/reveal first, then animated inks; diagonal bands use destination positions. Add `colorEffect` to ZIP timing metadata.
+- **Frame calculation.** At 1×, color alone uses the ramp length and combinations use the larger motion/ramp count. Multiple cycles use the shared animation plan described above, bounded by the same 20 ms frame budget. Combined replay uses a uniform timeline with up to 48 frames and reaches completion at 75% of the loop; plain replay retains its variable final hold. Use floor(frame/count * ramp.length) for phase, without duplicating the first frame at the end. Preview/GIF/ZIP/video must share the same color calculation and source snapshot. Persist independent `animation.effect` and `animation.colorEffect` (`none` or a named color ramp) in v2 metadata and reject unknown effects atomically. The movement control adds `none` for a still drawing. Color animation uses its own `colorEffect` field; movement `none` keeps geometry fixed. Apply movement/reveal first, then animated inks; diagonal bands use destination positions. Add `colorEffect` to ZIP timing metadata.
 
 - **Color-effect tests.** Regression tests independently decode all color-effect GIF/ZIP frames, verify exact palette colors, geometry/alpha/background/timing, confirm preview pause/stop and still/project preservation, exercise export snapshots during edits, and decode repeated native video cycles.
 
@@ -164,7 +164,7 @@ The shared timeline uses these limits before reducing frame count for fast loops
 
 - **Preview labels.** Animation preview shows effect name and paused state plus Return to drawing. Loop duration labels use seconds. Static previews/exports always show original art; motion previews use the shared derived frames and selected output background. Display actual output dimensions and sampled frame counts, including video repetitions.
 
-- **Glyph panel.** Glyph picker retains one independent scrolling surface and authentic high-contrast white-on-black thumbnails. Recents (maximum 16) and favorites store validated bank/code pairs in device-local UI preferences, never project JSON. Families preserve the graphics-only filter; exact pages, both banks, inverses and legacy options remain accessible.
+- **Glyph panel.** Glyph picker retains one independent scrolling surface and authentic high-contrast white-on-black thumbnails. Recents (maximum 16) and favorites store validated bank/code pairs in device-local UI preferences, never project JSON. Families preserve the graphics-only filter; exact pages, both banks, and inverse slots remain accessible.
 
   Pin is optional at widths 700 px+; normal wide-screen docking starts at 1200 px. Overlay selection dismisses; docked selection stays open. Escape/close/backdrop restore focus without painting. Never nest the palette in settings.
 
@@ -178,7 +178,7 @@ The shared timeline uses these limits before reducing frame count for fast loops
 
 - **Palette.** `C64_COLORS` is the 16-entry Pepto PAL palette, in hardware index order. Reference: https://www.pepto.de/projects/colorvic/2001/ (gamma-corrected hex table). Treat RGB as an approximation of analog C64 output, not a unique exact hardware RGB specification.
 
-- **Color arrays.** `colors: {ink, background}` stores brush ink and shared background indices 0–15. `cellColors` parallels `grid` with one foreground index per cell, including empty cells. Missing arrays in earlier v1/v2 projects inherit global ink (default 14); color 0 is valid. Validate array lengths and integer ranges before mutation.
+- **Color arrays.** `colors: {ink, background}` stores brush ink and shared background indices 0–15. `cellColors` parallels `grid` with one foreground index per cell, including empty cells. Omitted color arrays inherit brush ink (default 14); color 0 is valid. Validate array lengths and integer ranges before mutation.
 
 - **Color actions.** Colors uses Ink/Background targets, a 16-swatch grid, Swap brush / background, and explicit Recolor entire drawing. Brush selection changes future strokes and glyph previews only. Swap changes brush/background settings without changing cell ink. Recolor changes occupied cells, records color edits in replay, and is undoable. Color changes stop preview and persist in history, JSON and autosave.
 
@@ -229,7 +229,7 @@ This writes `assets/c64-glyphs.svg`. Tests reconstruct all 512 glyphs and compar
 
 `c64-export.js` emits a BASIC `10 SYS2061` entry at `$0801` and a generated 6502 player. Do not embed character ROM bytes. Export original cells for still mode and the shared `animationCells` / `animationExportFrames` sequence for animation mode. C64 output always uses the canvas background; image transparency, white backgrounds and raster resolution settings do not alter native screen data.
 
-- Validate dimensions 1–40 by 1–25; preserve top-left placement and 40-byte screen stride. Reject legacy shapes in every exported frame. Empty cells are screen code 32; numeric 0 remains valid.
+- Validate dimensions 1–40 by 1–25; preserve top-left placement and 40-byte screen stride. Require numeric codes or empty cells in every exported frame. Empty cells are screen code 32; numeric 0 remains valid.
 - Initialize exactly 1000 screen/color cells, preserving sprite pointers and memory beyond the color plane. Select VIC bank 0 and character ROM bank via `$D018 = $15/$17`, with standard character mode and the chosen background/border.
 - Frame stream: little-endian duration in 60 Hz jiffies, then changed runs `[addressLo,addressHi,count,value]` (count 1–255); address 0 ends a frame. Duration 0 ends a loop; `$FFFF` redirects to a little-endian stream address. The first frame fully initializes both planes. Subsequent frames and the loop transition write changed runs only. The redirect reuses the frame sequence without duplicating it.
 - Round cumulative shared frame boundaries to 60 Hz ticks, so loop duration stays balanced. Keep KERNAL IRQs running, track low-byte clock wrap, and check STOP while waiting. The first picture is decoded before starting the loop clock. Updates are not raster synchronized and may show tearing; very fast complex updates require full-machine validation. The normal KERNAL clock is 60 Hz on PAL/NTSC, independent of video refresh.

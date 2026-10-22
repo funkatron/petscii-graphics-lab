@@ -19,7 +19,7 @@ export function createC64Program({columns,rows,charset,background,ink,frames,rep
  let elapsed=0,previousTick=0;
  for(const frame of frames){
   if(frame.cells.length!==columns*rows||frame.inks.length!==columns*rows)throw Error('Invalid C64 frame dimensions');
-  if(frame.cells.some(g=>g!==''&&(!Number.isInteger(g)||g<0||g>255)))throw Error('C64 programs require authentic C64 screen codes. Legacy shapes are unsupported.');
+  if(frame.cells.some(g=>g!==''&&(!Number.isInteger(g)||g<0||g>255)))throw Error('C64 programs require numeric screen codes from 0 to 255.');
   if(frame.inks.some(c=>!Number.isInteger(c)||c<0||c>15))throw Error('Invalid C64 cell colors');
   if(!Number.isFinite(frame.durationMs)||frame.durationMs<=0)throw Error('Invalid C64 frame timing');
   elapsed+=frame.durationMs;const endTick=Math.round(elapsed*60/1000),ticks=endTick-previousTick;previousTick=endTick;

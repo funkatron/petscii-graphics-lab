@@ -30,8 +30,8 @@ This page tracks requested work and completed milestones. For current controls, 
 
 See the [C64 output guide](c64-output.md) for loading instructions, timing, memory limits, and verification scope.
 
-## Other ideas
+## C64-only editor — implemented
 
-- [ ] Remove legacy approximate shapes and obsolete backward-compatibility code. The current owner is the only user; compatibility is not a priority. Audit the palette, renderers, imports, project validation, exports, tests, and documentation together, keeping the authentic C64 workflow intact.
+- [x] Remove legacy approximate shapes, their renderers and stencil checker, v1 projects, Unicode/mixed text imports, and obsolete single-effect color settings. Keep the authentic C64 editor and current numeric v2 projects intact.
 
 The [UI review](ui-review.md#follow-ups-to-evaluate) tracks layout experiments. [AGENTS.md](../AGENTS.md#future-features-to-explore) lists other possible editing features.

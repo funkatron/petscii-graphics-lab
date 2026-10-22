@@ -45,8 +45,8 @@ test('inverse GIF uses actual reverse glyphs and preserves empty cells',async({p
  await loadProject(page,project([160,''],2,1));await ui(page,'#animationEffect','selectOption','inverse');await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','transparent');
  const g=decoded(await download(page,'#exportGif'));expect(g.r.numFrames()).toBe(2);expect(rgbaAt(g,0,4,4)).toEqual(ink);expect(rgbaAt(g,1,4,4)[3]).toBe(0);for(const f of [0,1])expect(rgbaAt(g,f,12,4)[3]).toBe(0);
 });
-test('every effect exports and legacy glyphs render on a white background',async({page})=>{
- await loadProject(page,project(['█','','',''],2,2,{selectedGlyph:'█'}));await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','white');
+test('every effect exports and authentic glyphs render on a white background',async({page})=>{
+ await loadProject(page,project([160,'','',''],2,2,{selectedGlyph:160}));await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','white');
  for(const effect of ['replay','scroll-y','wave']){
   await ui(page,'#animationEffect','selectOption',effect);const g=decoded(await download(page,'#exportGif'));expect(g.r.width).toBe(16);expect(g.r.height).toBe(16);expect(g.r.numFrames()).toBeGreaterThan(1);
   expect(g.frames.reduce((sum,f)=>sum+f.info.delay,0)).toBe(400);expect(g.frames.some((_,i)=>rgbaAt(g,i,4,4).slice(0,3).every((v,c)=>v===ink[c]))).toBe(true);

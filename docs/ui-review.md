@@ -34,7 +34,7 @@ The review aimed to preserve:
 | Whole-drawing action groups | Implemented | Find Border, Checkerboard, Clear, and Recolor separately from brush changes |
 | Independent movement and color controls | Implemented | Combine effects or use either alone without separate workspaces |
 | C64 program with optional animation repeats | Implemented | Download runnable artwork; raw bytes/text stay in a disclosure |
-| Loop duration in seconds | Implemented | Set animation timing without interpreting a speed multiplier |
+| Independent cycle rates and loop duration | Implemented | Set effect cycles within an explicit total timeline |
 | Device-save status and backup notice | Implemented | Know where the draft is kept and what to do if saving fails |
 
 ## Where controls belong
@@ -71,7 +71,7 @@ The drawing strip stays in place as panels open. Navigation changes do not edit 
 - Brush ink changes future strokes; Recolor applies to the whole drawing.
 - Preview width and height together before applying a resize.
 - Make reversible edits recoverable with Undo.
-- Keep exact codes, both banks, inverse selection, and legacy shapes accessible.
+- Keep exact codes, both banks, inverse selection, accessible.
 
 ### Use space and labels consistently
 

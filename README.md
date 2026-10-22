@@ -33,7 +33,7 @@ The drawing strip stays visible when settings are hidden. Tap **☰** to show or
 
 ## Choose glyphs
 
-The editor includes **512 authentic 8×8 glyphs**: two character sets with 256 glyphs each. The default **Graphics only** view leaves out ordinary letters and digits.
+The editor includes **512 authentic 8×8 glyphs**: two character sets with 256 glyphs each. The default **Graphics only** view leaves out ordinary letters and digits. The authentic solid block (code 160) is included under **Blocks**.
 
 Use **Browse glyphs** to choose a screen-code page, shape family, **Recently used**, or **Favorites**. Tap **☆** to add the selected glyph to Favorites. Favorites and recent selections are stored on this device. Each character set has its own list.
 
@@ -43,7 +43,6 @@ Open **Character options** for these choices:
 
 - **All screen codes** includes letters, numbers, and every code in the selected set.
 - **Character set** switches between uppercase/graphics and lowercase/uppercase. This affects the whole drawing; **Undo** restores the previous set.
-- **Legacy shapes** provides the earlier approximate shapes.
 
 **Inverse ±128** selects the corresponding inverse slot. The editor preserves the actual C64 inverse glyphs.
 
@@ -91,7 +90,7 @@ The editor also keeps **one automatic draft on this device**. Look for **Saved o
 - Undo history lasts for the current session; it is not included in the project file.
 - If several tabs edit the draft, the last tab to save replaces it.
 
-The editor opens version 1 legacy projects and version 2 projects containing C64 codes, legacy shapes, or both. It does not open the earlier experimental custom-ROM format. Project files store glyph codes and settings, without the ROM binary.
+The editor opens version 2 projects containing numeric C64 screen codes. Old Unicode-shape, version 1, and custom-ROM projects are unsupported. Project files store glyph codes and settings, without the ROM binary.
 
 ## Preview an animation
 
@@ -109,10 +108,10 @@ The canvas is read-only during playback and while paused. Choose **Return to dra
 | Effect | What you see |
 | --- | --- |
 | **Still drawing / Original colors** | Disable movement or color animation independently. |
-| **Replay drawing** | Paint, erase, and repaint actions appear in recorded order. The finished picture holds for the last quarter of the loop. |
+| **Replay drawing** | Paint, erase, and repaint actions appear in recorded order. The finished picture holds for the last quarter of each cycle. |
 | **Scroll horizontally / Scroll vertically** | The drawing wraps around. **Scroll direction** chooses left, right, up, or down. |
 | **Wave rows / columns** | Rows or columns shift in a repeating wave. Choose its travel direction and waveform. |
-| **Inverse pulse** | C64 glyphs alternate with their inverse slots. Legacy shapes blink. |
+| **Inverse pulse** | C64 glyphs alternate with their inverse slots. |
 | **Color cycle** | Each cell cycles through all 16 inks, starting with its original color. |
 | **Rainbow wave** | Bands of eight C64 colors change the ink. Choose a cardinal or diagonal direction and a waveform. Glyphs remain stationary with **Still drawing**. |
 | **Warm glow** | Ink moves through brown, orange, red, light red, yellow, and white, then back. |
@@ -121,7 +120,7 @@ Movement carries each cell’s ink with its glyph. Color animation then changes 
 
 For example, an **8-second loop** with **4× movement** and **8× color** repeats movement every 2 seconds and color every 1 second. Both return to their starting phase at the loop boundary. Video repetitions still count complete 8-second loops.
 
-Very short loops cannot represent every high cycle rate reliably. If a warning appears, increase **Loop duration** or reduce cycles. Preview and animation downloads wait for a supported combination instead of silently skipping whole cycles. Repeated replay completes and holds the finished drawing within each cycle.
+Faster rates use fewer intermediate positions or colors per cycle. Increase loop duration for more detail. Very short loops cannot represent every high cycle rate reliably. If a warning appears, increase **Loop duration** or reduce cycles. Preview and animation downloads wait for a supported combination instead of silently skipping whole cycles. Repeated replay completes and holds the finished drawing within each cycle.
 
 ### Shape a wave
 
@@ -141,7 +140,7 @@ Settings apply to preview, GIF, video, PNG frames, and C64 animation programs, a
 
 ### What replay records
 
-New strokes are recorded automatically. Replay follows their order at the selected loop duration; it does not reproduce the pauses you took while drawing.
+New strokes are recorded automatically. Replay follows their order at the selected cycles-per-loop rate; it does not reproduce the pauses you took while drawing.
 
 Imported artwork without a recording, patterns, and resized canvases reveal in grid order: left to right, then down. After 20,000 cell changes, the recording is condensed to a reveal of the current picture. Undo/redo retain the matching recording.
 
@@ -223,9 +222,8 @@ You can skip this section for ordinary drawing and image downloads.
 
 ### Text and binary formats
 
-- **Legacy-only text:** Unicode approximations. Spaces represent empty cells. Import uses existing canvas dimensions.
-- **C64 or mixed text:** a labeled grid with dimensions and character set. It preserves codes, legacy symbols, and empty cells, but omits cell colors.
-- **Screen codes (.bin):** one byte per cell in row-major order. Empty cells become space code 32. Legacy shapes cannot be converted.
+- **Screen-code text:** a labeled grid with dimensions and character set. It preserves numeric codes and empty cells, but omits cell colors.
+- **Screen codes (.bin):** one byte per cell in row-major order. Empty cells become space code 32.
 - **Color RAM (.bin):** one foreground color index, 0–15, per cell, including empty cells. Pair it with the screen-code file.
 
 Binary files omit dimensions, character set, and a C64 load address. Screen-code files also omit colors. Use the editable JSON project to preserve the full drawing and replay.
@@ -240,7 +238,7 @@ See [Use your artwork on a Commodore 64](docs/c64-output.md) for the file conten
 
 ```text
 # PETSCII-GRID 1 2 2 1
-00 █
+00 A0
 -- 80
 ```
 
@@ -250,7 +248,6 @@ Each row must have one space-separated token per column:
 
 - Two hexadecimal digits, such as `00` or `80`: a screen code.
 - `--`: an empty cell.
-- A supported legacy symbol, such as `█`: that shape.
 
 An empty cell differs from a deliberately placed space glyph (screen code `20` in hexadecimal). Import checks the whole document before changing the drawing.
 
@@ -258,15 +255,14 @@ An empty cell differs from a deliberately placed space glyph (screen code `20` i
 
 | What you notice | Next step |
 | --- | --- |
-| C64 glyphs are unavailable | Open **Glyphs → Character options → Reload C64 glyphs**. Numeric codes are retained; legacy editing remains available. |
+| C64 glyphs are unavailable | Open **Glyphs → Character options → Reload C64 glyphs**. Numeric codes are retained. Reload glyphs to resume drawing. |
 | A backup notice appears | Use **Project → Download editable project**. |
 | An animation download does not start | Tap its Download button again to reuse the completed file. |
 | Video encoding is unavailable | Choose GIF or PNG frames. |
-| An early experimental text file cannot be read | Use its JSON project; that old mixed-text format cannot be detected reliably. |
 
 Image export waits for C64 glyph data rather than omitting unavailable glyphs. Text, JSON, and screen-code files can still preserve numeric codes.
 
-The optional stencil check under **Help & extras** analyzes legacy shapes only. Physical iPad/Pencil gestures and Files/Photos handoffs still need testing on a real device.
+Physical iPad/Pencil gestures and Files/Photos handoffs still need testing on a real device.
 
 ## Develop or maintain the editor
 

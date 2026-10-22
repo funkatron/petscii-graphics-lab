@@ -1,0 +1,6 @@
+const {ui,test,expect,download}=require('./helpers.cjs');
+test('authentic solid block is available in Graphics only and Blocks; inverse blank stays selectable',async({page})=>{
+ await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#glyphFamily','selectOption','blocks');await expect(page.locator('#palette [data-g="160"]')).toBeVisible();await ui(page,'#palette [data-g="160"]');await expect(page.locator('#quickglyph')).toHaveText('#160');await expect(page.locator('#paletteMode')).toHaveValue('graphics');
+ await ui(page,'#glyphFamily','selectOption','page');await ui(page,'#glyphPage','selectOption','2');await expect(page.locator('#palette button')).toHaveCount(1);await expect(page.locator('#palette [data-g="160"]')).toHaveAttribute('aria-pressed','true');await ui(page,'#border');const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.grid[0]).toBe(160);
+ await ui(page,'#glyphFamily','selectOption','blocks');await ui(page,'#inverse');await expect(page.locator('#glyphFamily')).toHaveValue('page');await expect(page.locator('#paletteMode')).toHaveValue('all');await expect(page.locator('#palette [data-g="32"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#quickglyph')).toHaveText('#32');
+});

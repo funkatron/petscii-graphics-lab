@@ -44,7 +44,7 @@ test('transparent PNG sequences retain both banks and verbatim inverse glyphs',a
  }
 });
 test('every procedural effect matches GIF frames at the selected scale and white background',async({page})=>{
- await loadProject(page,project(['█','','●',''],2,2));await ui(page,'#gifScale','selectOption','2');await ui(page,'#gifBackground','selectOption','white');await ui(page,'#animationSeconds','selectOption','2');
+ await loadProject(page,project([160,'',81,''],2,2));await ui(page,'#gifScale','selectOption','2');await ui(page,'#gifBackground','selectOption','white');await ui(page,'#animationSeconds','selectOption','2');
  for(const effect of ['scroll-x','scroll-y','wave']){
   await ui(page,'#animationEffect','selectOption',effect);const s=unpack(await download(page,'#exportFrames'));expect(s.frames[0].width).toBe(32);expect(s.frames[0].height).toBe(32);
   expect(s.timing.frames.reduce((n,f)=>n+f.durationMs,0)).toBe(2000);expect(s.timing.frames.at(-1).startMs+s.timing.frames.at(-1).durationMs).toBe(2000);matchesGif(s,await download(page,'#exportGif'));
@@ -72,9 +72,9 @@ test('ZIP module and PNG encoding failures recover without modifying artwork',as
  await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.toBlob;let failed=false;HTMLCanvasElement.prototype.toBlob=function(callback,...args){if(!failed){failed=true;callback(null)}else original.call(this,callback,...args)}});
  await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#exportFrames');await expect(page.locator('#status')).toContainText('PNG encoding failed');await expect(page.locator('#exportFrames')).not.toHaveAttribute('data-download-url',/./);await expect(page.locator('#exportFrames')).toBeEnabled();expect(unpack(await download(page,'#exportFrames')).timing.frames).toHaveLength(2);
 });
-test('animation exports reject unavailable numeric replay history even if final artwork is legacy',async({page})=>{
+test('animation exports reject unavailable numeric replay history even if final artwork is empty',async({page})=>{
  await page.route('**/assets/c64-glyphs.svg',r=>r.abort());await page.reload();await page.locator('.app[data-ready=true]').waitFor();
- await loadProject(page,project(['█'],1,1,{drawingReplay:{base:[''],events:[[0,160],[0,'█']]}}));
+ await loadProject(page,project([''],1,1,{drawingReplay:{base:[''],events:[[0,160],[0,'']]}}));
  for(const selector of ['#exportGif','#exportFrames']){await ui(page,selector);await expect(page.locator('#status')).toHaveText('Reload C64 glyphs before exporting animation')}
  await expect(page.locator('#exportFrames')).not.toHaveAttribute('data-download-url',/./);await expect(page.locator('#exportFrames')).toBeEnabled();
 });

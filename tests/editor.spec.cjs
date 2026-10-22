@@ -1,7 +1,7 @@
 const {ui, test, expect }=require('./helpers.cjs');
 test.beforeEach(async ({page}) => {
   await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
-  await expect(page.locator('#canvas')).toBeVisible();await ui(page,'#paletteMode','selectOption','legacy');await ui(page,'#palette button');
+  await expect(page.locator('#canvas')).toBeVisible();await ui(page,'#paletteMode','selectOption','all');await ui(page,'#glyphPage','selectOption','2');await ui(page,'#palette [data-g="160"]');
 });
 async function paint(page,x=.25,y=.25){
  const box=await page.locator('#canvas').boundingBox();
@@ -23,9 +23,9 @@ test('canvas scales within frame and palette toggles',async({page})=>{
 test('drag painting is undoable and redoable',async({page})=>{
  await paint(page);
  const result=await page.locator('#output').inputValue();
- expect(result).toContain('█');
+ expect(result).toContain('A0');
  await ui(page,'#undo');
- expect(await page.locator('#output').inputValue()).not.toContain('█');
+ expect(await page.locator('#output').inputValue()).not.toContain('A0');
  await ui(page,'#redo');
  expect(await page.locator('#output').inputValue()).toBe(result);
 });
@@ -33,8 +33,8 @@ test('symmetry paints mirrored positions',async({page})=>{
  await ui(page,'#sym','selectOption','both');
  await paint(page,.12,.12);
  const lines=(await page.locator('#output').inputValue()).split('\n');
- expect(lines[1][1]).toBe('█');
- expect(lines[14][14]).toBe('█');
+ expect(lines[2].split(' ')[1]).toBe('A0');
+ expect(lines[15].split(' ')[14]).toBe('A0');
 });
 test('project JSON save and reload round-trip',async({page})=>{
  await paint(page);
@@ -45,7 +45,7 @@ test('project JSON save and reload round-trip',async({page})=>{
  for await(const chunk of savedStream)savedChunks.push(chunk);
  const content=JSON.parse(Buffer.concat(savedChunks).toString('utf8'));
  expect(content.format).toBe('petscii-stencil-lab');
- expect(content.grid).toContain('█');
+ expect(content.grid).toContain(160);
  await ui(page,'#clear');
  await page.locator('#projectFile').setInputFiles({name:'saved.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(content))});
  await expect(page.locator('#output')).toHaveValue(before);
@@ -62,15 +62,10 @@ test('SVG, text, and PNG produce downloads',async({page})=>{
   if(ext==='.png')expect(buffer.subarray(0,8).toString('hex')).toBe('89504e470d0a1a0a');
  }
 });
-test('safety analysis reports potentially enclosed regions',async({page})=>{
- await ui(page,'#border');
- await ui(page,'#checkStencil');
- await expect(page.locator('#stencilReport')).toContainText('Potential isolated material regions');
-});
 test('import text is undoable',async({page})=>{
- await ui(page,'#output','fill','█▀\n▄█');
+ await ui(page,'#output','fill','# PETSCII-GRID 1 2 2 0\nA0 E2\n62 A0');
  await ui(page,'#import');
- expect(await page.locator('#output').inputValue()).toContain('█▀');
+ expect(await page.locator('#output').inputValue()).toContain('A0 E2');
  await ui(page,'#undo');
- expect(await page.locator('#output').inputValue()).not.toContain('█▀');
+ expect(await page.locator('#output').inputValue()).not.toContain('A0 E2');
 });

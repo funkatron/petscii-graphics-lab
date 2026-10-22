@@ -13,7 +13,7 @@ test('palette filters letters, highlights selection, and selects inverse glyphs'
  await ui(page,'#charset','selectOption','1');await expect(page.locator('#palette button')).toHaveCount(38);
  await ui(page,'#paletteMode','selectOption','all');await ui(page,'#glyphPage','selectOption','0');await expect(page.locator('#palette button')).toHaveCount(64);
  await page.getByRole('button',{name:'C64 screen code 0',exact:true}).click();await expect(page.locator('#palette button.active')).toHaveAttribute('aria-pressed','true');
- await ui(page,'#paletteMode','selectOption','legacy');await expect(page.locator('#palette button')).toHaveCount(12);
+ await expect(page.locator('#paletteMode option[value=legacy]')).toHaveCount(0);
 });
 test('both banks and inverse slots match source pixels in canvas, SVG, and PNG',async({page})=>{
  const bytes=reference();await loadProject(page,project([0,128]));
@@ -30,17 +30,17 @@ test('both banks and inverse slots match source pixels in canvas, SVG, and PNG',
 });
 test('binary screen codes preserve zero, inverse, row order, and empty cells',async({page})=>{
  await loadProject(page,project([0,128,'',255],2,2));expect(await download(page,'#screenCodes')).toEqual(Buffer.from([0,128,32,255]));
- await loadProject(page,project([0,'█']));await ui(page,'#screenCodes');await expect(page.locator('#status')).toContainText('legacy shapes cannot be converted');
+
 });
-test('mixed text round trips dimensions, bank, and empty cells',async({page})=>{
- await loadProject(page,project([0,'█','',128],2,2,{charset:1}));const text=(await download(page,'#text')).toString();expect(text).toBe('# PETSCII-GRID 1 2 2 1\n00 █\n-- 80');
+test('screen-code text round trips dimensions, bank, and empty cells',async({page})=>{
+ await loadProject(page,project([0,160,'',128],2,2,{charset:1}));const text=(await download(page,'#text')).toString();expect(text).toBe('# PETSCII-GRID 1 2 2 1\n00 A0\n-- 80');
  await ui(page,'#clear');await ui(page,'#output','fill',text);await ui(page,'#import');expect(await page.locator('#output').inputValue()).toBe(text);
- const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.grid).toEqual([0,'█','',128]);expect(saved.charset).toBe(1);
+ const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.grid).toEqual([0,160,'',128]);expect(saved.charset).toBe(1);
  await ui(page,'#undo');expect(await page.locator('#output').inputValue()).not.toContain('00');await ui(page,'#redo');expect(await page.locator('#output').inputValue()).toBe(text);
 });
 test('bad project and text imports do not modify artwork or undo history',async({page})=>{
- await ui(page,'#paletteMode','selectOption','legacy');await ui(page,'#palette button');await ui(page,'#border');const before=await page.locator('#output').inputValue();
- for(const data of [null,{},project([256]),project([0],41,1),project(['bogus']),{...project([0]),version:99},project([0],1,1,{glyphSource:'custom'})]){await loadProject(page,data);await expect(page.locator('#status')).toContainText('Load failed');expect(await page.locator('#output').inputValue()).toBe(before)}
- await ui(page,'#output','fill','# PETSCII-GRID 1 2 1 0\n00 XX');await ui(page,'#import');await expect(page.locator('#status')).toContainText('Import failed');expect(JSON.parse(await download(page,'#saveProject')).grid[0]).toBe('█');
- await ui(page,'#undo');expect(await page.locator('#output').inputValue()).not.toContain('█');
+ await ui(page,'#paletteMode','selectOption','all');await ui(page,'#glyphPage','selectOption','2');await ui(page,'#palette [data-g="160"]');await ui(page,'#border');const before=await page.locator('#output').inputValue();
+ for(const data of [null,{},project([256]),project([0],41,1),project(['bogus']),{...project([0]),version:99},{...project([0]),version:1},project(['█']),project([0],1,1,{glyphSource:'custom'})]){await loadProject(page,data);await expect(page.locator('#status')).toContainText('Load failed');expect(await page.locator('#output').inputValue()).toBe(before)}
+ await ui(page,'#output','fill','# PETSCII-GRID 1 2 1 0\n00 XX');await ui(page,'#import');await expect(page.locator('#status')).toContainText('Import failed');expect(JSON.parse(await download(page,'#saveProject')).grid[0]).toBe(160);
+ await ui(page,'#undo');expect(await page.locator('#output').inputValue()).not.toContain('A0');
 });

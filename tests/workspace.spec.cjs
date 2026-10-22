@@ -27,7 +27,7 @@ test('pinned glyph picker remains open on tablet selection and still fits canvas
  const c=await page.locator('#canvas').boundingBox(),f=await page.locator('#frame').boundingBox();expect(c.width).toBeLessThanOrEqual(f.width);expect(c.height).toBeLessThanOrEqual(f.height);await page.locator('#glyphClose').click();
 });
 test('preview labels stay explicit when paused and Return restores original colored drawing',async({page})=>{
- await loadProject(page,project([160,160],2,1,{cellColors:[2,3],animation:{effect:'color-wave',seconds:.5,scale:2,background:'dark'}}));const readPixels=()=>page.locator('#canvas').evaluate(c=>[.25,.75].map(x=>Array.from(c.getContext('2d').getImageData(c.width*x,c.height*.5,1,1).data)));const before=await readPixels();
+ await loadProject(page,project([160,160],2,1,{cellColors:[2,3],animation:{effect:'none',colorEffect:'color-wave',seconds:.5,scale:2,background:'dark'}}));const readPixels=()=>page.locator('#canvas').evaluate(c=>[.25,.75].map(x=>Array.from(c.getContext('2d').getImageData(c.width*x,c.height*.5,1,1).data)));const before=await readPixels();
  await ui(page,'#quickPlay');await expect(page.locator('#previewLabel')).toContainText('Rainbow wave');await ui(page,'#quickPlay');await expect(page.locator('#previewLabel')).toContainText('Paused');await page.locator('#returnDrawing').click();await expect(page.locator('#previewBanner')).toBeHidden();
  expect(await readPixels()).toEqual(before);expect(JSON.parse(await download(page,'#saveProject')).cellColors).toEqual([2,3]);
 });

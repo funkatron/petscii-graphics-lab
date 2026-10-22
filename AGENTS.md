@@ -25,7 +25,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 ## Product priorities
 
-1. **Authenticity:** Use the exact built-in C64 glyph shapes and documented screen-code/PETSCII mappings. Keep legacy Unicode approximations explicitly labeled. Keep screen codes distinct from PETSCII text/control codes. Identify the two character sets clearly. Verify byte accuracy against authoritative C64 character-ROM data before claiming it.
+1. **Authenticity:** Use the exact built-in C64 glyph shapes and documented screen-code/PETSCII mappings. Keep screen codes distinct from PETSCII text/control codes. Identify the two character sets clearly. Verify byte accuracy against authoritative C64 character-ROM data before claiming it.
 
 2. **Drawing quality:** Continuous finger/stylus/mouse painting, selectable graphics glyphs, symmetry, erase, patterns, undo/redo, convenient canvas scaling, and fast responsive feedback.
 
@@ -33,7 +33,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 4. **Ease of use:** Clean, compact, collapsible sidebar and useful canvas workspace, especially on iPad Safari.
 
-5. **Optional stencil experiments:** Preserve existing stencil checks where practical, but do not let manufacturing concerns dictate glyph palette, editing experience, or feature roadmap.
+5. **Optional stencil experiments:** Manufacturing is outside the current editor. Add stencil-specific tools only if explicitly requested.
 
 ## Where the code lives
 
@@ -41,7 +41,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - `package.json`, `playwright.config.cjs`, `tests/*.spec.cjs`, and `.github/workflows/browser-tests.yml` implement automated browser testing for Chromium and iPad WebKit in landscape and portrait.
 
-- The optional legacy Unicode shapes are **visual approximations**. The default palette uses exact C64 SVG glyphs; neither representation should be mislabeled as a PETSCII byte stream.
+- Artwork uses numeric C64 screen codes 0–255 and an empty-cell marker only. There is no Unicode-shape renderer or stencil-analysis workflow. Keep screen codes distinct from PETSCII bytes.
 
 - Keep changes targeted; avoid breaking saved project files or existing editor workflows.
 
@@ -73,12 +73,6 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - Export visual output should match the canvas as closely as possible. Preserve grid orientation and dimensions.
 
-## Stencil analysis (secondary/experimental)
-
-- Existing island detection is advisory coarse raster analysis, not a certification for manufacture. Keep labeling explicit.
-
-- Do not prioritize bridge widths, metal thickness, kerf or physical stencil manufacturing unless asked.
-
 ## Before calling a change complete
 
 1. Before editing, read current `index.html` and existing tests.
@@ -93,7 +87,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 6. Keep the GitHub Actions workflow functional. Report what tests actually ran and their results. Never claim browser behavior passed based only on source inspection.
 
-7. Preserve compatibility with existing projects wherever feasible; use explicit migration when formats change.
+7. Preserve current numeric v2 C64 projects. Reject v1, Unicode-shape, and custom-ROM projects atomically. Do not reintroduce abandoned format conversions.
 
 ## Current decisions to preserve
 
@@ -123,7 +117,7 @@ Write for a novice who may be reading in short sessions.
 Track requested features in the [roadmap](docs/roadmap.md). Movement/reveal and color animation now have independent selections sharing one loop. Keep both settings in snapshots and project validation.
 
 - C64 still/animation PRG export is implemented in `c64-export.js`. Preserve its shared frame input, bounded memory, CPU-work checks, RUN/STOP exit, and emulator tests. Full VICE/hardware verification and D64 packaging remain follow-ups; see [C64 output](docs/c64-output.md).
-- Remove legacy shapes and obsolete compatibility paths as a coordinated cleanup. The owner is the only user; backward compatibility is not a priority. Do not add new compatibility machinery solely to retain abandoned formats.
+- Legacy shapes, the manufacturing checker, v1 imports, mixed Unicode text, and old single-effect color settings have been removed. The owner does not prioritize abandoned-format compatibility; keep the C64-only architecture simple.
 - Color-aware text/data import formats.
 - Tile stamp, line/rectangle/fill tools, selection/move/duplicate and motif libraries.
 - Keyboard shortcuts, improved undo workflow, zoom, and optional grid guides.

@@ -16,6 +16,8 @@ test('all sixteen C64 swatches use documented RGB values and update bitmap previ
  await choose(page,'background',1);expect(await canvasPixels(page)).toEqual([[...rgb(2),255],[255,255,255,255]]);await expect(page.locator('#backgroundName')).toHaveText('White');await expect(page.locator('#colorPalette button:nth-child(2)')).toHaveAttribute('aria-pressed','true');
 });
 test('project colors autosave, round-trip, undo, and reject corrupt indices atomically',async({page})=>{
+ // Includes reload, undo/redo, and seven invalid-file round trips with real downloads.
+ test.setTimeout(60000);
  await loadProject(page,project([160,''],2,1));await choose(page,'ink',2);await choose(page,'background',1);const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.colors).toEqual({ink:2,background:1});
  await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:2,background:6});await ui(page,'#redo');await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual(saved.colors);
  await loadProject(page,project([160]));expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:14,background:6});await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(saved);
@@ -39,7 +41,7 @@ test('native repeated video snapshots colors before encoder loading and uses can
  const waiting=page.waitForEvent('download');await ui(page,'#exportVideo');await started;await choose(page,'ink',3);await choose(page,'background',0);await ui(page,'#recolorDrawing');release();
  const v=decodeVideo(await contents(await waiting));expect(Number(v.info.format.duration)).toBeCloseTo(1.5,2);expect(v.frames).toHaveLength(12);for(let f=0;f<12;f++)for(let x=0;x<4;x++)nearPixel(v,f,x*32+16,16,rgb(x===(4-f%4)%4?7:6));expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:3,background:0});
 });
-test('legacy geometry, black ink, swapped colors, and identical colors remain editable and exportable',async({page})=>{
- await loadProject(page,project(['█',''],2,1,{selectedGlyph:'█',colors:{ink:0,background:1}}));expect(await canvasPixels(page)).toEqual([[0,0,0,255],[255,255,255,255]]);await ui(page,'#swapColors');await ui(page,'#recolorDrawing');expect(await canvasPixels(page)).toEqual([[255,255,255,255],[0,0,0,255]]);await ui(page,'#undo');await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:0,background:1});
+test('authentic bitmap geometry, black ink, swapped colors, and identical colors remain editable and exportable',async({page})=>{
+ await loadProject(page,project([160,''],2,1,{selectedGlyph:160,colors:{ink:0,background:1}}));expect(await canvasPixels(page)).toEqual([[0,0,0,255],[255,255,255,255]]);await ui(page,'#swapColors');await ui(page,'#recolorDrawing');expect(await canvasPixels(page)).toEqual([[255,255,255,255],[0,0,0,255]]);await ui(page,'#undo');await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:0,background:1});
  await choose(page,'ink',3);await choose(page,'background',3);await ui(page,'#recolorDrawing');const gif=new GifReader(await download(page,'#exportGif')),data=new Uint8Array(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(gif.numFrames()-1,data);expect(Array.from(data.slice(0,4))).toEqual([...rgb(3),255]);expect(Array.from(data.slice(-4))).toEqual([...rgb(3),255]);
 });
