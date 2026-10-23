@@ -1,6 +1,6 @@
 # UI review: keep attention on drawing
 
-**Reviewed:** 21 October 2026. **Status updated:** 22 October 2026.
+**Reviewed:** 21 October 2026. **Status updated:** 23 October 2026.
 
 This record explains the recent workspace changes and identifies follow-up work. For instructions on using the editor, see the [user guide](../README.md).
 
@@ -85,10 +85,8 @@ The drawing strip stays in place as panels open. Navigation changes do not edit 
 
 These are ideas to test after using the new layout:
 
-1. **Floating ink palette:** choose ink without opening the settings sidebar.
-2. **Optional hexadecimal labels:** browse by shape while keeping exact codes available in accessible labels or details.
-3. **Physical iPad/Pencil checks:** test reach, the hand covering controls or artwork, gestures, and portrait/landscape layouts on a device.
-4. **Large-text checks:** confirm that labels, focus, and primary actions remain usable at larger text sizes.
+1. **Physical iPad/Pencil checks:** test reach, the hand covering controls or artwork, gestures, and portrait/landscape layouts on a device.
+2. **Large-text checks:** confirm that labels, focus, and primary actions remain usable at larger text sizes.
 
 Preserve familiar control positions as these changes are evaluated. Avoid adding mandatory Draw/Animate workspace tabs; drawing and preview can share the existing canvas.
 
@@ -102,3 +100,27 @@ Preserve familiar control positions as these changes are evaluated. Avoid adding
 6. Check keyboard focus, contrast, large text, and touch reach in both iPad orientations.
 
 Browser automation covers reproducible interactions. Finger/Pencil reach and the hand covering controls or artwork need a physical device.
+
+
+## Raskin-informed follow-up — 23 October 2026
+
+This pass applies Jef Raskin’s emphasis on stable actions and reducing mode errors. The design interpretation is ours, rather than a claim that the editor is modeless. Source: [Raskin, “Down With GUIs!” (1993)](https://www.wired.com/1993/06/1-6-guis/).
+
+| Observed friction | Change | Why |
+| --- | --- | --- |
+| Ink opens and scrolls settings for each color choice | Anchored ink palette; one swatch tap selects and dismisses | Keep repeated work beside the drawing |
+| Eraser toggles back to Paint on a repeated tap | Paint and Eraser each select their named tool | The same action has a consistent result |
+| Selected drawing tools appear usable during read-only preview | Disable Paint/Eraser during playing and paused preview; label the preview read-only | Make the input restriction visible at the action |
+| Drawing state must be inferred from button color | Persistent tool and ink text below the canvas | Use words as well as color |
+| Every glyph carries a tiny hexadecimal label | Hide codes by default; optional device preference preserves accessible code labels | Let visual browsing focus on shapes |
+
+The floating palette uses native popover dismissal and keyboard focus restoration. Escape dismisses only the top ink/download surface and keeps the glyph panel in place. Opening ink changes no artwork, layout, history, or playback. Choosing a different ink retains the existing undoable brush-change behavior and stops preview. Tapping outside dismisses the palette and the target still receives its ordinary action, including painting on the editable canvas.
+
+Remaining mode costs: choosing a glyph selects Paint; broad edits end preview; undo includes brush settings. Retain these for now and evaluate them against real drawing sessions before changing familiar behavior. Physical Pencil reach still needs device testing.
+
+
+## Default shape grouping — 23 October 2026
+
+The default glyph view now collects similar shapes across code pages, with labeled sections for Blocks, Lines, Corners, Diagonals, Symbols, and remaining graphics. Inverse pairs stay adjacent. This uses the existing curated shape families rather than a computed visual-distance score.
+
+Jump to code page keeps exact numeric browsing available; Grouped by shape returns to visual browsing. Both character sets retain every permitted glyph once, and All screen codes includes the remaining letters and codes. Grouping changes only browsing order.

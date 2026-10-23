@@ -8,7 +8,7 @@ function reference(){
 }
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('palette filters letters, highlights selection, and selects inverse glyphs',async({page})=>{
- await expect(page.locator('#palette button')).toHaveCount(64);await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','64');
+ await expect(page.locator('#palette button')).toHaveCount(129);await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','64');
  await ui(page,'#inverse');await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','192');
  await ui(page,'#charset','selectOption','1');await expect(page.locator('#palette button')).toHaveCount(38);
  await ui(page,'#paletteMode','selectOption','all');await ui(page,'#glyphPage','selectOption','0');await expect(page.locator('#palette button')).toHaveCount(64);
