@@ -1,5 +1,5 @@
 const {ui,reveal,test,expect,download,loadProject,project}=require('./helpers.cjs');
-test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#paletteMode','selectOption','all');await ui(page,'#glyphPage','selectOption','2');await ui(page,'#palette [data-g="160"]');});
+test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#palette [data-g="160"]');});
 test('sparse touch and pen drags interpolate every cell, ignore secondary pointers, and undo once',async({page})=>{
  for(const pointerType of ['touch','pen']){
   await page.locator('#canvas').evaluate((c,pointerType)=>{

@@ -1,7 +1,7 @@
 const {ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('palette and drawing tools expose only authentic C64 artwork',async({page})=>{
- expect(await page.locator('#paletteMode option').evaluateAll(items=>items.map(e=>e.value))).toEqual(['graphics','all']);await expect(page.locator('#checkStencil')).toHaveCount(0);await expect(page.locator('#loadRom')).toHaveCount(0);
+ await expect(page.locator('#paletteMode, #glyphPage')).toHaveCount(0);await expect(page.locator('#showAlphanumerics')).not.toBeChecked();await expect(page.locator('#checkStencil')).toHaveCount(0);await expect(page.locator('#loadRom')).toHaveCount(0);
  await loadProject(page,project([0,128,160,''],2,2,{charset:1,selectedGlyph:0}));const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.selectedGlyph).toBe(0);expect(saved.grid).toEqual([0,128,160,'']);expect((await download(page,'#text')).toString()).toBe('# PETSCII-GRID 1 2 2 1\n00 80\nA0 --');await expect(page.locator('#output')).toHaveValue('# PETSCII-GRID 1 2 2 1\n00 80\nA0 --');
 });
 test('removed project formats, string glyphs and replay events fail without changing artwork or history',async({page})=>{
