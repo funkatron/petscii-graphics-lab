@@ -2,7 +2,8 @@
   "name": "petscii-stencil-lab",
   "private": true,
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:vice": "node --test --test-concurrency=1 tests/vice.integration.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",

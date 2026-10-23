@@ -204,7 +204,7 @@ Frame durations can differ, especially during the final hold in replay. Use `tim
 
 The program uses the C64’s own character ROM, your cell colors, and your canvas background. Drawings must fit within 40×25 cells and use authentic C64 glyphs. Smaller drawings appear at the top left. Large or very fast animations may exceed memory or processing limits; the exporter explains what to change.
 
-This first player has automated CPU-emulation checks. Full VICE and physical C64 verification remain to be done. See the [C64 output guide](docs/c64-output.md) for loading instructions and timing limits.
+The player has automated CPU checks and full PAL/NTSC VICE checks for representative stills, animation, and disk loading. Physical C64 verification remains to be done. See the [C64 output guide](docs/c64-output.md) for loading instructions and timing limits.
 
 ## C64 terms and data
 

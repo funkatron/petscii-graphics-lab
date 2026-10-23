@@ -116,7 +116,7 @@ Write for a novice who may be reading in short sessions.
 
 Track requested features in the [roadmap](docs/roadmap.md). Movement/reveal and color animation now have independent selections sharing one loop. Keep both settings in snapshots and project validation.
 
-- C64 still/animation PRG and D64 export are implemented in `c64-export.js`. D64 packages the same player as one closed PRG on a standard 35-track disk. Preserve shared frame input, bounded memory, CPU-work checks, RUN/STOP exit, independent disk extraction and emulator tests. Full VICE/drive/hardware verification remains a follow-up; see [C64 output](docs/c64-output.md).
+- C64 still/animation PRG and D64 export are implemented in `c64-export.js`. D64 packages the same player as one closed PRG on a standard 35-track disk. Preserve shared frame input, bounded memory, CPU-work checks, RUN/STOP exit, independent disk extraction and emulator tests. Representative full VICE/1541-II checks now pass on PAL/NTSC; physical hardware and broader animation performance remain follow-ups; see [C64 output](docs/c64-output.md).
 - Legacy shapes, the manufacturing checker, v1 imports, mixed Unicode text, and old single-effect color settings have been removed. The owner does not prioritize abandoned-format compatibility; keep the C64-only architecture simple.
 - Color-aware text/data import formats.
 - Tile stamp, line/rectangle/fill tools, selection/move/duplicate and motif libraries.
