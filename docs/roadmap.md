@@ -26,8 +26,9 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Support continuous playback, 1–100 repetitions, and RUN/STOP exit.
 - [x] Check geometry, memory budget, estimated playback work, and actual 6502 CPU execution.
 - [x] Package the same still/animation player in a standard D64 disk image, with directory and allocation checks and independent PRG extraction.
-- [ ] Verify in full VICE emulation and on physical PAL/NTSC C64 hardware.
-- [ ] Verify D64 drive loading and transfer to physical storage devices.
+- [x] Verify representative stills and composite playback in full PAL/NTSC VICE emulation, including VIC-II pixels, timing, BASIC return, and D64 loading through a 1541-II drive.
+- [ ] Verify on physical PAL/NTSC C64 hardware, including RUN/STOP key handling.
+- [ ] Verify transfer to physical storage devices.
 - [ ] Evaluate raster-synchronized updates and procedural native effects.
 
 See the [C64 output guide](c64-output.md) for loading instructions, timing, memory limits, and verification scope.

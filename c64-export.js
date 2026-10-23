@@ -85,7 +85,7 @@ export function createC64Program({columns,rows,charset,background,ink,frames,rep
  abs(0xad,'remaining');branch(0xf0,'restart');abs(0xce,'remaining');branch(0xd0,'restart');abs(0x4c,'hold');
  label('checkRedirect');abs(0xad,'delayHigh');emit(0xc9,255);branch(0xd0,'picture');abs(0xad,'delay');emit(0xc9,255);branch(0xd0,'picture');
  abs(0x20,'get');emit(0xaa);abs(0x20,'get');emit(0x85,0xfc,0x86,0xfb);abs(0x4c,'frame');
- label('picture');abs(0x20,'plane');abs(0xad,'started');branch(0xd0,'wait');abs(0xee,'started');emit(0xa5,0xa2);abs(0x8d,'lastTick');
+ label('picture');abs(0x20,'plane');label('frameReady');abs(0xad,'started');branch(0xd0,'wait');abs(0xee,'started');emit(0xa5,0xa2);abs(0x8d,'lastTick');
  label('wait');abs(0x20,0xffe1);branch(0xd0,'clock');abs(0x4c,'exit');
  label('clock');emit(0xa5,0xa2);abs(0xcd,'lastTick');branch(0xf0,'wait');abs(0xee,'lastTick');
  abs(0xad,'delay');branch(0xd0,'decrement');abs(0xce,'delayHigh');label('decrement');abs(0xce,'delay');abs(0xad,'delay');abs(0x0d,'delayHigh');branch(0xd0,'wait');abs(0x4c,'frame');
@@ -104,5 +104,6 @@ export function createC64Program({columns,rows,charset,background,ink,frames,rep
  // Stay below BASIC ROM ($A000), leaving KERNAL, I/O and the stack intact.
  if(origin+bytes.length>0xa000)throw Error('This animation exceeds the C64 player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
  for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown C64 player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error('C64 branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
- return {bytes:Uint8Array.from([1,8,...bytes]),durationTicks:previousTick,frameCount:frames.length};
+ // Host-side symbols let full-machine checks observe frames without changing the PRG.
+ return {bytes:Uint8Array.from([1,8,...bytes]),durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }
