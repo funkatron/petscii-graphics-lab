@@ -34,7 +34,7 @@ test('preview labels stay explicit when paused and Return restores original colo
 test('download sheet shows actual dimensions and matching grid-free colors, with keyboard dismissal',async({page})=>{
  await loadProject(page,project([160,''],2,1,{cellColors:[2,3]}));await ui(page,'#pngScale','selectOption','2');await ui(page,'#pngBg','selectOption','transparent');await expect(page.locator('#downloadDimensions')).toContainText('64 × 32 pixels');
  expect(await page.locator('#downloadPreview').evaluate(c=>Array.from(c.getContext('2d').getImageData(4,4,1,1).data))).toEqual([104,55,43,255]);expect(await page.locator('#downloadPreview').evaluate(c=>c.getContext('2d').getImageData(12,4,1,1).data[3])).toBe(0);
- const png=PNG.sync.read(await download(page,'#png'));expect([png.width,png.height]).toEqual([64,32]);await page.keyboard.press('Escape');await expect(page.locator('#downloadDialog')).not.toBeVisible();await expect(page.locator('#downloadOpen')).toBeFocused();
+ const png=PNG.sync.read(await download(page,'#png'));expect([png.width,png.height]).toEqual([64,32]);const glyphsOpen=await page.locator('#glyphPicker').isVisible();await page.keyboard.press('Escape');await expect(page.locator('#downloadDialog')).not.toBeVisible();await expect(page.locator('#downloadOpen')).toBeFocused();expect(await page.locator('#glyphPicker').isVisible()).toBe(glyphsOpen);
  await ui(page,'#animationFormat','selectOption','video');await ui(page,'#videoRepeats','fill','3');await expect(page.locator('#downloadDimensions')).toContainText('12 seconds');await page.locator('#downloadClose').click();await expect(page.locator('#saveStatus')).toHaveText('Saved on this device');
 });
 test('autosave failures stay visible on a small screen and do not prevent project backups',async({page})=>{
@@ -51,12 +51,12 @@ test('quick ink selection leaves settings and artwork alone, dismisses safely, a
  await loadProject(page,project([160,''],2,1,{selectedGlyph:160,cellColors:[2,14]}));
  if(await page.locator('#glyphBackdrop').isVisible())await page.locator('#glyphClose').click();
  if(await page.locator('#toggle').getAttribute('aria-expanded')==='true')await page.locator('#toggle').click();
- const read=()=>page.locator('#canvas').evaluate(c=>[.25,.75].map(x=>Array.from(c.getContext('2d').getImageData(c.width*x,c.height*.5,1,1).data)));const before=await read(),box=await page.locator('#canvas').boundingBox();
+ const read=()=>page.locator('#canvas').evaluate(c=>[.25,.75].map(x=>Array.from(c.getContext('2d').getImageData(c.width*x,c.height*.5,1,1).data)));const before=await read();
  await page.locator('#inkQuick').click();await expect(page.locator('#inkPopover')).toBeVisible();await expect(page.locator('#sidebar')).toHaveClass(/closed/);
  for(const swatch of await page.locator('#quickInkPalette button').all())expect(await swatch.boundingBox()).toMatchObject({width:expect.any(Number),height:expect.any(Number)});
  await page.getByRole('button',{name:'Ink: Green',exact:true}).click();await expect(page.locator('#inkPopover')).toBeHidden();await expect(page.locator('#inkQuick')).toBeFocused();await expect(page.locator('#stageHint')).toContainText('Green ink');expect(await read()).toEqual(before);
  await page.locator('#inkQuick').click();await page.keyboard.press('Escape');await expect(page.locator('#inkPopover')).toBeHidden();await expect(page.locator('#inkQuick')).toBeFocused();
- await page.locator('#inkQuick').click();await page.locator('#canvas').click({position:{x:box.width*.75,y:box.height*.9}});await expect(page.locator('#inkPopover')).toBeHidden();
+ await page.locator('#inkQuick').click();await expect(page.locator('#sidebar')).toHaveCSS('width','0px');const box=await page.locator('#canvas').boundingBox();await page.locator('#canvas').click({position:{x:box.width*.95,y:box.height*.95}});await expect(page.locator('#inkPopover')).toBeHidden();
  // The outside click is a normal drawing action and uses the newly selected brush.
  const p=JSON.parse(await download(page,'#saveProject'));expect(p.cellColors).toEqual([2,5]);expect(p.grid).toEqual([160,160]);await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([160,'']);await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).colors.ink).toBe(14);
 });

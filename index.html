@@ -238,7 +238,7 @@ function setGlyphPicker(open,focus=false){
 function selectedGlyph(){if(!pickerDocked()){setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})}}
 $('glyphToggle').onclick=()=>setGlyphPicker($('glyphPicker').hidden,true);
 for(const id of ['glyphClose','glyphBackdrop'])$(id).onclick=()=>{setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('glyphPicker').hidden){setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('downloadDialog').open&&!$('glyphPicker').hidden){setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})}});
 widePicker.addEventListener('change',syncPickerDock);
 const exportTabs=[...document.querySelectorAll('[data-export-tab]')];
 function selectExportTab(tab){

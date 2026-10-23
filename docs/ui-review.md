@@ -114,6 +114,6 @@ This pass applies Jef Raskin’s emphasis on stable actions and reducing mode er
 | Drawing state must be inferred from button color | Persistent tool and ink text below the canvas | Use words as well as color |
 | Every glyph carries a tiny hexadecimal label | Hide codes by default; optional device preference preserves accessible code labels | Let visual browsing focus on shapes |
 
-The floating palette uses native popover dismissal and keyboard focus restoration. Opening it changes no artwork, layout, history, or playback. Choosing a different ink retains the existing undoable brush-change behavior and stops preview. Tapping outside dismisses the palette and the target still receives its ordinary action, including painting on the editable canvas.
+The floating palette uses native popover dismissal and keyboard focus restoration. Escape dismisses only the top ink/download surface and keeps the glyph panel in place. Opening ink changes no artwork, layout, history, or playback. Choosing a different ink retains the existing undoable brush-change behavior and stops preview. Tapping outside dismisses the palette and the target still receives its ordinary action, including painting on the editable canvas.
 
 Remaining mode costs: choosing a glyph selects Paint; broad edits end preview; undo includes brush settings. Retain these for now and evaluate them against real drawing sessions before changing familiar behavior. Physical Pencil reach still needs device testing.

@@ -164,7 +164,7 @@ These are per-cycle sampling targets. Independent cycle counts multiply those ta
 
 - **Download panel.** Header Download artwork opens a native responsive dialog with keyboard-accessible Image / Animation / C64 data tabs, format selection and exact grid-free output previews. Retain one action per chosen format, existing download caches and snapshot isolation.
 
-  Project open/editable JSON download live in a separate Project menu. Dialog navigation must not alter art/history/playback. Closing it keeps export work running; progress and Cancel remain accessible outside it and inside when open.
+  Project open/editable JSON download live in a separate Project menu. Dialog navigation must not alter art/history/playback. Escape closes only the top surface; dismissing downloads or ink must not also close the glyph panel. Closing it keeps export work running; progress and Cancel remain accessible outside it and inside when open.
 
 - **Preview labels.** Animation preview shows effect name and paused state plus Return to drawing. Loop duration labels use seconds. Static previews/exports always show original art; motion previews use the shared derived frames and selected output background. Display actual output dimensions and sampled frame counts, including video repetitions.
 
