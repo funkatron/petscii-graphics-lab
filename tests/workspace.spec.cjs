@@ -79,3 +79,22 @@ test('quick ink palette fits narrow and enlarged-text workspaces with usable tar
   for(const button of await page.locator('#quickInkPalette button').all()){const r=await button.boundingBox();expect(r.width).toBeGreaterThanOrEqual(44);expect(r.height).toBeGreaterThanOrEqual(44)}await page.keyboard.press('Escape');
  }
 });
+
+test('default glyph browser groups similar shapes across code pages without duplicates or missing graphics',async({page})=>{
+ await ui(page,'#glyphToggle');if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click();
+ await expect(page.locator('#glyphFamily')).toHaveValue('similar');await expect(page.locator('#glyphPage')).toHaveValue('');
+ await expect(page.locator('#palette .glyph-family')).toHaveText(['Blocks','Lines','Corners','Diagonals','Symbols','Other graphics']);
+ for(const bank of [0,1]){
+  if(bank)await ui(page,'#charset','selectOption','1');
+  const codes=await page.locator('#palette button').evaluateAll(bs=>bs.map(b=>Number(b.dataset.g)));
+  const expected=Array.from({length:256},(_,i)=>i).filter(code=>code===160||(code%128>=64&&(!bank||code%128<65||code%128>90)));
+  expect([...codes].sort((a,b)=>a-b)).toEqual(expected);expect(new Set(codes).size).toBe(codes.length);
+ }
+ await ui(page,'#charset','selectOption','0');const corners=await page.locator('#palette button[data-family="corners"]').evaluateAll(bs=>bs.map(b=>Number(b.dataset.g)));
+ expect(corners).toEqual([73,201,74,202,75,203,76,204,79,207,80,208,85,213,108,236,109,237,110,238]);
+ await page.locator('#palette button[data-g="75"]').click();await expect(page.locator('#quickglyph')).toHaveText('#75');
+ await ui(page,'#paletteMode','selectOption','all');const all=await page.locator('#palette button').evaluateAll(bs=>bs.map(b=>Number(b.dataset.g)));expect(all).toHaveLength(256);expect(new Set(all).size).toBe(256);
+ await ui(page,'#glyphPage','selectOption','1');await expect(page.locator('#glyphFamily')).toHaveValue('page');await expect(page.locator('#palette button')).toHaveCount(64);
+ await ui(page,'#glyphFamily','selectOption','similar');await expect(page.locator('#palette button')).toHaveCount(256);
+ await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#glyphToggle');if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click();await expect(page.locator('#glyphFamily')).toHaveValue('similar');
+});

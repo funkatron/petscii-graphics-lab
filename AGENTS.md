@@ -59,6 +59,8 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - Ink opens an anchored palette without opening or scrolling settings. Preserve keyboard dismissal/focus and normal outside-click behavior. Glyph codes are optional device-local display labels; exact accessible code labels remain available.
 
+- Default glyph browsing groups similar shapes across code pages, with labeled families and adjacent inverse pairs. Keep exact screen-code pages available and include every allowed code once.
+
 - Glyph selection must show actual pixel-rendered C64 glyph previews, not depend on platform Unicode font substitution.
 
 - Avoid ordinary alphabet letters and numbers in the **graphics drawing palette** unless the user specifically requests them. UI labels and metadata can of course use text.

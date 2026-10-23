@@ -35,7 +35,9 @@ The drawing strip stays visible when settings are hidden. Tap **☰** to show or
 
 The editor includes **512 authentic 8×8 glyphs**: two character sets with 256 glyphs each. The default **Graphics only** view leaves out ordinary letters and digits. The authentic solid block (code 160) is included under **Blocks**.
 
-Use **Browse glyphs** to choose a screen-code page, shape family, **Recently used**, or **Favorites**. Tap **☆** to add the selected glyph to Favorites. Favorites and recent selections are stored on this device. Each character set has its own list.
+The default **Browse glyphs → Grouped by shape** view brings similar shapes together across screen-code pages: **Blocks**, **Lines**, **Corners**, **Diagonals**, **Symbols**, then **Other graphics**. Corresponding inverse shapes sit beside each other.
+
+Choose one shape family, **Recently used**, or **Favorites** to narrow the view. **Jump to code page** switches to exact screen-code order; choose **Grouped by shape** to return. Tap **☆** to add the selected glyph to Favorites. Favorites and recent selections are stored on this device. Each character set has its own list.
 
 On wide screens, the picker sits beside the canvas. On smaller screens, it appears over the canvas and closes after selection. **Pin** keeps it beside the canvas where space allows. Close it with **✕**, **Escape**, or the shaded area outside the picker.
 
