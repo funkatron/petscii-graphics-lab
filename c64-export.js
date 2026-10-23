@@ -29,7 +29,8 @@ export function createD64Disk(prg,filename='PICTURE'){
 }
 
 // C64 PRG exporter. No character ROM is embedded: the VIC-II selects the machine's own ROM.
-// Each frame: 16-bit 60 Hz duration, then changed runs [addressLo,addressHi,count,value].
+// Each frame: 16-bit 60 Hz duration, then changed repeated/literal runs.
+// [addressLo,addressHi,count,value]; count 0 means [length,...literalBytes] instead.
 // Address 0 ends a frame; duration 0 ends a loop; $FFFF redirects the stream. Frame zero initializes both planes once.
 export function createC64Program({columns,rows,charset,background,ink,frames,repetitions=0}){
  if(!Number.isInteger(columns)||columns<1||columns>40||!Number.isInteger(rows)||rows<1||rows>25)throw Error('C64 programs support up to 40 columns × 25 rows. Resize the canvas first.');
@@ -38,12 +39,20 @@ export function createC64Program({columns,rows,charset,background,ink,frames,rep
  if(!Array.isArray(frames)||!frames.length)throw Error('No C64 frames to export');
  const stream=[];
  const changedRuns=(values,previous,address)=>{
-  let writes=0,runs=0;
-  for(let i=0;i<values.length;){if(previous&&values[i]===previous[i]){i++;continue}let count=1;
-   while(count<255&&i+count<values.length&&values[i+count]===values[i]&&(!previous||values[i+count]!==previous[i+count]))count++;
-   const target=address+i;stream.push(target&255,target>>8,count,values[i]);writes+=count;runs++;i+=count;
+  let cost=0;
+  const repeatLength=i=>{let count=1;while(count<255&&i+count<values.length&&values[i+count]===values[i]&&(!previous||values[i+count]!==previous[i+count]))count++;return count};
+  for(let i=0;i<values.length;){if(previous&&values[i]===previous[i]){i++;continue}
+   let count=repeatLength(i);const target=address+i;
+   if(count>=3){stream.push(target&255,target>>8,count,values[i]);cost+=count*13+160}
+   else{
+    count=1;while(count<255&&i+count<values.length&&(!previous||values[i+count]!==previous[i+count])&&repeatLength(i+count)<3)count++;
+    // Isolated one/two-byte repetitions are cheaper in the original run format.
+    if(count<=2&&values[i]===values[i+count-1]){stream.push(target&255,target>>8,count,values[i]);cost+=count*13+160}
+    else{stream.push(target&255,target>>8,0,count,...values.slice(i,i+count));cost+=count*60+200}
+   }
+   i+=count;
   }
-  return writes*13+runs*160;
+  return cost;
  };
  let previousScreen,previousColors,firstScreen,firstColors,firstTicks,continuationOffset;
  let elapsed=0,previousTick=0;
@@ -97,13 +106,16 @@ export function createC64Program({columns,rows,charset,background,ink,frames,rep
  emit(0xa9,147);abs(0x20,0xffd2);emit(0x60);
  label('get');emit(0xa0,0,0xb1,0xfb,0xe6,0xfb);branch(0xd0,'got');emit(0xe6,0xfc);label('got');emit(0xc9,0,0x60);
  label('plane');abs(0x20,'get');emit(0x85,0xfd);abs(0x20,'get');emit(0x85,0xfe);branch(0xf0,'planeEnd');
- abs(0x20,'get');emit(0xaa);abs(0x20,'get');
+ abs(0x20,'get');emit(0xaa);branch(0xf0,'literal');abs(0x20,'get');
  label('run');emit(0x91,0xfd,0xc8,0xca);branch(0xd0,'run');abs(0x4c,'plane');label('planeEnd');emit(0x60);
+ label('literal');abs(0x20,'get');emit(0xaa);
+ label('literalByte');abs(0x20,'get');emit(0x91,0xfd,0xe6,0xfd);branch(0xd0,'literalNext');emit(0xe6,0xfe);
+ label('literalNext');emit(0xca);branch(0xd0,'literalByte');abs(0x4c,'plane');
  for(const name of ['remaining','lastTick','delay','delayHigh','started']){label(name);emit(0)}
  label('data');labels.loopData=labels.data+loopOffset;labels.continuation=labels.data+continuationOffset;fixups.push({at:bytes.length+continuationPointer,target:'continuation'});for(const byte of stream)emit(byte);
  // Stay below BASIC ROM ($A000), leaving KERNAL, I/O and the stack intact.
  if(origin+bytes.length>0xa000)throw Error('This animation exceeds the C64 player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
  for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown C64 player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error('C64 branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
  // Host-side symbols let full-machine checks observe frames without changing the PRG.
- return {bytes:Uint8Array.from([1,8,...bytes]),durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
+ return {bytes:Uint8Array.from([1,8,...bytes]),durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }

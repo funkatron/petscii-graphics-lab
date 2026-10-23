@@ -33,7 +33,7 @@ The paths must be absolute. Missing configuration fails with an explanation, rat
 
 ## What passed
 
-**Eight integration scenarios passed, with no skips**, covering PAL (`c64`) and NTSC models with both character sets:
+**16 integration scenarios passed, with no skips**, covering PAL (`c64`) and NTSC models. The original eight exercise both character sets; eight more measure full-screen updates:
 
 - Load PRGs through VICE autostart and D64s through hardware-level 1541-II emulation. Virtual-device shortcuts are disabled for disk loading. Compare loaded memory with the original program bytes.
 - Display all 256 screen codes in each character set, including code 0 and inverse slots. Compare every artwork pixel from VIC-II output against the reference character ROM and contrasting foreground inks.
@@ -46,6 +46,27 @@ Breakpoints observe completed frame copies; they do not replace the clock, inter
 The stop check injects the KERNAL's RUN/STOP scan result at `$91`. It does **not** simulate a physical key or independently verify keyboard-matrix scanning. PRG autostart uses VICE's memory-injection mode; D64 tests use the emulated drive. Pixel checks use stable stills, not a claim that animated updates are free of tearing.
 
 VICE 3.7's display response can omit four trailing border bytes and report the inner screen one raster line late. The test handles those two debugger-format details while requiring an exact match for every artwork pixel.
+
+## Full-screen performance
+
+The suite measures four 40×25 workloads on each machine model. Each plays two loops, checks all 1,000 glyphs and colors after every copy, measures decoder time with the real KERNAL clock, and checks cumulative frame deadlines and return to BASIC.
+
+| Workload | Frame duration | Maximum copy time, PAL / NTSC | PRG size |
+| --- | --- | --- | --- |
+| Whole screen changes to one repeated glyph and color | 100 ms | 1 / 1 tick | 500 bytes |
+| Every glyph and color changes to differing adjacent values | 8 ticks (about 133 ms) | 6 / 6 ticks | 6,500 bytes |
+| One vertical stripe moves across a mostly unchanged screen | 50 ms | ≤1 / ≤1 tick | 2,112 bytes |
+| Detailed full-screen changes with unequal holds | 500, 400, 450 ms | 6 / 6 ticks | 8,536 bytes |
+
+One tick is 1/60 second. Measurements have one-tick granularity; a zero-tick result would not mean a free copy. The tests pause emulation at decoder entry and completion, so host debugger latency is excluded. They also verify that decoder entry and the final hold stay within one tick of cumulative deadlines. Initial decoding happens before the loop clock starts and is excluded from the update maximum.
+
+Before literal runs were added, the two-picture fragmented workload took up to **18 PAL ticks / 17 NTSC ticks** per update and produced a **24,381-byte PRG**, at a 22-tick frame duration. The new player groups different adjacent bytes into literal runs; that sample now needs **6 ticks** and **6,500 bytes**, and passes at an 8-tick frame duration. The unequal-hold sample fell from 32,385 to 8,536 bytes. These are measured samples, not size or speed guarantees for every drawing.
+
+### Raster timing decision
+
+A six-tick copy lasts about 0.1 seconds and spans several video refreshes. Waiting for one preferred raster position before such a copy cannot make it atomic. Keep the existing player unsynchronized until a measured implementation can preserve PAL/NTSC deadlines, keep RUN/STOP responsive, and account for both screen memory and color RAM. Evaluate faster decoding, staged updates, or procedural native effects before promising tear-free full-screen playback.
+
+These tests verify completed memory states and bounded timing, not intermediate animated pixels or absence of tearing. Still-image pixel checks remain separate.
 
 ## Reference ROM fingerprints
 

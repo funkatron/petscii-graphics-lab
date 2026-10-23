@@ -75,7 +75,11 @@ The program uses the standard KERNAL clock, which counts **60 ticks per second**
 
 The first picture is loaded before the loop clock starts. Later updates use changed runs rather than rewriting the entire screen.
 
+Repeated bytes use short repeat instructions. Scattered changes are packed together as literal bytes, so detailed pictures use less program memory and copy faster. You do not need to select a compression mode.
+
 Updates are not synchronized with the video chip’s scan position, so tearing or small timing variations are possible. The processing check is an estimate, not a guarantee for every machine configuration. Representative PAL/NTSC interrupt timing and still-image video output have passed full VICE checks. Complex animations and physical machines still need further checks.
+
+Full-screen performance checks also pass on PAL and NTSC. In the detailed test picture, copying a frame takes up to about 0.1 seconds. The animation keeps its overall timing, but part of the next picture can become visible before the copy finishes. Use smaller or simpler drawings for faster changes. See the [measured workloads and limits](vice-validation.md#full-screen-performance).
 
 ### Verification so far
 
@@ -88,7 +92,7 @@ Automated tests download the actual PRG and execute it with the independent **py
 - Rejection of unsupported sizes, invalid screen codes, excessive memory, invalid repeats, and excessive update work.
 - D64 directory, file-sector chains, allocation records, full/partial final sectors, and disk capacity. Tests extract the PRG independently, compare it byte for byte with the direct download, and execute the extracted program with py65.
 
-The tests simulate the clock and documented KERNAL calls. **The py65 tests do not emulate the VIC-II/CIA chips, actual KERNAL ROM, disk loading, or a physical C64.** A separate [full VICE suite](vice-validation.md) now covers representative machine-level cases: eight scenarios passed across PAL/NTSC and both character sets, with no skips. Its STOP check injects the KERNAL scan result; physical key handling and hardware testing remain open.
+The tests simulate the clock and documented KERNAL calls. **The py65 tests do not emulate the VIC-II/CIA chips, actual KERNAL ROM, disk loading, or a physical C64.** A separate [full VICE suite](vice-validation.md) now covers representative machine-level cases: 16 scenarios passed, covering both character sets and full-screen workloads across PAL/NTSC, with no skips. Its STOP check injects the KERNAL scan result; physical key handling and hardware testing remain open.
 
 The D64 writer was also checked locally with **VICE c1541 3.7.1**: disk validation and file extraction passed for partial sectors, exact 254-byte sector boundaries, track-density changes, and a full 664-block data area. Extracted files matched their inputs byte for byte. This checks disk structure; it is not a full emulated-drive loading test.
 
