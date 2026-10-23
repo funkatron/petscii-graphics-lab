@@ -27,9 +27,13 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Check geometry, memory budget, estimated playback work, and actual 6502 CPU execution.
 - [x] Package the same still/animation player in a standard D64 disk image, with directory and allocation checks and independent PRG extraction.
 - [x] Verify representative stills and composite playback in full PAL/NTSC VICE emulation, including VIC-II pixels, timing, BASIC return, and D64 loading through a 1541-II drive.
+- [x] Measure full-screen repeated, fragmented, sparse, and unequal-duration updates on PAL/NTSC; preserve cumulative timing across two loops.
+- [x] Compact scattered changes into literal byte runs, reducing full-screen update work and program size.
 - [ ] Verify on physical PAL/NTSC C64 hardware, including RUN/STOP key handling.
 - [ ] Verify transfer to physical storage devices.
 - [ ] Evaluate raster-synchronized updates and procedural native effects.
+
+The fragmented full-screen benchmark now copies in at most 6 clock ticks (about 0.1 seconds), down from 18 ticks on PAL. Raster synchronization alone cannot fit that work into one screen refresh; further work needs faster decoding, staged updates, or native effects. See [VICE performance checks](vice-validation.md#full-screen-performance).
 
 See the [C64 output guide](c64-output.md) for loading instructions, timing, memory limits, and verification scope.
 

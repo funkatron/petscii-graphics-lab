@@ -110,3 +110,43 @@ for(const model of ['c64','ntsc'])for(const charset of [0,1]){
 
  });
 }
+
+// Exercise the two compression extremes, short sparse updates, and unequal holds.
+// Observe real KERNAL ticks around the decoder; host wall time is irrelevant.
+const workloads=[
+ {name:'full-screen repeated runs',frames:[0,1].map(f=>({cells:Array(1000).fill(f?81:160),inks:Array(1000).fill(f?7:2),durationMs:100}))},
+ {name:'full-screen fragmented runs near the processing limit',frames:[0,1].map(f=>({cells:Array.from({length:1000},(_,i)=>(i+f)%256),inks:Array.from({length:1000},(_,i)=>(i+f)%16),durationMs:1000*8/60}))},
+ {name:'sparse fast full-screen movement',frames:[0,1,2,3].map(f=>({cells:Array.from({length:1000},(_,i)=>i%40===f?160:32),inks:Array.from({length:1000},(_,i)=>i%40===f?2:14),durationMs:50}))},
+ {name:'fragmented updates with unequal holds',frames:[500,400,450].map((durationMs,f)=>({cells:Array.from({length:1000},(_,i)=>(i+f)%256),inks:Array.from({length:1000},(_,i)=>(i+f)%16),durationMs}))},
+];
+for(const model of ['c64','ntsc'])for(const workload of workloads){
+ test(`${model}: ${workload.name}, two loops without accumulated lag`,{timeout:60000},async t=>{
+  const {monitor:m,dir}=await launch(t,model),frames=workload.frames;
+  const p=createC64Program({columns:40,rows:25,charset:0,background:6,ink:14,frames,repetitions:2});
+  const before=await load(m,dir,p,'prg');
+  let origin,elapsedMs=0,maxCopyTicks=0,maxLateTicks=0;
+  for(let i=0;i<frames.length*2;i++){
+   const frame=frames[i%frames.length];
+   await m.checkpoint(p.debugSymbols.frameStart);await m.resume(p.debugSymbols.frameStart);
+   const start=await tick(m);
+   await m.checkpoint(p.debugSymbols.frameReady);await m.resume(p.debugSymbols.frameReady);
+   const ready=await tick(m),copyTicks=ready-start;
+   await picture(m,frame,40,25,14);
+   // Initial decoding is deliberately outside the playback clock.
+   if(i===0)origin=ready;
+   else{
+    const expected=Math.round(elapsedMs*60/1000),late=ready-origin-expected;
+    maxCopyTicks=Math.max(maxCopyTicks,copyTicks);maxLateTicks=Math.max(maxLateTicks,late);
+    const available=Math.round((elapsedMs+frame.durationMs)*60/1000)-expected;
+    assert.ok(copyTicks<=available,`Frame ${i}: copy took ${copyTicks} ticks; budget ${available}`);
+    assert.ok(Math.abs(start-origin-expected)<=1,`Frame ${i}: decoder started late by ${start-origin-expected} ticks`);
+   }
+   elapsedMs+=frame.durationMs;
+  }
+  await m.checkpoint(p.debugSymbols.hold);await m.resume(p.debugSymbols.hold);
+  assert.ok(Math.abs((await tick(m))-origin-Math.round(elapsedMs*60/1000))<=1,'Finite playback finishes on its cumulative deadline');
+  assert.ok(maxLateTicks<=maxCopyTicks+1,'Frame-completion delay stays bounded by decoder work');
+  t.diagnostic(`Maximum update: ${maxCopyTicks}/60 s; maximum frame-completion lateness: ${maxLateTicks}/60 s; PRG ${p.bytes.length} bytes`);
+  await stopAndReturn(m,p,before);
+ });
+}

@@ -19,7 +19,7 @@ test('C64 composite player executes two complete loops, holds its last frame, an
 test('C64 export rejects unsupported geometry, shapes, invalid loops, excessive speed and memory without damaging the project',async({page})=>{
  for(const [p,message] of [[project(Array(26).fill(160),1,26),'25 rows']]){await loadProject(page,p);const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#exportC64');await expect(page.locator('#status')).toContainText(message);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
  await loadProject(page,project([160]));await ui(page,'#c64Mode','selectOption','animation');await ui(page,'#c64Repeats','fill','1.5');await ui(page,'#exportC64');await expect(page.locator('#status')).toContainText('whole number');
- const errors=await page.evaluate(async()=>{const {createC64Program}=await import('./c64-export.js'),make=(frames)=>{try{createC64Program({columns:40,rows:25,charset:0,background:6,ink:14,frames});return 'NO ERROR'}catch(e){return e.message}},frame=(f,durationMs)=>({cells:Array.from({length:1000},(_,i)=>(i+f)%256),inks:Array.from({length:1000},(_,i)=>(i+f)%16),durationMs});return [make([frame(0,20),frame(1,20)]),make(Array.from({length:12},(_,f)=>frame(f,1000)))]});expect(errors[0]).toContain('playback speed');expect(errors[1]).toContain('memory budget');
+ const errors=await page.evaluate(async()=>{const {createC64Program}=await import('./c64-export.js'),make=(frames)=>{try{createC64Program({columns:40,rows:25,charset:0,background:6,ink:14,frames});return 'NO ERROR'}catch(e){return e.message}},frame=(f,durationMs)=>({cells:Array.from({length:1000},(_,i)=>(i+f)%256),inks:Array.from({length:1000},(_,i)=>(i+f)%16),durationMs});return [make([frame(0,20),frame(1,20)]),make(Array.from({length:20},(_,f)=>frame(f,1000)))]});expect(errors[0]).toContain('playback speed');expect(errors[1]).toContain('memory budget');
 });
 test('C64 export snapshots the selected combination and supports cancellation during lazy loading',async({page})=>{
  await loadProject(page,project([160,''],2,1,{cellColors:[2,14],animation:{effect:'scroll-x',colorEffect:'color-wave',seconds:1,scale:1,background:'dark'}}));await ui(page,'#c64Mode','selectOption','animation');let release,started;const gate=new Promise(r=>release=r),loading=new Promise(r=>started=r);await page.route('**/c64-export.js',async route=>{started();await gate;await route.continue()});await ui(page,'#exportC64');await loading;await ui(page,'#cancelSheetDownload');release();await expect(page.locator('#status')).toContainText('Export canceled');await expect(page.locator('#exportC64')).toBeEnabled();
@@ -43,4 +43,17 @@ test('C64 animation respects rightward scroll and independent square color waves
 });
 test('C64 player repeats movement four times and colors twice within one two-second loop',async({page})=>{
  await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,14,14,14],animation:{effect:'scroll-x',colorEffect:'color-wave',motionCycles:4,colorCycles:2,seconds:2,scale:1,background:'dark'}}));await ui(page,'#c64Mode','selectOption','animation');await ui(page,'#c64Repeats','fill','1');const {snapshots}=emulate(await download(page,'#exportC64'),{stopAfterTicks:130}),ramp=[2,8,7,13,3,14,6,4];expect(snapshots).toHaveLength(16);snapshots.forEach((s,f)=>{const x=(4-f%4)%4;expect(s.screen.slice(0,4)).toEqual(Array.from({length:4},(_,i)=>i===x?160:32));expect(s.colors[x]).toBe(ramp[(x+f%8)%8]);expect(Math.abs(s.tick-Math.round(f*120/16))).toBeLessThanOrEqual(2)});
+});
+test('mixed repeated and literal C64 runs preserve byte/page boundaries and loop transitions in compact full screens',async({page})=>{
+ const {bytes,frames}=await page.evaluate(async()=>{
+  const {createC64Program}=await import('./c64-export.js');
+  const base={cells:Array.from({length:1000},(_,i)=>i%256),inks:Array.from({length:1000},(_,i)=>i%16),durationMs:500};
+  const changed={cells:base.cells.map((v,i)=>[254,255,256,511,512,767].includes(i)?v:i<1?160:i<3?81:i<6?82:i>=771?160:(255-i%256)),inks:base.inks.map((v,i)=>[254,255,256,511,512,767].includes(i)?v:i>=771?0:15-i%16),durationMs:500};
+  const frames=[base,changed,base],p=createC64Program({columns:40,rows:25,charset:1,background:6,ink:14,frames,repetitions:2});
+  return {bytes:[...p.bytes],frames};
+ });
+ expect(bytes.length).toBeLessThan(10000);
+ const {snapshots}=emulate(bytes,{stopAfterTicks:190});expect(snapshots).toHaveLength(5);
+ // Last/first pictures are equal at the loop boundary; the observer omits that duplicate.
+ [0,1,2,1,2].forEach((f,i)=>{expect(snapshots[i].screen).toEqual(frames[f].cells);expect(snapshots[i].colors).toEqual(frames[f].inks)});
 });
