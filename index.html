@@ -13,6 +13,7 @@ button,select,textarea,input{font:inherit}
 #quickPlay{min-width:44px}
 button,select{border:1px solid #42536b;background:#17263d;color:#eef5fa;border-radius:9px;min-height:44px;padding:8px 11px}
 button{cursor:pointer}
+button:disabled{cursor:default;opacity:.5}
 button:focus-visible,select:focus-visible{outline:3px solid #6cddd0;outline-offset:2px}
 button.active{background:#176655;border-color:#77ddc4}
 button:hover{border-color:#8ba9ba}
@@ -29,6 +30,7 @@ h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.08rem;l
 .glyph{height:44px;font-size:23px;padding:0;display:flex;align-items:center;justify-content:center;position:relative}
 .glyph small{position:absolute;right:3px;bottom:1px;font:9px ui-monospace,monospace;color:#b2c5d5}
 .glyph canvas{pointer-events:none}
+.palette:not(.show-codes) .glyph small{display:none}
 .sidebar.closed{visibility:hidden}
 input[type=checkbox]{width:20px;height:20px;vertical-align:middle}
 a{color:#9ce6ca}
@@ -46,6 +48,7 @@ textarea{resize:vertical;width:100%;min-height:80px;background:#0e1728;color:#e6
 #dimensions{font-size:.77rem;color:#a8bacc}
 .canvas-frame{flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #304861;border-radius:12px;background:#0d192b;padding:9px;touch-action:none;overscroll-behavior:contain}
 canvas.preview-locked{cursor:default}
+.canvas-frame:has(.preview-locked){border-color:#a8c9bd}
 canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:crosshair;image-rendering:pixelated}
 .stagefoot{font-size:.72rem;color:#9eb2c5;flex:none;text-align:center}
 #quickglyph{font-size:1rem;color:#9ee6d4}
@@ -96,10 +99,12 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 .symmetry-on{color:#9ce6ca;background:#176655;border-radius:9px}#downloadPreview{width:100%;object-fit:contain}#saveFailure{color:#ffcc95;margin:0}
 /* Keep frequent actions stable; occasional controls live in separate surfaces. */
 button,select,.field input[type=number]{min-height:44px}
-.drawing-strip{display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;flex:none;background:#142237;border-bottom:1px solid #30445d;z-index:8}
+.drawing-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:7px 10px;flex:none;background:#142237;border-bottom:1px solid #30445d;z-index:8}
 .drawing-strip button,.drawing-strip summary{white-space:nowrap}
 .drawing-strip summary{padding:10px;list-style:none}
 #paint[aria-pressed=true],#erase[aria-pressed=true],#glyphPin[aria-pressed=true]{background:#176655;border-color:#77ddc4}
+#inkPopover{position:fixed;inset:auto;margin:0;width:min(310px,calc(100vw - 16px));max-height:calc(100dvh - 145px);overflow:auto;background:#18263a;color:#eef5fa;border:1px solid #54718c;border-radius:12px;padding:14px;box-shadow:0 10px 35px #0008}
+#inkPopover h2{font-size:.9rem;margin:0}#inkPopover .color-grid{margin-bottom:0}#inkPopover .color-grid button{min-height:48px;padding:6px;font-size:.72rem;line-height:1.15}#inkSelection{margin:8px 0 0}
 #symmetryMenu{position:relative;border:1px solid #42536b;border-radius:9px}
 .tool-popover{position:absolute;top:100%;right:0;background:#18263a;border:1px solid #54718c;padding:14px;width:210px;border-radius:9px;box-shadow:0 10px 30px #0008}
 #projectMenu>summary{list-style:none;border:1px solid #42536b;border-radius:9px;padding:11px;font-size:.8rem}
@@ -129,8 +134,8 @@ dialog::backdrop{background:#0009}
 <header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1><div class="subtitle">Touch-first graphics composition</div></div><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="saveProject">Download editable project</button><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
 <p class="note">Project files keep editable art and replay. Changes also autosave on this device.</p>
 </div></details><span id="saveStatus" class="note" role="status">Saved on this device</span><button id="downloadOpen">Download artwork</button><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
-<div class="drawing-strip" role="toolbar" aria-label="Drawing controls"><button id="glyphToggle" aria-expanded="false" aria-controls="glyphPicker" title="Choose a glyph"><canvas id="glyphPreview" width="24" height="24" aria-hidden="true"></canvas><span>Glyphs</span></button><button id="inkQuick" aria-label="Choose ink color"><span id="inkChip" class="color-chip"></span><span class="tool-label">Ink</span></button><button id="paint" aria-pressed="true">Paint</button><button id="erase" aria-pressed="false">Eraser</button><details id="symmetryMenu"><summary aria-label="Symmetry" id="symmetrySummary">↔<span class="tool-label" id="symmetryLabel"> Symmetry</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
-</div></details><button id="undo" aria-label="Undo" disabled>↶<span class="tool-label"> Undo</span></button><button id="redo" aria-label="Redo" disabled>↷<span class="tool-label"> Redo</span></button></div><div class="layout">
+<div class="drawing-strip" role="toolbar" aria-label="Drawing controls"><button id="glyphToggle" aria-expanded="false" aria-controls="glyphPicker" title="Choose a glyph"><canvas id="glyphPreview" width="24" height="24" aria-hidden="true"></canvas><span>Glyphs</span></button><button id="inkQuick" aria-label="Choose ink color" popovertarget="inkPopover" aria-controls="inkPopover"><span id="inkChip" class="color-chip"></span><span class="tool-label">Ink</span></button><button id="paint" aria-pressed="true">Paint</button><button id="erase" aria-pressed="false">Eraser</button><details id="symmetryMenu"><summary aria-label="Symmetry" id="symmetrySummary">↔<span class="tool-label" id="symmetryLabel"> Symmetry</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
+</div></details><button id="undo" aria-label="Undo" disabled>↶<span class="tool-label"> Undo</span></button><button id="redo" aria-label="Redo" disabled>↷<span class="tool-label"> Redo</span></button></div><section id="inkPopover" popover="auto" aria-labelledby="inkTitle"><div class="dialog-heading"><h2 id="inkTitle">Brush ink</h2><button id="inkClose" popovertarget="inkPopover" popovertargetaction="hide" aria-label="Close ink palette">✕</button></div><p id="inkSelection" class="note"></p><p class="note">For your next strokes. Existing cells keep their colors.</p><div id="quickInkPalette" class="color-grid" role="group" aria-label="Brush ink colors"></div></section><div class="layout">
 <aside id="sidebar" class="sidebar" aria-label="Drawing tools">
 <details id="canvasDetails" class="tool-group"><summary>Canvas setup</summary><div class="group-body">
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option selected>16</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option selected>16</option></select></div></div>
@@ -168,6 +173,7 @@ dialog::backdrop{background:#0009}
 <details id="glyphOptions" class="help-disclosure"><summary>Character options <span id="sourceBadge" class="summary-badge">C64</span></summary>
 <div class="field"><label for="paletteMode">Palette</label><select id="paletteMode"><option value="graphics">Graphics only</option><option value="all">All screen codes</option></select></div>
 <div class="field"><label for="charset">Character set</label><select id="charset"><option value="0">Uppercase / graphics</option><option value="1">Lowercase / uppercase</option></select></div>
+<p><label><input id="showGlyphCodes" type="checkbox"> Show glyph codes (hex)</label></p>
 <p class="note" id="romInfo">Loading C64 glyphs…</p><button id="retryGlyphs" class="full-width" hidden>Reload C64 glyphs</button>
 <p class="note">Both character sets and inverse slots use authentic 8×8 C64 artwork. <a href="./assets/c64-glyphs.svg" target="_blank" rel="noopener">View SVG glyph sheet</a>.</p>
 </details></aside>
@@ -211,13 +217,18 @@ const pickerDocked=()=>widePicker.matches||(pickerPinned&&innerWidth>=700);
 $('glyphPin').onclick=()=>{pickerPinned=!pickerPinned;if(pickerPinned&&innerWidth>=700&&innerWidth<1000){$('sidebar').classList.add('closed');$('toggle').setAttribute('aria-expanded','false');$('toggle').textContent='☰'}$('glyphPin').setAttribute('aria-pressed',String(pickerPinned));syncPickerDock()};
 function syncPickerDock(){$('glyphPicker').classList.toggle('pinned',pickerPinned&&innerWidth>=700);$('glyphBackdrop').hidden=$('glyphPicker').hidden||pickerDocked();requestAnimationFrame(fit)}
 window.addEventListener('resize',syncPickerDock);
-$('downloadOpen').onclick=()=>{$('projectMenu').open=false;$('symmetryMenu').open=false;$('downloadDialog').showModal();updateDownloadPreview()};
+$('downloadOpen').onclick=()=>{$('projectMenu').open=false;$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('downloadDialog').showModal();updateDownloadPreview()};
 $('downloadClose').onclick=()=>$('downloadDialog').close();
 $('downloadDialog').addEventListener('click',e=>{if(e.target===$('downloadDialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close()}});
 
 $('downloadDialog').addEventListener('change',updateDownloadPreview);
 $('cancelSheetDownload').onclick=()=>$('cancelAnimationExport').click();
-$('inkQuick').onclick=()=>{colorTarget='ink';updateColorUI();$('colorDetails').open=true;$('sidebar').classList.remove('closed');$('toggle').setAttribute('aria-expanded','true');$('colorDetails').scrollIntoView({block:'nearest'});requestAnimationFrame(fit)};
+function positionInkPopover(){const r=$('inkQuick').getBoundingClientRect(),strip=$('inkQuick').closest('.drawing-strip').getBoundingClientRect();$('inkPopover').style.left=Math.max(8,Math.min(r.left,innerWidth-Math.min(310,innerWidth-16)-8))+'px';$('inkPopover').style.top=(strip.bottom+6)+'px';$('inkPopover').style.maxHeight=Math.max(80,innerHeight-strip.bottom-14)+'px'}
+$('inkPopover').addEventListener('beforetoggle',e=>{if(e.newState==='open'){$('inkSelection').textContent='Selected: '+C64_COLORS[colors.ink][0];$('symmetryMenu').open=false;positionInkPopover()}});
+window.addEventListener('resize',positionInkPopover);
+$('inkClose').onclick=()=>{$('inkPopover').hidePopover();$('inkQuick').focus({preventScroll:true})};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('inkPopover').matches(':popover-open')){e.preventDefault();e.stopImmediatePropagation();$('inkPopover').hidePopover();$('inkQuick').focus({preventScroll:true})}});
+
 
 function setGlyphPicker(open,focus=false){
  $('glyphPicker').hidden=!open;$('glyphToggle').setAttribute('aria-expanded',String(open));
@@ -259,13 +270,15 @@ let colors={ink:14,background:6},colorTarget='ink';
 const colorHex=key=>C64_COLORS[colors[key]][1];
 const colorRGB=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 function updateColorUI(){
- $('inkChip').style.background=colorHex('ink');$('inkQuick').title='Ink: '+C64_COLORS[colors.ink][0];
+ $('inkChip').style.background=colorHex('ink');$('inkQuick').title='Ink: '+C64_COLORS[colors.ink][0];$('inkQuick').setAttribute('aria-label','Choose ink color: '+C64_COLORS[colors.ink][0]);$('inkSelection').textContent='Selected: '+C64_COLORS[colors.ink][0];
+ for(const button of $('quickInkPalette').children)button.setAttribute('aria-pressed',String(Number(button.dataset.ink)===colors.ink));
  document.documentElement.style.setProperty('--art-ink',colorHex('ink'));document.documentElement.style.setProperty('--art-bg',colorHex('background'));
  for(const key of ['ink','background']){$(key+'Name').textContent=C64_COLORS[colors[key]][0];$(key+'Target').setAttribute('aria-pressed',String(colorTarget===key))}
  $('colorSummary').innerHTML=['ink','background'].map(key=>'<span class="color-chip" style="background:'+colorHex(key)+'"></span>').join('');
  $('colorPalette').innerHTML='';
  C64_COLORS.forEach(([name,hex],index)=>{const button=document.createElement('button'),rgb=colorRGB(hex);button.textContent=index.toString(16).toUpperCase();button.style.background=hex;button.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>125?'#000':'#fff';button.title=name+' · '+hex;button.setAttribute('aria-label','C64 color '+index+': '+name);button.setAttribute('aria-pressed',String(colors[colorTarget]===index));button.onclick=()=>{if(colors[colorTarget]===index)return;remember();setColors({...colors,[colorTarget]:index});drawPalette();redraw();setStatus(name+' '+colorTarget+' color selected');$('colorPalette').children[index].focus({preventScroll:true})};$('colorPalette').appendChild(button)});
 }
+C64_COLORS.forEach(([name,hex],index)=>{const button=document.createElement('button'),rgb=colorRGB(hex);button.dataset.ink=String(index);button.style.background=hex;button.style.color=rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>125?'#000':'#fff';button.textContent=name;button.title=name;button.setAttribute('aria-label','Ink: '+name);button.setAttribute('aria-pressed',String(colors.ink===index));button.onfocus=()=>{$('inkSelection').textContent=(colors.ink===index?'Selected: ':'Choose: ')+name};button.onpointerenter=button.onfocus;button.onpointerleave=()=>{$('inkSelection').textContent='Selected: '+C64_COLORS[colors.ink][0]};button.onclick=()=>{if(colors.ink!==index){remember();setColors({...colors,ink:index});drawPalette();redraw();setStatus(name+' brush ink selected')}$('inkPopover').hidePopover();$('inkQuick').focus({preventScroll:true})};$('quickInkPalette').appendChild(button)});
 function setColors(value={ink:14,background:6}){colors={...value};tileCache.clear();updateColorUI()}
 for(const key of ['ink','background'])$(key+'Target').onclick=()=>{colorTarget=key;updateColorUI()};
 $('swapColors').onclick=()=>{if(colors.ink===colors.background)return;remember();setColors({ink:colors.background,background:colors.ink});drawPalette();redraw();setStatus('Brush and background swapped')};
@@ -302,9 +315,11 @@ function romCanvasGlyph(target,code,x,y,s,ink=colors.ink){
  target.imageSmoothingEnabled=false;target.drawImage(tile,0,0,8,8,x,y,s,s);
 }
 function graphicsCode(code){const c=code%128;return code===160||(c>=64&&(charset===0||c<65||c>90))}
-let recentGlyphs=[],favoriteGlyphs=[];
-try{const saved=JSON.parse(localStorage.getItem('petscii-glyph-browser'));for(const key of ['recent','favorites'])if(!Array.isArray(saved?.[key])||saved[key].some(g=>!Array.isArray(g)||g.length!==2||![0,1].includes(g[0])||!Number.isInteger(g[1])||g[1]<0||g[1]>255))throw Error();recentGlyphs=saved.recent.slice(0,16);favoriteGlyphs=saved.favorites.slice(0,512)}catch{}
-function saveGlyphBrowser(){try{localStorage.setItem('petscii-glyph-browser',JSON.stringify({recent:recentGlyphs,favorites:favoriteGlyphs}))}catch{}}
+let recentGlyphs=[],favoriteGlyphs=[],showGlyphCodes=false;
+try{const saved=JSON.parse(localStorage.getItem('petscii-glyph-browser'));for(const key of ['recent','favorites'])if(!Array.isArray(saved?.[key])||saved[key].some(g=>!Array.isArray(g)||g.length!==2||![0,1].includes(g[0])||!Number.isInteger(g[1])||g[1]<0||g[1]>255))throw Error();recentGlyphs=saved.recent.slice(0,16);favoriteGlyphs=saved.favorites.slice(0,512);showGlyphCodes=saved.showCodes===true}catch{}
+function saveGlyphBrowser(){try{localStorage.setItem('petscii-glyph-browser',JSON.stringify({recent:recentGlyphs,favorites:favoriteGlyphs,showCodes:showGlyphCodes}))}catch{}}
+$('showGlyphCodes').checked=showGlyphCodes;palette.classList.toggle('show-codes',showGlyphCodes);
+$('showGlyphCodes').onchange=()=>{showGlyphCodes=$('showGlyphCodes').checked;palette.classList.toggle('show-codes',showGlyphCodes);saveGlyphBrowser()};
 function chooseGlyph(code){glyph=code;erasing=false;recentGlyphs=[[charset,code],...recentGlyphs.filter(g=>g[0]!==charset||g[1]!==code)].slice(0,16);saveGlyphBrowser();drawPalette();selectedGlyph()}
 $('glyphFamily').onchange=drawPalette;
 $('favoriteGlyph').onclick=()=>{if(typeof glyph!=='number')return;const i=favoriteGlyphs.findIndex(g=>g[0]===charset&&g[1]===glyph);if(i<0)favoriteGlyphs.push([charset,glyph]);else favoriteGlyphs.splice(i,1);saveGlyphBrowser();drawPalette()};
@@ -493,11 +508,13 @@ function animationCells(frame,s){
  return {cells,inks};
 }
 function animationButtons(){
- updateMotionSummary();$('previewBanner').hidden=!animationPreview;$('previewLabel').textContent='Animation preview · '+animationName()+(animationPlaying?'':' · Paused');
+ updateMotionSummary();$('previewBanner').hidden=!animationPreview;$('previewLabel').textContent='Read-only preview · '+animationName()+(animationPlaying?'':' · Paused');
  $('animationPlay').textContent=animationPlaying?'❚❚ Pause':'▶ Play';$('quickPlay').textContent=animationPlaying?'❚❚':'▶';
  for(const id of ['animationPlay','quickPlay']){$(id).setAttribute('aria-pressed',String(animationPlaying));$(id).setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation')}
  canvas.classList.toggle('preview-locked',animationPreview);
- $('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':'Draw by dragging. Tap ☰ to show or hide tools.';
+ $('paint').disabled=animationPreview||!rom;$('erase').disabled=animationPreview;
+ for(const id of ['paint','erase'])$(id).title=animationPreview?'Choose Return to drawing to edit':id==='paint'?'Paint with the selected glyph':'Erase cells';
+ $('animationStop').disabled=!animationPreview;updateDrawingHint();
 }
 function stopAnimation(){
  animationPlaying=false;animationPreview=false;animationElapsed=0;animationFrame=0;cancelAnimationFrame(animationRAF);animationRAF=null;
@@ -657,9 +674,10 @@ function cancelStroke(){const active=pointer;painting=false;pointer=null;last=nu
 function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview&&e.type==='pointerup')stroke(last,position(e));cancelStroke();if(!animationPreview)setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
-function refresh(){$('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;$('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');$('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.children){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(!erasing));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===charset&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
+function updateDrawingHint(){$('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':erasing?'Eraser · Drag to remove cells. Choose Paint to draw.':'Paint · '+C64_COLORS[colors.ink][0]+' ink · Drag to draw.'}
+function refresh(){updateDrawingHint();$('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;$('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');$('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.children){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(!erasing));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===charset&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};
-$('paint').onclick=()=>{erasing=false;refresh()};$('erase').onclick=()=>{erasing=!erasing;refresh()};
+$('paint').onclick=()=>{erasing=false;refresh()};$('erase').onclick=()=>{erasing=true;refresh()};
 $('clear').onclick=()=>{remember();grid.fill('');cellColors.fill(colors.ink);resetReplay();redraw();setStatus('Canvas cleared')};
 $('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1){grid[y*W+x]=glyph;cellColors[y*W+x]=colors.ink}resetReplay();redraw()};
 $('checker').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++){grid[y*W+x]=(x+y)%2?glyph:'';cellColors[y*W+x]=colors.ink}resetReplay();redraw()};

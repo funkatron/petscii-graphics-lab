@@ -158,6 +158,8 @@ These are per-cycle sampling targets. Independent cycle counts multiply those ta
 
 - **Persistent controls.** Keep Glyphs/brush preview, direct ink access, Paint/Eraser, Symmetry and Undo/Redo in a persistent drawing strip outside the settings scroller. Primary touch targets are at least 44 px. Compact visual labels on phones must retain accessible names; symmetry must expose its active state.
 
+- **Quick ink and tool state.** Ink opens a native auto popover anchored beneath the drawing strip, without opening or scrolling settings. Its 16 swatches select brush ink through the existing undo path and dismiss to Ink; opening/dismissing alone never edits. Keep native Escape/outside dismissal and do not intercept outside canvas input. Paint/Eraser are idempotent selections and disabled during playing/paused preview; the canvas hint names the active drawing tool and ink. Return to drawing restores tool availability.
+
 - **Settings and resize.** Settings use initially closed Canvas setup, Colors, Animation and Help disclosures. Broad pattern/clear/recolor actions live under explicitly scoped disclosures. Stage columns and rows together, show the proposed crop, and apply once with one undo entry; Cancel leaves art/history unchanged.
 
 - **Download panel.** Header Download artwork opens a native responsive dialog with keyboard-accessible Image / Animation / C64 data tabs, format selection and exact grid-free output previews. Retain one action per chosen format, existing download caches and snapshot isolation.
@@ -166,7 +168,7 @@ These are per-cycle sampling targets. Independent cycle counts multiply those ta
 
 - **Preview labels.** Animation preview shows effect name and paused state plus Return to drawing. Loop duration labels use seconds. Static previews/exports always show original art; motion previews use the shared derived frames and selected output background. Display actual output dimensions and sampled frame counts, including video repetitions.
 
-- **Glyph panel.** Glyph picker retains one independent scrolling surface and authentic high-contrast white-on-black thumbnails. Recents (maximum 16) and favorites store validated bank/code pairs in device-local UI preferences, never project JSON. Families preserve the graphics-only filter; exact pages, both banks, and inverse slots remain accessible.
+- **Glyph panel.** Glyph picker retains one independent scrolling surface and authentic high-contrast white-on-black thumbnails. Hexadecimal tile labels default off; Show glyph codes (hex) persists as `showCodes` in the glyph-browser preference, with exact accessible labels retained. Recents (maximum 16) and favorites store validated bank/code pairs in device-local UI preferences, never project JSON. Families preserve the graphics-only filter; exact pages, both banks, and inverse slots remain accessible.
 
   Pin is optional at widths 700 px+; normal wide-screen docking starts at 1200 px. Overlay selection dismisses; docked selection stays open. Escape/close/backdrop restore focus without painting. Never nest the palette in settings.
 

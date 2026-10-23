@@ -5,7 +5,7 @@ test('drawing controls stay reachable with settings hidden at phone width',async
  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.app[data-ready=true]').waitFor();
  for(const id of ['glyphToggle','inkQuick','paint','erase','undo','redo','symmetryMenu'])await expect(page.locator('#'+id)).toBeInViewport();
  await page.locator('#erase').click();await expect(page.locator('#erase')).toHaveAttribute('aria-pressed','true');await page.locator('#paint').click();await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','true');
- await page.locator('#inkQuick').click();await expect(page.locator('#colorPalette')).toBeVisible();await page.locator('#colorPalette button').nth(2).click();await expect(page.locator('#inkQuick')).toHaveAttribute('title','Ink: Red');
+ await page.locator('#inkQuick').click();await expect(page.locator('#quickInkPalette')).toBeVisible();await page.locator('#quickInkPalette button').nth(2).click();await expect(page.locator('#inkQuick')).toHaveAttribute('title','Ink: Red');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
 });
 test('resize stages both dimensions, previews cropping, cancels and applies with one undo',async({page})=>{
@@ -45,4 +45,37 @@ test('visual families include authentic graphics and inverse glyphs, with exact 
  await ui(page,'#glyphFamily','selectOption','corners');await expect(page.locator('#palette button[data-g="75"]')).toHaveCount(1);await expect(page.locator('#palette button[data-g="203"]')).toHaveCount(1);
  await page.locator('#glyphFamily').selectOption('symbols');await expect(page.locator('#palette button[data-g="83"]')).toHaveCount(1);await expect(page.locator('#palette button[data-g="1"]')).toHaveCount(0);
  await page.locator('#glyphPage').selectOption('1');await expect(page.locator('#glyphFamily')).toHaveValue('page');await expect(page.locator('#palette button')).toHaveCount(64);
+});
+
+test('quick ink selection leaves settings and artwork alone, dismisses safely, and is undoable',async({page})=>{
+ await loadProject(page,project([160,''],2,1,{selectedGlyph:160,cellColors:[2,14]}));
+ if(await page.locator('#glyphBackdrop').isVisible())await page.locator('#glyphClose').click();
+ if(await page.locator('#toggle').getAttribute('aria-expanded')==='true')await page.locator('#toggle').click();
+ const read=()=>page.locator('#canvas').evaluate(c=>[.25,.75].map(x=>Array.from(c.getContext('2d').getImageData(c.width*x,c.height*.5,1,1).data)));const before=await read(),box=await page.locator('#canvas').boundingBox();
+ await page.locator('#inkQuick').click();await expect(page.locator('#inkPopover')).toBeVisible();await expect(page.locator('#sidebar')).toHaveClass(/closed/);
+ for(const swatch of await page.locator('#quickInkPalette button').all())expect(await swatch.boundingBox()).toMatchObject({width:expect.any(Number),height:expect.any(Number)});
+ await page.getByRole('button',{name:'Ink: Green',exact:true}).click();await expect(page.locator('#inkPopover')).toBeHidden();await expect(page.locator('#inkQuick')).toBeFocused();await expect(page.locator('#stageHint')).toContainText('Green ink');expect(await read()).toEqual(before);
+ await page.locator('#inkQuick').click();await page.keyboard.press('Escape');await expect(page.locator('#inkPopover')).toBeHidden();await expect(page.locator('#inkQuick')).toBeFocused();
+ await page.locator('#inkQuick').click();await page.locator('#canvas').click({position:{x:box.width*.75,y:box.height*.9}});await expect(page.locator('#inkPopover')).toBeHidden();
+ // The outside click is a normal drawing action and uses the newly selected brush.
+ const p=JSON.parse(await download(page,'#saveProject'));expect(p.cellColors).toEqual([2,5]);expect(p.grid).toEqual([160,160]);await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([160,'']);await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).colors.ink).toBe(14);
+});
+test('paint and eraser select consistent tools, with read-only preview made explicit',async({page})=>{
+ await loadProject(page,project([160,''],2,1,{selectedGlyph:160}));
+ await ui(page,'#erase');await ui(page,'#erase');await expect(page.locator('#erase')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#stageHint')).toContainText('Eraser');
+ await ui(page,'#paint');await ui(page,'#paint');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','true');
+ await ui(page,'#quickPlay');for(const id of ['paint','erase'])await expect(page.locator('#'+id)).toBeDisabled();await expect(page.locator('#previewLabel')).toContainText('Read-only preview');
+ await ui(page,'#quickPlay');for(const id of ['paint','erase'])await expect(page.locator('#'+id)).toBeDisabled();await expect(page.locator('#previewLabel')).toContainText('Paused');
+ await ui(page,'#returnDrawing');for(const id of ['paint','erase'])await expect(page.locator('#'+id)).toBeEnabled();await expect(page.locator('#animationStop')).toBeDisabled();
+});
+test('glyph codes are optional device preferences and do not change project contents',async({page})=>{
+ const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#glyphFamily','selectOption','blocks');await expect(page.locator('#palette button[data-g="160"] small')).toBeHidden();await expect(page.locator('#palette button[data-g="160"]')).toHaveAttribute('aria-label','C64 screen code 160');
+ await ui(page,'#showGlyphCodes','check');await expect(page.locator('#palette button[data-g="160"] small')).toHaveText('A0');await expect(page.locator('#palette button[data-g="160"] small')).toBeVisible();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#showGlyphCodes','isChecked');await expect(page.locator('#showGlyphCodes')).toBeChecked();await ui(page,'#showGlyphCodes','uncheck');await ui(page,'#glyphFamily','selectOption','blocks');await expect(page.locator('#palette button[data-g="160"] small')).toBeHidden();
+});
+test('quick ink palette fits narrow and enlarged-text workspaces with usable targets',async({page})=>{
+ for(const width of [390,768,1024]){
+  await page.setViewportSize({width,height:844});await page.locator('html').evaluate(e=>e.style.fontSize='24px');await page.locator('#inkQuick').click();const p=await page.locator('#inkPopover').boundingBox();expect(p.x).toBeGreaterThanOrEqual(0);expect(p.x+p.width).toBeLessThanOrEqual(width);expect(p.y+p.height).toBeLessThanOrEqual(844);
+  for(const button of await page.locator('#quickInkPalette button').all()){const r=await button.boundingBox();expect(r.width).toBeGreaterThanOrEqual(44);expect(r.height).toBeGreaterThanOrEqual(44)}await page.keyboard.press('Escape');
+ }
 });

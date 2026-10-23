@@ -7,7 +7,7 @@ function rgbaAt(gif,frame,x,y){const at=(y*gif.r.width+x)*4;return Array.from(gi
 const ink=[108,94,181,255],dark=[53,40,121,255];
 test('replay records paint, erase, repaint and symmetry without losing undo history',async({page})=>{
  await loadProject(page,project(Array(8).fill(''),4,2,{selectedGlyph:160}));
- await clickCell(page,3,0);await clickCell(page,0,0);await ui(page,'#erase');await clickCell(page,3,0);await ui(page,'#erase');await clickCell(page,3,0);
+ await clickCell(page,3,0);await clickCell(page,0,0);await ui(page,'#erase');await clickCell(page,3,0);await ui(page,'#paint');await clickCell(page,3,0);
  let p=JSON.parse(await download(page,'#saveProject'));expect(p.drawingReplay.base).toEqual(Array(8).fill(''));expect(p.drawingReplay.events).toEqual([[3,160],[0,160],[3,''],[3,160]]);
  await ui(page,'#undo');p=JSON.parse(await download(page,'#saveProject'));expect(p.drawingReplay.events).toEqual([[3,160],[0,160],[3,'']]);expect(p.grid[3]).toBe('');
  await ui(page,'#redo');await ui(page,'#sym','selectOption','both');await clickCell(page,1,0);

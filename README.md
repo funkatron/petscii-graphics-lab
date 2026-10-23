@@ -7,7 +7,7 @@ Draw with Commodore 64 character graphics using a finger, Apple Pencil, or mouse
 ## Draw your first picture
 
 1. Open **Glyphs** and choose a shape. A *glyph* is one 8×8 character image.
-2. Tap **Ink** and choose a color.
+2. Tap **Ink** and choose a color from the floating palette.
 3. If settings cover the canvas, tap **☰** to hide them. Drag across the canvas to draw.
 4. Use **Undo** to reverse your last stroke. Use **Redo** to restore it.
 5. Choose **Project → Download editable project** to keep a file you can edit later.
@@ -46,13 +46,17 @@ Open **Character options** for these choices:
 
 **Inverse ±128** selects the corresponding inverse slot. The editor preserves the actual C64 inverse glyphs.
 
-Small glyph labels use hexadecimal screen codes. You can draw without learning those numbers. See [C64 terms and data](#c64-terms-and-data) when you need them.
+Glyph codes are hidden by default. Turn on **Character options → Show glyph codes (hex)** to display hexadecimal labels. The setting stays on this device. You can draw without learning those numbers. See [C64 terms and data](#c64-terms-and-data) when you need them.
 
 ## Draw, color, and resize
 
 ### Change colors
 
+**Ink** opens a small palette beside the drawing controls, without opening settings. Choose a swatch to select it and close the palette; use **Escape**, **✕**, or tap outside to dismiss it. The canvas remains active when you tap outside.
+
 Each painted cell keeps its own **Ink** color. Changing the brush affects future strokes. Paint over a cell to give it the current glyph and ink.
+
+**Paint** and **Eraser** consistently select their named tools, even when tapped again. The text beneath the canvas identifies the current tool.
 
 The **Background** color is shared by the whole canvas.
 
@@ -103,7 +107,7 @@ The editor opens version 2 projects containing numeric C64 screen codes. Old Uni
 
 **Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
 
-The canvas is read-only during playback and while paused. Choose **Return to drawing** before painting. Other artwork edits stop the preview. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
+The canvas is read-only during playback and while paused. **Paint** and **Eraser** are unavailable until you choose **Return to drawing**. Other artwork edits stop the preview. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
 
 | Effect | What you see |
 | --- | --- |
