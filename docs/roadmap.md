@@ -2,6 +2,12 @@
 
 This page tracks requested work and completed milestones. For current controls, use the [user guide](../README.md).
 
+## Current priorities
+
+1. **Unified alphabet:** uppercase, lowercase and graphics together, with matching project and export support.
+2. **Richer drawing tools:** fill, lines, rectangles, selection/move/duplicate, then tile stamps and reusable motifs.
+3. **Follow-up work:** C64 hardware/performance, richer imports and usability checks. These follow the first two priorities unless needed to complete or verify them.
+
 ## Unified alphabet — approved, not implemented
 
 - [ ] Offer uppercase and lowercase alongside the full graphics palette without switching the whole drawing's character bank.
@@ -10,6 +16,14 @@ This page tracks requested work and completed milestones. For current controls, 
 - [ ] Verify mixed-case text and graphics in browser output and C64 execution.
 
 Meanwhile, the existing whole-drawing character-set control stays above the glyph list in the sticky picker header, with its scope explained.
+
+## Richer drawing tools — next after unified alphabet
+
+- [ ] Fill connected cells with the selected glyph and ink.
+- [ ] Draw straight lines and rectangles with a visible preview before applying.
+- [ ] Select, move and duplicate regions.
+- [ ] Add tile stamps and reusable motifs.
+- [ ] Keep each gesture or completed operation undoable and support touch, Pencil and mouse.
 
 ## Combine movement and color cycling — implemented
 
