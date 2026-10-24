@@ -99,13 +99,13 @@ test('default glyph browser groups similar shapes across code pages without dupl
  await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#glyphToggle');if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click();await expect(page.locator('#glyphFamily')).toHaveValue('similar');
 });
 
-test('letter toggle alone controls alphanumerics across inverse, imports, undo and reload',async({page})=>{
+test('letter toggle alone controls alphanumerics across paired glyph selection, imports, undo and reload',async({page})=>{
  for(const bank of [0,1]){
   await loadProject(page,project([160],1,1,{charset:bank,selectedGlyph:160}));await ui(page,'#glyphFamily','selectOption','similar');
   await expect(page.locator('#showAlphanumerics')).not.toBeChecked();
   for(const code of [1,26,48,57,129,154,176,185,...(bank?[65,90,193,218]:[])])await expect(page.locator('#palette button[data-g="'+code+'"]').first()).toHaveCount(0);
-  await ui(page,'#inverse');await expect(page.locator('#glyphFamily')).toHaveValue('similar');await expect(page.locator('#showAlphanumerics')).not.toBeChecked();await expect(page.locator('#palette button[data-g="32"]')).toHaveAttribute('aria-pressed','true');
-  await ui(page,'#showAlphanumerics','check');await expect(page.locator('#palette button')).toHaveCount(256);await expect(page.locator('#palette .glyph-family').last()).toHaveText('Letters & numbers');await page.locator('#palette button[data-g="1"]').click();await ui(page,'#inverse');await expect(page.locator('#palette button[data-g="129"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#showAlphanumerics')).toBeChecked();
+  await ui(page,'#palette [data-g="32"]');await expect(page.locator('#glyphFamily')).toHaveValue('similar');await expect(page.locator('#showAlphanumerics')).not.toBeChecked();await expect(page.locator('#palette button[data-g="32"]')).toHaveAttribute('aria-pressed','true');
+  await ui(page,'#showAlphanumerics','check');await expect(page.locator('#palette button')).toHaveCount(256);await expect(page.locator('#palette .glyph-family').last()).toHaveText('Letters & numbers');await page.locator('#palette button[data-g="1"]').click();await ui(page,'#palette [data-g="129"]');await expect(page.locator('#palette button[data-g="129"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#showAlphanumerics')).toBeChecked();
   const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#showAlphanumerics','uncheck');await expect(page.locator('#hiddenGlyph')).toBeVisible();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
   await loadProject(page,project([1],1,1,{charset:bank,selectedGlyph:1}));await expect(page.locator('#showAlphanumerics')).not.toBeChecked();await ui(page,'#undo');await expect(page.locator('#showAlphanumerics')).not.toBeChecked();
  }

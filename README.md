@@ -45,7 +45,7 @@ Open **Character options** for these choices:
 
 - **Character set** switches between uppercase/graphics and lowercase/uppercase. This affects the whole drawing; **Undo** restores the previous set.
 
-**Inverse** selects the corresponding inverse glyph and keeps the picker open. It preserves your browsing view and **Show letters & numbers** setting. It never enables letters automatically, including for blank/solid-block pairs. The editor preserves the actual C64 inverse glyphs.
+Choose either member of a light/dark pair directly from the palette. Both remain available with letters hidden, including the blank/solid-block pair. There is no separate Inverse button. The editor preserves the actual C64 inverse glyphs.
 
 The letter toggle changes browsing only. Opening a project or using Undo preserves its artwork without turning the toggle on. If the current brush is outside the view, a notice explains how to find it. The toggle starts off again when the editor reloads.
 

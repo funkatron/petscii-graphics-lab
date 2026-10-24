@@ -131,3 +131,7 @@ Jump to code page keeps exact numeric browsing available; Grouped by shape retur
 This supersedes numeric-page browsing described above. Inverse previously switched views and enabled all codes when its result was outside the graphics subset. That made ordinary letters appear without a deliberate request.
 
 Remove code-page controls and use one visible Show letters & numbers checkbox, initially off. Preserve it across Inverse, imports, Undo, character-set changes and asset reload. Blank and solid-block partners are both non-alphanumeric and remain available. Symbols and punctuation also remain available. Optional code labels retain exact identification without making hardware ordering a navigation task. Grouped browsing places enabled alphanumerics in a named section.
+
+## Select paired glyphs directly — 23 October 2026
+
+Remove the separate Inverse button and its special selection path. Paired glyphs remain adjacent in shape groups; choose either directly, including blank and solid block. The letter toggle and optional code labels remain. This supersedes the Inverse-button behavior described above; the Inverse pulse animation remains available.

@@ -9,11 +9,11 @@ function reference(){
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('palette filters letters, highlights selection, and selects inverse glyphs',async({page})=>{
  await expect(page.locator('#palette button')).toHaveCount(184);await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','64');
- await ui(page,'#inverse');await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','192');
+ await ui(page,'#palette [data-g="192"]');await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','192');
  await ui(page,'#charset','selectOption','1');await expect(page.locator('#palette button')).toHaveCount(132);
  await ui(page,'#showAlphanumerics','check');await expect(page.locator('#palette button')).toHaveCount(256);
  await page.getByRole('button',{name:'C64 screen code 0',exact:true}).click();await expect(page.locator('#palette button.active')).toHaveAttribute('aria-pressed','true');
- await expect(page.locator('#paletteMode, #glyphPage')).toHaveCount(0);
+ await expect(page.locator('#paletteMode, #glyphPage, #inverse')).toHaveCount(0);
 });
 test('both banks and inverse slots match source pixels in canvas, SVG, and PNG',async({page})=>{
  const bytes=reference();await loadProject(page,project([0,128]));
