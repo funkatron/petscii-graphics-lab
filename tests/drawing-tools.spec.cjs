@@ -21,3 +21,7 @@ test('unfinished previews stay out of files; Escape cancels and selection delete
  await ui(page,'#tool-select');await drag(page,[0,0],[3,3]);await ui(page,'#deleteSelection');expect((await saved(page)).grid).toEqual(Array(16).fill(''));await ui(page,'#undo');expect((await saved(page)).grid).toEqual(original);
  await ui(page,'#quickPlay');for(const tool of ['fill','line','rectangle','select','stamp'])await expect(page.locator('#tool-'+tool)).toBeDisabled();
 });
+test('palette shows one selected tool and restores saved eraser state',async({page})=>{
+ await ui(page,'#tool-line');await expect(page.locator('#tool-line')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','false');
+ await ui(page,'#erase');await saved(page);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#erase')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','false');
+});
