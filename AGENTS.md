@@ -53,7 +53,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - Canvas should scale to maximize the available bounding box while preserving square cells and full-grid visibility. Resizing or collapsing controls must not clear artwork.
 
-- Keep settings in a compact, collapsible left sidebar. Glyph selection lives in its own panel, reached from an always-visible drawing-strip Glyphs button. Dock it on wide screens (1200px+); use an overlay on smaller screens. Never nest the palette scroll box inside the settings scroller.
+- Keep settings in a compact, collapsible left sidebar. Compact drawing icons use 38 px targets with accessible names and grouped Undo/Redo; contextual help opens on tap. Glyph selection lives in its own panel, reached from an always-visible drawing-strip Glyphs button. Dock it on wide screens (1200px+); use an overlay on smaller screens. Never nest the palette scroll box inside the settings scroller.
 
 - Support touch-friendly hit targets and give visible selection/editing feedback. Paint and Eraser consistently select their named tool; repeated taps must not toggle to the other tool. Disable those two controls during read-only preview and name the current drawing tool in the canvas hint.
 
