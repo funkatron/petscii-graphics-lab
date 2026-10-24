@@ -22,7 +22,7 @@ test('ZIP replay preserves recorded erasures, timing, source project and repeat 
  await loadProject(page,project([160,'',''],3,1,{drawingReplay:recording}));await ui(page,'#gifScale','selectOption','1');
  const before=JSON.parse(await download(page,'#saveProject')),buffer=await download(page,'#exportFrames'),s=unpack(buffer);
  expect(s.zip.getEntries().map(e=>e.entryName).sort()).toEqual(['README.txt','frames/frame-0001.png','frames/frame-0002.png','frames/frame-0003.png','frames/frame-0004.png','project.json','timing.json']);
- expect(s.timing).toMatchObject({format:'petscii-animation-frames',version:1,effect:'replay',width:24,height:8,columns:3,rows:1,pixelsPerCell:8,charset:0,background:'dark',loop:true,durationMs:4000,sourceProject:'project.json'});
+ expect(s.timing).toMatchObject({format:'petscii-animation-frames',version:2,effect:'replay',width:24,height:8,columns:3,rows:1,pixelsPerCell:8,glyphEncoding:'c64-atlas-id',background:'dark',loop:true,durationMs:4000,sourceProject:'project.json'});
  expect(s.timing.frames.map(f=>[f.startMs,f.durationMs])).toEqual([[0,1000],[1000,1000],[2000,1000],[3000,1000]]);
  expect(s.frames.map(p=>[pixel(p,4,4),pixel(p,20,4)])).toEqual([[dark,dark],[dark,ink],[ink,ink],[ink,dark]]);
  expect(JSON.parse(s.zip.readAsText('project.json'))).toEqual(before);expect(s.zip.readAsText('README.txt')).toContain('do not assume a fixed frame rate');
@@ -33,7 +33,7 @@ test('transparent PNG sequences retain both banks and verbatim inverse glyphs',a
  const svg=fs.readFileSync('assets/c64-glyphs.svg','utf8');
  for(const bank of [0,1]){
   await loadProject(page,project([0,128,''],3,1,{charset:bank}));await ui(page,'#animationEffect','selectOption','inverse');await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','transparent');
-  const s=unpack(await download(page,'#exportFrames'));expect(s.timing.charset).toBe(bank);expect(s.timing.background).toBe('transparent');
+  const s=unpack(await download(page,'#exportFrames'));expect(s.timing.glyphEncoding).toBe('c64-atlas-id');expect(s.timing.background).toBe('transparent');
   for(let f=0;f<2;f++)for(let cell=0;cell<2;cell++){
    const code=(cell*128)^(f*128),body=svg.match(new RegExp('<symbol id="c64-'+bank+'-'+code+'"[^>]*>([\\s\\S]*?)</symbol>'))[1];
    const expected=Array(64).fill(false);for(const r of body.matchAll(/<rect x="(\d+)" y="(\d+)" width="(\d+)" height="1"\/>/g))for(let x=+r[1];x<+r[1]+ +r[3];x++)expected[+r[2]*8+x]=true;
@@ -55,8 +55,8 @@ test('ZIP snapshots dimensions, bank, options and editable project before loadin
  const before=JSON.parse(await download(page,'#saveProject'));let release;const gate=new Promise(resolve=>release=resolve);let requested;const started=new Promise(resolve=>requested=resolve);
  await page.route('**/vendor/fflate-zip.esm.js',async r=>{requested();await gate;await r.continue()});
  const waiting=page.waitForEvent('download');await ui(page,'#exportFrames');await started;
- await ui(page,'#columns','selectOption','2');await ui(page,'#charset','selectOption','1');await ui(page,'#gifBackground','selectOption','white');release();
- const s=unpack(await contents(await waiting));expect(s.timing).toMatchObject({width:24,height:8,columns:3,charset:0,background:'dark'});expect(pixel(s.frames[0],4,4)).toEqual(ink);expect(pixel(s.frames[0],12,4)).toEqual(dark);expect(JSON.parse(s.zip.readAsText('project.json'))).toEqual(before);
+ await ui(page,'#columns','selectOption','2');await ui(page,'#showAlphanumerics','check');await ui(page,'#gifBackground','selectOption','white');release();
+ const s=unpack(await contents(await waiting));expect(s.timing).toMatchObject({width:24,height:8,columns:3,glyphEncoding:'c64-atlas-id',background:'dark'});expect(pixel(s.frames[0],4,4)).toEqual(ink);expect(pixel(s.frames[0],12,4)).toEqual(dark);expect(JSON.parse(s.zip.readAsText('project.json'))).toEqual(before);
  await expect(page.locator('#columns')).toHaveValue('2');expect(JSON.parse(await download(page,'#saveProject')).grid).toHaveLength(2);
 });
 test('canceling ZIP generation restores controls and permits a new export',async({page})=>{

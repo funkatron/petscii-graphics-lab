@@ -172,7 +172,7 @@ dialog::backdrop{background:#0009}
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
 <aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
 <div class="picker-heading"><div class="picker-title"><h2>Glyphs</h2><button id="glyphPin" aria-pressed="false" title="Keep glyphs beside the canvas">Pin</button><button id="glyphClose" aria-label="Close glyph picker">✕</button></div>
-<div class="field"><label for="charset">Character set (whole drawing)</label><select id="charset" aria-describedby="charsetScope"><option value="0">Graphics + uppercase</option><option value="1">Uppercase + lowercase</option></select></div><p class="note" id="charsetScope">Changing this replaces character shapes throughout the drawing. Undo restores the previous set.</p></div>
+</div>
 <div class="row"><label class="glyph-filter"><input id="showAlphanumerics" type="checkbox"> Show letters &amp; numbers</label></div><p id="hiddenGlyph" class="note" hidden>Selected glyph is outside this view. Choose a visible glyph, change Browse glyphs, or show letters &amp; numbers.</p>
 <div class="row"><div class="field"><label for="glyphFamily">Browse glyphs</label><select id="glyphFamily"><option value="similar" selected>Grouped by shape</option><option value="recent">Recently used</option><option value="favorites">Favorites</option><option value="blocks">Blocks</option><option value="lines">Lines</option><option value="corners">Corners</option><option value="diagonals">Diagonals</option><option value="symbols">Symbols</option></select></div><button id="favoriteGlyph" aria-pressed="false" title="Favorite the selected glyph">☆</button></div><div id="palette" class="palette"></div><p id="glyphEmpty" class="note" hidden>No glyphs here yet. Choose a glyph, or tap ☆ to keep it in Favorites.</p>
 <details id="glyphOptions" class="help-disclosure"><summary>Character options <span id="sourceBadge" class="summary-badge">C64</span></summary>
@@ -203,11 +203,11 @@ dialog::backdrop{background:#0009}
 <div class="field"><label for="c64Mode">C64 program</label><select id="c64Mode"><option value="still">Still drawing</option><option value="animation">Selected animation</option></select></div>
 <div class="field"><label for="c64Format">C64 file format</label><select id="c64Format"><option value="prg">Program (.prg)</option><option value="d64">Disk image (.d64)</option></select></div><p class="note" id="c64DiskHelp" hidden>Virtual 1541 disk containing PICTURE or ANIMATION. Attach as device 8, then LOAD "*",8,1 and RUN. The disk contains the same player as the PRG download.</p>
 <div id="c64LoopSettings" hidden><div class="field"><label for="c64Repeats">C64 repetitions (0 = continuous)</label><input id="c64Repeats" type="number" min="0" max="100" step="1" inputmode="numeric" value="0"></div><p class="note" id="c64MotionSummary"></p></div>
-<button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note">Runs on a standard C64 or emulator. Up to 40 × 25 cells, placed at the top left. Uses the canvas background and the C64’s own character ROM. Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
+<button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note">Runs on a standard C64 or emulator. Up to 40 × 25 cells, placed at the top left. Uses the canvas background. Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
 <details class="help-disclosure" id="rawDataDetails"><summary>Raw bytes &amp; text</summary>
-<div class="row"><button id="text">Download text</button><button id="screenCodes">Screen codes (.bin)</button></div><button id="colorRam" class="full-width">Export color RAM (.bin)</button>
+<div class="row"><button id="text">Download text</button><button id="screenCodes">Glyph IDs (.bin)</button></div><button id="colorRam" class="full-width">Export color RAM (.bin)</button>
 <textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div></details>
-<details class="help-disclosure"><summary>Data formats</summary><p class="note">Screen-code text stores numeric glyph codes, dimensions and character set in a labeled hex grid, not PETSCII bytes. Text and screen codes omit colors; export color RAM separately (one index 0–15 per cell, row-major). JSON keeps all colors. Binary is row-major screen codes without dimensions or charset.</p></details>
+<details class="help-disclosure"><summary>Data formats</summary><p class="note">Glyph IDs select one of 512 source atlas slots across both C64 character sets. Text uses PETSCII-GLYPHS with three-digit hexadecimal IDs. Binary uses two bytes per cell, little-endian, with FFFF for empty. These are not native screen-code or PETSCII bytes. Color RAM stores one ink index per cell. JSON keeps the complete artwork.</p></details>
 </div></div>
 </div><figure id="downloadFigure"><canvas id="downloadPreview" aria-label="Artwork output preview"></canvas><figcaption id="downloadDimensions" class="note"></figcaption><p id="downloadDescription" class="note"></p></figure></div><div id="downloadStatus" class="status" role="status"></div><button id="cancelSheetDownload" hidden>Cancel export</button></dialog>
 <script>
@@ -287,18 +287,18 @@ function setColors(value={ink:14,background:6}){colors={...value};tileCache.clea
 for(const key of ['ink','background'])$(key+'Target').onclick=()=>{colorTarget=key;updateColorUI()};
 $('swapColors').onclick=()=>{if(colors.ink===colors.background)return;remember();setColors({ink:colors.background,background:colors.ink});drawPalette();redraw();setStatus('Brush and background swapped')};
 $('recolorDrawing').onclick=()=>{if(!grid.some((g,i)=>g!==''&&cellColors[i]!==colors.ink))return;remember();for(let i=0;i<grid.length;i++)if(grid[i]!==''&&cellColors[i]!==colors.ink){cellColors[i]=colors.ink;recordCell(i)}redraw();setStatus('Drawing recolored with brush ink')};
-let rom=null,charset=0,saveTimer=null,initialized=false,videoRepeats=1;
-const PROJECT_KEY='petscii-graphics-project-v2';
+let rom=null,saveTimer=null,initialized=false,videoRepeats=1;
+const PROJECT_KEY='petscii-graphics-project-v3';
 let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).fill(14),replayEventColors=[];
 let cellColors=Array(256).fill(14);
 let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0;
 let W=16,H=16,grid=Array(256).fill(''),glyph=64,erasing=false,painting=false,last=null,pointer=null,unit=20;
 function setStatus(s){$('status').textContent=s;$('downloadStatus').textContent=s}
 function romGlyphRows(code){
- if(!rom||!Number.isInteger(code)||code<0||code>255)return null;
+ if(!rom||!Number.isInteger(code)||code<0||code>511)return null;
  // The C64 4KB ROM has two 2048-byte sets, each with 256 8-byte glyphs.
  // Codes 128–255 are already inverse glyphs in the ROM. Do not invert twice.
- return rom.subarray(charset*2048+code*8,charset*2048+code*8+8);
+ return rom.subarray(code*8,code*8+8);
 }
 function romRects(code,x,y,pixel){
  const rows=romGlyphRows(code);if(!rows)return '';
@@ -308,7 +308,7 @@ function romRects(code,x,y,pixel){
 const tileCache=new Map();
 function romCanvasGlyph(target,code,x,y,s,ink=colors.ink){
  const rows=romGlyphRows(code);if(!rows)return;
- const key=charset+':'+code+':'+ink;
+ const key=code+':'+ink;
  let tile=tileCache.get(key);
  if(!tile){
   tile=document.createElement('canvas');tile.width=tile.height=8;
@@ -318,19 +318,25 @@ function romCanvasGlyph(target,code,x,y,s,ink=colors.ink){
  }
  target.imageSmoothingEnabled=false;target.drawImage(tile,0,0,8,8,x,y,s,s);
 }
-function alphanumericCode(code){const c=code%128;return (c>=1&&c<=26)||(c>=48&&c<=57)||(charset===1&&c>=65&&c<=90)}
+function alphanumericCode(code){const c=code%128;return (c>=1&&c<=26)||(c>=48&&c<=57)||(code>=256&&c>=65&&c<=90)}
+function glyphCatalog(){
+ const codes=Array.from({length:128},(_,i)=>[i,i+128]).flat();if(!rom)return codes;
+ const key=id=>rom.subarray(id*8,id*8+8).join(',');const seen=new Set(codes.map(key));
+ for(let c=256;c<384;c++)if(!seen.has(key(c))||!seen.has(key(c+128))){codes.push(c,c+128);seen.add(key(c));seen.add(key(c+128))}
+ return codes;
+}
 function graphicsCode(code){return !alphanumericCode(code)}
 function visibleGlyph(code){return $('showAlphanumerics').checked||graphicsCode(code)}
 let recentGlyphs=[],favoriteGlyphs=[],showGlyphCodes=false;
-try{const saved=JSON.parse(localStorage.getItem('petscii-glyph-browser'));for(const key of ['recent','favorites'])if(!Array.isArray(saved?.[key])||saved[key].some(g=>!Array.isArray(g)||g.length!==2||![0,1].includes(g[0])||!Number.isInteger(g[1])||g[1]<0||g[1]>255))throw Error();recentGlyphs=saved.recent.slice(0,16);favoriteGlyphs=saved.favorites.slice(0,512);showGlyphCodes=saved.showCodes===true}catch{}
+try{const saved=JSON.parse(localStorage.getItem('petscii-glyph-browser'));for(const key of ['recent','favorites'])if(!Array.isArray(saved?.[key])||saved[key].some(g=>!Array.isArray(g)||g.length!==2||g[0]!==0||!Number.isInteger(g[1])||g[1]<0||g[1]>511))throw Error();recentGlyphs=saved.recent.slice(0,16);favoriteGlyphs=saved.favorites.slice(0,512);showGlyphCodes=saved.showCodes===true}catch{}
 function saveGlyphBrowser(){try{localStorage.setItem('petscii-glyph-browser',JSON.stringify({recent:recentGlyphs,favorites:favoriteGlyphs,showCodes:showGlyphCodes}))}catch{}}
 $('showGlyphCodes').checked=showGlyphCodes;palette.classList.toggle('show-codes',showGlyphCodes);
 $('showGlyphCodes').onchange=()=>{showGlyphCodes=$('showGlyphCodes').checked;palette.classList.toggle('show-codes',showGlyphCodes);saveGlyphBrowser()};
-function chooseGlyph(code){glyph=code;erasing=false;recentGlyphs=[[charset,code],...recentGlyphs.filter(g=>g[0]!==charset||g[1]!==code)].slice(0,16);saveGlyphBrowser();drawPalette();selectedGlyph()}
+function chooseGlyph(code){glyph=code;erasing=false;recentGlyphs=[[0,code],...recentGlyphs.filter(g=>g[0]!==0||g[1]!==code)].slice(0,16);saveGlyphBrowser();drawPalette();selectedGlyph()}
 $('glyphFamily').onchange=drawPalette;
-$('favoriteGlyph').onclick=()=>{if(typeof glyph!=='number')return;const i=favoriteGlyphs.findIndex(g=>g[0]===charset&&g[1]===glyph);if(i<0)favoriteGlyphs.push([charset,glyph]);else favoriteGlyphs.splice(i,1);saveGlyphBrowser();drawPalette()};
+$('favoriteGlyph').onclick=()=>{if(typeof glyph!=='number')return;const i=favoriteGlyphs.findIndex(g=>g[0]===0&&g[1]===glyph);if(i<0)favoriteGlyphs.push([0,glyph]);else favoriteGlyphs.splice(i,1);saveGlyphBrowser();drawPalette()};
 function familyCodes(family){
- if(family==='recent'||family==='favorites')return (family==='recent'?recentGlyphs:favoriteGlyphs).filter(g=>g[0]===charset).map(g=>g[1]);
+ if(family==='recent'||family==='favorites')return (family==='recent'?recentGlyphs:favoriteGlyphs).filter(g=>g[0]===0).map(g=>g[1]);
  // Curated against the built-in uppercase/graphics sheet; inverses share families.
  const groups={blocks:[32,96,97,98,99,100,101,102,103,104,106,111,116,117,118,119,120,121,122,123,124,125,126,127],lines:[64,66,67,68,69,70,71,72,82,91,93,107,112,113,114,115],corners:[73,74,75,76,79,80,85,108,109,110],diagonals:[77,78,86,92,95,105],symbols:[65,81,83,87,88,90,94]};
  return groups[family]?.flatMap(c=>[c,c+128]).filter(graphicsCode);
@@ -340,16 +346,16 @@ function drawPalette(){
  if(rom){
   const groups=[];
   if($('glyphFamily').value==='similar'){
-   const seen=new Set(),pairedCodes=Array.from({length:128},(_,code)=>[code,code+128]).flat();
+   const seen=new Set(),pairedCodes=glyphCatalog();
    for(const [family,name] of [['blocks','Blocks'],['lines','Lines'],['corners','Corners'],['diagonals','Diagonals'],['symbols','Symbols']]){const codes=familyCodes(family).filter(code=>!seen.has(code));codes.forEach(code=>seen.add(code));if(codes.length)groups.push({family,name,codes})}
    const codes=pairedCodes.filter(code=>!seen.has(code)&&graphicsCode(code));if(codes.length)groups.push({family:'other',name:'Other symbols',codes});
-   if($('showAlphanumerics').checked)groups.push({family:'alphanumerics',name:'Letters & numbers',codes:pairedCodes.filter(alphanumericCode)});
+   if($('showAlphanumerics').checked)groups.push({family:'alphanumerics',name:'Letters & numbers',codes:[...Array.from({length:26},(_,i)=>[i+1,i+129,i+257,i+385]).flat(),...Array.from({length:10},(_,i)=>[i+48,i+176]).flat()]});
   }else groups.push({family:$('glyphFamily').value,codes:familyCodes($('glyphFamily').value)??[]});
   for(const group of groups){
    if(group.name){const heading=document.createElement('h3');heading.className='glyph-family';heading.textContent=group.name;palette.appendChild(heading)}
    for(const code of group.codes){
    if(!visibleGlyph(code))continue;
-   const btn=document.createElement('button');btn.className='glyph';btn.dataset.g=String(code);btn.dataset.family=group.family;btn.title='C64 screen code '+code;btn.setAttribute('aria-label',btn.title);
+   const btn=document.createElement('button');btn.className='glyph';btn.dataset.g=String(code);btn.dataset.family=group.family;btn.title='C64 glyph ID '+code;btn.setAttribute('aria-label',btn.title);
    const tile=document.createElement('canvas');tile.width=32;tile.height=32;tile.style.cssText='width:28px;height:28px;image-rendering:pixelated;background:#000';
    romCanvasGlyph(tile.getContext('2d'),code,0,0,32,1);btn.appendChild(tile);const label=document.createElement('small');label.textContent=code.toString(16).padStart(2,'0').toUpperCase();btn.appendChild(label);
    btn.onclick=()=>chooseGlyph(code);palette.appendChild(btn);
@@ -359,7 +365,7 @@ function drawPalette(){
  $('glyphEmpty').hidden=!!palette.querySelector('button');refresh();
 }
 $('showAlphanumerics').onchange=drawPalette;
-$('charset').onchange=()=>{remember();charset=Number($('charset').value);drawPalette();redraw();setStatus('Character set changed')};
+
 function updateSourceInfo(){
  $('romInfo').textContent=rom?'Built-in C64 SVG glyphs active. Both character sets and inverse slots included.':'C64 glyphs unavailable; reload glyphs to use the authentic set.';
  $('retryGlyphs').hidden=!!rom;for(const id of ['paint','border','checker'])$(id).disabled=!rom;$('sourceBadge').textContent=rom?'C64':'Unavailable';if(!rom){$('glyphOptions').open=true;setGlyphPicker(true)}
@@ -395,7 +401,7 @@ function fit(){
  redraw();
 }
 function textGrid(){
- return '# PETSCII-GRID 1 '+W+' '+H+' '+charset+'\n'+Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map(g=>g===''?'--':g.toString(16).padStart(2,'0').toUpperCase()).join(' ')).join('\n');
+ return '# PETSCII-GLYPHS 1 '+W+' '+H+'\n'+Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map(g=>g===''?'--':g.toString(16).padStart(3,'0').toUpperCase()).join(' ')).join('\n');
 }
 // Draw in backing-store pixels to avoid stale HiDPI transforms after WebKit canvas resizing.
 function renderGrid(cells,inks=cellColors){
@@ -556,7 +562,7 @@ function animationExportSnapshot(){
  const warning=animationPlan(s).warning;if(warning)throw Error(warning);
  if(!rom&&numeric)throw Error('Reload C64 glyphs before exporting animation');
  if(s.grid.every(g=>g==='')&&!s.events.length)throw Error('Draw something first, then export an animation');
- return {s,bank:charset,bits:rom?.slice(),project:projectData()};
+ return {s,bits:rom?.slice(),project:projectData()};
 }
 function animationExportFrames(s){
  let elapsed=0;return Array.from({length:animationCount(s)},(_,index)=>{
@@ -564,13 +570,13 @@ function animationExportFrames(s){
   return {index,startMs,durationMs:Math.round(elapsed/10)*10-startMs};
  });
 }
-function animationRaster({s,bank,bits}){
+function animationRaster({s,bits}){
  const cell=8*s.scale,width=s.W*cell,height=s.H*cell,tiles=new Map();
  const colors=[s.background==='white'?[255,255,255]:colorRGB(C64_COLORS[s.colors.background][1]),...C64_COLORS.map(([,hex])=>colorRGB(hex))];
  function tileFor(g){
   if(tiles.has(g))return tiles.get(g);const tile=new Uint8Array(cell*cell);
   if(typeof g==='number'){
-   const rows=bits.subarray(bank*2048+g*8,bank*2048+g*8+8);
+   const rows=bits.subarray(g*8,g*8+8);
    for(let y=0;y<cell;y++)for(let x=0;x<cell;x++)tile[y*cell+x]=rows[Math.floor(y/s.scale)]&(128>>Math.floor(x/s.scale))?1:0;
   }
   tiles.set(g,tile);return tile;
@@ -640,7 +646,7 @@ async function exportAnimation(kind){
   if(kind==='gif'){gif.finish();blob=new Blob([gif.bytes()],{type:'image/gif'})}
   else if(kind==='video'){setStatus('Finalizing video…');blob=await video.finish()}
   else{
-   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:1,effect:s.effect,colorEffect:s.colorEffect,motionCycles:s.motionCycles,colorCycles:s.colorCycles,scrollDirection:s.scrollDirection,waveDirection:s.waveDirection,waveShape:s.waveShape,colorWaveDirection:s.colorWaveDirection,colorWaveShape:s.colorWaveShape,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,charset:snapshot.bank,background:s.background,colorPalette:'pepto-pal',colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
+   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:2,effect:s.effect,colorEffect:s.colorEffect,motionCycles:s.motionCycles,colorCycles:s.colorCycles,scrollDirection:s.scrollDirection,waveDirection:s.waveDirection,waveShape:s.waveShape,colorWaveDirection:s.colorWaveDirection,colorWaveShape:s.colorWaveShape,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,glyphEncoding:'c64-atlas-id',background:s.background,colorPalette:'pepto-pal',colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
    addFile('timing.json',text.encode(JSON.stringify(manifest,null,2)+'\n'));
    addFile('project.json',text.encode(JSON.stringify(snapshot.project,null,2)+'\n'));
    addFile('README.txt',text.encode("PETSCII Graphics Lab: PNG animation frames\n\nSTART HERE\n1. Open frames/ to find the numbered PNG pictures in playback order.\n2. Keep timing.json with the pictures. It gives each frame's startMs\n   (start time) and durationMs (how long to show it), in milliseconds.\n3. To edit the artwork again, open project.json in PETSCII Graphics Lab.\n\nTIMING\nFrame durations can differ: do not assume a fixed frame rate.\nThe durationMs values add up to one complete loop.\nDrawing replay holds the finished picture for the last quarter of each replay cycle.\nLong replays use selected points from the recording, matching GIF export.\n\nWHAT THESE FILES ARE\nEach PNG is a complete picture without editing grid lines.\nThese are image frames for modern software, not runnable C64 programs.\nFor runnable C64 programs and binary data, see the C64 output guide.\n\nEditor: https://funkatron.github.io/petscii-graphics-lab/\nC64 guide: https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md\n"));
@@ -659,10 +665,10 @@ $('exportGif').onclick=()=>exportAnimation('gif');
 $('exportFrames').onclick=()=>exportAnimation('zip');
 $('exportVideo').onclick=()=>exportAnimation('video');
 const undoStack=[],redoStack=[];
-function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),charset,glyph,erasing,colors:{...colors},symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
+function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),glyph,erasing,colors:{...colors},symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
 function remember(){stopAnimation();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
-function restore(state){stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();charset=state.charset;glyph=state.glyph;erasing=state.erasing;$('charset').value=String(charset);$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
+function restore(state){stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 function paint(x,y){
@@ -686,7 +692,7 @@ function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 function updateDrawingHint(){$('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':erasing?'Eraser · Drag to remove cells. Choose Paint to draw.':'Paint · '+C64_COLORS[colors.ink][0]+' ink · Drag to draw.'}
-function refresh(){updateDrawingHint();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');$('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;$('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');$('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(!erasing));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===charset&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
+function refresh(){updateDrawingHint();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');$('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;$('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');$('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(!erasing));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===0&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};
 $('paint').onclick=()=>{erasing=false;refresh()};$('erase').onclick=()=>{erasing=true;refresh()};
 $('clear').onclick=()=>{remember();grid.fill('');cellColors.fill(colors.ink);resetReplay();redraw();setStatus('Canvas cleared')};
@@ -746,7 +752,7 @@ $('exportC64').onclick=async()=>{
  const moving=$('c64Mode').value==='animation',repetitions=moving?Number($('c64Repeats').value):1,format=$('c64Format').value;
  const outputLabel=format==='d64'?'C64 disk':'C64 program';
  if((moving&&$('c64Repeats').value.trim()==='')||!Number.isInteger(repetitions)||repetitions<0||repetitions>100){setStatus('C64 repetitions must be a whole number from 0 to 100');$('c64Repeats').focus();return}
- const source=animationSource(),s={...source,grid:source.grid.slice(),inks:source.inks.slice(),base:source.base.slice(),baseColors:source.baseColors.slice(),events:source.events.map(e=>e.slice()),eventColors:source.eventColors.slice()},bank=charset;
+ const source=animationSource(),s={...source,grid:source.grid.slice(),inks:source.inks.slice(),base:source.base.slice(),baseColors:source.baseColors.slice(),events:source.events.map(e=>e.slice()),eventColors:source.eventColors.slice()},glyphBits=rom?.slice();
  const key=JSON.stringify({project:projectData(),moving,repetitions,format}),cached=animationDownloads.c64;
  if(cached?.key===key){downloadReadyFile(cached);setStatus(outputLabel+' download requested');return}
  const task={cancelled:false};animationExportTask=task;
@@ -756,7 +762,7 @@ $('exportC64').onclick=async()=>{
   if(moving&&animationPlan(s).warning)throw Error(animationPlan(s).warning);
   const {createC64Program,createD64Disk}=await import('./c64-export.js');if(task.cancelled)throw Error('Export canceled');
   const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}];
-  const result=createC64Program({columns:s.W,rows:s.H,charset:bank,background:s.colors.background,ink:s.colors.ink,frames,repetitions});if(task.cancelled)throw Error('Export canceled');
+  const result=createC64Program({columns:s.W,rows:s.H,charset:0,background:s.colors.background,ink:s.colors.ink,frames,repetitions,...(frames.some(f=>f.cells.some(g=>g>255))?{glyphBits}:{})});if(task.cancelled)throw Error('Export canceled');
   const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
   const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:'petscii-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
   animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?'C64 disk ready':'C64 program ready';setStatus('C64 '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.');
@@ -765,37 +771,38 @@ $('exportC64').onclick=async()=>{
 };
 $('colorRam').onclick=()=>{download('c64-colors-'+W+'x'+H+'.bin',Uint8Array.from(cellColors),'application/octet-stream');setStatus('Downloaded color RAM (one palette index per cell, row-major)')};
 $('screenCodes').onclick=()=>{
- const bytes=Uint8Array.from(grid,g=>typeof g==='number'?g:32);
+ const bytes=new Uint8Array(grid.length*2),view=new DataView(bytes.buffer);grid.forEach((g,i)=>view.setUint16(i*2,g===''?65535:g,true));
  const blob=new Blob([bytes],{type:'application/octet-stream'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download='c64-screen-'+W+'x'+H+'.bin';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);
- setStatus('Downloaded screen-code grid (row-major)');
+ a.href=url;a.download='c64-glyph-ids-'+W+'x'+H+'.bin';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);
+ setStatus('Downloaded glyph IDs (16-bit little-endian; FFFF = empty)');
 };
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(textGrid());setStatus('Text copied')}catch{setStatus('Select text to copy')}};
 $('import').onclick=()=>{
  try{
-  const lines=out.value.replace(/\r/g,'').split('\n'),header=lines.shift().match(/^# PETSCII-GRID 1 (\d+) (\d+) ([01])$/);
-  if(!header)throw Error('Use a labeled C64 screen-code grid');
-  const nw=Number(header[1]),nh=Number(header[2]),bank=Number(header[3]),next=[];
+  const lines=out.value.replace(/\r/g,'').split('\n'),header=lines.shift().match(/^# PETSCII-GLYPHS 1 (\d+) (\d+)$/);
+  if(!header)throw Error('Use a labeled PETSCII-GLYPHS grid');
+  const nw=Number(header[1]),nh=Number(header[2]),next=[];
   if(lines.length!==nh)throw Error('Incorrect row count');
-  for(const line of lines){const tokens=line.split(' ');if(tokens.length!==nw)throw Error('Incorrect column count');for(const t of tokens){if(t==='--')next.push('');else if(/^[0-9a-f]{2}$/i.test(t))next.push(parseInt(t,16));else throw Error('Invalid screen code')}}
-  validateProject({format:'petscii-stencil-lab',version:2,columns:nw,rows:nh,grid:next});
-  remember();W=nw;H=nh;grid=next;cellColors=Array(grid.length).fill(colors.ink);resetReplay();charset=bank;$('charset').value=String(bank);$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
+  for(const line of lines){const tokens=line.split(' ');if(tokens.length!==nw)throw Error('Incorrect column count');for(const t of tokens){if(t==='--')next.push('');else if(/^[0-9a-f]{3}$/i.test(t))next.push(parseInt(t,16));else throw Error('Invalid screen code')}}
+  validateProject({format:'petscii-stencil-lab',version:3,columns:nw,rows:nh,grid:next});
+  remember();W=nw;H=nh;grid=next;cellColors=Array(grid.length).fill(colors.ink);resetReplay();$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
  }catch(e){setStatus('Import failed: '+e.message)}
 };
-function projectData(){return {format:'petscii-stencil-lab',version:2,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,charset,glyphSource:'builtin',colors:{...colors},animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()}}}
+function projectData(){return {format:'petscii-stencil-lab',version:3,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()}}}
 function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()));$('saveStatus').textContent='Saved on this device';$('saveStatus').dataset.state='saved';$('saveFailure').hidden=true}catch{$('saveStatus').textContent='Not saved — download a project backup';$('saveStatus').dataset.state='failed';$('saveFailure').hidden=false;setStatus('Autosave unavailable; download JSON to keep your work')}}
 function validateProject(data){
  if(data?.colors!==undefined){const c=data.colors;if(!c||!['ink','background'].every(key=>Number.isInteger(c[key])&&c[key]>=0&&c[key]<16))throw Error('Invalid C64 colors')}
  if(data&&data.glyphSource!==undefined&&data.glyphSource!=='builtin')throw Error('Only built-in C64 glyph projects are supported');
- if(data?.selectedGlyph!==undefined&&(!Number.isInteger(data.selectedGlyph)||data.selectedGlyph<0||data.selectedGlyph>255))throw Error('Invalid selected C64 glyph');
- if(!data||data.format!=='petscii-stencil-lab'||data.version!==2)throw Error('Only version 2 C64 projects are supported');
+ if(data?.selectedGlyph!==undefined&&(!Number.isInteger(data.selectedGlyph)||data.selectedGlyph<0||data.selectedGlyph>511))throw Error('Invalid selected C64 glyph');
+ if(!data||data.format!=='petscii-stencil-lab'||data.version!==3)throw Error('Only version 3 unified glyph projects are supported');
+ if(data.charset!==undefined)throw Error('Whole-drawing character sets are no longer supported');
  if(!Number.isInteger(data.columns)||!Number.isInteger(data.rows)||data.columns<1||data.columns>40||data.rows<1||data.rows>40)throw Error('Invalid dimensions');
- if(!Array.isArray(data.grid)||data.grid.length!==data.columns*data.rows||data.grid.some(g=>g!==''&&!(Number.isInteger(g)&&g>=0&&g<=255)))throw Error('Invalid glyph grid: use numeric C64 screen codes or empty cells');
+ if(!Array.isArray(data.grid)||data.grid.length!==data.columns*data.rows||data.grid.some(g=>g!==''&&!(Number.isInteger(g)&&g>=0&&g<=511)))throw Error('Invalid glyph grid: use numeric atlas glyph IDs or empty cells');
  const validColor=c=>Number.isInteger(c)&&c>=0&&c<16;
  const validColors=(values,length)=>Array.isArray(values)&&values.length===length&&values.every(validColor);
  if(data.cellColors!==undefined&&!validColors(data.cellColors,data.grid.length))throw Error('Invalid cell colors');
- const validGlyph=g=>g===''||(Number.isInteger(g)&&g>=0&&g<=255);
+ const validGlyph=g=>g===''||(Number.isInteger(g)&&g>=0&&g<=511);
  if(data.drawingReplay!==undefined){const r=data.drawingReplay;if(!r||!Array.isArray(r.base)||r.base.length!==data.grid.length||r.base.some(g=>!validGlyph(g))||!Array.isArray(r.events)||r.events.length>20000||r.events.some(e=>!Array.isArray(e)||e.length!==2||!Number.isInteger(e[0])||e[0]<0||e[0]>=data.grid.length||!validGlyph(e[1])))throw Error('Invalid drawing replay');const end=r.base.slice();for(const [i,g] of r.events)end[i]=g;if(end.some((g,i)=>g!==data.grid[i]))throw Error('Replay does not match drawing')}
  if(data.drawingReplay){const r=data.drawingReplay;if((r.baseColors!==undefined&&!validColors(r.baseColors,data.grid.length))||(r.eventColors!==undefined&&!validColors(r.eventColors,r.events.length)))throw Error('Invalid replay colors');const ink=data.colors?.ink??14,end=r.baseColors?.slice()??Array(data.grid.length).fill(ink);r.events.forEach(([i],j)=>end[i]=r.eventColors?.[j]??ink);if(end.some((c,i)=>c!==(data.cellColors?.[i]??ink)))throw Error('Replay colors do not match drawing')}
  if(data.animation!==undefined){const a=data.animation;if(!a||['motionCycles','colorCycles'].some(key=>a[key]!==undefined&&!ANIMATION_CYCLES.includes(a[key]))||Object.entries({scrollDirection:WAVE_DIRECTIONS,waveDirection:WAVE_DIRECTIONS,waveShape:WAVE_SHAPES,colorWaveDirection:COLOR_WAVE_DIRECTIONS,colorWaveShape:WAVE_SHAPES}).some(([key,values])=>a[key]!==undefined&&!values.includes(a[key]))||!['none','replay','scroll-x','scroll-y','wave','inverse'].includes(a.effect)||(a.colorEffect!==undefined&&!['none',...Object.keys(COLOR_CYCLES)].includes(a.colorEffect))||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background)||(a.videoRepeats!==undefined&&!validVideoRepeats(a.videoRepeats)))throw Error('Invalid animation settings')}
@@ -804,8 +811,7 @@ function applyProject(data){
  stopAnimation();
 
  setColors(data.colors);W=data.columns;H=data.rows;grid=[...data.grid];cellColors=data.cellColors?.slice()??Array(grid.length).fill(colors.ink);if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice());replayBaseColors=data.drawingReplay.baseColors?.slice()??Array(grid.length).fill(colors.ink);replayEventColors=data.drawingReplay.eventColors?.slice()??Array(replayEvents.length).fill(colors.ink)}else resetReplay();setAnimationSettings(data.animation);$('columns').value=String(W);$('rows').value=String(H);
- glyph=Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=255?data.selectedGlyph:64;
- charset=data.charset===1?1:0;$('charset').value=String(charset);
+ glyph=Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=511?data.selectedGlyph:64;
  erasing=!!data.eraser;$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';drawPalette();fit();
 }
 window.addEventListener('pagehide',autosave);

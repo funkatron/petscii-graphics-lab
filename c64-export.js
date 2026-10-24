@@ -32,11 +32,25 @@ export function createD64Disk(prg,filename='PICTURE'){
 // Each frame: 16-bit 60 Hz duration, then changed repeated/literal runs.
 // [addressLo,addressHi,count,value]; count 0 means [length,...literalBytes] instead.
 // Address 0 ends a frame; duration 0 ends a loop; $FFFF redirects the stream. Frame zero initializes both planes once.
-export function createC64Program({columns,rows,charset,background,ink,frames,repetitions=0}){
+export function createC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits}){
  if(!Number.isInteger(columns)||columns<1||columns>40||!Number.isInteger(rows)||rows<1||rows>25)throw Error('C64 programs support up to 40 columns × 25 rows. Resize the canvas first.');
  if(![0,1].includes(charset)||![background,ink].every(c=>Number.isInteger(c)&&c>=0&&c<16))throw Error('Invalid C64 display settings');
  if(!Number.isInteger(repetitions)||repetitions<0||repetitions>100)throw Error('C64 repetitions must be a whole number from 0 to 100 (0 loops continuously)');
  if(!Array.isArray(frames)||!frames.length)throw Error('No C64 frames to export');
+ const custom=glyphBits!==undefined;
+ let characterBytes;
+ if(custom){
+  if(!(glyphBits instanceof Uint8Array)||glyphBits.length!==4096)throw Error('Invalid unified glyph data');
+  characterBytes=new Uint8Array(2048);const patterns=new Map([['0,0,0,0,0,0,0,0',0]]),codes=new Map();
+  frames=frames.map(frame=>({...frame,cells:frame.cells.map(g=>{
+   if(g==='')return g;
+   if(!Number.isInteger(g)||g<0||g>511)throw Error('Invalid unified glyph ID');
+   if(codes.has(g))return codes.get(g);
+   const rows=glyphBits.subarray(g*8,g*8+8),key=rows.join(',');let slot=patterns.get(key);
+   if(slot===undefined){slot=patterns.size;if(slot>=256)throw Error('C64 export supports 256 distinct patterns across the animation, including blank space. Use fewer different glyphs; image and video exports remain available.');patterns.set(key,slot);characterBytes.set(rows,slot*8)}
+   codes.set(g,slot);return slot;
+  })}));
+ }
  const stream=[];
  const changedRuns=(values,previous,address)=>{
   let cost=0;
@@ -64,15 +78,16 @@ export function createC64Program({columns,rows,charset,background,ink,frames,rep
   elapsed+=frame.durationMs;const endTick=Math.round(elapsed*60/1000),ticks=endTick-previousTick;previousTick=endTick;
   if(ticks<1||ticks>65534)throw Error('C64 frame duration is outside the supported range');
   stream.push(ticks&255,ticks>>8);
-  const screen=Array(1000).fill(32),colors=Array(1000).fill(ink);
-  for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=y*40+x;screen[d]=frame.cells[i]===''?32:frame.cells[i];colors[d]=frame.inks[i]}
-  const cost=changedRuns(screen,previousScreen,0x400)+changedRuns(colors,previousColors,0xd800)+2500;
+  const screen=Array(1000).fill(custom?0:32),colors=Array(1000).fill(ink);
+  for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=y*40+x;screen[d]=frame.cells[i]===''?(custom?0:32):frame.cells[i];colors[d]=frame.inks[i]}
+  if(custom&&!previousScreen)changedRuns(characterBytes,undefined,0xc800);
+  const cost=changedRuns(screen,previousScreen,custom?0xc400:0x400)+changedRuns(colors,previousColors,0xd800)+2500;
   if(previousScreen&&cost>ticks*985248/60)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
   stream.push(0,0);if(!firstScreen){firstScreen=screen;firstColors=colors;firstTicks=ticks;continuationOffset=stream.length}previousScreen=screen;previousColors=colors;
  }
  stream.push(0,0);
  const loopOffset=stream.length;stream.push(firstTicks&255,firstTicks>>8);
- const loopCost=changedRuns(firstScreen,previousScreen,0x400)+changedRuns(firstColors,previousColors,0xd800)+2500;
+ const loopCost=changedRuns(firstScreen,previousScreen,custom?0xc400:0x400)+changedRuns(firstColors,previousColors,0xd800)+2500;
  if(frames.length>1&&loopCost>firstTicks*985248/60)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
  stream.push(0,0,255,255);const continuationPointer=stream.length;stream.push(0,0);
  // Small label-aware emitter: operands/fixups are checked, including relative branch ranges.
@@ -84,8 +99,8 @@ export function createC64Program({columns,rows,charset,background,ink,frames,rep
  for(const address of registers){abs(0xad,address);emit(0x48)}
  emit(0xd8); // CLD: SYS callers should not leave decimal arithmetic enabled.
  abs(0xad,0xdd02);emit(0x09,3);abs(0x8d,0xdd02);
- abs(0xad,0xdd00);emit(0x09,3);abs(0x8d,0xdd00); // VIC bank 0.
- for(const [address,value] of [[0xd011,0x1b],[0xd016,8],[0xd018,charset?0x17:0x15],[0xd020,background],[0xd021,background],[0xcc,1],[0x0288,4]]){emit(0xa9,value);abs(0x8d,address)}
+ abs(0xad,0xdd00);emit(custom?0x29:0x09,custom?0xfc:3);abs(0x8d,0xdd00); // RAM glyphs use VIC bank 3; ROM glyphs use bank 0.
+ for(const [address,value] of [[0xd011,0x1b],[0xd016,8],[0xd018,custom?0x12:charset?0x17:0x15],[0xd020,background],[0xd021,background],[0xcc,1],[0x0288,custom?0xc4:4]]){emit(0xa9,value);abs(0x8d,address)}
  emit(0xa9,repetitions);abs(0x8d,'remaining');
  emit(0xa9,0);abs(0x8d,'started');
  immLabel(0xa9,'data');emit(0x85,0xfb);immLabel(0xa9,'data',true);emit(0x85,0xfc);abs(0x4c,'frame');

@@ -1,3 +1,4 @@
+const {glyphRows}=require('./glyph-reference.cjs');
 const {spawnSync}=require('node:child_process');
 const {ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
 function emulate(bytes,options={}){const r=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...bytes],stopAfterTicks:8,...options}),encoding:'utf8',maxBuffer:8e6});expect(r.status,r.stderr).toBe(0);return JSON.parse(r.stdout)}
@@ -5,7 +6,7 @@ test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[da
 test('PRG RUN entry displays both character sets, code zero, inverse slots and cell colors with 40-column stride',async({page})=>{
  for(const charset of [0,1]){
   const p=project([0,128,160,255],2,2,{charset,cellColors:[0,2,3,15],colors:{ink:14,background:0}});await loadProject(page,p);const before=JSON.parse(await download(page,'#saveProject')),bytes=await download(page,'#exportC64');expect([...bytes.slice(0,2)]).toEqual([1,8]);expect(bytes.toString('ascii',7,11)).toBe('2061');
-  const {snapshots,exitTick}=emulate(bytes),first=snapshots[0];expect(first.screen.slice(0,2)).toEqual([0,128]);expect(first.screen.slice(40,42)).toEqual([160,255]);expect(first.screen[2]).toBe(32);expect(first.colors.slice(0,2)).toEqual([0,2]);expect(first.colors.slice(40,42)).toEqual([3,15]);expect(first.colors[999]).toBe(14);expect(first.registers.slice(0,7)).toEqual([0x97,0x3f,0x1b,8,charset?0x17:0x15,0,0]);expect(exitTick).toBe(8);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);expect(await download(page,'#exportC64')).toEqual(bytes);
+  const {snapshots,exitTick}=emulate(bytes),first=snapshots[0];if(charset===0){expect(first.screen.slice(0,2)).toEqual([0,128]);expect(first.screen.slice(40,42)).toEqual([160,255]);expect(first.screen[2]).toBe(32)}else{for(const [position,id] of [[0,256],[1,384],[40,416],[41,511]])expect(first.characters.slice(first.screen[position]*8,first.screen[position]*8+8)).toEqual(glyphRows(id));expect(first.screen[2]).toBe(0)}expect(first.colors.slice(0,2)).toEqual([0,2]);expect(first.colors.slice(40,42)).toEqual([3,15]);expect(first.colors[999]).toBe(14);expect(first.registers.slice(0,7)).toEqual([charset?0x94:0x97,0x3f,0x1b,8,charset?0x12:0x15,0,0]);expect(exitTick).toBeGreaterThanOrEqual(8);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);expect(await download(page,'#exportC64')).toEqual(bytes);
  }
 });
 test('C64 composite player executes two complete loops, holds its last frame, and survives clock-byte wrap on PAL/NTSC CPU speeds',async({page})=>{

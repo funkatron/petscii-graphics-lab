@@ -20,7 +20,7 @@ test('glyph picker is independent from tools, with single scrolling surface and 
  const overflow=await page.locator('#palette').evaluate(e=>getComputedStyle(e).overflowY);expect(overflow).toBe('visible');
  await page.locator('#glyphOptions > summary').click();const viewport=page.viewportSize();await page.setViewportSize({...viewport,height:480});const sidebarScroll=await page.locator('#sidebar').evaluate(e=>e.scrollTop);
  await page.locator('#glyphPicker').evaluate(e=>e.scrollBy(0,10000));expect(await page.locator('#glyphPicker').evaluate(e=>e.scrollTop)).toBeGreaterThan(0);expect(await page.locator('#sidebar').evaluate(e=>e.scrollTop)).toBe(sidebarScroll);await page.setViewportSize(viewport);
- await page.getByRole('button',{name:'C64 screen code 64',exact:true}).click();await expect(page.locator('#quickglyph')).toHaveText('#64');
+ await page.getByRole('button',{name:'C64 glyph ID 64',exact:true}).click();await expect(page.locator('#quickglyph')).toHaveText('#64');
  if(wide)await expect(page.locator('#glyphPicker')).toBeVisible();else{await expect(page.locator('#glyphPicker')).toBeHidden();await expect(page.locator('#glyphToggle')).toBeFocused()}
  if(wide)await page.locator('#glyphClose').click();
  await page.locator('#toggle').click();await expect(page.locator('#sidebar')).not.toBeVisible();await page.locator('#glyphToggle').click();await expect(page.locator('#glyphPicker')).toBeVisible();await page.keyboard.press('Escape');await expect(page.locator('#glyphPicker')).toBeHidden();await expect(page.locator('#glyphToggle')).toBeFocused();

@@ -2,7 +2,7 @@
 
 Use **Download artwork → C64 data** to create a runnable still or animation. Choose a direct PRG program or a D64 virtual floppy disk.
 
-The program includes a small player and your character/color data. It uses the C64’s own character ROM; it does not include another copy of that ROM.
+The program includes a small player and your character/color data. Source-bank-0 artwork uses the C64’s own character ROM. Mixed-bank artwork embeds only its required patterns in a RAM character set, allowing lowercase and full graphics in the same picture.
 
 ## Download a program
 
@@ -56,7 +56,8 @@ Start from ordinary C64 BASIC. The first player does not target cartridge enviro
 
 | Feature | Current behavior |
 | --- | --- |
-| Glyphs | Both authentic character sets, including inverse slots and screen code 0 |
+| Glyphs | Both authentic source sets together, including inverse slots and glyph ID 0 |
+| Mixed-bank character limit | At most 256 distinct patterns across all frames, including a reserved blank; images/video are unrestricted |
 | Colors | One foreground ink per cell and one shared background |
 | Still drawing | Original artwork, held until RUN/STOP |
 | Animation | Replay, scrolling, row/column waves, inverse, color effects, and their combinations |
@@ -92,7 +93,7 @@ Automated tests download the actual PRG and execute it with the independent **py
 - Rejection of unsupported sizes, invalid screen codes, excessive memory, invalid repeats, and excessive update work.
 - D64 directory, file-sector chains, allocation records, full/partial final sectors, and disk capacity. Tests extract the PRG independently, compare it byte for byte with the direct download, and execute the extracted program with py65.
 
-The tests simulate the clock and documented KERNAL calls. **The py65 tests do not emulate the VIC-II/CIA chips, actual KERNAL ROM, disk loading, or a physical C64.** A separate [full VICE suite](vice-validation.md) now covers representative machine-level cases: 16 scenarios passed, covering both character sets and full-screen workloads across PAL/NTSC, with no skips. Its STOP check injects the KERNAL scan result; physical key handling and hardware testing remain open.
+The tests simulate the clock and documented KERNAL calls. **The py65 tests do not emulate the VIC-II/CIA chips, actual KERNAL ROM, disk loading, or a physical C64.** Mixed-bank RAM output is checked against independent SVG patterns in py65. A separate [full VICE suite](vice-validation.md) covers the earlier ROM-backed path: 16 scenarios passed across PAL/NTSC, with no skips. Those results do not validate the new RAM-backed display path. Its STOP check injects the KERNAL scan result; full VICE checks for mixed-bank output, physical key handling and hardware testing remain open.
 
 The D64 writer was also checked locally with **VICE c1541 3.7.1**: disk validation and file extraction passed for partial sectors, exact 254-byte sector boundaries, track-density changes, and a full 664-block data area. Extracted files matched their inputs byte for byte. This checks disk structure; it is not a full emulated-drive loading test.
 
@@ -104,16 +105,16 @@ Open **Raw bytes & text** under **C64 data** for these separate data downloads.
 
 | Download | Contents | Size |
 | --- | --- | --- |
-| **Screen codes (.bin)** | One character-selection number per cell | Columns × rows bytes |
+| **Glyph IDs (.bin)** | One two-byte little-endian atlas ID (0–511) per cell | Columns × rows × 2 bytes |
 | **Color RAM (.bin)** | One foreground color number, 0–15, per cell | Columns × rows bytes |
 
-Both list cells left to right, then top to bottom. A 40×25 drawing produces two files of 1,000 bytes each. Empty cells use screen code 32; their color entries remain included.
+Both list cells left to right, then top to bottom. A 40×25 drawing produces 2,000 glyph-ID bytes and 1,000 color bytes. Empty glyph cells use FFFF; their color entries remain included. IDs are source bank × 256 + screen code, not native screen-memory bytes.
 
-The raw files omit dimensions, character set, background, timing, and animation. Keep an editable JSON project with them. **Renaming `.bin` to `.prg` will not make it runnable.** Use the program download for that.
+The raw files omit dimensions, background, timing, and animation. Keep an editable JSON project with them. **Renaming `.bin` to `.prg` will not make it runnable.** Use the program download to map glyph IDs and build any required RAM character set.
 
 ## Display memory reference
 
-A normal C64 screen has 40 cells per row and 25 rows. Smaller raw grids need row-by-row placement with a 40-byte destination stride.
+A normal C64 screen has 40 cells per row and 25 rows. The player maps editor IDs to one-byte native screen slots, with a 40-byte destination stride.
 
 | Display data | Default address | Contents |
 | --- | --- | --- |
@@ -122,24 +123,13 @@ A normal C64 screen has 40 cells per row and 25 rows. Smaller raw grids need row
 | Background | `$D021` / 53281 | One shared color |
 | Character selection | `$D018` / 53272 | `$15` uppercase/graphics; `$17` lowercase/uppercase, in VIC bank 0 |
 
+Mixed-bank programs instead select VIC bank 3, screen memory `$C400`, character patterns `$C800`, and `$D018=$12`. The character set is built once from all sampled frames and stays fixed throughout playback. The exporter reserves one blank slot and refuses an over-limit animation instead of silently dropping shapes.
+
 See Commodore’s [screen/color memory description](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_3/page_101.html), [character memory table](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_3/page_104.html), and [background example](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_3/page_117.html).
 
-### Inspect raw data with the VICE monitor
+### Raw data is not screen memory
 
-For a fresh standard C64 emulation and a **40×25** drawing, download both raw files and rename them locally to `screen.bin` and `colors.bin`. Open the VICE monitor and change its working directory to that folder. Enter these monitor commands:
-
-```text
-radix H
-bload "screen.bin" 0 0400
-bload "colors.bin" 0 d800
-> d018 15
-> d021 06
-x
-```
-
-`0` selects the host computer’s files. `bload` reads raw data without discarding a two-byte load header. This example uses uppercase/graphics and Blue (6). For lowercase/uppercase, use `> d018 17`; replace `06` with your background’s hexadecimal color index.
-
-These commands follow the [VICE monitor manual](https://vice-emu.sourceforge.io/vice_12.html). They have not been executed as part of this exporter’s CPU tests. Avoid typing into the emulated screen afterward; BASIC can overwrite the picture.
+Do not load the two-byte glyph-ID file directly into C64 screen memory. It needs decoding and pattern-to-slot mapping first. Use the PRG or D64 download for a ready-to-run picture; use raw IDs for your own conversion tools.
 
 ## Next steps
 
