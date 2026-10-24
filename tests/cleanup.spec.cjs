@@ -10,6 +10,9 @@ test('help opens by keyboard, closes without painting, and returns focus',async(
 test('two endpoints draw one undoable line and keep Line selected after undo',async({page})=>{
  await loadProject(page,project(Array(16).fill(''),4,4,{selectedGlyph:160}));await ui(page,'#tool-line');await page.locator('#canvas').focus();await page.keyboard.press('Enter');await page.keyboard.press('ArrowRight');await page.keyboard.press('ArrowRight');await page.keyboard.press('Enter');let p=JSON.parse(await download(page,'#saveProject'));expect(p.grid.slice(0,4)).toEqual([160,160,160,'']);await ui(page,'#undo');await expect(page.locator('#tool-line')).toHaveAttribute('aria-pressed','true');expect(JSON.parse(await download(page,'#saveProject')).grid.every(g=>g==='')).toBe(true);
 });
+test('a secondary pointer cannot finish a pending two-tap shape',async({page})=>{
+ await loadProject(page,project(Array(16).fill(''),4,4,{selectedGlyph:160}));await ui(page,'#tool-line');await page.locator('#canvas').focus();await page.keyboard.press('Enter');await page.locator('#canvas').evaluate(c=>{const r=c.getBoundingClientRect();for(const type of ['pointerdown','pointerup'])c.dispatchEvent(new PointerEvent(type,{pointerId:22,pointerType:'touch',isPrimary:false,bubbles:true,cancelable:true,clientX:r.right-4,clientY:r.bottom-4}))});expect(JSON.parse(await download(page,'#saveProject')).grid.every(g=>g==='')).toBe(true);await ui(page,'#cancelTool');
+});
 test('C64 preflight reports geometry before attempting a download',async({page})=>{
  await loadProject(page,project(Array(26).fill(160),1,26));await ui(page,'#c64Mode','selectOption','still');await expect(page.locator('#c64Readiness')).toContainText('Needs adjustment');await expect(page.locator('#c64Readiness')).toContainText('40 × 25');
  await loadProject(page,project([160]));await expect(page.locator('#c64Readiness')).toContainText('Ready');await expect(page.locator('#c64Readiness')).toContainText('program bytes');
