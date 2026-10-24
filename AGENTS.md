@@ -59,7 +59,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - Ink opens an anchored palette without opening or scrolling settings. Preserve keyboard dismissal/focus and normal outside-click behavior. Glyph codes are optional device-local display labels; exact accessible code labels remain available.
 
-- Default glyph browsing groups similar shapes across code pages, with labeled families and adjacent inverse pairs. Include every allowed code once. Show letters & numbers is the only control that reveals letters and digits, defaults off, and is not changed by Inverse, imports, Undo, or glyph reload. Do not restore numeric code-page browsing.
+- Default glyph browsing groups similar shapes across code pages, with labeled families and adjacent inverse pairs. Include every allowed code once. Show letters & numbers is the only control that reveals letters and digits, defaults off, and is not changed by glyph selection, imports, Undo, or glyph reload. Do not restore numeric code-page browsing or a separate Inverse button. Select either inverse partner directly from the palette.
 
 - Glyph selection must show actual pixel-rendered C64 glyph previews, not depend on platform Unicode font substitution.
 

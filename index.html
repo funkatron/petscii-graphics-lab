@@ -85,7 +85,6 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 .picker-heading{display:flex;align-items:center;justify-content:space-between;position:sticky;top:-10px;background:#18263a;padding:5px 0;z-index:1}
 .picker-heading button{min-width:42px}
 #favoriteGlyph{flex:0 0 44px}
-.inverse-button{align-self:flex-end;font-size:.72rem;padding:8px}
 .glyph-backdrop{position:absolute;inset:0;z-index:6;border:0;border-radius:0;background:#0005;padding:0}
 @media(max-width:1199px){
  .glyph-picker{position:absolute;right:10px;top:10px;bottom:10px;width:min(420px,calc(100% - 20px));border:1px solid #54718c;border-radius:12px;z-index:7;box-shadow:0 10px 45px #0009}
@@ -171,7 +170,7 @@ dialog::backdrop{background:#0009}
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
 <aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
 <div class="picker-heading"><h2>Glyphs</h2><button id="glyphPin" aria-pressed="false" title="Keep glyphs beside the canvas">Pin</button><button id="glyphClose" aria-label="Close glyph picker">✕</button></div>
-<div class="row"><label class="glyph-filter"><input id="showAlphanumerics" type="checkbox"> Show letters &amp; numbers</label><button id="inverse" class="inverse-button" title="Select the inverse of the current glyph">Inverse</button></div><p id="hiddenGlyph" class="note" hidden>Selected glyph is outside this view. Choose a visible glyph, change Browse glyphs, or show letters &amp; numbers.</p>
+<div class="row"><label class="glyph-filter"><input id="showAlphanumerics" type="checkbox"> Show letters &amp; numbers</label></div><p id="hiddenGlyph" class="note" hidden>Selected glyph is outside this view. Choose a visible glyph, change Browse glyphs, or show letters &amp; numbers.</p>
 <div class="row"><div class="field"><label for="glyphFamily">Browse glyphs</label><select id="glyphFamily"><option value="similar" selected>Grouped by shape</option><option value="recent">Recently used</option><option value="favorites">Favorites</option><option value="blocks">Blocks</option><option value="lines">Lines</option><option value="corners">Corners</option><option value="diagonals">Diagonals</option><option value="symbols">Symbols</option></select></div><button id="favoriteGlyph" aria-pressed="false" title="Favorite the selected glyph">☆</button></div><div id="palette" class="palette"></div><p id="glyphEmpty" class="note" hidden>No glyphs here yet. Choose a glyph, or tap ☆ to keep it in Favorites.</p>
 <details id="glyphOptions" class="help-disclosure"><summary>Character options <span id="sourceBadge" class="summary-badge">C64</span></summary>
 
@@ -325,7 +324,7 @@ try{const saved=JSON.parse(localStorage.getItem('petscii-glyph-browser'));for(co
 function saveGlyphBrowser(){try{localStorage.setItem('petscii-glyph-browser',JSON.stringify({recent:recentGlyphs,favorites:favoriteGlyphs,showCodes:showGlyphCodes}))}catch{}}
 $('showGlyphCodes').checked=showGlyphCodes;palette.classList.toggle('show-codes',showGlyphCodes);
 $('showGlyphCodes').onchange=()=>{showGlyphCodes=$('showGlyphCodes').checked;palette.classList.toggle('show-codes',showGlyphCodes);saveGlyphBrowser()};
-function chooseGlyph(code,dismiss=true){glyph=code;erasing=false;recentGlyphs=[[charset,code],...recentGlyphs.filter(g=>g[0]!==charset||g[1]!==code)].slice(0,16);saveGlyphBrowser();drawPalette();if(dismiss)selectedGlyph()}
+function chooseGlyph(code){glyph=code;erasing=false;recentGlyphs=[[charset,code],...recentGlyphs.filter(g=>g[0]!==charset||g[1]!==code)].slice(0,16);saveGlyphBrowser();drawPalette();selectedGlyph()}
 $('glyphFamily').onchange=drawPalette;
 $('favoriteGlyph').onclick=()=>{if(typeof glyph!=='number')return;const i=favoriteGlyphs.findIndex(g=>g[0]===charset&&g[1]===glyph);if(i<0)favoriteGlyphs.push([charset,glyph]);else favoriteGlyphs.splice(i,1);saveGlyphBrowser();drawPalette()};
 function familyCodes(family){
@@ -339,10 +338,10 @@ function drawPalette(){
  if(rom){
   const groups=[];
   if($('glyphFamily').value==='similar'){
-   const seen=new Set();
+   const seen=new Set(),pairedCodes=Array.from({length:128},(_,code)=>[code,code+128]).flat();
    for(const [family,name] of [['blocks','Blocks'],['lines','Lines'],['corners','Corners'],['diagonals','Diagonals'],['symbols','Symbols']]){const codes=familyCodes(family).filter(code=>!seen.has(code));codes.forEach(code=>seen.add(code));if(codes.length)groups.push({family,name,codes})}
-   const codes=Array.from({length:256},(_,i)=>i).filter(code=>!seen.has(code)&&graphicsCode(code));if(codes.length)groups.push({family:'other',name:'Other symbols',codes});
-   if($('showAlphanumerics').checked)groups.push({family:'alphanumerics',name:'Letters & numbers',codes:Array.from({length:256},(_,i)=>i).filter(alphanumericCode)});
+   const codes=pairedCodes.filter(code=>!seen.has(code)&&graphicsCode(code));if(codes.length)groups.push({family:'other',name:'Other symbols',codes});
+   if($('showAlphanumerics').checked)groups.push({family:'alphanumerics',name:'Letters & numbers',codes:pairedCodes.filter(alphanumericCode)});
   }else groups.push({family:$('glyphFamily').value,codes:familyCodes($('glyphFamily').value)??[]});
   for(const group of groups){
    if(group.name){const heading=document.createElement('h3');heading.className='glyph-family';heading.textContent=group.name;palette.appendChild(heading)}
@@ -358,7 +357,6 @@ function drawPalette(){
  $('glyphEmpty').hidden=!!palette.querySelector('button');refresh();
 }
 $('showAlphanumerics').onchange=drawPalette;
-$('inverse').onclick=()=>{if(typeof glyph!=='number'){setStatus('Select a C64 glyph first');return}chooseGlyph((glyph+128)%256,false)};
 $('charset').onchange=()=>{remember();charset=Number($('charset').value);drawPalette();redraw();setStatus('Character set changed')};
 function updateSourceInfo(){
  $('romInfo').textContent=rom?'Built-in C64 SVG glyphs active. Both character sets and inverse slots included.':'C64 glyphs unavailable; reload glyphs to use the authentic set.';

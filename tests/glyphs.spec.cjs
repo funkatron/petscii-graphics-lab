@@ -7,13 +7,21 @@ function reference(){
  }return bytes;
 }
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
+test('every grouped category keeps inverse partners adjacent without a separate action',async({page})=>{
+ await expect(page.locator('#inverse, #glyphPage')).toHaveCount(0);
+ for(const bank of [0,1]){
+  await ui(page,'#charset','selectOption',String(bank));await ui(page,'#showAlphanumerics','check');
+  const groups=await page.locator('#palette button').evaluateAll(buttons=>{const result={};for(const b of buttons)(result[b.dataset.family]??=[]).push(Number(b.dataset.g));return result});
+  for(const codes of Object.values(groups)){expect(codes.length%2).toBe(0);for(let i=0;i<codes.length;i+=2)expect(codes[i+1]).toBe(codes[i]+128)}
+ }
+});
 test('palette filters letters, highlights selection, and selects inverse glyphs',async({page})=>{
  await expect(page.locator('#palette button')).toHaveCount(184);await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','64');
- await ui(page,'#inverse');await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','192');
+ await ui(page,'#palette [data-g="192"]');await expect(page.locator('#palette button.active')).toHaveAttribute('data-g','192');
  await ui(page,'#charset','selectOption','1');await expect(page.locator('#palette button')).toHaveCount(132);
  await ui(page,'#showAlphanumerics','check');await expect(page.locator('#palette button')).toHaveCount(256);
  await page.getByRole('button',{name:'C64 screen code 0',exact:true}).click();await expect(page.locator('#palette button.active')).toHaveAttribute('aria-pressed','true');
- await expect(page.locator('#paletteMode, #glyphPage')).toHaveCount(0);
+ await expect(page.locator('#paletteMode, #glyphPage, #inverse')).toHaveCount(0);
 });
 test('both banks and inverse slots match source pixels in canvas, SVG, and PNG',async({page})=>{
  const bytes=reference();await loadProject(page,project([0,128]));
