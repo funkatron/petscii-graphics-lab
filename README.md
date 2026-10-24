@@ -41,9 +41,9 @@ Choose one shape family, **Recently used**, or **Favorites** to narrow the view.
 
 On wide screens, the picker sits beside the canvas. On smaller screens, it appears over the canvas and closes after selection. **Pin** keeps it beside the canvas where space allows. Close it with **✕**, **Escape**, or the shaded area outside the picker.
 
-Open **Character options** for these choices:
+The **Character set (whole drawing)** control stays at the top of the glyph picker while you scroll. Choose **Graphics + uppercase** or **Uppercase + lowercase**. This changes character shapes throughout the drawing; **Undo** restores the previous set.
 
-- **Character set** switches between uppercase/graphics and lowercase/uppercase. This affects the whole drawing; **Undo** restores the previous set.
+Open **Character options** for optional code labels and glyph-source details.
 
 Choose either member of a light/dark pair directly from the palette. Both remain available with letters hidden, including the blank/solid-block pair. There is no separate Inverse button. The editor preserves the actual C64 inverse glyphs.
 
