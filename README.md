@@ -53,6 +53,24 @@ Glyph codes are hidden by default. Turn on **Character options → Show glyph co
 
 ## Draw, color, and resize
 
+### Drawing tools
+
+The drawing strip keeps the familiar tools beside the canvas. The selected tool is highlighted; labels remain visible.
+
+| Tool | Action |
+| --- | --- |
+| Paint / Eraser | Drag to draw or remove cells |
+| Fill | Tap to replace a connected region of matching glyph and ink; empty regions ignore ink |
+| Line / Rectangle | Drag to preview a straight line or outlined rectangle; release to apply |
+| Select | Drag a rectangular marquee, then drag inside it to move the region |
+| Duplicate | Select a region, choose Duplicate, then drag inside it to place a copy |
+| Delete | Remove the selected region |
+| Save stamp / Stamp | Save a selection, then place it repeatedly with its original glyphs and colors |
+
+Each completed drawing operation is one Undo step. Escape or an interrupted pointer gesture cancels a shape preview. Deselect clears the marquee. Moves preserve empty cells as well as artwork; duplicates and stamps treat empty cells as transparent. Placement stays within the canvas.
+
+Up to 32 stamps are saved on this device. They are separate from editable projects; clearing browser storage removes them. Remove stamp deletes the selected saved stamp. The canvas is read-only during animation preview.
+
 ### Change colors
 
 **Ink** opens a small palette beside the drawing controls, without opening settings. Choose a swatch to select it and close the palette; use **Escape**, **✕**, or tap outside to dismiss it. The canvas remains active when you tap outside.

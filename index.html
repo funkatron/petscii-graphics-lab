@@ -332,7 +332,7 @@ try{const saved=JSON.parse(localStorage.getItem('petscii-glyph-browser'));for(co
 function saveGlyphBrowser(){try{localStorage.setItem('petscii-glyph-browser',JSON.stringify({recent:recentGlyphs,favorites:favoriteGlyphs,showCodes:showGlyphCodes}))}catch{}}
 $('showGlyphCodes').checked=showGlyphCodes;palette.classList.toggle('show-codes',showGlyphCodes);
 $('showGlyphCodes').onchange=()=>{showGlyphCodes=$('showGlyphCodes').checked;palette.classList.toggle('show-codes',showGlyphCodes);saveGlyphBrowser()};
-function chooseGlyph(code){glyph=code;erasing=false;recentGlyphs=[[0,code],...recentGlyphs.filter(g=>g[0]!==0||g[1]!==code)].slice(0,16);saveGlyphBrowser();drawPalette();selectedGlyph()}
+function chooseGlyph(code){glyph=code;if(erasing)drawingTool='paint';erasing=false;recentGlyphs=[[0,code],...recentGlyphs.filter(g=>g[0]!==0||g[1]!==code)].slice(0,16);saveGlyphBrowser();drawPalette();selectedGlyph()}
 $('glyphFamily').onchange=drawPalette;
 $('favoriteGlyph').onclick=()=>{if(typeof glyph!=='number')return;const i=favoriteGlyphs.findIndex(g=>g[0]===0&&g[1]===glyph);if(i<0)favoriteGlyphs.push([0,glyph]);else favoriteGlyphs.splice(i,1);saveGlyphBrowser();drawPalette()};
 function familyCodes(family){
@@ -442,6 +442,7 @@ function updateResizeDraft(){
 }
 function redraw(){
  renderGrid(animationPreview?animationCells(animationFrame,animationSource()):grid);
+ if(!animationPreview)toolOutline(selection);
  out.value=textGrid();
  clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);
  $('dimensions').textContent=W+' × '+H;updateResizeDraft();updateDownloadPreview();
@@ -548,7 +549,7 @@ function toggleAnimation(){
  const warning=animationPlan(animationSource()).warning;if(warning){setStatus(warning);return}
  if(animationPlaying){pauseAnimation();return}
  if(grid.every(g=>g==='')&&!replayEvents.length){setStatus('Draw something first, then press Play');return}
- cancelStroke();animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
+ cancelToolDrag();selection=null;cancelStroke();animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
 }
 $('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
 $('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
@@ -666,9 +667,9 @@ $('exportFrames').onclick=()=>exportAnimation('zip');
 $('exportVideo').onclick=()=>exportAnimation('video');
 const undoStack=[],redoStack=[];
 function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),glyph,erasing,colors:{...colors},symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
-function remember(){stopAnimation();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
+function remember(){stopAnimation();selection=null;cancelToolDrag();updateToolPalette();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
-function restore(state){stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
+function restore(state){cancelToolDrag();selection=null;stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=erasing?'erase':'paint';$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 function paint(x,y){
@@ -679,7 +680,49 @@ function paint(x,y){
  if(sym==='both')pts.push([W-1-x,H-1-y]);
  for(const [a,b] of pts){const i=b*W+a,g=erasing?'':glyph;if(grid[i]!==g||cellColors[i]!==colors.ink){grid[i]=g;cellColors[i]=colors.ink;recordCell(i)}}
 }
-function position(e){const r=canvas.getBoundingClientRect();return [Math.floor((e.clientX-r.left)*W/r.width),Math.floor((e.clientY-r.top)*H/r.height)];}
+let drawingTool='paint',selection=null,toolDrag=null,stamps=[];
+const toolNames={fill:'▧ Fill',line:'╱ Line',rectangle:'□ Rectangle',select:'⬚ Select',stamp:'▦ Stamp'};
+const toolBar=document.createElement('div');toolBar.setAttribute('role','group');toolBar.setAttribute('aria-label','Drawing tools');toolBar.style.cssText='display:flex;gap:4px;flex-wrap:wrap';$('erase').after(toolBar);
+for(const [name,label] of Object.entries(toolNames)){const b=document.createElement('button');b.id='tool-'+name;b.textContent=label;b.setAttribute('aria-pressed','false');b.onclick=()=>setDrawingTool(name);toolBar.append(b)}
+const selectionBar=document.createElement('div');selectionBar.className='drawing-strip';selectionBar.hidden=true;selectionBar.innerHTML='<span id="selectionInfo"></span><button id="moveSelection">Move</button><button id="duplicateSelection">Duplicate</button><button id="deleteSelection">Delete</button><button id="saveStamp">Save stamp</button><button id="deselect">Deselect</button>';
+document.querySelector('.drawing-strip').after(selectionBar);
+const stampBar=document.createElement('div');stampBar.className='drawing-strip';stampBar.hidden=true;stampBar.innerHTML='<label for="stampChoice">Stamp</label><select id="stampChoice" aria-label="Saved stamp"></select><button id="removeStamp">Remove stamp</button><span>Drag to position; release to place. Empty cells are transparent.</span>';selectionBar.after(stampBar);
+try{const saved=JSON.parse(localStorage.getItem('petscii-stamps'));if(Array.isArray(saved))stamps=saved.filter(s=>Number.isInteger(s.w)&&s.w>0&&s.w<=40&&Number.isInteger(s.h)&&s.h>0&&s.h<=40&&Array.isArray(s.cells)&&s.cells.length===s.w*s.h&&s.cells.every(g=>g===''||Number.isInteger(g)&&g>=0&&g<512)&&Array.isArray(s.inks)&&s.inks.length===s.cells.length&&s.inks.every(c=>Number.isInteger(c)&&c>=0&&c<16)).slice(0,32)}catch{}
+function stampOptions(){const choice=$('stampChoice');choice.replaceChildren();stamps.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Stamp '+(i+1)+' · '+s.w+' × '+s.h;choice.append(o)});$('removeStamp').disabled=!stamps.length}
+function saveStamps(){try{localStorage.setItem('petscii-stamps',JSON.stringify(stamps));return true}catch{setStatus('Stamp storage unavailable; keep this tab open to use it.');return false}}
+stampOptions();
+function setDrawingTool(name){cancelToolDrag();cancelStroke();drawingTool=name;erasing=name==='erase';if(!['select','move','duplicate'].includes(name))selection=null;updateToolPalette();refresh();redraw()}
+function updateToolPalette(){for(const name of Object.keys(toolNames)){const b=$('tool-'+name);b.setAttribute('aria-pressed',String(drawingTool===name));b.classList.toggle('active',drawingTool===name);b.disabled=animationPreview||!rom}selectionBar.hidden=!selection||animationPreview;stampBar.hidden=drawingTool!=='stamp'||animationPreview;$('selectionInfo').textContent=selection?selection.w+' × '+selection.h+' selected':'';}
+function selectionData(){return {w:selection.w,h:selection.h,cells:Array.from({length:selection.w*selection.h},(_,i)=>grid[(selection.y+Math.floor(i/selection.w))*W+selection.x+i%selection.w]),inks:Array.from({length:selection.w*selection.h},(_,i)=>cellColors[(selection.y+Math.floor(i/selection.w))*W+selection.x+i%selection.w])}}
+function commitTool(cells,inks){if(cells.every((g,i)=>g===grid[i]&&inks[i]===cellColors[i]))return;remember();for(let i=0;i<cells.length;i++)if(cells[i]!==grid[i]||inks[i]!==cellColors[i]){grid[i]=cells[i];cellColors[i]=inks[i];recordCell(i)}redraw()}
+$('moveSelection').onclick=()=>{drawingTool='move';setStatus('Drag the selection to move it.');updateToolPalette()};
+$('duplicateSelection').onclick=()=>{drawingTool='duplicate';setStatus('Drag the selection to place a copy.');updateToolPalette()};
+$('deselect').onclick=()=>{selection=null;setDrawingTool('select')};
+$('deleteSelection').onclick=()=>{const cells=grid.slice(),inks=cellColors.slice();for(let y=selection.y;y<selection.y+selection.h;y++)for(let x=selection.x;x<selection.x+selection.w;x++){cells[y*W+x]='';inks[y*W+x]=colors.ink}commitTool(cells,inks);selection=null;updateToolPalette();redraw()};
+$('saveStamp').onclick=()=>{if(stamps.length>=32){setStatus('Up to 32 stamps can be saved. Remove one first.');return}stamps.push(selectionData());stampOptions();$('stampChoice').value=stamps.length-1;const saved=saveStamps();setDrawingTool('stamp');if(saved)setStatus('Stamp saved on this device.')};
+$('removeStamp').onclick=()=>{stamps.splice(Number($('stampChoice').value),1);saveStamps();stampOptions()};
+function toolOutline(r){if(!r)return;ctx.save();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.setLineDash([5,3]);ctx.strokeRect(r.x*canvas.width/W+1,r.y*canvas.height/H+1,r.w*canvas.width/W-2,r.h*canvas.height/H-2);ctx.restore()}
+function cancelToolDrag(){toolDrag=null;}
+function toolPreview(p){const d=toolDrag,cells=grid.slice(),inks=cellColors.slice(),put=(x,y,g=glyph,c=colors.ink)=>{if(x>=0&&y>=0&&x<W&&y<H){cells[y*W+x]=g;inks[y*W+x]=c}};
+ const x0=Math.min(d.start[0],p[0]),y0=Math.min(d.start[1],p[1]),x1=Math.max(d.start[0],p[0]),y1=Math.max(d.start[1],p[1]);
+ if(d.kind==='select')d.rect={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};
+ else if(d.kind==='line'){const n=Math.max(x1-x0,y1-y0,1);for(let i=0;i<=n;i++)put(Math.round(d.start[0]+(p[0]-d.start[0])*i/n),Math.round(d.start[1]+(p[1]-d.start[1])*i/n))}
+ else if(d.kind==='rectangle'){for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(x===x0||x===x1||y===y0||y===y1)put(x,y)}
+ else if(d.data){const s=d.data,x=Math.max(0,Math.min(W-s.w,p[0]-(d.offset?.[0]??0))),y=Math.max(0,Math.min(H-s.h,p[1]-(d.offset?.[1]??0)));d.rect={x,y,w:s.w,h:s.h};if(d.kind==='move')for(let yy=selection.y;yy<selection.y+selection.h;yy++)for(let xx=selection.x;xx<selection.x+selection.w;xx++)put(xx,yy,'');s.cells.forEach((g,i)=>{if(g!==''||d.kind==='move')put(x+i%s.w,y+Math.floor(i/s.w),g,s.inks[i])})}
+ d.cells=cells;d.inks=inks;renderGrid(cells,inks);toolOutline(d.rect);
+}
+function position(e){const r=canvas.getBoundingClientRect();return [Math.max(0,Math.min(W-1,Math.floor((e.clientX-r.left)*W/r.width))),Math.max(0,Math.min(H-1,Math.floor((e.clientY-r.top)*H/r.height)))];}
+canvas.addEventListener('pointerdown',e=>{
+ if(['paint','erase'].includes(drawingTool))return;e.stopImmediatePropagation();if(animationPreview||!rom||toolDrag||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;e.preventDefault();const p=position(e);
+ if(drawingTool==='fill'){const index=p[1]*W+p[0],target=grid[index],ink=cellColors[index],cells=grid.slice(),inks=cellColors.slice(),seen=new Set(),queue=[index];while(queue.length){const i=queue.pop();if(seen.has(i)||grid[i]!==target||(target!==''&&cellColors[i]!==ink))continue;seen.add(i);cells[i]=glyph;inks[i]=colors.ink;const x=i%W,y=Math.floor(i/W);if(x)queue.push(i-1);if(x<W-1)queue.push(i+1);if(y)queue.push(i-W);if(y<H-1)queue.push(i+W)}commitTool(cells,inks);return}
+ let kind=drawingTool,data,offset;if(['select','move','duplicate'].includes(kind)&&selection&&p[0]>=selection.x&&p[0]<selection.x+selection.w&&p[1]>=selection.y&&p[1]<selection.y+selection.h){data=selectionData();offset=[p[0]-selection.x,p[1]-selection.y];kind=kind==='duplicate'?'duplicate':'move'}else if(['select','move','duplicate'].includes(kind)){kind='select';selection=null}
+ if(kind==='stamp'){data=stamps[Number($('stampChoice').value)];if(!data){setStatus('Select a region and choose Save stamp first.');return}if(data.w>W||data.h>H){setStatus('This stamp is larger than the canvas.');return}}
+ toolDrag={kind,data,offset,start:p,id:e.pointerId};try{canvas.setPointerCapture(e.pointerId)}catch{}toolPreview(p);
+},true);
+canvas.addEventListener('pointermove',e=>{if(!toolDrag||toolDrag.id!==e.pointerId)return;e.stopImmediatePropagation();e.preventDefault();toolPreview(position(e))},true);
+function endTool(e){if(!toolDrag||toolDrag.id!==e.pointerId)return;e.stopImmediatePropagation();const d=toolDrag;if(e.type==='pointerup')toolPreview(position(e));toolDrag=null;try{canvas.releasePointerCapture(e.pointerId)}catch{}if(e.type==='pointerup'){if(d.kind!=='select')commitTool(d.cells,d.inks);if(d.rect&&['select','move','duplicate'].includes(d.kind))selection=d.rect;updateToolPalette()}redraw()}
+for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,endTool,true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(toolDrag||selection)){cancelToolDrag();selection=null;updateToolPalette();redraw()}});
 function stroke(a,b){
  const n=Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]),1);
  for(let i=0;i<=n;i++)paint(Math.round(a[0]+(b[0]-a[0])*i/n),Math.round(a[1]+(b[1]-a[1])*i/n));
@@ -691,10 +734,10 @@ function cancelStroke(){const active=pointer;painting=false;pointer=null;last=nu
 function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview&&e.type==='pointerup')stroke(last,position(e));cancelStroke();if(!animationPreview)setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
-function updateDrawingHint(){$('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':erasing?'Eraser · Drag to remove cells. Choose Paint to draw.':'Paint · '+C64_COLORS[colors.ink][0]+' ink · Drag to draw.'}
-function refresh(){updateDrawingHint();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');$('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;$('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');$('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(!erasing));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===0&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
+function updateDrawingHint(){updateToolPalette();$('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':!['paint','erase'].includes(drawingTool)?(toolNames[drawingTool]??drawingTool)+' · '+(drawingTool==='fill'?'Tap a connected region of matching glyph and ink.':'Drag on the canvas. Escape cancels a preview or selection.'):erasing?'Eraser · Drag to remove cells. Choose Paint to draw.':'Paint · '+C64_COLORS[colors.ink][0]+' ink · Drag to draw.'}
+function refresh(){updateDrawingHint();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');$('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;$('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');$('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(drawingTool==='paint'));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===0&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};
-$('paint').onclick=()=>{erasing=false;refresh()};$('erase').onclick=()=>{erasing=true;refresh()};
+$('paint').onclick=()=>setDrawingTool('paint');$('erase').onclick=()=>setDrawingTool('erase');
 $('clear').onclick=()=>{remember();grid.fill('');cellColors.fill(colors.ink);resetReplay();redraw();setStatus('Canvas cleared')};
 $('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1){grid[y*W+x]=glyph;cellColors[y*W+x]=colors.ink}resetReplay();redraw()};
 $('checker').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++){grid[y*W+x]=(x+y)%2?glyph:'';cellColors[y*W+x]=colors.ink}resetReplay();redraw()};
@@ -812,7 +855,7 @@ function applyProject(data){
 
  setColors(data.colors);W=data.columns;H=data.rows;grid=[...data.grid];cellColors=data.cellColors?.slice()??Array(grid.length).fill(colors.ink);if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice());replayBaseColors=data.drawingReplay.baseColors?.slice()??Array(grid.length).fill(colors.ink);replayEventColors=data.drawingReplay.eventColors?.slice()??Array(replayEvents.length).fill(colors.ink)}else resetReplay();setAnimationSettings(data.animation);$('columns').value=String(W);$('rows').value=String(H);
  glyph=Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=511?data.selectedGlyph:64;
- erasing=!!data.eraser;$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';drawPalette();fit();
+ erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';drawPalette();fit();
 }
 window.addEventListener('pagehide',autosave);
 $('saveProject').onclick=()=>{$('projectMenu').open=false;
