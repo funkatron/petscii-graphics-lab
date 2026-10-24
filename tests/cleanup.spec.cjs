@@ -20,6 +20,9 @@ test('C64 preflight reports geometry before attempting a download',async({page})
 test('keyboard export navigation checks readiness and modal help remains operable',async({page})=>{
  await ui(page,'#downloadOpen');await page.locator('#export-tab-still').focus();await page.keyboard.press('End');await expect(page.locator('#c64Readiness')).toContainText('Ready');const help=page.getByRole('button',{name:'Help about c64 exports'});await help.click();await expect(page.locator('#downloadDialog #contextHelp')).toBeVisible();await expect(page.locator('#closeHelp')).toBeFocused();await page.locator('#closeHelp').click();await expect(help).toBeFocused();
 });
+test('missing glyph data cannot produce a misleading Ready result',async({page})=>{
+ await page.route('**/assets/c64-glyphs.svg',r=>r.abort());await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#c64Mode','selectOption','still');await expect(page.locator('#c64Readiness')).toContainText('Unable to check');await expect(page.locator('#c64Readiness')).toContainText('Reload C64 glyphs');
+});
 test('second endpoint captures a mouse release outside the canvas',async({page})=>{
  await loadProject(page,project(Array(16).fill(''),4,4,{selectedGlyph:160}));await ui(page,'#tool-line');await page.locator('#tapPoints').check();const r=await page.locator('#canvas').boundingBox();await page.mouse.click(r.x+r.width*.1,r.y+r.height*.1);await page.mouse.move(r.x+r.width*.5,r.y+r.height*.5);await page.mouse.down();await page.mouse.move(r.x+r.width+12,r.y+r.height*.5);await page.mouse.up();const p=JSON.parse(await download(page,'#saveProject'));expect(p.grid.filter(g=>g===160).length).toBeGreaterThan(1);await expect(page.locator('#cancelTool')).toBeHidden();
 });
