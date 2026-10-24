@@ -15,10 +15,11 @@ test('canvas scales within frame and palette toggles',async({page})=>{
  const c=await canvas.boundingBox(),f=await frame.boundingBox();
  expect(c.width).toBeLessThanOrEqual(f.width);
  expect(c.height).toBeLessThanOrEqual(f.height);
+ const closed=await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed'));
  await ui(page,'#toggle');
- await expect(page.locator('#sidebar')).toHaveClass(/closed/);
+ expect(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed'))).toBe(!closed);
  await ui(page,'#toggle');
- await expect(page.locator('#sidebar')).not.toHaveClass(/closed/);
+ expect(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed'))).toBe(closed);
 });
 test('drag painting is undoable and redoable',async({page})=>{
  await paint(page);

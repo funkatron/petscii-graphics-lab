@@ -252,10 +252,12 @@ KERNAL call contracts: [STOP `$FFE1`](https://www.devili.iki.fi/Computers/Commod
 
 GitHub Actions uses the official `mcr.microsoft.com/playwright:v1.58.2-noble` image, matching the pinned npm package. Update both versions together. The image supplies browser builds and OS dependencies; installing them from the runner's slow Ubuntu mirror previously consumed the entire job deadline before tests began. FFmpeg and a Python virtual environment with `py65==1.2.0` provide independent export checks.
 
-Run CI with one worker for stable headless WebKit resource use. The two serial multi-effect/project-color scenarios have explicit 60-second limits; their assertions are unchanged. Playwright's 25-minute global timeout leaves time to upload reports inside the 30-minute job budget. Source: [Playwright CI guidance](https://playwright.dev/docs/ci) and [Docker image guidance](https://playwright.dev/docs/docker).
+Run CI with one worker for stable headless WebKit resource use. The two serial multi-effect/project-color scenarios have explicit 60-second limits; their assertions are unchanged. Each browser runs in a separate matrix job with one worker. Playwright's 20-minute per-browser global timeout leaves time to upload reports inside the 30-minute job budget; obsolete runs on the same ref are canceled automatically. Source: [Playwright CI guidance](https://playwright.dev/docs/ci) and [Docker image guidance](https://playwright.dev/docs/docker).
 
 ## Compact cleanup and C64 preflight
 
 Undo/Redo remain grouped. Selection actions float over the stage without changing canvas dimensions. Undo preserves the active tool; project loading restores its saved Paint/Eraser state. Tap endpoints and canvas arrow/Enter input provide alternatives to dragging. Help is a manually activated popover dialog with Close/Escape and focus return; canvas dismissal must consume the gesture. Portrait settings start closed.
 
 C64 `analyze:true` uses the same run encoder and work estimator, returns program size and worst update/budget ratio, and suppresses only memory/work rejection for diagnostics. Ordinary export still enforces both. Preflight snapshots source settings, invalidates stale async results and checks geometry/patterns before generation. Longer-loop remedies must pass the ordinary exporter and apply through history. Estimates are not hardware guarantees. Full PAL/NTSC 40 × 24 wave capacity expansion remains an investigation.
+
+Portrait iPad settings start closed and dock beside the canvas when opened, keeping artwork and export cancellation reachable. Phone settings retain their overlay behavior.

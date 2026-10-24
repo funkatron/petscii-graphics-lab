@@ -6,8 +6,15 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: browser-tests-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   playwright:
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, ipad-touch, ipad-portrait]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # Match @playwright/test in package-lock.json. Browsers and OS dependencies are included.
@@ -28,11 +35,11 @@ jobs:
           /tmp/petscii-test-venv/bin/python -m pip install py65==1.2.0
           echo "/tmp/petscii-test-venv/bin" >> "$GITHUB_PATH"
       - name: Run browser and export checks
-        run: npm test -- --workers=1 --global-timeout=1500000
+        run: npm test -- --project=${{ matrix.project }} --workers=1 --global-timeout=1200000
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: |
             playwright-report/
             test-results/
