@@ -33,20 +33,21 @@ The drawing strip stays visible when settings are hidden. Tap **☰** to show or
 
 ## Choose glyphs
 
-The editor includes **512 authentic 8×8 glyphs**: two character sets with 256 glyphs each. The default **Graphics only** view leaves out ordinary letters and digits. The authentic solid block (code 160) is included under **Blocks**.
+The editor includes **512 authentic 8×8 glyphs**: two character sets with 256 glyphs each. **Show letters & numbers** starts off, hiding letters and digits in both normal and inverse forms. Symbols, punctuation, blank space, and graphic shapes remain available. The authentic solid block (code 160) is included under **Blocks**.
 
-The default **Browse glyphs → Grouped by shape** view brings similar shapes together across screen-code pages: **Blocks**, **Lines**, **Corners**, **Diagonals**, **Symbols**, then **Other graphics**. Corresponding inverse shapes sit beside each other.
+The default **Browse glyphs → Grouped by shape** view brings similar shapes together across screen-code pages: **Blocks**, **Lines**, **Corners**, **Diagonals**, **Symbols**, then **Other symbols**. Corresponding inverse shapes sit beside each other.
 
-Choose one shape family, **Recently used**, or **Favorites** to narrow the view. **Jump to code page** switches to exact screen-code order; choose **Grouped by shape** to return. Tap **☆** to add the selected glyph to Favorites. Favorites and recent selections are stored on this device. Each character set has its own list.
+Choose one shape family, **Recently used**, or **Favorites** to narrow the view. Use **Show letters & numbers** to include them; in **Grouped by shape**, they appear in their own section. This filter also applies to Recently used and Favorites. Tap **☆** to add the selected glyph to Favorites. Favorites and recent selections are stored on this device. Each character set has its own list.
 
 On wide screens, the picker sits beside the canvas. On smaller screens, it appears over the canvas and closes after selection. **Pin** keeps it beside the canvas where space allows. Close it with **✕**, **Escape**, or the shaded area outside the picker.
 
 Open **Character options** for these choices:
 
-- **All screen codes** includes letters, numbers, and every code in the selected set.
 - **Character set** switches between uppercase/graphics and lowercase/uppercase. This affects the whole drawing; **Undo** restores the previous set.
 
-**Inverse ±128** selects the corresponding inverse slot. The editor preserves the actual C64 inverse glyphs.
+**Inverse** selects the corresponding inverse glyph and keeps the picker open. It preserves your browsing view and **Show letters & numbers** setting. It never enables letters automatically, including for blank/solid-block pairs. The editor preserves the actual C64 inverse glyphs.
+
+The letter toggle changes browsing only. Opening a project or using Undo preserves its artwork without turning the toggle on. If the current brush is outside the view, a notice explains how to find it. The toggle starts off again when the editor reloads.
 
 Glyph codes are hidden by default. Turn on **Character options → Show glyph codes (hex)** to display hexadecimal labels. The setting stays on this device. You can draw without learning those numbers. See [C64 terms and data](#c64-terms-and-data) when you need them.
 

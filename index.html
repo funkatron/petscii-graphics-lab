@@ -26,6 +26,7 @@ h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.08rem;l
 .sidebar{width:276px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:#18263a;border-right:1px solid #344761;padding:10px;transition:width .2s ease,padding .2s ease;scrollbar-width:thin}
 .sidebar.closed{width:0;padding:0;border:0;overflow:hidden}
 .color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}.color-grid button{min-height:44px;border:2px solid #66768a;font-weight:bold}.color-grid button[aria-pressed=true]{outline:3px solid #eef5fa;outline-offset:1px}#inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{background:#176655;border-color:#77ddc4}.color-chip{display:inline-block;width:14px;height:14px;border:1px solid #95a4b4;border-radius:3px;vertical-align:middle;margin-right:4px}.color-name{display:block;font-size:.67rem;margin-top:3px}#glyphPreview{background:var(--art-bg)}.glyph{color:var(--art-ink)}
+.glyph-filter{display:flex;align-items:center;gap:6px;min-height:44px;flex:1}.glyph-filter input{flex:none}
 .glyph-family{grid-column:1/-1;font-size:.78rem;color:#cbdbe7;margin:12px 0 3px;font-weight:600}
 .palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:5px;padding:2px}
 .glyph{height:44px;font-size:23px;padding:0;display:flex;align-items:center;justify-content:center;position:relative}
@@ -170,10 +171,10 @@ dialog::backdrop{background:#0009}
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
 <aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
 <div class="picker-heading"><h2>Glyphs</h2><button id="glyphPin" aria-pressed="false" title="Keep glyphs beside the canvas">Pin</button><button id="glyphClose" aria-label="Close glyph picker">✕</button></div>
-<div class="row"><div class="field"><label for="glyphPage">Jump to code page</label><select id="glyphPage"><option value="" disabled>Choose a code page…</option><option value="0">Codes 0–63</option><option value="1">Codes 64–127</option><option value="2">Codes 128–191</option><option value="3">Codes 192–255</option></select></div><button id="inverse" class="inverse-button" title="Select inverse character">Inverse ±128</button></div>
-<div class="row"><div class="field"><label for="glyphFamily">Browse glyphs</label><select id="glyphFamily"><option value="similar" selected>Grouped by shape</option><option value="page">Screen-code page</option><option value="recent">Recently used</option><option value="favorites">Favorites</option><option value="blocks">Blocks</option><option value="lines">Lines</option><option value="corners">Corners</option><option value="diagonals">Diagonals</option><option value="symbols">Symbols</option></select></div><button id="favoriteGlyph" aria-pressed="false" title="Favorite the selected glyph">☆</button></div><div id="palette" class="palette"></div><p id="glyphEmpty" class="note" hidden>No glyphs here yet. Choose a glyph, or tap ☆ to keep it in Favorites.</p>
+<div class="row"><label class="glyph-filter"><input id="showAlphanumerics" type="checkbox"> Show letters &amp; numbers</label><button id="inverse" class="inverse-button" title="Select the inverse of the current glyph">Inverse</button></div><p id="hiddenGlyph" class="note" hidden>Selected glyph is outside this view. Choose a visible glyph, change Browse glyphs, or show letters &amp; numbers.</p>
+<div class="row"><div class="field"><label for="glyphFamily">Browse glyphs</label><select id="glyphFamily"><option value="similar" selected>Grouped by shape</option><option value="recent">Recently used</option><option value="favorites">Favorites</option><option value="blocks">Blocks</option><option value="lines">Lines</option><option value="corners">Corners</option><option value="diagonals">Diagonals</option><option value="symbols">Symbols</option></select></div><button id="favoriteGlyph" aria-pressed="false" title="Favorite the selected glyph">☆</button></div><div id="palette" class="palette"></div><p id="glyphEmpty" class="note" hidden>No glyphs here yet. Choose a glyph, or tap ☆ to keep it in Favorites.</p>
 <details id="glyphOptions" class="help-disclosure"><summary>Character options <span id="sourceBadge" class="summary-badge">C64</span></summary>
-<div class="field"><label for="paletteMode">Palette</label><select id="paletteMode"><option value="graphics">Graphics only</option><option value="all">All screen codes</option></select></div>
+
 <div class="field"><label for="charset">Character set</label><select id="charset"><option value="0">Uppercase / graphics</option><option value="1">Lowercase / uppercase</option></select></div>
 <p><label><input id="showGlyphCodes" type="checkbox"> Show glyph codes (hex)</label></p>
 <p class="note" id="romInfo">Loading C64 glyphs…</p><button id="retryGlyphs" class="full-width" hidden>Reload C64 glyphs</button>
@@ -235,7 +236,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('inkPopover').mat
 function setGlyphPicker(open,focus=false){
  $('glyphPicker').hidden=!open;$('glyphToggle').setAttribute('aria-expanded',String(open));
  $('glyphBackdrop').hidden=!open||pickerDocked();
- requestAnimationFrame(()=>{fit();if(open&&focus){const selected=palette.querySelector('.active')||$('glyphPage');selected.focus({preventScroll:true});selected.scrollIntoView({block:'nearest'})}});
+ requestAnimationFrame(()=>{fit();if(open&&focus){const selected=palette.querySelector('.active')||$('glyphFamily');selected.focus({preventScroll:true});selected.scrollIntoView({block:'nearest'})}});
 }
 function selectedGlyph(){if(!pickerDocked()){setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})}}
 $('glyphToggle').onclick=()=>setGlyphPicker($('glyphPicker').hidden,true);
@@ -316,13 +317,15 @@ function romCanvasGlyph(target,code,x,y,s,ink=colors.ink){
  }
  target.imageSmoothingEnabled=false;target.drawImage(tile,0,0,8,8,x,y,s,s);
 }
-function graphicsCode(code){const c=code%128;return code===160||(c>=64&&(charset===0||c<65||c>90))}
+function alphanumericCode(code){const c=code%128;return (c>=1&&c<=26)||(c>=48&&c<=57)||(charset===1&&c>=65&&c<=90)}
+function graphicsCode(code){return !alphanumericCode(code)}
+function visibleGlyph(code){return $('showAlphanumerics').checked||graphicsCode(code)}
 let recentGlyphs=[],favoriteGlyphs=[],showGlyphCodes=false;
 try{const saved=JSON.parse(localStorage.getItem('petscii-glyph-browser'));for(const key of ['recent','favorites'])if(!Array.isArray(saved?.[key])||saved[key].some(g=>!Array.isArray(g)||g.length!==2||![0,1].includes(g[0])||!Number.isInteger(g[1])||g[1]<0||g[1]>255))throw Error();recentGlyphs=saved.recent.slice(0,16);favoriteGlyphs=saved.favorites.slice(0,512);showGlyphCodes=saved.showCodes===true}catch{}
 function saveGlyphBrowser(){try{localStorage.setItem('petscii-glyph-browser',JSON.stringify({recent:recentGlyphs,favorites:favoriteGlyphs,showCodes:showGlyphCodes}))}catch{}}
 $('showGlyphCodes').checked=showGlyphCodes;palette.classList.toggle('show-codes',showGlyphCodes);
 $('showGlyphCodes').onchange=()=>{showGlyphCodes=$('showGlyphCodes').checked;palette.classList.toggle('show-codes',showGlyphCodes);saveGlyphBrowser()};
-function chooseGlyph(code){glyph=code;erasing=false;recentGlyphs=[[charset,code],...recentGlyphs.filter(g=>g[0]!==charset||g[1]!==code)].slice(0,16);saveGlyphBrowser();drawPalette();selectedGlyph()}
+function chooseGlyph(code,dismiss=true){glyph=code;erasing=false;recentGlyphs=[[charset,code],...recentGlyphs.filter(g=>g[0]!==charset||g[1]!==code)].slice(0,16);saveGlyphBrowser();drawPalette();if(dismiss)selectedGlyph()}
 $('glyphFamily').onchange=drawPalette;
 $('favoriteGlyph').onclick=()=>{if(typeof glyph!=='number')return;const i=favoriteGlyphs.findIndex(g=>g[0]===charset&&g[1]===glyph);if(i<0)favoriteGlyphs.push([charset,glyph]);else favoriteGlyphs.splice(i,1);saveGlyphBrowser();drawPalette()};
 function familyCodes(family){
@@ -333,20 +336,18 @@ function familyCodes(family){
 }
 function drawPalette(){
  palette.innerHTML='';
- for(const o of $('glyphPage').options)if(o.value!=='')o.disabled=$('paletteMode').value==='graphics'&&!Array.from({length:64},(_,i)=>Number(o.value)*64+i).some(graphicsCode);
- if($('glyphFamily').value!=='page')$('glyphPage').value='';else if($('glyphPage').value===''||$('glyphPage').selectedOptions[0].disabled)$('glyphPage').value=String(Math.floor(glyph/64));
- if($('glyphFamily').value==='page'&&$('glyphPage').selectedOptions[0].disabled)$('glyphPage').value='1';
  if(rom){
-  const start=Number($('glyphPage').value)*64,groups=[];
+  const groups=[];
   if($('glyphFamily').value==='similar'){
    const seen=new Set();
    for(const [family,name] of [['blocks','Blocks'],['lines','Lines'],['corners','Corners'],['diagonals','Diagonals'],['symbols','Symbols']]){const codes=familyCodes(family).filter(code=>!seen.has(code));codes.forEach(code=>seen.add(code));if(codes.length)groups.push({family,name,codes})}
-   const codes=Array.from({length:256},(_,i)=>i).filter(code=>!seen.has(code)&&($('paletteMode').value==='all'||graphicsCode(code)));if(codes.length)groups.push({family:'other',name:$('paletteMode').value==='all'?'Other screen codes':'Other graphics',codes});
-  }else groups.push({family:$('glyphFamily').value,codes:familyCodes($('glyphFamily').value)??Array.from({length:64},(_,i)=>start+i)});
+   const codes=Array.from({length:256},(_,i)=>i).filter(code=>!seen.has(code)&&graphicsCode(code));if(codes.length)groups.push({family:'other',name:'Other symbols',codes});
+   if($('showAlphanumerics').checked)groups.push({family:'alphanumerics',name:'Letters & numbers',codes:Array.from({length:256},(_,i)=>i).filter(alphanumericCode)});
+  }else groups.push({family:$('glyphFamily').value,codes:familyCodes($('glyphFamily').value)??[]});
   for(const group of groups){
    if(group.name){const heading=document.createElement('h3');heading.className='glyph-family';heading.textContent=group.name;palette.appendChild(heading)}
    for(const code of group.codes){
-   if($('paletteMode').value==='graphics'&&!graphicsCode(code))continue;
+   if(!visibleGlyph(code))continue;
    const btn=document.createElement('button');btn.className='glyph';btn.dataset.g=String(code);btn.dataset.family=group.family;btn.title='C64 screen code '+code;btn.setAttribute('aria-label',btn.title);
    const tile=document.createElement('canvas');tile.width=32;tile.height=32;tile.style.cssText='width:28px;height:28px;image-rendering:pixelated;background:#000';
    romCanvasGlyph(tile.getContext('2d'),code,0,0,32,1);btn.appendChild(tile);const label=document.createElement('small');label.textContent=code.toString(16).padStart(2,'0').toUpperCase();btn.appendChild(label);
@@ -356,9 +357,8 @@ function drawPalette(){
  }
  $('glyphEmpty').hidden=!!palette.querySelector('button');refresh();
 }
-$('glyphPage').onchange=()=>{$('glyphFamily').value='page';drawPalette()};
-$('paletteMode').onchange=drawPalette;
-$('inverse').onclick=()=>{if(typeof glyph!=='number'){setStatus('Select a C64 glyph first');return}glyph=(glyph+128)%256;$('glyphFamily').value='page';if(!graphicsCode(glyph))$('paletteMode').value='all';$('glyphPage').value=String(Math.floor(glyph/64));erasing=false;drawPalette()};
+$('showAlphanumerics').onchange=drawPalette;
+$('inverse').onclick=()=>{if(typeof glyph!=='number'){setStatus('Select a C64 glyph first');return}chooseGlyph((glyph+128)%256,false)};
 $('charset').onchange=()=>{remember();charset=Number($('charset').value);drawPalette();redraw();setStatus('Character set changed')};
 function updateSourceInfo(){
  $('romInfo').textContent=rom?'Built-in C64 SVG glyphs active. Both character sets and inverse slots included.':'C64 glyphs unavailable; reload glyphs to use the authentic set.';
@@ -382,7 +382,7 @@ async function loadBuiltinGlyphs(){
  rom=bytes;tileCache.clear();
 }
 $('retryGlyphs').onclick=async()=>{
- try{await loadBuiltinGlyphs();if(typeof glyph!=='number')glyph=64;$('paletteMode').value=graphicsCode(glyph)?'graphics':'all';$('glyphPage').value=String(Math.floor(glyph/64));updateSourceInfo();drawPalette();redraw();setStatus('C64 glyphs loaded')}
+ try{await loadBuiltinGlyphs();if(typeof glyph!=='number')glyph=64;updateSourceInfo();drawPalette();redraw();setStatus('C64 glyphs loaded')}
  catch(e){setStatus(e.message)}
 };
 function fit(){
@@ -662,7 +662,7 @@ const undoStack=[],redoStack=[];
 function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),charset,glyph,erasing,colors:{...colors},symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
 function remember(){stopAnimation();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
-function restore(state){stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();charset=state.charset;glyph=state.glyph;erasing=state.erasing;$('charset').value=String(charset);$('sym').value=state.symmetry;$('glyphPage').value=typeof glyph==='number'?String(Math.floor(glyph/64)):'0';if(!graphicsCode(glyph))$('paletteMode').value='all';drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
+function restore(state){stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();charset=state.charset;glyph=state.glyph;erasing=state.erasing;$('charset').value=String(charset);$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 function paint(x,y){
@@ -686,7 +686,7 @@ function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 function updateDrawingHint(){$('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':erasing?'Eraser · Drag to remove cells. Choose Paint to draw.':'Paint · '+C64_COLORS[colors.ink][0]+' ink · Drag to draw.'}
-function refresh(){updateDrawingHint();$('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;$('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');$('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(!erasing));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===charset&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
+function refresh(){updateDrawingHint();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');$('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;$('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');$('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(!erasing));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===charset&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};
 $('paint').onclick=()=>{erasing=false;refresh()};$('erase').onclick=()=>{erasing=true;refresh()};
 $('clear').onclick=()=>{remember();grid.fill('');cellColors.fill(colors.ink);resetReplay();redraw();setStatus('Canvas cleared')};
@@ -805,8 +805,7 @@ function applyProject(data){
 
  setColors(data.colors);W=data.columns;H=data.rows;grid=[...data.grid];cellColors=data.cellColors?.slice()??Array(grid.length).fill(colors.ink);if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice());replayBaseColors=data.drawingReplay.baseColors?.slice()??Array(grid.length).fill(colors.ink);replayEventColors=data.drawingReplay.eventColors?.slice()??Array(replayEvents.length).fill(colors.ink)}else resetReplay();setAnimationSettings(data.animation);$('columns').value=String(W);$('rows').value=String(H);
  glyph=Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=255?data.selectedGlyph:64;
- charset=data.charset===1?1:0;$('charset').value=String(charset);$('glyphPage').value=typeof glyph==='number'?String(Math.floor(glyph/64)):'0';
- if(!graphicsCode(glyph))$('paletteMode').value='all';
+ charset=data.charset===1?1:0;$('charset').value=String(charset);
  erasing=!!data.eraser;$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';drawPalette();fit();
 }
 window.addEventListener('pagehide',autosave);
@@ -832,8 +831,8 @@ if(matchMedia('(max-width:690px)').matches){$('sidebar').classList.add('closed')
 for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(let n=1;n<=40;n++){const o=document.createElement('option');o.value=o.textContent=n;select.appendChild(o)}select.value='16'}
 // Do not autosave until the glyph asset and existing draft have been restored.
 $('sidebar').inert=true;$('glyphPicker').inert=true;$('glyphToggle').disabled=true;canvas.style.pointerEvents='none';
-try{await loadBuiltinGlyphs();glyph=64;$('glyphPage').value='1';updateSourceInfo()}catch{updateSourceInfo();setStatus('C64 glyphs unavailable. Reload glyphs to resume drawing.')}
+try{await loadBuiltinGlyphs();glyph=64;updateSourceInfo()}catch{updateSourceInfo();setStatus('C64 glyphs unavailable. Reload glyphs to resume drawing.')}
 try{const saved=JSON.parse(localStorage.getItem(PROJECT_KEY));if(saved){validateProject(saved);applyProject(saved);setStatus('Autosaved project restored'+(!rom&&grid.some(g=>typeof g==='number')?'; reload C64 glyphs to render codes':''))}}catch{setStatus('Saved draft could not be restored; load a JSON backup')}
-updateAnimationOptions();updateColorUI();initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
+$('showAlphanumerics').checked=false;updateAnimationOptions();updateColorUI();initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
 })();
 </script></body></html>

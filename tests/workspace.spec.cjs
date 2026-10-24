@@ -16,7 +16,7 @@ test('resize stages both dimensions, previews cropping, cancels and applies with
  await expect(page.locator('#dimensions')).toHaveText('1 × 1');let p=JSON.parse(await download(page,'#saveProject'));expect(p.cellColors).toEqual([2]);await ui(page,'#undo');p=JSON.parse(await download(page,'#saveProject'));expect(p.grid).toEqual([160,83,160,83]);expect(p.cellColors).toEqual([2,3,4,5]);await ui(page,'#redo');await expect(page.locator('#dimensions')).toHaveText('1 × 1');
 });
 test('glyph thumbnails stay legible in black ink; recent and favorite selection preserve bank',async({page})=>{
- await loadProject(page,project([160],1,1,{selectedGlyph:160,colors:{ink:0,background:0}}));await ui(page,'#glyphPage','selectOption','3');
+ await loadProject(page,project([160],1,1,{selectedGlyph:160,colors:{ink:0,background:0}}));await ui(page,'#glyphFamily','selectOption','similar');
  const tile=page.locator('#palette button[data-g="224"] canvas');const rgba=await tile.evaluate(c=>Array.from(c.getContext('2d').getImageData(0,0,c.width,c.height).data));expect(rgba.filter((_,i)=>i%4===0)).toContain(255);
  await page.locator('#palette button[data-g="224"]').click();await ui(page,'#favoriteGlyph');await ui(page,'#glyphFamily','selectOption','favorites');await expect(page.locator('#palette button[data-g="224"]')).toHaveCount(1);expect((await page.locator('#palette button').boundingBox()).width).toBeLessThan(70);
  await page.locator('#glyphFamily').selectOption('recent');await expect(page.locator('#palette button[data-g="224"]')).toHaveCount(1);await ui(page,'#charset','selectOption','1');await expect(page.locator('#palette button')).toHaveCount(0);await expect(page.locator('#glyphEmpty')).toBeVisible();await ui(page,'#charset','selectOption','0');await expect(page.locator('#palette button[data-g="224"]')).toHaveCount(1);
@@ -44,7 +44,7 @@ test('autosave failures stay visible on a small screen and do not prevent projec
 test('visual families include authentic graphics and inverse glyphs, with exact pages still accessible',async({page})=>{
  await ui(page,'#glyphFamily','selectOption','corners');await expect(page.locator('#palette button[data-g="75"]')).toHaveCount(1);await expect(page.locator('#palette button[data-g="203"]')).toHaveCount(1);
  await page.locator('#glyphFamily').selectOption('symbols');await expect(page.locator('#palette button[data-g="83"]')).toHaveCount(1);await expect(page.locator('#palette button[data-g="1"]')).toHaveCount(0);
- await page.locator('#glyphPage').selectOption('1');await expect(page.locator('#glyphFamily')).toHaveValue('page');await expect(page.locator('#palette button')).toHaveCount(64);
+ await page.locator('#glyphFamily').selectOption('similar');await expect(page.locator('#palette button')).toHaveCount(184);
 });
 
 test('quick ink selection leaves settings and artwork alone, dismisses safely, and is undoable',async({page})=>{
@@ -82,19 +82,32 @@ test('quick ink palette fits narrow and enlarged-text workspaces with usable tar
 
 test('default glyph browser groups similar shapes across code pages without duplicates or missing graphics',async({page})=>{
  await ui(page,'#glyphToggle');if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click();
- await expect(page.locator('#glyphFamily')).toHaveValue('similar');await expect(page.locator('#glyphPage')).toHaveValue('');
- await expect(page.locator('#palette .glyph-family')).toHaveText(['Blocks','Lines','Corners','Diagonals','Symbols','Other graphics']);
+ await expect(page.locator('#glyphFamily')).toHaveValue('similar');await expect(page.locator('#glyphPage, #paletteMode')).toHaveCount(0);await expect(page.locator('#showAlphanumerics')).not.toBeChecked();
+ await expect(page.locator('#palette .glyph-family')).toHaveText(['Blocks','Lines','Corners','Diagonals','Symbols','Other symbols']);
  for(const bank of [0,1]){
   if(bank)await ui(page,'#charset','selectOption','1');
   const codes=await page.locator('#palette button').evaluateAll(bs=>bs.map(b=>Number(b.dataset.g)));
-  const expected=Array.from({length:256},(_,i)=>i).filter(code=>code===160||(code%128>=64&&(!bank||code%128<65||code%128>90)));
+  const expected=Array.from({length:256},(_,i)=>i).filter(code=>{const c=code%128;return !((c>=1&&c<=26)||(c>=48&&c<=57)||(bank===1&&c>=65&&c<=90))});
   expect([...codes].sort((a,b)=>a-b)).toEqual(expected);expect(new Set(codes).size).toBe(codes.length);
  }
  await ui(page,'#charset','selectOption','0');const corners=await page.locator('#palette button[data-family="corners"]').evaluateAll(bs=>bs.map(b=>Number(b.dataset.g)));
  expect(corners).toEqual([73,201,74,202,75,203,76,204,79,207,80,208,85,213,108,236,109,237,110,238]);
  await page.locator('#palette button[data-g="75"]').click();await expect(page.locator('#quickglyph')).toHaveText('#75');
- await ui(page,'#paletteMode','selectOption','all');const all=await page.locator('#palette button').evaluateAll(bs=>bs.map(b=>Number(b.dataset.g)));expect(all).toHaveLength(256);expect(new Set(all).size).toBe(256);
- await ui(page,'#glyphPage','selectOption','1');await expect(page.locator('#glyphFamily')).toHaveValue('page');await expect(page.locator('#palette button')).toHaveCount(64);
+ await ui(page,'#showAlphanumerics','check');const all=await page.locator('#palette button').evaluateAll(bs=>bs.map(b=>Number(b.dataset.g)));expect(all).toHaveLength(256);expect(new Set(all).size).toBe(256);
+ await ui(page,'#showAlphanumerics','uncheck');await expect(page.locator('#palette button')).toHaveCount(184);await ui(page,'#showAlphanumerics','check');
  await ui(page,'#glyphFamily','selectOption','similar');await expect(page.locator('#palette button')).toHaveCount(256);
  await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#glyphToggle');if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click();await expect(page.locator('#glyphFamily')).toHaveValue('similar');
+});
+
+test('letter toggle alone controls alphanumerics across inverse, imports, undo and reload',async({page})=>{
+ for(const bank of [0,1]){
+  await loadProject(page,project([160],1,1,{charset:bank,selectedGlyph:160}));await ui(page,'#glyphFamily','selectOption','similar');
+  await expect(page.locator('#showAlphanumerics')).not.toBeChecked();
+  for(const code of [1,26,48,57,129,154,176,185,...(bank?[65,90,193,218]:[])])await expect(page.locator('#palette button[data-g="'+code+'"]').first()).toHaveCount(0);
+  await ui(page,'#inverse');await expect(page.locator('#glyphFamily')).toHaveValue('similar');await expect(page.locator('#showAlphanumerics')).not.toBeChecked();await expect(page.locator('#palette button[data-g="32"]')).toHaveAttribute('aria-pressed','true');
+  await ui(page,'#showAlphanumerics','check');await expect(page.locator('#palette button')).toHaveCount(256);await expect(page.locator('#palette .glyph-family').last()).toHaveText('Letters & numbers');await page.locator('#palette button[data-g="1"]').click();await ui(page,'#inverse');await expect(page.locator('#palette button[data-g="129"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#showAlphanumerics')).toBeChecked();
+  const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#showAlphanumerics','uncheck');await expect(page.locator('#hiddenGlyph')).toBeVisible();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+  await loadProject(page,project([1],1,1,{charset:bank,selectedGlyph:1}));await expect(page.locator('#showAlphanumerics')).not.toBeChecked();await ui(page,'#undo');await expect(page.locator('#showAlphanumerics')).not.toBeChecked();
+ }
+ await ui(page,'#showAlphanumerics','check');await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#glyphToggle');if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click();await expect(page.locator('#showAlphanumerics')).not.toBeChecked();await expect(page.locator('#glyphFamily')).toHaveValue('similar');await expect(page.locator('#palette button[data-g="1"]')).toHaveCount(0);
 });

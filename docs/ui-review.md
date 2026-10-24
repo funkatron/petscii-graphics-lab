@@ -44,7 +44,7 @@ The review aimed to preserve:
 | Header | Project menu, device-save status, Download artwork, Play/Pause |
 | Drawing strip | Selected glyph, ink, Paint/Eraser, symmetry, Undo/Redo |
 | Main workspace | Canvas, dimensions, preview state, Return to drawing |
-| Glyph panel | Families, recents, favorites, screen-code pages, character options |
+| Glyph panel | Families, recents, favorites, letter toggle, character options |
 | Settings sidebar | Canvas setup, colors, animation effect and duration, help |
 | Download panel | Output type, format, options, preview, dimensions/timing, Download |
 
@@ -124,3 +124,10 @@ Remaining mode costs: choosing a glyph selects Paint; broad edits end preview; u
 The default glyph view now collects similar shapes across code pages, with labeled sections for Blocks, Lines, Corners, Diagonals, Symbols, and remaining graphics. Inverse pairs stay adjacent. This uses the existing curated shape families rather than a computed visual-distance score.
 
 Jump to code page keeps exact numeric browsing available; Grouped by shape returns to visual browsing. Both character sets retain every permitted glyph once, and All screen codes includes the remaining letters and codes. Grouping changes only browsing order.
+
+
+## Simplify the letter filter — 23 October 2026
+
+This supersedes numeric-page browsing described above. Inverse previously switched views and enabled all codes when its result was outside the graphics subset. That made ordinary letters appear without a deliberate request.
+
+Remove code-page controls and use one visible Show letters & numbers checkbox, initially off. Preserve it across Inverse, imports, Undo, character-set changes and asset reload. Blank and solid-block partners are both non-alphanumeric and remain available. Symbols and punctuation also remain available. Optional code labels retain exact identification without making hardware ordering a navigation task. Grouped browsing places enabled alphanumerics in a named section.
