@@ -4,8 +4,30 @@ This page tracks requested work and completed milestones. For current controls, 
 
 ## Current priorities
 
-1. **Richer drawing tools:** fill, lines, rectangles, selection/move/duplicate, then tile stamps and reusable motifs.
-2. **Follow-up work:** C64 hardware/performance, richer imports and usability checks. These follow drawing tools unless needed to verify current features.
+1. **Major UI cleanup:** simplify the drawing workflow and tool palette; evaluate removing stamps because their current interaction is confusing.
+2. **Expand C64 animation capacity:** investigate supporting full-screen **40 × 24 movement-wave animations combined with color-wave animations**.
+3. **Follow-up work:** physical hardware checks, richer imports and other usability improvements, after these priorities unless needed to verify them.
+
+## Major UI cleanup — next
+
+- [ ] Review the complete drawing, selection, animation and download workflows for confusing controls and unnecessary steps.
+- [ ] Simplify the familiar tool palette, control grouping and contextual actions, keeping routine actions easy to reach on iPad.
+- [ ] Evaluate removing the stamp function rather than adding more stamp controls; decide whether its value justifies the interaction cost.
+- [ ] Verify the resulting workflows with touch, Pencil, mouse and keyboard, including clear tool state and Undo behavior.
+
+This is a planned review; stamps remain available until the removal decision is implemented.
+
+## Expand C64 animation capacity — investigation
+
+Target: export a **40-column × 24-row** drawing with movement waves and color waves running together. Establish what detail, speed and loop length the C64 player can reliably accommodate before promising support.
+
+- [ ] Add representative 40 × 24 combined-wave workloads, including detailed glyph patterns and widespread ink changes.
+- [ ] Measure program/stream size, decode time, frame timing and loop drift; identify whether memory, update work or both cause rejection.
+- [ ] Compare faster decoding and data encoding, staged screen updates, and native procedural movement/color effects. Keep the browser animation as the reference for intended output.
+- [ ] Measure achievable speeds and visual tradeoffs on PAL and NTSC in full VICE emulation; include the mixed-bank RAM character path where applicable.
+- [ ] Update export limits and actionable messages from measured results, and document any approximation or remaining hardware limits.
+
+Increasing capacity must retain glyph/color accuracy, bounded memory, RUN/STOP exit and machine-state restoration. The existing 256-pattern character-set limit is a separate constraint from animation size and playback speed.
 
 ## Unified alphabet — implemented
 
@@ -24,7 +46,7 @@ Show letters & numbers reveals both cases. There is no whole-drawing character-s
 - [x] Select, move, duplicate and delete regions.
 - [x] Save selections as reusable device-local stamps (up to 32).
 - [x] Keep each completed drawing operation undoable; use pointer input for touch, Pencil and mouse.
-- [ ] Evaluate physical Pencil reach and more extensive motif-library organization.
+- [ ] Evaluate physical Pencil reach; reassess stamps during the major UI cleanup before expanding motif-library organization.
 
 ## Combine movement and color cycling — implemented
 
