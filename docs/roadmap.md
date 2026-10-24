@@ -17,13 +17,14 @@ This page tracks requested work and completed milestones. For current controls, 
 
 Show letters & numbers reveals both cases. There is no whole-drawing character-set switch or separate lowercase option; existing graphics stay unchanged.
 
-## Richer drawing tools — next after unified alphabet
+## Richer drawing tools — implemented
 
-- [ ] Fill connected cells with the selected glyph and ink.
-- [ ] Draw straight lines and rectangles with a visible preview before applying.
-- [ ] Select, move and duplicate regions.
-- [ ] Add tile stamps and reusable motifs.
-- [ ] Keep each gesture or completed operation undoable and support touch, Pencil and mouse.
+- [x] Fill connected cells with the selected glyph and ink.
+- [x] Draw straight lines and outlined rectangles with a visible preview before applying.
+- [x] Select, move, duplicate and delete regions.
+- [x] Save selections as reusable device-local stamps (up to 32).
+- [x] Keep each completed drawing operation undoable; use pointer input for touch, Pencil and mouse.
+- [ ] Evaluate physical Pencil reach and more extensive motif-library organization.
 
 ## Combine movement and color cycling — implemented
 
