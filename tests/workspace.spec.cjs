@@ -1,6 +1,12 @@
 const {test,expect,ui,reveal,download,loadProject,project}=require('./helpers.cjs');
 const {PNG}=require('pngjs');
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
+test('character set stays visible above scrolled glyphs and explains its whole-drawing scope',async({page})=>{
+ await ui(page,'#glyphFamily','selectOption','similar');await expect(page.locator('#glyphOptions #charset')).toHaveCount(0);
+ await page.locator('#glyphPicker').evaluate(e=>e.scrollTop=e.scrollHeight);
+ await expect(page.locator('#charset')).toBeInViewport();await expect(page.locator('#charsetScope')).toContainText('throughout the drawing');
+ await ui(page,'#charset','selectOption','1');await expect(page.locator('#charset')).toHaveValue('1');await ui(page,'#undo');await expect(page.locator('#charset')).toHaveValue('0');
+});
 test('drawing controls stay reachable with settings hidden at phone width',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.app[data-ready=true]').waitFor();
  for(const id of ['glyphToggle','inkQuick','paint','erase','undo','redo','symmetryMenu'])await expect(page.locator('#'+id)).toBeInViewport();

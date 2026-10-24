@@ -2,6 +2,15 @@
 
 This page tracks requested work and completed milestones. For current controls, use the [user guide](../README.md).
 
+## Unified alphabet — approved, not implemented
+
+- [ ] Offer uppercase and lowercase alongside the full graphics palette without switching the whole drawing's character bank.
+- [ ] Update glyph identifiers, projects, rendering and every export consistently; preserving old formats is not required.
+- [ ] Build per-artwork RAM character sets for C64 playback and check the 256-pattern limit across the complete animation. The two source banks contain 304 distinct bitmaps, so one fixed 256-slot set cannot contain everything.
+- [ ] Verify mixed-case text and graphics in browser output and C64 execution.
+
+Meanwhile, the existing whole-drawing character-set control stays above the glyph list in the sticky picker header, with its scope explained.
+
 ## Combine movement and color cycling — implemented
 
 - [x] Choose movement and color effects independently, including color-only animation.

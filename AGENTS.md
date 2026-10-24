@@ -63,6 +63,8 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - Glyph selection must show actual pixel-rendered C64 glyph previews, not depend on platform Unicode font substitution.
 
+- Until unified mixed-case glyph storage is implemented, keep the whole-drawing character-set control in the sticky picker header above the glyph list. Explain that switching it affects the entire drawing. The owner has approved a future unified alphabet and does not require backward compatibility for that format change; see the roadmap.
+
 - Avoid ordinary alphabet letters and numbers in the **graphics drawing palette** unless the user specifically requests them. UI labels and metadata can of course use text.
 
 ## Editing and data guarantees
