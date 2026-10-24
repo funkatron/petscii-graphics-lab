@@ -90,7 +90,7 @@ test('fast long replays keep GIF frame delays at least twenty milliseconds',asyn
 
 test('playing and paused previews ignore mouse, touch and pen input without changing projects or history',async({page,hasTouch})=>{
  await loadProject(page,project([160,'','',''],4,1,{selectedGlyph:81,cellColors:[2,3,4,5],animation:{effect:'scroll-x',colorEffect:'color-wave',seconds:1,scale:1,background:'dark'}}));
- const before=JSON.parse(await download(page,'#saveProject'));await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('petscii-graphics-project-v2')))).toEqual(before);const draft=await page.evaluate(()=>JSON.stringify(localStorage)),undo=await page.locator('#undo').isEnabled(),redo=await page.locator('#redo').isEnabled();
+ const before=JSON.parse(await download(page,'#saveProject'));await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('petscii-graphics-project-v3')))).toEqual(before);const draft=await page.evaluate(()=>JSON.stringify(localStorage)),undo=await page.locator('#undo').isEnabled(),redo=await page.locator('#redo').isEnabled();
  await ui(page,'#quickPlay');
  for(const playing of [true,false]){
   if(!playing)await ui(page,'#quickPlay');

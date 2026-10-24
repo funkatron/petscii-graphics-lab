@@ -6,7 +6,7 @@ test('sparse touch and pen drags interpolate every cell, ignore secondary pointe
    const r=c.getBoundingClientRect();const fire=(type,x,id=1,primary=true)=>c.dispatchEvent(new PointerEvent(type,{pointerId:id,pointerType,isPrimary:primary,clientX:r.left+r.width*x,clientY:r.top+r.height*.1,bubbles:true,cancelable:true}));
    fire('pointerdown',.01);fire('pointerdown',.5,2,false);fire('pointermove',.99,2,false);fire('pointermove',.99);fire('pointerup',.99);
   },pointerType);
-  const rows=(await page.locator('#output').inputValue()).split('\n');expect(rows[2]).toBe(Array(16).fill('A0').join(' '));expect(rows.filter(r=>r.includes('A0'))).toHaveLength(1);
+  const rows=(await page.locator('#output').inputValue()).split('\n');expect(rows[2]).toBe(Array(16).fill('0A0').join(' '));expect(rows.filter(r=>r.includes('A0'))).toHaveLength(1);
   await ui(page,'#undo');expect(await page.locator('#output').inputValue()).not.toContain('A0');await expect(page.locator('#undo')).toBeDisabled();
  }
 });
@@ -34,11 +34,11 @@ test('native Chromium touch drag paints continuously without scrolling',async({p
  await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point(.02)]});
  await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[point(.98)]});
  await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
- expect((await page.locator('#output').inputValue()).split('\n')[4]).toBe(Array(16).fill('A0').join(' '));expect(await page.evaluate(()=>scrollY)).toBe(0);
+ expect((await page.locator('#output').inputValue()).split('\n')[4]).toBe(Array(16).fill('0A0').join(' '));expect(await page.evaluate(()=>scrollY)).toBe(0);
  await ui(page,'#undo');expect(await page.locator('#output').inputValue()).not.toContain('A0');
 });
 test('resize, collapse, and reload preserve artwork including a 40 by 25 screen',async({page})=>{
- await ui(page,'#output','fill','# PETSCII-GRID 1 2 2 0\nA0 E2\n62 A0');await ui(page,'#import');
+ await ui(page,'#output','fill','# PETSCII-GLYPHS 1 2 2\n0A0 0E2\n062 0A0');await ui(page,'#import');
  await ui(page,'#columns','selectOption','40');await ui(page,'#rows','selectOption','25');
  const before=JSON.parse(await download(page,'#saveProject'));expect(before.grid.slice(0,2)).toEqual([160,226]);expect(before.grid.slice(40,42)).toEqual([98,160]);
  await ui(page,'#toggle');await expect(page.locator('#sidebar')).toHaveClass(/closed/);
@@ -50,7 +50,7 @@ test('C64 projects of nonpreset dimensions remain editable; load undo restores b
  await loadProject(page,project([0,128],2,1,{charset:1}));
  const old=project([160,'',226,'','',''],3,2,{selectedGlyph:226});await loadProject(page,old);
  await expect(page.locator('#columns')).toHaveValue('3');await expect(page.locator('#rows')).toHaveValue('2');
- await ui(page,'#undo');await expect(page.locator('#charset')).toHaveValue('1');await expect(page.locator('#dimensions')).toHaveText('2 × 1');
+ await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual([256,384]);await expect(page.locator('#dimensions')).toHaveText('2 × 1');
  await ui(page,'#redo');await expect(page.locator('#dimensions')).toHaveText('3 × 2');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(old.grid);
 });
 test('transparent and black PNG backgrounds preserve expected pixels and resolution',async({page})=>{

@@ -135,3 +135,9 @@ Remove code-page controls and use one visible Show letters & numbers checkbox, i
 ## Select paired glyphs directly — 23 October 2026
 
 Remove the separate Inverse button and its special selection path. Paired glyphs remain adjacent in shape groups; choose either directly, including blank and solid block. The letter toggle and optional code labels remain. This supersedes the Inverse-button behavior described above; the Inverse pulse animation remains available.
+
+## Unified alphabet — 24 October 2026
+
+Remove the whole-drawing character-set switch. One visible Show letters & numbers checkbox reveals uppercase and lowercase together, alongside all graphics. Selecting a glyph never changes existing shapes. Matching uppercase/lowercase pairs are together in the letter section; duplicate source-bank graphics are omitted. Graphics remain the default view. Projects and exports now use per-cell atlas IDs, with no compatibility migration for the early v2 format.
+
+Richer drawing tools are the next priority: fill, lines and rectangles, selection/move/duplicate, then reusable stamps and motifs.

@@ -33,15 +33,15 @@ The drawing strip stays visible when settings are hidden. Tap **☰** to show or
 
 ## Choose glyphs
 
-The editor includes **512 authentic 8×8 glyphs**: two character sets with 256 glyphs each. **Show letters & numbers** starts off, hiding letters and digits in both normal and inverse forms. Symbols, punctuation, blank space, and graphic shapes remain available. The authentic solid block (code 160) is included under **Blocks**.
+The editor combines both authentic C64 source character sets in one palette. **Show letters & numbers** starts off, hiding letters and digits in both normal and inverse forms. Turn it on to see uppercase and lowercase together, alongside the full graphics palette. Symbols, punctuation, blank space, and graphic shapes remain available. The authentic solid block (ID 160) is included under **Blocks**.
 
 The default **Browse glyphs → Grouped by shape** view brings similar shapes together across screen-code pages: **Blocks**, **Lines**, **Corners**, **Diagonals**, **Symbols**, then **Other symbols**. Corresponding inverse shapes sit beside each other.
 
-Choose one shape family, **Recently used**, or **Favorites** to narrow the view. Use **Show letters & numbers** to include them; in **Grouped by shape**, they appear in their own section. This filter also applies to Recently used and Favorites. Tap **☆** to add the selected glyph to Favorites. Favorites and recent selections are stored on this device. Each character set has its own list.
+Choose one shape family, **Recently used**, or **Favorites** to narrow the view. Use **Show letters & numbers** to include them; in **Grouped by shape**, they appear in their own section. This filter also applies to Recently used and Favorites. Tap **☆** to add the selected glyph to Favorites. Favorites and recent selections are stored on this device.
 
 On wide screens, the picker sits beside the canvas. On smaller screens, it appears over the canvas and closes after selection. **Pin** keeps it beside the canvas where space allows. Close it with **✕**, **Escape**, or the shaded area outside the picker.
 
-The **Character set (whole drawing)** control stays at the top of the glyph picker while you scroll. Choose **Graphics + uppercase** or **Uppercase + lowercase**. This changes character shapes throughout the drawing; **Undo** restores the previous set.
+There is no character-set switch or separate lowercase option. Selecting a letter never changes shapes already in your drawing. The palette hides redundant source-bank copies while keeping inverse pairs together.
 
 Open **Character options** for optional code labels and glyph-source details.
 
@@ -97,7 +97,7 @@ The editor also keeps **one automatic draft on this device**. Look for **Saved o
 - Undo history lasts for the current session; it is not included in the project file.
 - If several tabs edit the draft, the last tab to save replaces it.
 
-The editor opens version 2 projects containing numeric C64 screen codes. Old Unicode-shape, version 1, and custom-ROM projects are unsupported. Project files store glyph codes and settings, without the ROM binary.
+The editor opens version 3 projects containing numeric glyph IDs across both source banks. Older projects, including version 2, are unsupported; this early-development format change has no migration. The new automatic draft is separate from the old one. Project files store glyph IDs and settings, without the ROM binary.
 
 ## Preview an animation
 
@@ -165,7 +165,7 @@ Open **Download artwork**, choose a tab and format, then use its **Download** bu
 | Save a video with a set duration | **Animation → Video (MP4 / WebM)** | A silent clip with 1–100 complete loops |
 | Edit frames elsewhere | **Animation → PNG frames (.zip)** | Full PNG images, timings, and an editable project |
 | Run artwork on a C64 | **C64 data → C64 program** | A runnable still or animation, as a `.prg` program or `.d64` virtual disk |
-| Work with text or C64 bytes | **C64 data → Raw bytes & text** | Text, screen-code bytes, or separate color bytes |
+| Work with glyph data | **C64 data → Raw bytes & text** | Text, two-byte glyph IDs, or separate color bytes |
 
 Image backgrounds can use the canvas color, white, black, or transparency. Animation backgrounds can use the canvas color, white, or transparency. **Video uses the canvas color when Transparent is selected.**
 
@@ -194,7 +194,7 @@ Keep these files together:
 | File | Purpose |
 | --- | --- |
 | `frames/frame-0001.png`, and later numbers | Complete images in playback order |
-| `timing.json` | Dimensions, character set, colors, loop duration, and each frame’s start time and duration |
+| `timing.json` | Dimensions, glyph encoding, colors, loop duration, and each frame’s start time and duration |
 | `project.json` | Editable artwork captured when export started |
 | `README.txt` | Instructions for the frame sequence |
 
@@ -209,9 +209,9 @@ Frame durations can differ, especially during the final hold in replay. Use `tim
 5. Use the Download button. Load the program in a standard C64 emulator or transfer it to your C64, then `RUN`. For a D64, attach the disk as device 8, type `LOAD "*",8,1`, then `RUN`.
 6. Press **RUN/STOP** to exit.
 
-The program uses the C64’s own character ROM, your cell colors, and your canvas background. Drawings must fit within 40×25 cells and use authentic C64 glyphs. Smaller drawings appear at the top left. Large or very fast animations may exceed memory or processing limits; the exporter explains what to change.
+The program uses your cell colors and canvas background. Graphics-only source-bank-0 artwork uses the C64’s own character ROM. Mixed-bank artwork includes a RAM character set containing the patterns it needs. C64 output allows at most **256 distinct patterns across the entire animation, including a blank**. This limit does not apply to images or videos. Drawings must fit within 40×25 cells. Smaller drawings appear at the top left. Large or very fast animations may exceed memory or processing limits; the exporter explains what to change.
 
-The player has automated CPU checks and full PAL/NTSC VICE checks for representative stills, animation, and disk loading. Physical C64 verification remains to be done. See the [C64 output guide](docs/c64-output.md) for loading instructions and timing limits.
+The player has automated CPU checks. The original ROM-backed path also has full PAL/NTSC VICE checks for representative stills, animation, and disk loading; full-machine verification of the new mixed-bank RAM path and physical C64 checks remain open. See the [C64 output guide](docs/c64-output.md) for loading instructions and timing limits.
 
 ## C64 terms and data
 
@@ -224,17 +224,18 @@ You can skip this section for ordinary drawing and image downloads.
 | **ROM** | Read-only memory; the original C64 stores its character patterns here |
 | **Character set / bank** | One collection of 256 glyphs |
 | **Screen code** | A number selecting a glyph in the chosen bank |
+| **Glyph ID** | An editor atlas slot, 0–511: source bank × 256 + screen code |
 | **PETSCII** | A separate C64 text encoding; screen-code bytes are not PETSCII bytes |
 | **Row-major** | Left to right across the top row, then each row below it |
 | **Inverse glyph** | A glyph from the inverse half of the character set; actual source slots are preserved |
 
 ### Text and binary formats
 
-- **Screen-code text:** a labeled grid with dimensions and character set. It preserves numeric codes and empty cells, but omits cell colors.
-- **Screen codes (.bin):** one byte per cell in row-major order. Empty cells become space code 32.
-- **Color RAM (.bin):** one foreground color index, 0–15, per cell, including empty cells. Pair it with the screen-code file.
+- **Glyph-ID text:** a labeled grid with dimensions. It preserves numeric IDs and empty cells, but omits cell colors.
+- **Glyph IDs (.bin):** two bytes per cell, little-endian, in row-major order. Empty cells use `FFFF`. These are not native C64 screen bytes or PETSCII bytes.
+- **Color RAM (.bin):** one foreground color index, 0–15, per cell, including empty cells. Pair it with the glyph-ID file.
 
-Binary files omit dimensions, character set, and a C64 load address. Screen-code files also omit colors. Use the editable JSON project to preserve the full drawing and replay.
+Binary files omit dimensions and a C64 load address. Glyph-ID files also omit colors. Use the editable JSON project to preserve the full drawing and replay.
 
 ### Use the binary files on a C64
 
@@ -245,19 +246,19 @@ See [Use your artwork on a Commodore 64](docs/c64-output.md) for the file conten
 ### Labeled text example
 
 ```text
-# PETSCII-GRID 1 2 2 1
-00 A0
--- 80
+# PETSCII-GLYPHS 1 2 2
+100 0A0
+-- 180
 ```
 
-The header gives **format version, columns, rows, and bank**. Here it means version 1, two columns, two rows, bank 1.
+The header gives **format version, columns, and rows**. Here it means version 1, two columns and two rows. Each cell chooses its own source-bank glyph.
 
 Each row must have one space-separated token per column:
 
-- Two hexadecimal digits, such as `00` or `80`: a screen code.
+- Three hexadecimal digits, such as `000` or `180`: a glyph ID, at most `1FF`.
 - `--`: an empty cell.
 
-An empty cell differs from a deliberately placed space glyph (screen code `20` in hexadecimal). Import checks the whole document before changing the drawing.
+An empty cell differs from a deliberately placed space glyph (ID `020` in hexadecimal). Import checks the whole document before changing the drawing. The older PETSCII-GRID format is unsupported.
 
 ## If something does not work
 
@@ -268,7 +269,7 @@ An empty cell differs from a deliberately placed space glyph (screen code `20` i
 | An animation download does not start | Tap its Download button again to reuse the completed file. |
 | Video encoding is unavailable | Choose GIF or PNG frames. |
 
-Image export waits for C64 glyph data rather than omitting unavailable glyphs. Text, JSON, and screen-code files can still preserve numeric codes.
+Image export waits for C64 glyph data rather than omitting unavailable glyphs. Text, JSON, and glyph-ID files can still preserve numeric IDs.
 
 Physical iPad/Pencil gestures and Files/Photos handoffs still need testing on a real device.
 

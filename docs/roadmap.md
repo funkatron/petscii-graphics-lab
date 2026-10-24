@@ -4,18 +4,18 @@ This page tracks requested work and completed milestones. For current controls, 
 
 ## Current priorities
 
-1. **Unified alphabet:** uppercase, lowercase and graphics together, with matching project and export support.
-2. **Richer drawing tools:** fill, lines, rectangles, selection/move/duplicate, then tile stamps and reusable motifs.
-3. **Follow-up work:** C64 hardware/performance, richer imports and usability checks. These follow the first two priorities unless needed to complete or verify them.
+1. **Richer drawing tools:** fill, lines, rectangles, selection/move/duplicate, then tile stamps and reusable motifs.
+2. **Follow-up work:** C64 hardware/performance, richer imports and usability checks. These follow drawing tools unless needed to verify current features.
 
-## Unified alphabet — approved, not implemented
+## Unified alphabet — implemented
 
-- [ ] Offer uppercase and lowercase alongside the full graphics palette without switching the whole drawing's character bank.
-- [ ] Update glyph identifiers, projects, rendering and every export consistently; preserving old formats is not required.
-- [ ] Build per-artwork RAM character sets for C64 playback and check the 256-pattern limit across the complete animation. The two source banks contain 304 distinct bitmaps, so one fixed 256-slot set cannot contain everything.
-- [ ] Verify mixed-case text and graphics in browser output and C64 execution.
+- [x] Offer uppercase and lowercase alongside the full graphics palette without switching the whole drawing's character bank.
+- [x] Update glyph identifiers, v3 projects, rendering and every export consistently; older formats are unsupported.
+- [x] Build per-artwork RAM character sets for C64 playback and check the 256-pattern limit across the complete animation, including the blank. The two source banks contain 304 distinct bitmaps, so one fixed 256-slot set cannot contain everything.
+- [x] Verify mixed-case text and graphics in browser pixels and independent 6502 CPU execution.
+- [ ] Verify mixed-bank RAM character output in full PAL/NTSC VICE and on hardware.
 
-Meanwhile, the existing whole-drawing character-set control stays above the glyph list in the sticky picker header, with its scope explained.
+Show letters & numbers reveals both cases. There is no whole-drawing character-set switch or separate lowercase option; existing graphics stay unchanged.
 
 ## Richer drawing tools — next after unified alphabet
 
@@ -62,6 +62,6 @@ See the [C64 output guide](c64-output.md) for loading instructions, timing, memo
 
 ## C64-only editor — implemented
 
-- [x] Remove legacy approximate shapes, their renderers and stencil checker, v1 projects, Unicode/mixed text imports, and obsolete single-effect color settings. Keep the authentic C64 editor and current numeric v2 projects intact.
+- [x] Remove legacy approximate shapes, their renderers and stencil checker, v1 projects, Unicode/mixed text imports, and obsolete single-effect color settings. The later unified-alphabet change replaces numeric v2 projects with v3.
 
 The [UI review](ui-review.md#follow-ups-to-evaluate) tracks layout experiments. [AGENTS.md](../AGENTS.md#future-features-to-explore) lists other possible editing features.

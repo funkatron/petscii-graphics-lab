@@ -25,5 +25,10 @@ async function ui(page,selector,method='click',...args){await reveal(page,select
 async function download(page,selector){await reveal(page,selector);const [file]=await Promise.all([page.waitForEvent('download'),page.locator(selector).click()]);return contents(file)}
 async function loadProject(page,data){await page.locator('#projectFile').setInputFiles({name:'project.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});await expect(page.locator('#projectFile')).toHaveValue('')}
 // Keep historical fixtures at an explicit four-second baseline; new-project speed is tested separately.
-function project(grid,columns=grid.length,rows=1,extra={}){return {format:'petscii-stencil-lab',version:2,columns,rows,grid,selectedGlyph:0,charset:0,symmetry:'none',animation:{effect:'replay',seconds:4,scale:2,background:'dark'},...extra}}
+function project(grid,columns=grid.length,rows=1,extra={}){
+ const p={format:'petscii-stencil-lab',version:3,columns,rows,grid,selectedGlyph:0,symmetry:'none',animation:{effect:'replay',seconds:4,scale:2,background:'dark'},...extra};
+ // Existing test vectors describe source ROM banks; fixtures encode them as absolute atlas IDs.
+ if(p.charset===1){const id=g=>g===''?g:g+256;p.grid=p.grid.map(id);p.selectedGlyph=id(p.selectedGlyph);if(p.drawingReplay)p.drawingReplay={...p.drawingReplay,base:p.drawingReplay.base.map(id),events:p.drawingReplay.events.map(([i,g])=>[i,id(g)])}}
+ delete p.charset;return p;
+}
 module.exports={reveal,ui,test,expect,contents,download,loadProject,project};

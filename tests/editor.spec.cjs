@@ -33,8 +33,8 @@ test('symmetry paints mirrored positions',async({page})=>{
  await ui(page,'#sym','selectOption','both');
  await paint(page,.12,.12);
  const lines=(await page.locator('#output').inputValue()).split('\n');
- expect(lines[2].split(' ')[1]).toBe('A0');
- expect(lines[15].split(' ')[14]).toBe('A0');
+ expect(lines[2].split(' ')[1]).toBe('0A0');
+ expect(lines[15].split(' ')[14]).toBe('0A0');
 });
 test('project JSON save and reload round-trip',async({page})=>{
  await paint(page);
@@ -63,9 +63,9 @@ test('SVG, text, and PNG produce downloads',async({page})=>{
  }
 });
 test('import text is undoable',async({page})=>{
- await ui(page,'#output','fill','# PETSCII-GRID 1 2 2 0\nA0 E2\n62 A0');
+ await ui(page,'#output','fill','# PETSCII-GLYPHS 1 2 2\n0A0 0E2\n062 0A0');
  await ui(page,'#import');
- expect(await page.locator('#output').inputValue()).toContain('A0 E2');
+ expect(await page.locator('#output').inputValue()).toContain('0A0 0E2');
  await ui(page,'#undo');
- expect(await page.locator('#output').inputValue()).not.toContain('A0 E2');
+ expect(await page.locator('#output').inputValue()).not.toContain('0A0 0E2');
 });

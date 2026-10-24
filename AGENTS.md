@@ -41,9 +41,9 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - `package.json`, `playwright.config.cjs`, `tests/*.spec.cjs`, and `.github/workflows/browser-tests.yml` implement automated browser testing for Chromium and iPad WebKit in landscape and portrait.
 
-- Artwork uses numeric C64 screen codes 0–255 and an empty-cell marker only. There is no Unicode-shape renderer or stencil-analysis workflow. Keep screen codes distinct from PETSCII bytes.
+- Artwork uses numeric atlas glyph IDs 0–511 (source bank × 256 + screen code) and an empty-cell marker only. There is no Unicode-shape renderer or stencil-analysis workflow. Keep glyph IDs distinct from screen codes and PETSCII bytes.
 
-- Keep changes targeted; avoid breaking saved project files or existing editor workflows.
+- Keep changes targeted. The owner approved the v3 unified-glyph format break without migration; preserve v3 files and existing editor workflows.
 
 ## Drawing and interaction
 
@@ -63,7 +63,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - Glyph selection must show actual pixel-rendered C64 glyph previews, not depend on platform Unicode font substitution.
 
-- Until unified mixed-case glyph storage is implemented, keep the whole-drawing character-set control in the sticky picker header above the glyph list. Explain that switching it affects the entire drawing. The owner has approved a future unified alphabet and does not require backward compatibility for that format change; see the roadmap.
+- Uppercase, lowercase and full graphics share one palette and one per-cell ID space. Do not restore a whole-drawing character-set switch or separate lowercase toggle. Show letters & numbers reveals both cases without changing existing artwork.
 
 - Avoid ordinary alphabet letters and numbers in the **graphics drawing palette** unless the user specifically requests them. UI labels and metadata can of course use text.
 
@@ -93,12 +93,12 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 6. Keep the GitHub Actions workflow functional. CI uses the version-matched official Playwright container and one worker; update the container tag with the pinned npm version. Report what tests actually ran and their results. Never claim browser behavior passed based only on source inspection.
 
-7. Preserve current numeric v2 C64 projects. Reject v1, Unicode-shape, and custom-ROM projects atomically. Do not reintroduce abandoned format conversions.
+7. Preserve numeric v3 projects. Reject older versions, whole-drawing charset fields, Unicode-shape and custom-ROM projects atomically. Do not reintroduce abandoned format conversions.
 
 ## Current decisions to preserve
 
 - **Built-in artwork:** both banks and inverse slots come from `assets/c64-glyphs.svg`. Keep the original ROM binary out of the repository. There is no user-facing ROM import.
-- **Editable files:** keep the existing v2 JSON identifier and numeric code 0. The repository rename does not change saved-file identifiers. Custom-ROM compatibility is not a current priority.
+- **Editable files:** v3 keeps the `petscii-stencil-lab` format identifier and numeric ID 0, with no global charset. Autosave uses `petscii-graphics-project-v3`. Earlier formats are unsupported by owner decision.
 - **Colors:** preserve one ink index per cell and one shared background. A brush color change affects future strokes. Recoloring the entire drawing is a separate undoable action.
 - **Animation:** previews use derived frames and leave source artwork intact. The canvas is read-only during playing and paused previews; Return to drawing enables painting. Loop duration sets the whole timeline; independent movement/color rates repeat 1/2/4/8/16 times within it. Preview and all animation downloads share phase and sampling; warn instead of silently aliasing unsupported fast combinations. Videos support 1–100 complete loops.
 - **Animation options:** keep scroll direction and movement/color wave direction and waveform controls contextual. All preview and output formats share their snapshotted values; color waves alone never move characters.
