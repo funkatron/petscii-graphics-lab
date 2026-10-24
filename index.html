@@ -338,10 +338,10 @@ function drawPalette(){
  if(rom){
   const groups=[];
   if($('glyphFamily').value==='similar'){
-   const seen=new Set();
+   const seen=new Set(),pairedCodes=Array.from({length:128},(_,code)=>[code,code+128]).flat();
    for(const [family,name] of [['blocks','Blocks'],['lines','Lines'],['corners','Corners'],['diagonals','Diagonals'],['symbols','Symbols']]){const codes=familyCodes(family).filter(code=>!seen.has(code));codes.forEach(code=>seen.add(code));if(codes.length)groups.push({family,name,codes})}
-   const codes=Array.from({length:256},(_,i)=>i).filter(code=>!seen.has(code)&&graphicsCode(code));if(codes.length)groups.push({family:'other',name:'Other symbols',codes});
-   if($('showAlphanumerics').checked)groups.push({family:'alphanumerics',name:'Letters & numbers',codes:Array.from({length:256},(_,i)=>i).filter(alphanumericCode)});
+   const codes=pairedCodes.filter(code=>!seen.has(code)&&graphicsCode(code));if(codes.length)groups.push({family:'other',name:'Other symbols',codes});
+   if($('showAlphanumerics').checked)groups.push({family:'alphanumerics',name:'Letters & numbers',codes:pairedCodes.filter(alphanumericCode)});
   }else groups.push({family:$('glyphFamily').value,codes:familyCodes($('glyphFamily').value)??[]});
   for(const group of groups){
    if(group.name){const heading=document.createElement('h3');heading.className='glyph-family';heading.textContent=group.name;palette.appendChild(heading)}
