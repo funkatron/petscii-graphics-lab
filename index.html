@@ -416,7 +416,17 @@ function renderGrid(cells,inks=cellColors){
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const xx=x*cellW,yy=y*cellH;
   ctx.strokeRect(xx,yy,cellW,cellH);
-  const g=cells[y*W+x];if(typeof g==='number'&&rom)romCanvasGlyph(ctx,g,xx,yy,cellW,inks[y*W+x]);else if(typeof g==='number'){ctx.strokeStyle='#ffb4c1';ctx.strokeRect(xx+cellW*.2,yy+cellH*.2,cellW*.6,cellH*.6)}
+  const g=cells[y*W+x];if(typeof g==='number'&&rom){
+   // Draw bitmap runs directly: WebKit can retain stale pixels when cached
+   // tile canvases are replaced during a color change after a workspace resize.
+   const rows=romGlyphRows(g);ctx.fillStyle=C64_COLORS[inks[y*W+x]][1];
+   for(let row=0;row<8;row++)for(let bit=0;bit<8;){
+    if(!(rows[row]&(0x80>>bit))){bit++;continue}
+    const start=bit;while(bit<8&&(rows[row]&(0x80>>bit)))bit++;
+    const left=Math.round(xx+start*cellW/8),top=Math.round(yy+row*cellH/8);
+    ctx.fillRect(left,top,Math.round(xx+bit*cellW/8)-left,Math.round(yy+(row+1)*cellH/8)-top);
+   }
+  }else if(typeof g==='number'){ctx.strokeStyle='#ffb4c1';ctx.strokeRect(xx+cellW*.2,yy+cellH*.2,cellW*.6,cellH*.6)}
  }
 }
 function artworkPreview(target,cells,inks,cols,rows,background){
