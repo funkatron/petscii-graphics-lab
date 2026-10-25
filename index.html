@@ -135,7 +135,7 @@ dialog::backdrop{background:#0009}
 </head>
 <body>
 <div class="app">
-<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1><div class="subtitle">Touch-first graphics composition</div></div><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="saveProject">Download editable project</button><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
+<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="saveProject">Download editable project</button><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
 <p class="note">Project files keep editable art and replay. Changes also autosave on this device.</p>
 </div></details><span id="saveStatus" class="note" role="status">Saved on this device</span><button id="downloadOpen">Download artwork</button><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
 <div class="drawing-strip" role="toolbar" aria-label="Drawing controls"><button id="glyphToggle" aria-expanded="false" aria-controls="glyphPicker" title="Choose a glyph"><canvas id="glyphPreview" width="24" height="24" aria-hidden="true"></canvas><span>Glyphs</span></button><button id="inkQuick" aria-label="Choose ink color" popovertarget="inkPopover" aria-controls="inkPopover"><span id="inkChip" class="color-chip"></span><span class="tool-label">Ink</span></button><button id="paint" aria-pressed="true">Paint</button><button id="erase" aria-pressed="false">Eraser</button><details id="symmetryMenu"><summary aria-label="Symmetry" id="symmetrySummary">↔<span class="tool-label" id="symmetryLabel"> Symmetry</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
@@ -397,7 +397,9 @@ function fit(){
  unit=Math.max(1,Math.min(availableW/W,availableH/H));
  const width=W*unit,height=H*unit,dpr=Math.min(devicePixelRatio||1,3);
  canvas.style.width=width+'px';canvas.style.height=height+'px';
- canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
+ const pixelWidth=Math.round(width*dpr),pixelHeight=Math.round(height*dpr);
+ if(canvas.width!==pixelWidth)canvas.width=pixelWidth;
+ if(canvas.height!==pixelHeight)canvas.height=pixelHeight;
  redraw();
 }
 function textGrid(){
@@ -414,7 +416,17 @@ function renderGrid(cells,inks=cellColors){
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const xx=x*cellW,yy=y*cellH;
   ctx.strokeRect(xx,yy,cellW,cellH);
-  const g=cells[y*W+x];if(typeof g==='number'&&rom)romCanvasGlyph(ctx,g,xx,yy,cellW,inks[y*W+x]);else if(typeof g==='number'){ctx.strokeStyle='#ffb4c1';ctx.strokeRect(xx+cellW*.2,yy+cellH*.2,cellW*.6,cellH*.6)}
+  const g=cells[y*W+x];if(typeof g==='number'&&rom){
+   // Draw bitmap runs directly: WebKit can retain stale pixels when cached
+   // tile canvases are replaced during a color change after a workspace resize.
+   const rows=romGlyphRows(g);ctx.fillStyle=C64_COLORS[inks[y*W+x]][1];
+   for(let row=0;row<8;row++)for(let bit=0;bit<8;){
+    if(!(rows[row]&(0x80>>bit))){bit++;continue}
+    const start=bit;while(bit<8&&(rows[row]&(0x80>>bit)))bit++;
+    const left=Math.round(xx+start*cellW/8),top=Math.round(yy+row*cellH/8);
+    ctx.fillRect(left,top,Math.round(xx+bit*cellW/8)-left,Math.round(yy+(row+1)*cellH/8)-top);
+   }
+  }else if(typeof g==='number'){ctx.strokeStyle='#ffb4c1';ctx.strokeRect(xx+cellW*.2,yy+cellH*.2,cellW*.6,cellH*.6)}
  }
 }
 function artworkPreview(target,cells,inks,cols,rows,background){
@@ -669,7 +681,7 @@ const undoStack=[],redoStack=[];
 function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),glyph,erasing,colors:{...colors},symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
 function remember(){stopAnimation();selection=null;cancelToolDrag();updateToolPalette();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
-function restore(state){cancelToolDrag();selection=null;stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=erasing?'erase':'paint';$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
+function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 function paint(x,y){
@@ -680,29 +692,23 @@ function paint(x,y){
  if(sym==='both')pts.push([W-1-x,H-1-y]);
  for(const [a,b] of pts){const i=b*W+a,g=erasing?'':glyph;if(grid[i]!==g||cellColors[i]!==colors.ink){grid[i]=g;cellColors[i]=colors.ink;recordCell(i)}}
 }
-let drawingTool='paint',selection=null,toolDrag=null,stamps=[];
-const toolNames={fill:'▧ Fill',line:'╱ Line',rectangle:'□ Rectangle',select:'⬚ Select',stamp:'▦ Stamp'};
+let drawingTool='paint',selection=null,toolDrag=null;
+let tapPoints=false;
+const toolNames={fill:'▧ Fill',line:'╱ Line',rectangle:'□ Rectangle',select:'⬚ Select'};
 const toolBar=document.createElement('div');toolBar.setAttribute('role','group');toolBar.setAttribute('aria-label','Drawing tools');toolBar.style.cssText='display:flex;gap:4px;flex-wrap:wrap';$('erase').after(toolBar);
 for(const [name,label] of Object.entries(toolNames)){const b=document.createElement('button');b.id='tool-'+name;b.textContent=label;b.setAttribute('aria-pressed','false');b.onclick=()=>setDrawingTool(name);toolBar.append(b)}
-const selectionBar=document.createElement('div');selectionBar.className='drawing-strip';selectionBar.hidden=true;selectionBar.innerHTML='<span id="selectionInfo"></span><button id="moveSelection">Move</button><button id="duplicateSelection">Duplicate</button><button id="deleteSelection">Delete</button><button id="saveStamp">Save stamp</button><button id="deselect">Deselect</button>';
+const selectionBar=document.createElement('div');selectionBar.className='drawing-strip';selectionBar.hidden=true;selectionBar.innerHTML='<span id="selectionInfo"></span><button id="moveSelection">Move</button><button id="duplicateSelection">Duplicate</button><button id="deleteSelection">Delete</button><button id="deselect">Deselect</button>';
 document.querySelector('.drawing-strip').after(selectionBar);
-const stampBar=document.createElement('div');stampBar.className='drawing-strip';stampBar.hidden=true;stampBar.innerHTML='<label for="stampChoice">Stamp</label><select id="stampChoice" aria-label="Saved stamp"></select><button id="removeStamp">Remove stamp</button><span>Drag to position; release to place. Empty cells are transparent.</span>';selectionBar.after(stampBar);
-try{const saved=JSON.parse(localStorage.getItem('petscii-stamps'));if(Array.isArray(saved))stamps=saved.filter(s=>Number.isInteger(s.w)&&s.w>0&&s.w<=40&&Number.isInteger(s.h)&&s.h>0&&s.h<=40&&Array.isArray(s.cells)&&s.cells.length===s.w*s.h&&s.cells.every(g=>g===''||Number.isInteger(g)&&g>=0&&g<512)&&Array.isArray(s.inks)&&s.inks.length===s.cells.length&&s.inks.every(c=>Number.isInteger(c)&&c>=0&&c<16)).slice(0,32)}catch{}
-function stampOptions(){const choice=$('stampChoice');choice.replaceChildren();stamps.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Stamp '+(i+1)+' · '+s.w+' × '+s.h;choice.append(o)});$('removeStamp').disabled=!stamps.length}
-function saveStamps(){try{localStorage.setItem('petscii-stamps',JSON.stringify(stamps));return true}catch{setStatus('Stamp storage unavailable; keep this tab open to use it.');return false}}
-stampOptions();
 function setDrawingTool(name){cancelToolDrag();cancelStroke();drawingTool=name;erasing=name==='erase';if(!['select','move','duplicate'].includes(name))selection=null;updateToolPalette();refresh();redraw()}
-function updateToolPalette(){for(const name of Object.keys(toolNames)){const b=$('tool-'+name);b.setAttribute('aria-pressed',String(drawingTool===name));b.classList.toggle('active',drawingTool===name);b.disabled=animationPreview||!rom}selectionBar.hidden=!selection||animationPreview;stampBar.hidden=drawingTool!=='stamp'||animationPreview;$('selectionInfo').textContent=selection?selection.w+' × '+selection.h+' selected':'';}
+function updateToolPalette(){for(const name of Object.keys(toolNames)){const b=$('tool-'+name);b.setAttribute('aria-pressed',String(drawingTool===name||(name==='select'&&['move','duplicate'].includes(drawingTool))));b.classList.toggle('active',b.getAttribute('aria-pressed')==='true');b.disabled=animationPreview||!rom}selectionBar.hidden=!selection||animationPreview;$('selectionInfo').textContent=selection?selection.w+' × '+selection.h+' selected':'';}
 function selectionData(){return {w:selection.w,h:selection.h,cells:Array.from({length:selection.w*selection.h},(_,i)=>grid[(selection.y+Math.floor(i/selection.w))*W+selection.x+i%selection.w]),inks:Array.from({length:selection.w*selection.h},(_,i)=>cellColors[(selection.y+Math.floor(i/selection.w))*W+selection.x+i%selection.w])}}
 function commitTool(cells,inks){if(cells.every((g,i)=>g===grid[i]&&inks[i]===cellColors[i]))return;remember();for(let i=0;i<cells.length;i++)if(cells[i]!==grid[i]||inks[i]!==cellColors[i]){grid[i]=cells[i];cellColors[i]=inks[i];recordCell(i)}redraw()}
 $('moveSelection').onclick=()=>{drawingTool='move';setStatus('Drag the selection to move it.');updateToolPalette()};
 $('duplicateSelection').onclick=()=>{drawingTool='duplicate';setStatus('Drag the selection to place a copy.');updateToolPalette()};
 $('deselect').onclick=()=>{selection=null;setDrawingTool('select')};
 $('deleteSelection').onclick=()=>{const cells=grid.slice(),inks=cellColors.slice();for(let y=selection.y;y<selection.y+selection.h;y++)for(let x=selection.x;x<selection.x+selection.w;x++){cells[y*W+x]='';inks[y*W+x]=colors.ink}commitTool(cells,inks);selection=null;updateToolPalette();redraw()};
-$('saveStamp').onclick=()=>{if(stamps.length>=32){setStatus('Up to 32 stamps can be saved. Remove one first.');return}stamps.push(selectionData());stampOptions();$('stampChoice').value=stamps.length-1;const saved=saveStamps();setDrawingTool('stamp');if(saved)setStatus('Stamp saved on this device.')};
-$('removeStamp').onclick=()=>{stamps.splice(Number($('stampChoice').value),1);saveStamps();stampOptions()};
 function toolOutline(r){if(!r)return;ctx.save();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.setLineDash([5,3]);ctx.strokeRect(r.x*canvas.width/W+1,r.y*canvas.height/H+1,r.w*canvas.width/W-2,r.h*canvas.height/H-2);ctx.restore()}
-function cancelToolDrag(){toolDrag=null;}
+function cancelToolDrag(){toolDrag=null;if(['move','duplicate'].includes(drawingTool))drawingTool='select';}
 function toolPreview(p){const d=toolDrag,cells=grid.slice(),inks=cellColors.slice(),put=(x,y,g=glyph,c=colors.ink)=>{if(x>=0&&y>=0&&x<W&&y<H){cells[y*W+x]=g;inks[y*W+x]=c}};
  const x0=Math.min(d.start[0],p[0]),y0=Math.min(d.start[1],p[1]),x1=Math.max(d.start[0],p[0]),y1=Math.max(d.start[1],p[1]);
  if(d.kind==='select')d.rect={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};
@@ -713,16 +719,17 @@ function toolPreview(p){const d=toolDrag,cells=grid.slice(),inks=cellColors.slic
 }
 function position(e){const r=canvas.getBoundingClientRect();return [Math.max(0,Math.min(W-1,Math.floor((e.clientX-r.left)*W/r.width))),Math.max(0,Math.min(H-1,Math.floor((e.clientY-r.top)*H/r.height)))];}
 canvas.addEventListener('pointerdown',e=>{
- if(['paint','erase'].includes(drawingTool))return;e.stopImmediatePropagation();if(animationPreview||!rom||toolDrag||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;e.preventDefault();const p=position(e);
+ if(document.querySelector('#contextHelp')?.matches(':popover-open'))return;
+ if(['paint','erase'].includes(drawingTool))return;e.stopImmediatePropagation();if(toolDrag?.anchor){if(animationPreview||!rom||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;toolDrag.id=e.pointerId;toolDrag.anchor=false;toolDrag.second=true;try{canvas.setPointerCapture(e.pointerId)}catch{}toolPreview(position(e));return;}if(animationPreview||!rom||toolDrag||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;e.preventDefault();const p=position(e);
  if(drawingTool==='fill'){const index=p[1]*W+p[0],target=grid[index],ink=cellColors[index],cells=grid.slice(),inks=cellColors.slice(),seen=new Set(),queue=[index];while(queue.length){const i=queue.pop();if(seen.has(i)||grid[i]!==target||(target!==''&&cellColors[i]!==ink))continue;seen.add(i);cells[i]=glyph;inks[i]=colors.ink;const x=i%W,y=Math.floor(i/W);if(x)queue.push(i-1);if(x<W-1)queue.push(i+1);if(y)queue.push(i-W);if(y<H-1)queue.push(i+W)}commitTool(cells,inks);return}
  let kind=drawingTool,data,offset;if(['select','move','duplicate'].includes(kind)&&selection&&p[0]>=selection.x&&p[0]<selection.x+selection.w&&p[1]>=selection.y&&p[1]<selection.y+selection.h){data=selectionData();offset=[p[0]-selection.x,p[1]-selection.y];kind=kind==='duplicate'?'duplicate':'move'}else if(['select','move','duplicate'].includes(kind)){kind='select';selection=null}
- if(kind==='stamp'){data=stamps[Number($('stampChoice').value)];if(!data){setStatus('Select a region and choose Save stamp first.');return}if(data.w>W||data.h>H){setStatus('This stamp is larger than the canvas.');return}}
+
  toolDrag={kind,data,offset,start:p,id:e.pointerId};try{canvas.setPointerCapture(e.pointerId)}catch{}toolPreview(p);
 },true);
-canvas.addEventListener('pointermove',e=>{if(!toolDrag||toolDrag.id!==e.pointerId)return;e.stopImmediatePropagation();e.preventDefault();toolPreview(position(e))},true);
-function endTool(e){if(!toolDrag||toolDrag.id!==e.pointerId)return;e.stopImmediatePropagation();const d=toolDrag;if(e.type==='pointerup')toolPreview(position(e));toolDrag=null;try{canvas.releasePointerCapture(e.pointerId)}catch{}if(e.type==='pointerup'){if(d.kind!=='select')commitTool(d.cells,d.inks);if(d.rect&&['select','move','duplicate'].includes(d.kind))selection=d.rect;updateToolPalette()}redraw()}
+canvas.addEventListener('pointermove',e=>{if(!toolDrag||toolDrag.anchor||toolDrag.id!==e.pointerId)return;e.stopImmediatePropagation();e.preventDefault();toolPreview(position(e))},true);
+function endTool(e){if(!toolDrag||toolDrag.id!==e.pointerId||(toolDrag.anchor&&e.type==='lostpointercapture'))return;e.stopImmediatePropagation();const d=toolDrag;if(e.type==='pointerup'&&tapPoints&&!d.second){d.anchor=true;try{canvas.releasePointerCapture(e.pointerId)}catch{}return;}if(e.type==='pointerup')toolPreview(position(e));toolDrag=null;try{canvas.releasePointerCapture(e.pointerId)}catch{}if(e.type==='pointerup'){if(d.kind!=='select')commitTool(d.cells,d.inks);if(d.rect&&['select','move','duplicate'].includes(d.kind)){selection=d.rect;drawingTool='select';erasing=false;refresh()}updateToolPalette()}redraw()}
 for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,endTool,true);
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(toolDrag||selection)){cancelToolDrag();selection=null;updateToolPalette();redraw()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(toolDrag||selection)){cancelToolDrag();selection=null;if(['move','duplicate'].includes(drawingTool))drawingTool='select';refresh();redraw()}});
 function stroke(a,b){
  const n=Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]),1);
  for(let i=0;i<=n;i++)paint(Math.round(a[0]+(b[0]-a[0])*i/n),Math.round(a[1]+(b[1]-a[1])*i/n));
@@ -876,12 +883,59 @@ $('projectFile').onchange=async e=>{
 // Fit on the next animation frame to avoid writing layout during that delivery.
 let fitRAF=null;
 const ro=new ResizeObserver(()=>{if(fitRAF===null)fitRAF=requestAnimationFrame(()=>{fitRAF=null;fit()})});ro.observe(frame);
-if(matchMedia('(max-width:690px)').matches){$('sidebar').classList.add('closed');$('toggle').setAttribute('aria-expanded','false')}
+if(matchMedia('(max-width:900px)').matches){$('sidebar').classList.add('closed');$('toggle').setAttribute('aria-expanded','false')}
 for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(let n=1;n<=40;n++){const o=document.createElement('option');o.value=o.textContent=n;select.appendChild(o)}select.value='16'}
+/* Compact workspace, contextual help and native-export preflight. */
+(()=>{
+ const style=document.createElement('style');style.textContent=`
+ button,select,.field input[type=number]{min-height:38px;font-size:.875rem;padding:6px 9px}
+ .drawing-strip{justify-content:flex-start;gap:8px;padding:6px 10px;flex-wrap:wrap}
+ .recovery-group{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
+ .tool-icon{width:38px;height:38px;padding:8px!important;display:inline-grid;place-items:center}
+ .tool-icon svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+ #quickglyph{display:none}.stagefoot{font-size:.8rem;min-height:1.6em}.note{font-size:.8rem}
+ .selection-actions{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);z-index:9;max-width:calc(100% - 20px);border:1px solid #64778d;border-radius:9px;box-shadow:0 4px 20px #0008;justify-content:center}
+ .stage{position:relative}.sidebar{transition:none}.help-trigger{width:38px;min-width:38px;border-radius:50%;font-weight:bold}
+ .context-help{position:fixed;inset:auto 12px 12px auto;margin:0;width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;background:#18263a;color:#eef5fa;border:1px solid #71869c;border-radius:12px;padding:16px;z-index:30;font-size:.9rem;line-height:1.5}
+ .context-help h3{margin:0}.context-help button{float:right}#c64Readiness{border:1px solid #64778d;border-radius:8px;padding:12px;margin:10px 0;font-size:.85rem}#c64Readiness p{margin:5px 0}#c64Readiness ul{padding-left:20px}
+ @media(min-width:691px) and (max-width:900px){.sidebar{position:static;width:260px;box-shadow:none}.sidebar.closed{width:0;padding:0;visibility:hidden}.app-title h1{font-size:.95rem}#saveStatus{display:none}}
+ @media(max-width:600px){.drawing-strip{gap:4px}header{gap:6px}.selection-actions{bottom:44px;width:max-content}.app-title{min-width:0}.app-title h1{font-size:.8rem}}
+ `;document.head.append(style);
+ const icons={paint:'M4 20l4-1L20 7l-3-3L5 16z M14 7l3 3',erase:'M3 14l9-10 9 8-7 8H9z M8 9l9 8 M14 20h7',fill:'M5 10l7-7 9 9-7 7z M4 11h17 M5 3l7 7 M3 17c-4 5 3 5 0 0',line:'M4 20L20 4',rectangle:'M4 5h16v14H4z',select:'M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5',undo:'M9 5L3 10l6 5 M3 10h10c8 0 8 10 1 10',redo:'M15 5l6 5-6 5 M21 10h-10c-8 0-8 10-1 10'};
+ for(const [name,path] of Object.entries(icons)){const b=$(name)||$('tool-'+name);if(!b)continue;b.classList.add('tool-icon');b.setAttribute('aria-label',({paint:'Paint',erase:'Eraser',fill:'Fill',line:'Line',rectangle:'Rectangle',select:'Select',undo:'Undo',redo:'Redo'})[name]);b.title=b.getAttribute('aria-label');b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+path+'"/></svg>'}
+ const recovery=document.createElement('div');recovery.className='recovery-group';recovery.setAttribute('role','group');recovery.setAttribute('aria-label','Undo and redo');$('undo').before(recovery);recovery.append($('undo'),$('redo'));
+ selectionBar.classList.add('selection-actions');document.querySelector('.stage').append(selectionBar);
+ const cancel=document.createElement('button');cancel.id='cancelTool';cancel.textContent='Cancel';cancel.onclick=()=>{cancelToolDrag();if(['move','duplicate'].includes(drawingTool))drawingTool='select';refresh();redraw();canvas.focus()};selectionBar.append(cancel);
+ const pointLabel=document.createElement('label');pointLabel.innerHTML='<input id="tapPoints" type="checkbox"> Tap endpoints';toolBar.after(pointLabel);$('tapPoints').onchange=()=>{tapPoints=$('tapPoints').checked;cancelToolDrag();redraw()};
+ const originalPalette=updateToolPalette;updateToolPalette=function(){originalPalette();selectionBar.hidden=animationPreview||(!selection&&!toolDrag);for(const id of ['moveSelection','duplicateSelection','deleteSelection','deselect'])$(id).hidden=!selection;cancel.hidden=!toolDrag;pointLabel.hidden=!['line','rectangle','select','move','duplicate'].includes(drawingTool)};
+ const originalPreview=toolPreview;toolPreview=function(p){originalPreview(p);updateToolPalette()};
+ const help=document.createElement('section');help.id='contextHelp';help.className='context-help';help.setAttribute('popover','manual');help.setAttribute('role','dialog');help.setAttribute('aria-labelledby','contextHelpTitle');help.innerHTML='<button id="closeHelp" aria-label="Close help">✕</button><h3 id="contextHelpTitle"></h3><div id="contextHelpBody"></div>';document.body.append(help);let helpButton;
+ function closeHelp(){if(!help.matches(':popover-open'))return;help.hidePopover();helpButton?.setAttribute('aria-expanded','false');helpButton?.focus({preventScroll:true})}
+ $('closeHelp').onclick=closeHelp;
+ function helpFor(anchor,title,body){const b=document.createElement('button');b.className='help-trigger';b.textContent='?';b.setAttribute('aria-label','Help about '+title.toLowerCase());b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','contextHelp');b.onclick=()=>{if(helpButton===b&&help.matches(':popover-open')){closeHelp();return}helpButton?.setAttribute('aria-expanded','false');helpButton=b;$('contextHelpTitle').textContent=title;$('contextHelpBody').textContent=body;const parent=b.closest('dialog')||document.body;if(help.parentElement!==parent){if(help.matches(':popover-open'))help.hidePopover();parent.append(help)}help.showPopover();b.setAttribute('aria-expanded','true');$('closeHelp').focus({preventScroll:true})};anchor.append(b)}
+ helpFor(document.querySelector('.drawing-strip'),'Drawing tools','Choose a glyph and ink, then draw. Fill replaces connected cells with the same glyph and ink. Line, Rectangle and Select accept a drag or two taps when Tap endpoints is enabled. Drag inside a selection to move it, or choose Move/Duplicate and tap a destination. Arrow keys move the keyboard cursor; Enter marks endpoints; Escape or Cancel abandons a pending operation.');
+ for(const [id,title,text] of [['projectMenu','Projects','Project files preserve editable artwork and replay. Automatic drafts stay on this device; download a project before changing devices.'],['animationDetails','Animation timing','Loop duration sets the entire timeline. Movement and color cycles repeat independently within it. An 8-second loop with 4 movement cycles repeats its movement every 2 seconds. Preview never changes the original artwork.'],['colorDetails','Colors','Ink affects future strokes. Background is shared. Recolor entire drawing changes all occupied cells and can be undone.'],['export-data','C64 exports','Readiness checks geometry, distinct glyph patterns, program memory and estimated update time. PRG and D64 share the same player limits. Ready means exporter checks passed, not guaranteed smooth playback on physical hardware.']]){const section=$(id),anchor=document.createElement('div');anchor.style.textAlign='right';section.append(anchor);helpFor(anchor,title,text)}
+ $('animationInfo').parentElement.hidden=true;const c64Explanation=document.querySelector('#exportC64 + p.note');c64Explanation.hidden=true;document.querySelector('button[aria-label="Help about c64 exports"]').addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const copy=c64Explanation.cloneNode(true);copy.hidden=false;$('contextHelpBody').append(copy)});
+ for(const selector of ['#projectMenu .note','#colorDetails .note','#animationInfo','#helpDetails','#downloadDescription'])document.querySelectorAll(selector).forEach(e=>e.hidden=true);
+ canvas.addEventListener('pointerdown',e=>{if(help.matches(':popover-open')){e.stopImmediatePropagation();e.preventDefault();closeHelp()}},true);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&help.matches(':popover-open')){e.stopImmediatePropagation();closeHelp()}},true);
+ canvas.tabIndex=0;let cursor=[0,0];canvas.setAttribute('aria-label','Drawing canvas. Arrow keys move; Enter draws or marks endpoints; Escape cancels.');
+ canvas.addEventListener('keydown',e=>{if(animationPreview)return;const dirs={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(dirs[e.key]){e.preventDefault();cursor=[Math.max(0,Math.min(W-1,cursor[0]+dirs[e.key][0])),Math.max(0,Math.min(H-1,cursor[1]+dirs[e.key][1]))];redraw();toolOutline({x:cursor[0],y:cursor[1],w:1,h:1});canvas.setAttribute('aria-description','Column '+(cursor[0]+1)+', row '+(cursor[1]+1));return}if(e.key!=='Enter'&&e.key!==' ')return;e.preventDefault();const r=canvas.getBoundingClientRect(),options={pointerId:1,pointerType:'pen',isPrimary:true,bubbles:true,cancelable:true,clientX:r.left+(cursor[0]+.5)*r.width/W,clientY:r.top+(cursor[1]+.5)*r.height/H};tapPoints=true;$('tapPoints').checked=true;canvas.dispatchEvent(new PointerEvent('pointerdown',options));canvas.dispatchEvent(new PointerEvent('pointerup',options))});
+ for(const name of ['move','duplicate'])$(name+'Selection').onclick=()=>{drawingTool=name;tapPoints=true;$('tapPoints').checked=true;toolDrag={kind:name,data:selectionData(),offset:[0,0],start:[selection.x,selection.y],id:1,anchor:true};updateToolPalette();setStatus('Tap a destination, then release to '+name+'.')};
+ const panel=document.createElement('section');panel.id='c64Readiness';panel.setAttribute('aria-label','C64 export readiness');$('exportC64').before(panel);let revision=0,timer;
+ function argsFor(s,frames){return {columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,repetitions:s.c64Repetitions,...(frames.some(f=>f.cells.some(g=>g>255))?{glyphBits:rom?.slice()}:{})}}
+ async function check(){if(!$('downloadDialog').open||$('export-data').hidden)return;const mine=++revision;panel.textContent='Checking…';try{if(!rom)throw Error('Reload C64 glyphs to check character patterns and export.');const s={...animationSource(),c64Repetitions:$('c64Mode').value==='animation'?Number($('c64Repeats').value):1},moving=$('c64Mode').value==='animation',warning=moving&&animationPlan(s).warning;if(warning){panel.textContent='Needs adjustment: '+warning;return}const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}],patterns=new Set(['0,0,0,0,0,0,0,0']);for(const f of frames)for(const g of f.cells)if(g!==''&&rom)patterns.add(rom.subarray(g*8,g*8+8).join(','));const issues=[];if(s.W>40||s.H>25)issues.push('Canvas must fit within 40 × 25 cells. Resize with crop preview.');const mixed=frames.some(f=>f.cells.some(g=>g>255));if(mixed&&patterns.size>256)issues.push('Use fewer different glyph patterns: '+patterns.size+' required, 256 available including blank.');const {createC64Program}=await import('./c64-export.js');let result;if(!issues.length){result=createC64Program({...argsFor(s,frames),analyze:true});const d=result.diagnostics;if(d.programBytes>d.memoryLimit)issues.push('Program memory exceeded. Reduce canvas size or simplify the movement/color effects; slowing alone may not help.');if(d.worstUpdateRatio>1)issues.push('Updates exceed the estimated playback budget. Increase loop duration or reduce the animated area.')}if(mine!==revision)return;panel.replaceChildren();const heading=document.createElement('strong');heading.textContent=issues.length?'Needs adjustment':'Ready — exporter checks passed';panel.append(heading);for(const text of [s.W+' × '+s.H+' cells · '+patterns.size+' distinct patterns'+(mixed?' / 256 including blank':' (ROM-backed)'),...(result?[result.diagnostics.programBytes.toLocaleString()+' / '+result.diagnostics.memoryLimit.toLocaleString()+' program bytes','Worst update: '+Math.round(result.diagnostics.worstUpdateRatio*100)+'% of estimated timing budget (includes loop transition)']:[])]){const p=document.createElement('p');p.textContent=text;panel.append(p)}for(const message of issues){const p=document.createElement('p');p.textContent=message;panel.append(p)}if(result&&result.diagnostics.worstUpdateRatio>1){for(const seconds of [1,2,4,8,12].filter(v=>v>s.seconds)){const next={...s,seconds},ff=animationExportFrames(next).map(f=>({...animationCells(f.index,next),durationMs:f.durationMs}));try{createC64Program(argsFor(next,ff));const b=document.createElement('button');b.textContent='Apply tested '+seconds+'-second loop';b.onclick=()=>{remember();$('animationSeconds').value=String(seconds);updateAnimationOptions();redraw();schedule()};panel.append(b);break}catch{}}}}catch(e){if(mine===revision)panel.textContent='Unable to check: '+e.message}}
+ function schedule(){revision++;clearTimeout(timer);if($('downloadDialog').open&&!$('export-data').hidden)panel.textContent='Checking…';timer=setTimeout(check,250)}
+ const previousTab=selectExportTab;selectExportTab=function(...args){previousTab(...args);schedule()};
+ const redrawBefore=redraw;redraw=function(){redrawBefore();schedule()};document.addEventListener('change',schedule);$('downloadOpen').addEventListener('click',schedule);document.querySelectorAll('[data-export-tab]').forEach(b=>b.addEventListener('click',schedule));
+ function ready(){if(document.querySelector('.app').dataset.ready!=='true')return;observer.disconnect();if($('status').textContent==='Ready to draw')setStatus('');updateToolPalette();refresh();fit()}const observer=new MutationObserver(ready);observer.observe(document.querySelector('.app'),{attributes:true,attributeFilter:['data-ready']});ready();
+})();
+
 // Do not autosave until the glyph asset and existing draft have been restored.
 $('sidebar').inert=true;$('glyphPicker').inert=true;$('glyphToggle').disabled=true;canvas.style.pointerEvents='none';
 try{await loadBuiltinGlyphs();glyph=64;updateSourceInfo()}catch{updateSourceInfo();setStatus('C64 glyphs unavailable. Reload glyphs to resume drawing.')}
 try{const saved=JSON.parse(localStorage.getItem(PROJECT_KEY));if(saved){validateProject(saved);applyProject(saved);setStatus('Autosaved project restored'+(!rom&&grid.some(g=>typeof g==='number')?'; reload C64 glyphs to render codes':''))}}catch{setStatus('Saved draft could not be restored; load a JSON backup')}
 $('showAlphanumerics').checked=false;updateAnimationOptions();updateColorUI();initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
 })();
-</script></body></html>
+</script></body>
+</html>

@@ -32,7 +32,7 @@ export function createD64Disk(prg,filename='PICTURE'){
 // Each frame: 16-bit 60 Hz duration, then changed repeated/literal runs.
 // [addressLo,addressHi,count,value]; count 0 means [length,...literalBytes] instead.
 // Address 0 ends a frame; duration 0 ends a loop; $FFFF redirects the stream. Frame zero initializes both planes once.
-export function createC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits}){
+export function createC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits,analyze=false}){
  if(!Number.isInteger(columns)||columns<1||columns>40||!Number.isInteger(rows)||rows<1||rows>25)throw Error('C64 programs support up to 40 columns × 25 rows. Resize the canvas first.');
  if(![0,1].includes(charset)||![background,ink].every(c=>Number.isInteger(c)&&c>=0&&c<16))throw Error('Invalid C64 display settings');
  if(!Number.isInteger(repetitions)||repetitions<0||repetitions>100)throw Error('C64 repetitions must be a whole number from 0 to 100 (0 loops continuously)');
@@ -69,7 +69,7 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
   return cost;
  };
  let previousScreen,previousColors,firstScreen,firstColors,firstTicks,continuationOffset;
- let elapsed=0,previousTick=0;
+ let elapsed=0,previousTick=0,worstUpdateRatio=0;
  for(const frame of frames){
   if(frame.cells.length!==columns*rows||frame.inks.length!==columns*rows)throw Error('Invalid C64 frame dimensions');
   if(frame.cells.some(g=>g!==''&&(!Number.isInteger(g)||g<0||g>255)))throw Error('C64 programs require numeric screen codes from 0 to 255.');
@@ -82,13 +82,15 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
   for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=y*40+x;screen[d]=frame.cells[i]===''?(custom?0:32):frame.cells[i];colors[d]=frame.inks[i]}
   if(custom&&!previousScreen)changedRuns(characterBytes,undefined,0xc800);
   const cost=changedRuns(screen,previousScreen,custom?0xc400:0x400)+changedRuns(colors,previousColors,0xd800)+2500;
-  if(previousScreen&&cost>ticks*985248/60)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
+  if(previousScreen)worstUpdateRatio=Math.max(worstUpdateRatio,cost/(ticks*985248/60));
+  if(!analyze&&previousScreen&&cost>ticks*985248/60)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
   stream.push(0,0);if(!firstScreen){firstScreen=screen;firstColors=colors;firstTicks=ticks;continuationOffset=stream.length}previousScreen=screen;previousColors=colors;
  }
  stream.push(0,0);
  const loopOffset=stream.length;stream.push(firstTicks&255,firstTicks>>8);
  const loopCost=changedRuns(firstScreen,previousScreen,custom?0xc400:0x400)+changedRuns(firstColors,previousColors,0xd800)+2500;
- if(frames.length>1&&loopCost>firstTicks*985248/60)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
+ if(frames.length>1)worstUpdateRatio=Math.max(worstUpdateRatio,loopCost/(firstTicks*985248/60));
+ if(!analyze&&frames.length>1&&loopCost>firstTicks*985248/60)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
  stream.push(0,0,255,255);const continuationPointer=stream.length;stream.push(0,0);
  // Small label-aware emitter: operands/fixups are checked, including relative branch ranges.
  const origin=0x0801,bytes=[0x0b,0x08,10,0,0x9e,50,48,54,49,0,0,0],labels={},fixups=[];
@@ -129,8 +131,8 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
  for(const name of ['remaining','lastTick','delay','delayHigh','started']){label(name);emit(0)}
  label('data');labels.loopData=labels.data+loopOffset;labels.continuation=labels.data+continuationOffset;fixups.push({at:bytes.length+continuationPointer,target:'continuation'});for(const byte of stream)emit(byte);
  // Stay below BASIC ROM ($A000), leaving KERNAL, I/O and the stack intact.
- if(origin+bytes.length>0xa000)throw Error('This animation exceeds the C64 player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
+ if(!analyze&&origin+bytes.length>0xa000)throw Error('This animation exceeds the C64 player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
  for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown C64 player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error('C64 branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
  // Host-side symbols let full-machine checks observe frames without changing the PRG.
- return {bytes:Uint8Array.from([1,8,...bytes]),durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
+ return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }

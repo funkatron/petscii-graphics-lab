@@ -55,7 +55,7 @@ Glyph codes are hidden by default. Turn on **Character options → Show glyph co
 
 ### Drawing tools
 
-The drawing strip keeps the familiar tools beside the canvas. The selected tool is highlighted; labels remain visible.
+The compact drawing strip uses familiar tool icons with accessible names. The selected tool is highlighted. Undo and Redo stay together. Tap the question mark for drawing instructions.
 
 | Tool | Action |
 | --- | --- |
@@ -65,11 +65,16 @@ The drawing strip keeps the familiar tools beside the canvas. The selected tool 
 | Select | Drag a rectangular marquee, then drag inside it to move the region |
 | Duplicate | Select a region, choose Duplicate, then drag inside it to place a copy |
 | Delete | Remove the selected region |
-| Save stamp / Stamp | Save a selection, then place it repeatedly with its original glyphs and colors |
 
 Each completed drawing operation is one Undo step. Escape or an interrupted pointer gesture cancels a shape preview. Deselect clears the marquee. Moves preserve empty cells as well as artwork; duplicates and stamps treat empty cells as transparent. Placement stays within the canvas.
 
-Up to 32 stamps are saved on this device. They are separate from editable projects; clearing browser storage removes them. Remove stamp deletes the selected saved stamp. The canvas is read-only during animation preview.
+Stamps have been removed; use Select and Duplicate to repeat artwork. Old device-local stamp data is left untouched. The canvas is read-only during animation preview.
+
+For lines, rectangles and selections, enable **Tap endpoints** to mark two points instead of dragging. Move and Duplicate accept a tap on the destination. On a focused canvas, use arrow keys to position the cursor and Enter to draw or mark endpoints. Cancel and Escape abandon unfinished operations. Undo preserves the active tool.
+
+Optional explanations are available through tappable question marks. Help supports keyboard activation, Close and Escape. Portrait iPad settings start closed to leave more canvas space.
+
+The C64 download panel checks readiness before downloading: dimensions, distinct patterns, program memory and estimated update time. PRG and D64 share the same limits. When playback is too demanding, a longer loop is offered only after the exporter accepts that candidate. Applying it is undoable. These estimates do not guarantee smooth physical-hardware playback; the 40 × 24 combined-wave capacity investigation remains on the roadmap.
 
 ### Change colors
 

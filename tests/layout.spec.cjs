@@ -23,7 +23,7 @@ test('glyph picker is independent from tools, with single scrolling surface and 
  await page.getByRole('button',{name:'C64 glyph ID 64',exact:true}).click();await expect(page.locator('#quickglyph')).toHaveText('#64');
  if(wide)await expect(page.locator('#glyphPicker')).toBeVisible();else{await expect(page.locator('#glyphPicker')).toBeHidden();await expect(page.locator('#glyphToggle')).toBeFocused()}
  if(wide)await page.locator('#glyphClose').click();
- await page.locator('#toggle').click();await expect(page.locator('#sidebar')).not.toBeVisible();await page.locator('#glyphToggle').click();await expect(page.locator('#glyphPicker')).toBeVisible();await page.keyboard.press('Escape');await expect(page.locator('#glyphPicker')).toBeHidden();await expect(page.locator('#glyphToggle')).toBeFocused();
+ if(await page.locator('#sidebar').isVisible())await page.locator('#toggle').click();await expect(page.locator('#sidebar')).not.toBeVisible();await page.locator('#glyphToggle').click();await expect(page.locator('#glyphPicker')).toBeVisible();await page.keyboard.press('Escape');await expect(page.locator('#glyphPicker')).toBeHidden();await expect(page.locator('#glyphToggle')).toBeFocused();
 });
 test('small-screen picker dismisses without painting and header stays within viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.app[data-ready=true]').waitFor();
