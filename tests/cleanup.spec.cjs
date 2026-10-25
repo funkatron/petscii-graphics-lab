@@ -7,6 +7,17 @@ test('compact iPad palette keeps recovery together and selection leaves canvas s
 test('help opens by keyboard, closes without painting, and returns focus',async({page})=>{
  const button=page.getByRole('button',{name:'Help about drawing tools'});await button.focus();await page.keyboard.press('Enter');await expect(page.locator('#contextHelp')).toBeVisible();await page.locator('#canvas').click();await expect(page.locator('#contextHelp')).toBeHidden();await expect(button).toBeFocused();expect(JSON.parse(await download(page,'#saveProject')).grid.every(g=>g==='')).toBe(true);
 });
+test('section help stays beside collapsed headings and selection actions never overlap artwork',async({page})=>{
+ await ui(page,'#toggle');if(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed')))await ui(page,'#toggle');
+ for(const id of ['colorDetails','animationDetails']){
+  const section=page.locator('#'+id),help=section.locator('..').locator('> .help-trigger');
+  await expect(section).not.toHaveAttribute('open','');await expect(help).toBeVisible();
+  const h=await help.boundingBox(),s=await section.locator('summary').first().boundingBox();expect(h.width).toBe(28);expect(Math.abs(h.y+h.height/2-s.y-s.height/2)).toBeLessThan(12);
+  await help.click();await expect(section).not.toHaveAttribute('open','');await page.locator('#closeHelp').click();await expect(help).toBeFocused();
+ }
+ await loadProject(page,project(Array(16).fill(160),4,4));await ui(page,'#tool-select');await page.locator('#canvas').focus();await page.keyboard.press('Enter');await page.keyboard.press('ArrowRight');await page.keyboard.press('Enter');
+ const c=await page.locator('#canvas').boundingBox(),a=await page.locator('.selection-actions').boundingBox();expect(a.y).toBeGreaterThanOrEqual(c.y+c.height);
+});
 test('two endpoints draw one undoable line and keep Line selected after undo',async({page})=>{
  await loadProject(page,project(Array(16).fill(''),4,4,{selectedGlyph:160}));await ui(page,'#tool-line');await page.locator('#canvas').focus();await page.keyboard.press('Enter');await page.keyboard.press('ArrowRight');await page.keyboard.press('ArrowRight');await page.keyboard.press('Enter');let p=JSON.parse(await download(page,'#saveProject'));expect(p.grid.slice(0,4)).toEqual([160,160,160,'']);await ui(page,'#undo');await expect(page.locator('#tool-line')).toHaveAttribute('aria-pressed','true');expect(JSON.parse(await download(page,'#saveProject')).grid.every(g=>g==='')).toBe(true);
 });
