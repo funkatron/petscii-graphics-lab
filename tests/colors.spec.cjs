@@ -6,6 +6,7 @@ const rgb=index=>[0,2,4].map(i=>parseInt(hex[index].slice(i,i+2),16));
 const pixel=(png,x,y)=>Array.from(png.data.subarray((y*png.width+x)*4,(y*png.width+x)*4+4));
 async function choose(page,target,index){await ui(page,'#'+target+'Target');await ui(page,'#colorPalette button:nth-child('+(index+1)+')')}
 async function canvasPixels(page){return page.locator('#canvas').evaluate(c=>{const t=c.getContext('2d');return [.25,.75].map(x=>Array.from(t.getImageData(Math.floor(c.width*x),Math.floor(c.height*.5),1,1).data))})}
+async function colorState(page){return page.evaluate(()=>({grid,colors,cellColors,painting,status:document.querySelector('#status').textContent,canvas:[canvas.width,canvas.height],unit}))}
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('all sixteen C64 swatches use documented RGB values and update bitmap previews and canvas',async({page})=>{
  await loadProject(page,project([160,''],2,1,{selectedGlyph:160}));await ui(page,'#inkTarget');await expect(page.locator('#colorPalette button')).toHaveCount(16);
@@ -42,6 +43,8 @@ test('native repeated video snapshots colors before encoder loading and uses can
  const v=decodeVideo(await contents(await waiting));expect(Number(v.info.format.duration)).toBeCloseTo(1.5,2);expect(v.frames).toHaveLength(12);for(let f=0;f<12;f++)for(let x=0;x<4;x++)nearPixel(v,f,x*32+16,16,rgb(x===(4-f%4)%4?7:6));expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:3,background:0});
 });
 test('authentic bitmap geometry, black ink, swapped colors, and identical colors remain editable and exportable',async({page})=>{
- await loadProject(page,project([160,''],2,1,{selectedGlyph:160,colors:{ink:0,background:1}}));expect(await canvasPixels(page)).toEqual([[0,0,0,255],[255,255,255,255]]);await ui(page,'#swapColors');await ui(page,'#recolorDrawing');expect(await canvasPixels(page)).toEqual([[255,255,255,255],[0,0,0,255]]);await ui(page,'#undo');await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:0,background:1});
+ page.on('console',m=>console.log(m.text()));
+ await page.addInitScript(()=>document.addEventListener('pointerdown',e=>console.log('pointer target',e.target.id,e.clientX,e.clientY),true));
+ await loadProject(page,project([160,''],2,1,{selectedGlyph:160,colors:{ink:0,background:1}}));expect(await canvasPixels(page)).toEqual([[0,0,0,255],[255,255,255,255]]);await ui(page,'#swapColors');console.log('after swap',await colorState(page));await ui(page,'#recolorDrawing');console.log('after recolor',await colorState(page));expect(await canvasPixels(page)).toEqual([[255,255,255,255],[0,0,0,255]]);await ui(page,'#undo');await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).colors).toEqual({ink:0,background:1});
  await choose(page,'ink',3);await choose(page,'background',3);await ui(page,'#recolorDrawing');const gif=new GifReader(await download(page,'#exportGif')),data=new Uint8Array(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(gif.numFrames()-1,data);expect(Array.from(data.slice(0,4))).toEqual([...rgb(3),255]);expect(Array.from(data.slice(-4))).toEqual([...rgb(3),255]);
 });
