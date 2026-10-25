@@ -256,7 +256,7 @@ Run CI with one worker for stable headless WebKit resource use. The two serial m
 
 ## Compact cleanup and C64 preflight
 
-Undo/Redo remain grouped. Selection actions float over the stage without changing canvas dimensions. Undo preserves the active tool; project loading restores its saved Paint/Eraser state. Tap endpoints and canvas arrow/Enter input provide alternatives to dragging. Help is a manually activated popover dialog with Close/Escape and focus return; canvas dismissal must consume the gesture. Portrait settings start closed.
+Undo/Redo remain grouped. Selection actions occupy a reserved strip below the canvas without covering artwork or changing canvas dimensions. Undo preserves the active tool; project loading restores its saved Paint/Eraser state. Tap endpoints and canvas arrow/Enter input provide alternatives to dragging. Help is a manually activated popover dialog with Close/Escape and focus return; canvas dismissal must consume the gesture. Portrait settings start closed.
 
 C64 `analyze:true` uses the same run encoder and work estimator, returns program size and worst update/budget ratio, and suppresses only memory/work rejection for diagnostics. Ordinary export still enforces both. Preflight snapshots source settings, invalidates stale async results and checks geometry/patterns before generation. Longer-loop remedies must pass the ordinary exporter and apply through history. Estimates are not hardware guarantees. Full PAL/NTSC 40 × 24 wave capacity expansion remains an investigation.
 

@@ -72,7 +72,7 @@ Stamps have been removed; use Select and Duplicate to repeat artwork. Old device
 
 For lines, rectangles and selections, enable **Tap endpoints** to mark two points instead of dragging. Move and Duplicate accept a tap on the destination. On a focused canvas, use arrow keys to position the cursor and Enter to draw or mark endpoints. Cancel and Escape abandon unfinished operations. Undo preserves the active tool.
 
-Optional explanations are available through tappable question marks. Help supports keyboard activation, Close and Escape. Portrait iPad settings start closed to leave more canvas space.
+Optional explanations are available through compact question marks beside section headings. Selection actions sit in a reserved strip below the canvas, keeping artwork uncovered. Help supports keyboard activation, Close and Escape. Portrait iPad settings start closed to leave more canvas space.
 
 The C64 download panel checks readiness before downloading: dimensions, distinct patterns, program memory and estimated update time. PRG and D64 share the same limits. When playback is too demanding, a longer loop is offered only after the exporter accepts that candidate. Applying it is undoable. These estimates do not guarantee smooth physical-hardware playback; the 40 × 24 combined-wave capacity investigation remains on the roadmap.
 
