@@ -8,8 +8,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {ViceMonitor,freePort} from './vice-monitor.mjs';
 
-const source=await readFile(new URL('../c64-export.js',import.meta.url),'utf8');
-const {createC64Program,createD64Disk}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const {createC64Program,createD64Disk}=await import(new URL('../c64-export.js',import.meta.url));
 const executable=process.env.VICE_EXECUTABLE;
 const data=process.env.VICE_DATA_DIR;
 assert.ok(executable&&data,'Set VICE_EXECUTABLE and VICE_DATA_DIR; see docs/vice-validation.md');

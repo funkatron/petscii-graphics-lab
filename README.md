@@ -74,7 +74,7 @@ For lines, rectangles and selections, enable **Tap endpoints** to mark two point
 
 Optional explanations are available through compact question marks beside section headings. Selection actions sit in a reserved strip below the canvas, keeping artwork uncovered. Help supports keyboard activation, Close and Escape. Portrait iPad settings start closed to leave more canvas space.
 
-The C64 download panel checks readiness before downloading: dimensions, distinct patterns, program memory and estimated update time. PRG and D64 share the same limits. When playback is too demanding, a longer loop is offered only after the exporter accepts that candidate. Applying it is undoable. These estimates do not guarantee smooth physical-hardware playback; the 40 × 24 combined-wave capacity investigation remains on the roadmap.
+The C64 download panel checks readiness before downloading: dimensions, distinct patterns, program memory and estimated update time. PRG and D64 share the same limits. When playback is too demanding, a longer loop is offered only after the exporter accepts that candidate. Applying it is undoable. When needed, the exporter tries a faster row renderer while preserving the sampled frames and requested speed. These estimates do not guarantee smooth physical-hardware playback; broader capacity validation remains on the roadmap.
 
 ### Change colors
 
