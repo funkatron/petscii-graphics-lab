@@ -21,6 +21,9 @@ test('C64 animation shows the same live preview with canvas colors and synchroni
  await ui(page,'#c64Mode','selectOption','still');await expect(page.locator('#c64Preview')).toBeHidden();await expect(page.locator('#downloadFigure')).toBeHidden();
  await page.locator('#c64Mode').selectOption('animation');await expect(page.locator('#downloadFigure')).toBeVisible();
  const first=await pixels(page),button=page.locator('#c64Preview');
+ await expect(page.locator('#downloadDimensions')).toContainText('320 × 200 pixels · 4 × 1 cells centered');
+ expect(await page.locator('#downloadPreview').evaluate(c=>Array.from(c.getContext('2d').getImageData(18*8+4,12*8+4,1,1).data))).toEqual([104,55,43,255]);
+ expect(first.slice(0,4)).toEqual([53,40,121,255]);
  expect(first.filter((_,i)=>i%4===3).every(a=>a===255)).toBe(true);
  await button.click();await expect.poll(()=>pixels(page)).not.toEqual(first);
  await page.locator('#c64Format').selectOption('d64');await expect(button).toHaveText('■ Stop preview');

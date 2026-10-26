@@ -110,6 +110,8 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  if(!Number.isInteger(repetitions)||repetitions<0||repetitions>100)throw Error('C64 repetitions must be a whole number from 0 to 100 (0 loops continuously)');
  if(!Array.isArray(frames)||!frames.length)throw Error('No C64 frames to export');
  const custom=glyphBits!==undefined;
+ // Keep the canvas fixed throughout playback; an odd spare cell goes right/bottom.
+ const screenOffset=Math.floor((25-rows)/2)*40+Math.floor((40-columns)/2);
  let characterBytes;
  if(custom){
   if(!(glyphBits instanceof Uint8Array)||glyphBits.length!==4096)throw Error('Invalid unified glyph data');
@@ -158,7 +160,7 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
   if(ticks<1||ticks>65534)throw Error('C64 frame duration is outside the supported range');
   stream.push(ticks&255,ticks>>8);
   const screen=Array(1000).fill(custom?0:32),colors=Array(1000).fill(ink);
-  for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=y*40+x;screen[d]=frame.cells[i]===''?(custom?0:32):frame.cells[i];colors[d]=frame.inks[i]}
+  for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=screenOffset+y*40+x;screen[d]=frame.cells[i]===''?(custom?0:32):frame.cells[i];colors[d]=frame.inks[i]}
   const start=stream.length,before={...streamBytes},packingBefore=packedSavings;
   if(custom&&!previousScreen)changedRuns(characterBytes,undefined,0xc800);
   const cost=changedRuns(screen,previousScreen,custom?0xc400:0x400)+changedRuns(colors,previousColors,0xd800)+2500;
@@ -179,7 +181,7 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  // saves more than its complete code footprint, including the dispatch branch.
  let encoded=encodeStream(true);
  if((nativeRows?encoded.records[0].packedSavings:encoded.packedSavings)<=51)encoded=encodeStream(false);
- const nativePlan=nativeRows?planNativeRows({columns,rows,frames,screenAddress:custom?0xc400:0x400,blank:custom?0:32}):null;
+ const nativePlan=nativeRows?planNativeRows({columns,rows,frames,screenAddress:custom?0xc400:0x400,blank:custom?0:32,screenOffset}):null;
  encoded=nativePlan?nativeFrameStream(encoded,nativePlan):allowSharing?shareFrameBlocks(encoded):{...encoded,sharedBlockSavings:0,sharedPointers:[],sharedOffsets:[]};
  const {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer,sharedBlockSavings,sharedPointers,sharedOffsets}=encoded;
  const usesSharedBlocks=sharedPointers.length>0;

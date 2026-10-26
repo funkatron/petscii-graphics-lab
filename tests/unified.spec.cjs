@@ -21,7 +21,7 @@ test('PNG and inverse GIF pixels use each cell’s source bank, including new gr
 test('mixed PRG runs from RAM glyphs and restores the machine after continuous animation',async({page})=>{
  await loadProject(page,project(ids,5,1,{animation:{effect:'inverse',seconds:1,scale:1,background:'dark'}}));await ui(page,'#c64Mode','selectOption','animation');const bytes=await download(page,'#exportC64');
  for(const clockHz of [985248,1022727]){const r=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...bytes],stopAfterTicks:140,startJiffy:250,clockHz,maxSteps:8000000}),encoding:'utf8',maxBuffer:8e6});expect(r.status,r.stderr).toBe(0);const {snapshots}=JSON.parse(r.stdout);expect(snapshots.length).toBeGreaterThanOrEqual(4);
- snapshots.forEach((s,f)=>{for(let c=0;c<ids.length;c++)expect(s.characters.slice(s.screen[c]*8,s.screen[c]*8+8)).toEqual(rows(ids[c]^((f%2)*128)));expect(s.characters.slice(s.screen[999]*8,s.screen[999]*8+8)).toEqual(Array(8).fill(0))});
+ snapshots.forEach((s,f)=>{for(let c=0;c<ids.length;c++)expect(s.characters.slice(s.screen[497+c]*8,s.screen[497+c]*8+8)).toEqual(rows(ids[c]^((f%2)*128)));expect(s.characters.slice(s.screen[999]*8,s.screen[999]*8+8)).toEqual(Array(8).fill(0))});
  }});
 test('mixed ZIP and native video retain the same uppercase, lowercase and graphics pixels',async({page})=>{
  const AdmZip=require('adm-zip'),{decodeVideo}=require('./video-utils.cjs');

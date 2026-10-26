@@ -13,7 +13,7 @@ The program includes a small player and your character/color data. Source-bank-0
 5. For animation, set **C64 repetitions**. **0** repeats continuously. **1–100** plays that many complete loops, then holds the last frame.
 6. Set **C64 file format** to **Program (.prg)** or **Disk image (.d64)**, then use the Download button.
 
-Smaller drawings appear at the **top left** of the C64 screen. The rest of the screen is blank. The canvas background also becomes the C64 border color.
+Smaller drawings and animations are **centered** on the 40 × 25 C64 screen. Placement uses whole character cells; an odd extra blank cell goes on the right or bottom. The entire canvas stays fixed throughout animation, including its empty cells. The rest of the screen is blank. The canvas background also becomes the C64 border color.
 
 Image resolution and export-background choices do not affect C64 output. A C64 program always uses character cells, per-cell ink, and the canvas background.
 
@@ -62,7 +62,7 @@ Start from ordinary C64 BASIC. The first player does not target cartridge enviro
 | Still drawing | Original artwork, held until RUN/STOP |
 | Animation | Replay, scrolling, row/column waves, inverse, color effects, and their combinations |
 | Repetitions | Continuous, or 1–100 loops followed by a held final frame |
-| Canvas | 1–40 columns and 1–25 rows, placed at the top left |
+| Canvas | 1–40 columns and 1–25 rows, centered on screen |
 | Larger/unsupported drawings | Export stops with an explanation; it never silently crops |
 | Memory / speed | Export checks program size and estimated update work; simplify or slow the animation if rejected |
 
@@ -112,6 +112,8 @@ Automated tests download the actual PRG and execute it with the independent **py
 - D64 directory, file-sector chains, allocation records, full/partial final sectors, and disk capacity. Tests extract the PRG independently, compare it byte for byte with the direct download, and execute the extracted program with py65.
 
 The tests simulate the clock and documented KERNAL calls. **The py65 tests do not emulate the VIC-II/CIA chips, actual KERNAL ROM, disk loading, or a physical C64.** Mixed-bank RAM output is checked against independent SVG patterns in py65. A separate [full VICE suite](vice-validation.md) covers the earlier ROM-backed path: 16 scenarios passed across PAL/NTSC, with no skips. Those results do not validate the new RAM-backed display path or the current optimized literal, packed-color and shared-update decoders. Its STOP check injects the KERNAL scan result; full VICE checks for mixed-bank output, physical key handling and hardware testing remain open.
+
+Centered placement has CPU/browser regression coverage, including blank margins and page crossings. The updated full VICE centering checks were not run in this runtime.
 
 The D64 writer was also checked locally with **VICE c1541 3.7.1**: disk validation and file extraction passed for partial sectors, exact 254-byte sector boundaries, track-density changes, and a full 664-block data area. Extracted files matched their inputs byte for byte. This checks disk structure; it is not a full emulated-drive loading test.
 

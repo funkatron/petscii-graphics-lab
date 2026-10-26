@@ -36,7 +36,7 @@ async function io(m,address){const value=(await m.memory(address,address,3))[0];
 async function registers(m){return Promise.all(displayRegisters.map(a=>io(m,a)))}
 async function picture(m,frame,columns,rows,ink){
  const screen=Buffer.alloc(1000,32),colors=Buffer.alloc(1000,ink);
- for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=y*40+x;screen[d]=frame.cells[i]===''?32:frame.cells[i];colors[d]=frame.inks[i]}
+ for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=(Math.floor((25-rows)/2)+y)*40+Math.floor((40-columns)/2)+x;screen[d]=frame.cells[i]===''?32:frame.cells[i];colors[d]=frame.inks[i]}
  assert.deepEqual(await m.memory(0x400,0x7e7),screen,'All 1000 screen codes');
  assert.deepEqual((await m.memory(0xd800,0xdbe7,3)).map(v=>v&15),colors,'All 1000 color cells');
  assert.deepEqual(await m.memory(0x7e8,0x7ff),m.spriteTail,'Sprite pointers preserved');
@@ -78,7 +78,7 @@ async function pixels(m,cells,inks,charset,columns,rows,background){
   const bits=rom[charset*2048+code*8+(py&7)],expected=bits&(128>>(px&7))?inks[i]:background;
   if(buffer[(oy+py)*width+ox+px]!==expected)return false;
  }return true};
- assert.ok([y-1,y,y+1].some(oy=>matches(x,oy)),'VIC-II pixels match character ROM and per-cell colors');
+ assert.ok([y-1,y,y+1].some(oy=>matches(x+Math.floor((40-columns)/2)*8,oy+Math.floor((25-rows)/2)*8)),'VIC-II pixels match character ROM and per-cell colors');
 }
 
 for(const model of ['c64','ntsc'])for(const charset of [0,1]){
