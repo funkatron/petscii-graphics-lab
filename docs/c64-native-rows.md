@@ -6,11 +6,11 @@ This prototype targets full-screen animations with repeated row patterns. It pre
 
 The generic player interprets changed-run commands. The prototype instead compiles each unique row state into a short 6502 drawing routine, groups writes by value, and selects the correct routine from a frame table. It draws both glyph and color planes. No floating-point wave approximation or sample reduction is introduced.
 
-A routine is shared only when its physical destination page and complete row values match. The Y register supplies the row's offset within that page, including rows crossing page boundaries. The X register holds the frame index. Call operands are patched from low/high address tables before each row call; row kernels preserve X and Y. This uses writable program RAM and is not a reentrant renderer.
+A routine is shared only when its physical destination page and complete row values match. The Y register supplies the row's offset within that page, including rows crossing page boundaries. The X register holds the distinct-picture lookup index. Call operands are patched from low/high address tables before each row call; row kernels preserve X and Y. This uses writable program RAM and is not a reentrant renderer.
 
-The existing player initializes all 1,000 cells and any RAM character set before starting its clock. A reserved update command, `[2,0,frameIndex]`, invokes the native renderer. Frame durations, the final-to-first transition, finite/continuous repeats, RUN/STOP polling and machine-state restoration retain the existing player structure.
+The existing player initializes all 1,000 cells and any RAM character set before starting its clock. A reserved update command, `[2,0,stateIndex]`, invokes the native renderer. Frame durations, the final-to-first transition, finite/continuous repeats, RUN/STOP polling and machine-state restoration retain the existing player structure.
 
-## Reference animation result
+## Original reference result, before picture lookup reuse
 
 A private five-glyph 40 × 24 project requests four movement cycles and two color cycles in a two-second loop, sampled into 96 frames. Its original artwork is not included in the public repository.
 
@@ -25,6 +25,24 @@ A private five-glyph 40 × 24 project requests four movement cycles and two colo
 Independent py65 checks execute the extracted disk program continuously through more than two loops: 204 observed frames at PAL CPU speed and 203 at NTSC CPU speed before the test's stop time. Every observed glyph bitmap and cell color matches its original browser frame. Register/scratch state, sprite-pointer boundaries and stack balance pass the shared harness assertions.
 
 The prototype disk holds one continuously looping program named `ANIMATION`. With the disk mounted as drive 8, load with `LOAD"ANIMATION",8,1`, then `RUN`. RUN/STOP exits.
+
+## Eight-cycle reference and picture lookup reuse
+
+A second private 40 × 24, five-glyph project runs eight movement cycles and eight downward color-wave cycles in an eight-second timeline. Its 192 sampled frames contain only 24 distinct complete glyph/color pictures. Reuse each distinct picture’s lookup column while retaining all original timed dispatches. No durations or samples are dropped or combined, and finite repetitions still count complete eight-second loops.
+
+| Measurement | Before lookup reuse | After |
+| --- | --- | --- |
+| Program bytes, excluding PRG load address | 32,978 | 16,850 |
+| Native code and table bytes | 29,931 | 13,803 |
+| Distinct row routines | 84 | 84 |
+| Worst estimated timing use | 42.3% | 42.3% |
+| Timed samples / duration | 192 / 8 seconds | 192 / 8 seconds |
+
+The optimized disk was independently extracted and executed continuously at both CPU speeds: 386 observed frames at PAL speed and 387 at NTSC speed through the stop time. Every checked glyph and ink matched the private source; maximum copy work was 11,511 cycles and decoder-entry drift was zero ticks. This CPU model does not include VIC-II/CIA/ROM behavior.
+
+The 16,128-byte reduction comes entirely from lookup columns: 48 row calls × two address bytes × (192 − 24). Drawing work remains the same. The compact generic candidate is 13,930 bytes but exceeds its estimated timing budget at 121.1%, so adaptive export selects native rows.
+
+Complete-state keys include glyphs and inks; empty glyphs normalize to the renderer’s blank slot. Sharing also works for nonadjacent repeats and unequal holds. Initial state remains index zero; loop transitions preserve their original duration. `diagnostics.nativeFrameStates` reports the number of lookup columns, separately from `frameCount`.
 
 ## API and constraints
 

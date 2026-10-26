@@ -56,6 +56,43 @@ test('adaptive selection preserves accepted generic bytes and original blockers 
  expect(results[0].genericError).toBe('');expect(results[1].genericError).toBe('');
  expect(results[2].nativeSize).toBeGreaterThan(results[2].limit);expect(results[3].genericError).toContain('playback speed');
 });
+test('native lookup reuse preserves all 192 eight-cycle samples and their original deadlines',async({page},testInfo)=>{
+ test.setTimeout(120000);await capacityPage(page);
+ const ids=[489,361,192,160,66],grid=Array.from({length:960},(_,i)=>ids[(Math.floor(i%40/4)+Math.floor(Math.floor(i/40)%8/3))%5]);
+ await loadProject(page,project(grid,40,24,{cellColors:Array(960).fill(1),colors:{ink:1,background:0},animation:{effect:'wave',colorEffect:'color-wave',motionCycles:8,colorCycles:8,seconds:8,scale:1,background:'dark',colorWaveDirection:'down',colorWaveShape:'sawtooth'}}));
+ const {bytes,frames,p,cycleBytes}=await page.evaluate(async()=>{
+  const {createC64RowProgram}=await import('./c64-export.js'),input=window.capacityInput(),p=createC64RowProgram({...input,repetitions:2}),cycle=createC64RowProgram({...input,frames:input.frames.slice(0,24),repetitions:2});
+  return {bytes:[...p.bytes],frames:input.frames,p:{diagnostics:p.diagnostics,frameCount:p.frameCount,durationTicks:p.durationTicks,debugSymbols:p.debugSymbols},cycleBytes:cycle.bytes.length};
+ });
+ expect(p.frameCount).toBe(192);expect(p.durationTicks).toBe(480);expect(p.diagnostics.nativeFrameStates).toBe(24);
+ // Only the original seven-byte timed dispatches grow across repeated cycles.
+ expect(bytes.length-cycleBytes).toBe((192-24)*7);
+ const keys=frames.map(f=>f.cells.map(g=>glyphRows(g).join(','))),reports=[];
+ for(const clockHz of [985248,1022727]){
+  const r=emulate(bytes,{clockHz,startJiffy:245,stopAfterTicks:970,maxSteps:12000000,observe:{start:p.debugSymbols.frameStart,ready:p.debugSymbols.frameReady}}),o=r.observations;
+  expect(r.snapshots).toHaveLength(384);expect(o.start).toHaveLength(384);expect(o.ready).toHaveLength(384);
+  const slots=Array.from({length:256},(_,i)=>r.snapshots[0].characters.slice(i*8,i*8+8).join(','));let elapsed=0,maxCopyCycles=0,maxDrift=0;
+  r.snapshots.forEach((s,i)=>{
+   expect(s.screen.slice(0,960).map(code=>slots[code])).toEqual(keys[i%192]);expect(s.colors.slice(0,960)).toEqual(frames[i%192].inks);
+   if(i){maxDrift=Math.max(maxDrift,Math.abs(o.start[i].tick-o.ready[0].tick-Math.round(elapsed*60/1000)));maxCopyCycles=Math.max(maxCopyCycles,o.ready[i].cycles-o.start[i].cycles)}
+   elapsed+=frames[i%192].durationMs;
+  });
+  expect(maxDrift).toBeLessThanOrEqual(1);expect(maxCopyCycles).toBeLessThan(14500);reports.push({clockHz,maxDrift,maxCopyCycles,...p.diagnostics});
+ }
+ await testInfo.attach('native-frame-reuse.json',{body:JSON.stringify(reports,null,2),contentType:'application/json'});
+});
+test('lookup reuse compares glyphs and inks separately and preserves unequal holds and loop transitions',async({page})=>{
+ await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
+ const {bytes,states}=await page.evaluate(async()=>{
+  const {createC64RowProgram}=await import('./c64-export.js'),frames=[{cells:[0,''],inks:[0,1],durationMs:100},{cells:[160,''],inks:[0,1],durationMs:200},{cells:[0,''],inks:[2,1],durationMs:300},{cells:[0,32],inks:[0,1],durationMs:400}],p=createC64RowProgram({columns:2,rows:1,background:6,ink:14,frames,repetitions:2});
+  return {bytes:[...p.bytes],states:p.diagnostics.nativeFrameStates};
+ });
+ expect(states).toBe(3);const r=emulate(bytes,{stopAfterTicks:125});expect(r.snapshots).toHaveLength(7);
+ expect(r.snapshots.map(s=>s.screen.slice(0,2))).toEqual([[0,32],[160,32],[0,32],[0,32],[160,32],[0,32],[0,32]]);
+ expect(r.snapshots.map(s=>s.colors.slice(0,2))).toEqual([[0,1],[0,1],[2,1],[0,1],[0,1],[2,1],[0,1]]);
+ // The identical final/first picture retains its combined 400+100 ms hold.
+ const first=r.snapshots[0].tick;expect(r.snapshots.map(s=>s.tick-first)).toEqual([0,6,18,36,66,78,96]);
+});
 test('native ROM rows handle zero, empties, page crossings, small widths and continuous/finite playback',async({page})=>{
  test.setTimeout(60000);await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
  for(const [columns,rows,repetitions,stopAfterTicks] of [[3,2,0,119],[40,25,2,135]]){
