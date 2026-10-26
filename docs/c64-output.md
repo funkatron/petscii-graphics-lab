@@ -76,7 +76,23 @@ The player stores the same **sampled frames** used by GIF, video, and frame ZIP,
 
 The program uses the standard KERNAL clock, which counts **60 ticks per second**. Frame boundaries are rounded cumulatively to those ticks, keeping the loop duration balanced. Commodore documents the clock interval in its [TIME description](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_2/page_089.html).
 
-The first picture is loaded before the loop clock starts. Later updates use changed runs rather than rewriting the entire screen.
+The first picture is loaded before the loop clock starts. Later updates use changed runs or compiled row routines, depending on the selected renderer.
+
+The readiness percentage asks: **can the player finish this screen update before the next frame is due?** It is independent of the memory check. A small program can still require too much processing per frame.
+
+For each timed update, the exporter estimates its CPU cycles, including command/dispatch overhead and the writes it performs. It divides that estimate by the cycles available during that frame’s rounded clock interval, using the slower PAL CPU frequency of 985,248 Hz. The displayed percentage is the **worst individual update**, including the loop transition, rather than an average.
+
+| Percentage | Meaning |
+| --- | --- |
+| 50% | Estimated drawing work takes half the available interval |
+| 100% | Estimated work fills the interval |
+| 120% | Estimated work exceeds the interval; explicit timing override is required |
+
+For example, 192 samples over eight seconds average about 24 frames per second. The C64 clock schedules them in two- or three-tick intervals (about 33 or 50 ms); it does not require 60 pictures per second. Faster requested loops leave fewer cycles per update. Longer loops can ease that limit without reducing sample count.
+
+When timing is the remaining blocker, the C64 panel offers **Download despite timing warning**. Check it to experiment at the requested speed. The warning remains visible and playback may run late or stutter. This bypasses only the timing estimate: program memory, dimensions, valid frames and glyph limits are still enforced. Consent applies to the current artwork and animation settings; changing them clears it. PRG and D64 share the same choice.
+
+This is a software work estimate, not a direct measurement of the complete C64. It allows for player overhead but does not explicitly simulate video-chip bus contention or KERNAL interrupt delays. A pass is useful screening, followed by CPU-emulator checks and full-emulator or hardware testing; it does not promise tear-free display.
 
 Repeated bytes use short repeat instructions. Scattered changes are packed together as literal bytes, so detailed pictures use less program memory and copy faster. Color literals can store two inks per byte, reducing animation size without changing frames or colors. The exporter uses this only when it saves space after accounting for the decoder. Identical frame-update instructions can also share storage while keeping each frame’s duration. The exporter includes that decoder only when it saves space. Literal and packed-color updates also use faster copy loops. You do not need to select a compression mode.
 
