@@ -19,9 +19,12 @@ mem[0x7e8:0x800]=[0x55]*24;mem[0xdbe8:0xdc00]=[0x66]*24
 mem[0xc7e8:0xc800]=[0x77]*24
 mem[0xa2]=p.get('startJiffy',0);start_jiffy=mem[0xa2]
 tick=0;last=-1;snapshots=[];clears=0
+observations={name:[] for name in p.get("observe",{})}
 for step in range(p.get('maxSteps',3000000)):
     tick=int(m.processorCycles*60/p.get('clockHz',985248))
     mem[0xa2]=(start_jiffy+tick)&255
+    for name,address in p.get("observe",{}).items():
+        if m.pc==address:observations[name].append({"tick":tick,"cycles":m.processorCycles})
     # Called after complete frame copies; stop polling is safe for coherent observations.
     if m.pc==0xffe1:
         custom=mem[0xd018]==0x12 and (mem[0xdd00]&3)==0
@@ -44,4 +47,4 @@ assert [mem[a] for a in registers]==initial,'Display registers were not restored
 assert [mem[a] for a in range(0xfb,0xff)]==list(range(0xfb,0xff)),'Scratch memory was not restored'
 assert m.sp==0xff,'Stack was not balanced'
 assert clears==1,'Expected one clear-screen request on exit'
-print(json.dumps({'snapshots':snapshots,'exitTick':tick,'cycles':m.processorCycles}))
+print(json.dumps({'snapshots':snapshots,'exitTick':tick,'cycles':m.processorCycles,'observations':observations}))

@@ -59,3 +59,13 @@ test('D64 cancellation while loading publishes no disk and restores the selected
  await ui(page,'#exportC64');await loading;await ui(page,'#cancelSheetDownload');release();await expect(page.locator('#status')).toContainText('Export canceled');await expect(page.locator('#exportC64')).toBeEnabled();await expect(page.locator('#exportC64')).toHaveText('Download C64 disk (.d64)');expect(downloads).toBe(0);await expect(page.locator('#exportC64')).not.toHaveAttribute('data-download-url',/./);
  readDisk(await download(page,'#exportC64'),'PICTURE');
 });
+
+test('D64 preserves and executes a player containing packed color literals',async({page})=>{
+ const inks=Array.from({length:128},(_,i)=>i%16);
+ await loadProject(page,project(Array(128).fill(160),16,8,{cellColors:inks}));
+ await ui(page,'#c64Format','selectOption','prg');const prg=await download(page,'#exportC64');
+ await ui(page,'#c64Format','selectOption','d64');const extracted=readDisk(await download(page,'#exportC64'),'PICTURE');expect(extracted).toEqual(prg);
+ const r=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...extracted],stopAfterTicks:8}),encoding:'utf8'});expect(r.status,r.stderr).toBe(0);
+ const shot=JSON.parse(r.stdout).snapshots[0];
+ for(let y=0;y<25;y++)for(let x=0;x<40;x++){expect(shot.colors[y*40+x]).toBe(y<8&&x<16?inks[y*16+x]:14);expect(shot.screen[y*40+x]).toBe(y<8&&x<16?160:32)}
+});

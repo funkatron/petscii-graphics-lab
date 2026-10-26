@@ -51,6 +51,8 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
    codes.set(g,slot);return slot;
   })}));
  }
+ function encodeStream(packColors){
+ let usesPackedColors=false,packedSavings=0;
  const stream=[],streamBytes={characters:0,screen:0,color:0,framing:0};
  const changedRuns=(values,previous,address)=>{
   let cost=0;const start=stream.length;
@@ -62,7 +64,12 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
     count=1;while(count<255&&i+count<values.length&&(!previous||values[i+count]!==previous[i+count])&&repeatLength(i+count)<3)count++;
     // Isolated one/two-byte repetitions are cheaper in the original run format.
     if(count<=2&&values[i]===values[i+count-1]){stream.push(target&255,target>>8,count,values[i]);cost+=count*13+160}
-    else{stream.push(target&255,target>>8,0,count,...values.slice(i,i+count));cost+=count*60+200}
+    else if(packColors&&address===0xd800&&count>=4){
+     // Color RAM stores four-bit inks. Zero literal length introduces packed colors.
+     usesPackedColors=true;packedSavings+=count-1-Math.ceil(count/2);stream.push(target&255,target>>8,0,0,count);
+     for(let j=0;j<count;j+=2)stream.push(values[i+j]|((j+1<count?values[i+j+1]:0)<<4));
+     cost+=count*60+300;
+    }else{stream.push(target&255,target>>8,0,count,...values.slice(i,i+count));cost+=count*60+200}
    }
    i+=count;
   }
@@ -83,15 +90,21 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
   if(custom&&!previousScreen)changedRuns(characterBytes,undefined,0xc800);
   const cost=changedRuns(screen,previousScreen,custom?0xc400:0x400)+changedRuns(colors,previousColors,0xd800)+2500;
   if(previousScreen)worstUpdateRatio=Math.max(worstUpdateRatio,cost/(ticks*985248/60));
-  if(!analyze&&previousScreen&&cost>ticks*985248/60)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
   stream.push(0,0);if(!firstScreen){firstScreen=screen;firstColors=colors;firstTicks=ticks;continuationOffset=stream.length}previousScreen=screen;previousColors=colors;
  }
  stream.push(0,0);
  const loopOffset=stream.length;stream.push(firstTicks&255,firstTicks>>8);
  const loopCost=changedRuns(firstScreen,previousScreen,custom?0xc400:0x400)+changedRuns(firstColors,previousColors,0xd800)+2500;
  if(frames.length>1)worstUpdateRatio=Math.max(worstUpdateRatio,loopCost/(firstTicks*985248/60));
- if(!analyze&&frames.length>1&&loopCost>firstTicks*985248/60)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
  stream.push(0,0,255,255);const continuationPointer=stream.length;stream.push(0,0);
+ return {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer};
+ }
+ // The optional decoder adds 45 bytes. Keep the original encoding unless packing
+ // saves more than its complete code footprint, including the dispatch branch.
+ let encoded=encodeStream(true);
+ if(encoded.packedSavings<=45)encoded=encodeStream(false);
+ const {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer}=encoded;
+ if(!analyze&&worstUpdateRatio>1)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
  // Small label-aware emitter: operands/fixups are checked, including relative branch ranges.
  const origin=0x0801,bytes=[0x0b,0x08,10,0,0x9e,50,48,54,49,0,0,0],labels={},fixups=[];
  const emit=(...b)=>bytes.push(...b),label=n=>{labels[n]=origin+bytes.length},word=n=>emit(n&255,n>>8),abs=(op,target)=>{emit(op);if(typeof target==='string'){fixups.push({at:bytes.length,target});word(0)}else word(target)},branch=(op,target)=>{emit(op);fixups.push({at:bytes.length,target,relative:true});emit(0)},immLabel=(op,target,high=false)=>{emit(op);fixups.push({at:bytes.length,target,byte:true,high});emit(0)};
@@ -125,14 +138,22 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
  label('plane');abs(0x20,'get');emit(0x85,0xfd);abs(0x20,'get');emit(0x85,0xfe);branch(0xf0,'planeEnd');
  abs(0x20,'get');emit(0xaa);branch(0xf0,'literal');abs(0x20,'get');
  label('run');emit(0x91,0xfd,0xc8,0xca);branch(0xd0,'run');abs(0x4c,'plane');label('planeEnd');emit(0x60);
- label('literal');abs(0x20,'get');emit(0xaa);
+ label('literal');abs(0x20,'get');emit(0xaa);if(usesPackedColors)branch(0xf0,'packed');
  label('literalByte');abs(0x20,'get');emit(0x91,0xfd,0xe6,0xfd);branch(0xd0,'literalNext');emit(0xe6,0xfe);
  label('literalNext');emit(0xca);branch(0xd0,'literalByte');abs(0x4c,'plane');
+ // Packed ink literals: low nibble first, with no padding write for odd counts.
+ if(usesPackedColors){
+  label('packed');abs(0x20,'get');emit(0xaa);
+  label('packedByte');abs(0x20,'get');emit(0x48,0x29,15);abs(0x20,'putInk');emit(0xca);branch(0xf0,'packedOdd');
+  emit(0x68,0x4a,0x4a,0x4a,0x4a);abs(0x20,'putInk');emit(0xca);branch(0xd0,'packedByte');abs(0x4c,'plane');
+  label('packedOdd');emit(0x68);abs(0x4c,'plane');
+  label('putInk');emit(0x91,0xfd,0xe6,0xfd);branch(0xd0,'inkNext');emit(0xe6,0xfe);label('inkNext');emit(0x60);
+ }
  for(const name of ['remaining','lastTick','delay','delayHigh','started']){label(name);emit(0)}
  label('data');labels.loopData=labels.data+loopOffset;labels.continuation=labels.data+continuationOffset;fixups.push({at:bytes.length+continuationPointer,target:'continuation'});for(const byte of stream)emit(byte);
  // Stay below BASIC ROM ($A000), leaving KERNAL, I/O and the stack intact.
  if(!analyze&&origin+bytes.length>0xa000)throw Error('This animation exceeds the C64 player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
  for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown C64 player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error('C64 branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
  // Host-side symbols let full-machine checks observe frames without changing the PRG.
- return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
+ return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }

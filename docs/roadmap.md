@@ -26,7 +26,8 @@ Target: export a **40-column × 24-row** drawing with movement waves and color w
 - [x] Add representative 40 × 24 combined-wave workloads, including sparse, repeated, detailed and mixed-bank glyphs, widespread ink changes and four-cycle loops.
 - [x] Measure program/stream size and estimated update-budget usage across 20 cases; separate screen, color, character and framing bytes.
 - [ ] Measure actual decode time, frame timing and loop drift for the combined-wave workloads on PAL/NTSC.
-- [ ] Compare faster decoding and data encoding, staged screen updates, and native procedural movement/color effects. Keep the browser animation as the reference for intended output.
+- [x] Pack two color inks per byte when savings exceed decoder overhead; the repeated-pattern baseline now fits at 4/8/12 seconds.
+- [ ] Compare reusable frame/color blocks, faster decoding, staged screen updates, and native procedural movement/color effects. Keep the browser animation as the reference for intended output.
 - [ ] Measure achievable speeds and visual tradeoffs on PAL and NTSC in full VICE emulation; include the mixed-bank RAM character path where applicable.
 - [ ] Update export limits and actionable messages from measured results, and document any approximation or remaining hardware limits.
 
