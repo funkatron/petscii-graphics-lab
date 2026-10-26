@@ -86,3 +86,14 @@ test('small repeated updates do not add a call decoder without a net size saving
  });
  expect(diagnostics.sharedBlockSavings).toBe(0);expect(diagnostics.sharedBlockCount).toBe(0);expect(diagnostics.playerBytes).toBe(384);
 });
+
+test('sharing never rejects an unshared animation that already fits memory and timing',async({page})=>{
+ await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
+ const result=await page.evaluate(async()=>{
+  const {createC64Program}=await import('./c64-export.js');
+  const input={columns:40,rows:3,background:6,ink:14,frames:Array.from({length:8},(_,f)=>({cells:Array.from({length:120},(_,i)=>((i/4|0)+f%2)%256),inks:Array.from({length:120},(_,i)=>(i+f%2)%16),durationMs:20}))};
+  const p=createC64Program(input),a=createC64Program({...input,analyze:true});
+  return {d:p.diagnostics,identical:p.bytes.every((v,i)=>v===a.bytes[i])&&p.bytes.length===a.bytes.length};
+ });
+ expect(result.d.programBytes).toBe(2168);expect(result.d.sharedBlockCount).toBe(0);expect(result.d.worstUpdateRatio).toBeLessThanOrEqual(1);expect(result.identical).toBe(true);
+});
