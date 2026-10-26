@@ -4,9 +4,9 @@ This page tracks requested work and completed milestones. For current controls, 
 
 ## Current priorities
 
-1. **Expand C64 animation capacity:** support more **40 × 24 movement-wave animations combined with color-wave animations**, guided by the [capacity measurements](c64-capacity.md).
-2. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
-3. **Follow-up work:** physical C64 hardware checks, richer imports and other usability improvements.
+1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
+2. **Drawing and import usability:** evaluate richer color-aware imports and other improvements to the everyday drawing workflow.
+3. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
 
 ## Major UI cleanup — implemented
 
@@ -19,9 +19,11 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Add automated pointer, keyboard and iPad layout regressions.
 - [ ] Verify physical finger/Pencil reach and larger text on an iPad.
 
-## Expand C64 animation capacity — investigation
+## C64 animation capacity — lower-priority follow-ups
 
-Target: export a **40-column × 24-row** drawing with movement waves and color waves running together. Establish what detail, speed and loop length the C64 player can reliably accommodate before promising support.
+Current animation behavior meets the owner’s needs. Further optimization and broader machine validation remain useful follow-ups, but do not lead the roadmap. Fix reported regressions as needed.
+
+The work below explores **40-column × 24-row** movement waves combined with color waves, guided by the [capacity measurements](c64-capacity.md). Retain the distinction between CPU checks, full-machine emulation and physical-hardware validation.
 
 - [x] Add representative 40 × 24 combined-wave workloads, including sparse, repeated, detailed and mixed-bank glyphs, widespread ink changes and four-cycle loops.
 - [x] Measure program/stream size and estimated update-budget usage across 20 cases; separate screen, color, character and framing bytes.
@@ -32,6 +34,10 @@ Target: export a **40-column × 24-row** drawing with movement waves and color w
 - [x] Prototype native row routines and frame lookup tables: the private 96-frame full-screen reference meets its two-second timeline in CPU tests. See [native row prototype](c64-native-rows.md).
 - [x] Manually test the reference D64 in Poke on iPad: owner confirmed correct playback and RUN/STOP return to BASIC.
 - [x] Select native rows when the generic export fails its limits and native passes; share selection across readiness and PRG/D64 downloads. Preserve accepted generic output.
+- [x] Reuse lookup entries for identical complete pictures without changing frame durations or loop timing.
+- [x] Add Play/Stop preview controls to Animation and C64 animation downloads.
+- [x] Allow explicit download despite timing warnings while retaining memory and artwork limits.
+- [x] Center smaller artwork in C64 playback and its download preview.
 - [ ] Broaden native validation in full VICE across PAL/NTSC, including VIC-II contention and disk loading.
 - [ ] Compare reusable color-only blocks, further decoder improvements, staged screen updates, and native procedural movement/color effects. Keep the browser animation as the reference for intended output.
 - [ ] Measure achievable speeds and visual tradeoffs on PAL and NTSC in full VICE emulation; include the mixed-bank RAM character path where applicable.
