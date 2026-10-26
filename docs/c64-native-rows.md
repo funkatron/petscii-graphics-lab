@@ -6,7 +6,7 @@ This prototype targets full-screen animations with repeated row patterns. It pre
 
 The generic player interprets changed-run commands. The prototype instead compiles each unique row state into a short 6502 drawing routine, groups writes by value, and selects the correct routine from a frame table. It draws both glyph and color planes. No floating-point wave approximation or sample reduction is introduced.
 
-A routine is shared only when its physical destination page and complete row values match. The Y register supplies the row's offset within that page, including rows crossing page boundaries. The X register holds the distinct-picture lookup index. Call operands are patched from low/high address tables before each row call; row kernels preserve X and Y. This uses writable program RAM and is not a reentrant renderer.
+A routine is shared only when its physical destination page and complete row values match. The canvas is centered within 40 × 25 cells; its origin is added before calculating each row’s physical page and offset. The Y register supplies the row's offset within that page, including rows crossing page boundaries. The X register holds the distinct-picture lookup index. Call operands are patched from low/high address tables before each row call; row kernels preserve X and Y. This uses writable program RAM and is not a reentrant renderer.
 
 The existing player initializes all 1,000 cells and any RAM character set before starting its clock. A reserved update command, `[2,0,stateIndex]`, invokes the native renderer. Frame durations, the final-to-first transition, finite/continuous repeats, RUN/STOP polling and machine-state restoration retain the existing player structure.
 

@@ -234,7 +234,7 @@ Frame durations can differ, especially during the final hold in replay. Use `tim
 5. Use the Download button. Load the program in a standard C64 emulator or transfer it to your C64, then `RUN`. For a D64, attach the disk as device 8, type `LOAD "*",8,1`, then `RUN`.
 6. Press **RUN/STOP** to exit.
 
-The program uses your cell colors and canvas background. Graphics-only source-bank-0 artwork uses the C64’s own character ROM. Mixed-bank artwork includes a RAM character set containing the patterns it needs. C64 output allows at most **256 distinct patterns across the entire animation, including a blank**. This limit does not apply to images or videos. Drawings must fit within 40×25 cells. Smaller drawings appear at the top left. Large or very fast animations may exceed memory or processing limits; the exporter explains what to change.
+The program uses your cell colors and canvas background. Graphics-only source-bank-0 artwork uses the C64’s own character ROM. Mixed-bank artwork includes a RAM character set containing the patterns it needs. C64 output allows at most **256 distinct patterns across the entire animation, including a blank**. This limit does not apply to images or videos. Drawings must fit within 40×25 cells. Smaller drawings and animations are centered on the C64 screen. Large or very fast animations may exceed memory or processing limits; the exporter explains what to change.
 
 The player has automated CPU checks. The original ROM-backed path also has full PAL/NTSC VICE checks for representative stills, animation, and disk loading; full-machine verification of the new mixed-bank RAM path and physical C64 checks remain open. See the [C64 output guide](docs/c64-output.md) for loading instructions and timing limits.
 

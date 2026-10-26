@@ -30,7 +30,7 @@ test('D64 downloads contain the exact runnable still and composite PRG, with sta
   await ui(page,'#c64Format','selectOption','d64');await expect(page.locator('#exportC64')).toHaveText('Download C64 disk (.d64)');await expect(page.locator('#c64DiskHelp')).toBeVisible();
   const wait=page.waitForEvent('download');await ui(page,'#exportC64');const file=await wait;expect(file.suggestedFilename()).toBe('petscii-'+(moving?'animation':'still')+'-4x1.d64');
   const disk=await contents(file),extracted=readDisk(disk,moving?'ANIMATION':'PICTURE');expect(extracted).toEqual(prg);
-  const result=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...extracted],stopAfterTicks:8}),encoding:'utf8'});expect(result.status,result.stderr).toBe(0);const shot=JSON.parse(result.stdout).snapshots[0];for(const [x,id] of [[0,256],[1,416],[2,288],[3,511]])expect(shot.characters.slice(shot.screen[x]*8,shot.screen[x]*8+8)).toEqual(glyphRows(id));
+  const result=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...extracted],stopAfterTicks:8}),encoding:'utf8'});expect(result.status,result.stderr).toBe(0);const shot=JSON.parse(result.stdout).snapshots[0];for(const [x,id] of [[0,256],[1,416],[2,288],[3,511]])expect(shot.characters.slice(shot.screen[498+x]*8,shot.screen[498+x]*8+8)).toEqual(glyphRows(id));
   const url=await page.locator('#exportC64').getAttribute('data-download-url');expect(await download(page,'#exportC64')).toEqual(disk);await expect(page.locator('#status')).toHaveText('C64 disk download requested');await expect(page.locator('#exportC64')).toHaveAttribute('data-download-url',url);expect(await download(page,'#saveProject')).toEqual(before);
   await ui(page,'#c64Format','selectOption','prg');expect(await download(page,'#exportC64')).toEqual(prg);await expect(page.locator('#c64DiskHelp')).toBeHidden();
  }
@@ -68,7 +68,7 @@ test('D64 preserves and executes a player containing packed color literals',asyn
  await ui(page,'#c64Format','selectOption','d64');const extracted=readDisk(await download(page,'#exportC64'),'PICTURE');expect(extracted).toEqual(prg);
  const r=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...extracted],stopAfterTicks:8}),encoding:'utf8'});expect(r.status,r.stderr).toBe(0);
  const shot=JSON.parse(r.stdout).snapshots[0];
- for(let y=0;y<25;y++)for(let x=0;x<40;x++){expect(shot.colors[y*40+x]).toBe(y<8&&x<16?inks[y*16+x]:14);expect(shot.screen[y*40+x]).toBe(y<8&&x<16?160:32)}
+ for(let y=0;y<25;y++)for(let x=0;x<40;x++){expect(shot.colors[y*40+x]).toBe(y>=8&&y<16&&x>=12&&x<28?inks[(y-8)*16+x-12]:14);expect(shot.screen[y*40+x]).toBe(y>=8&&y<16&&x>=12&&x<28?160:32)}
 });
 
 test('D64 contains and executes the shared-block full-screen animation player',async({page})=>{

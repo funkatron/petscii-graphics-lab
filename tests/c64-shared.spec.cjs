@@ -11,7 +11,7 @@ function checkPlayback(result,frames,columns,rows,loops,clockHz){
  for(let loop=0;loop<loops;loop++)for(const frame of frames){
   boundaries.push(Math.round(elapsed*60/1000));
   const colors=Array(1000).fill(14),cells=Array(1000).fill(32);
-  for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){colors[y*40+x]=frame.inks[y*columns+x];cells[y*40+x]=frame.cells[y*columns+x]}
+  for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){colors[(Math.floor((25-rows)/2)+y)*40+Math.floor((40-columns)/2)+x]=frame.inks[y*columns+x];cells[(Math.floor((25-rows)/2)+y)*40+Math.floor((40-columns)/2)+x]=frame.cells[y*columns+x]}
   const key=JSON.stringify([cells,colors]);if(key!==last)expected.push({cells,colors,frame:boundaries.length-1});last=key;elapsed+=frame.durationMs;
  }
  expect(result.observations.start).toHaveLength(frames.length*loops);

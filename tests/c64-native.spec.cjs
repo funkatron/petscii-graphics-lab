@@ -88,8 +88,8 @@ test('lookup reuse compares glyphs and inks separately and preserves unequal hol
   return {bytes:[...p.bytes],states:p.diagnostics.nativeFrameStates};
  });
  expect(states).toBe(3);const r=emulate(bytes,{stopAfterTicks:125});expect(r.snapshots).toHaveLength(7);
- expect(r.snapshots.map(s=>s.screen.slice(0,2))).toEqual([[0,32],[160,32],[0,32],[0,32],[160,32],[0,32],[0,32]]);
- expect(r.snapshots.map(s=>s.colors.slice(0,2))).toEqual([[0,1],[0,1],[2,1],[0,1],[0,1],[2,1],[0,1]]);
+ expect(r.snapshots.map(s=>s.screen.slice(499,501))).toEqual([[0,32],[160,32],[0,32],[0,32],[160,32],[0,32],[0,32]]);
+ expect(r.snapshots.map(s=>s.colors.slice(499,501))).toEqual([[0,1],[0,1],[2,1],[0,1],[0,1],[2,1],[0,1]]);
  // The identical final/first picture retains its combined 400+100 ms hold.
  const first=r.snapshots[0].tick;expect(r.snapshots.map(s=>s.tick-first)).toEqual([0,6,18,36,66,78,96]);
 });
@@ -101,7 +101,7 @@ test('native ROM rows handle zero, empties, page crossings, small widths and con
    const p=createC64RowProgram({columns,rows,background:6,ink:14,frames,repetitions});return {bytes:[...p.bytes],frames};
   },{columns,rows,repetitions});
   const {snapshots}=emulate(bytes,{stopAfterTicks,maxSteps:5000000});expect(snapshots).toHaveLength(4);
-  snapshots.forEach((s,f)=>{const cells=Array(1000).fill(32),inks=Array(1000).fill(14);for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x;cells[y*40+x]=frames[f%2].cells[i]===''?32:frames[f%2].cells[i];inks[y*40+x]=frames[f%2].inks[i]}expect(s.screen).toEqual(cells);expect(s.colors).toEqual(inks)});
+  snapshots.forEach((s,f)=>{const cells=Array(1000).fill(32),inks=Array(1000).fill(14);for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x;cells[(Math.floor((25-rows)/2)+y)*40+Math.floor((40-columns)/2)+x]=frames[f%2].cells[i]===''?32:frames[f%2].cells[i];inks[(Math.floor((25-rows)/2)+y)*40+Math.floor((40-columns)/2)+x]=frames[f%2].inks[i]}expect(s.screen).toEqual(cells);expect(s.colors).toEqual(inks)});
  }
 });
 test('native prototype rejects unsupported frame counts and excessive memory without changing input',async({page})=>{

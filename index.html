@@ -206,7 +206,7 @@ dialog::backdrop{background:#0009}
 <div class="field"><label for="c64Format">C64 file format</label><select id="c64Format"><option value="prg">Program (.prg)</option><option value="d64">Disk image (.d64)</option></select></div><p class="note" id="c64DiskHelp" hidden>Virtual 1541 disk containing PICTURE or ANIMATION. Attach as device 8, then LOAD "*",8,1 and RUN. The disk contains the same player as the PRG download.</p>
 <div id="c64LoopSettings" hidden><div class="field"><label for="c64Repeats">C64 repetitions (0 = continuous)</label><input id="c64Repeats" type="number" min="0" max="100" step="1" inputmode="numeric" value="0"></div><p class="note" id="c64MotionSummary"></p><button id="c64Preview" aria-pressed="false">▶ Play preview</button></div>
 <div id="c64TimingOverrideWrap" hidden><label><input id="c64TimingOverride" type="checkbox" aria-describedby="c64TimingOverrideHelp">Download despite timing warning</label><p id="c64TimingOverrideHelp" class="note">Playback may run late or stutter. Memory and artwork limits still apply.</p></div>
-<button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note">Runs on a standard C64 or emulator. Up to 40 × 25 cells, placed at the top left. Uses the canvas background. Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
+<button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note">Runs on a standard C64 or emulator. Up to 40 × 25 cells, centered on screen. Uses the canvas background. Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
 <details class="help-disclosure" id="rawDataDetails"><summary>Raw bytes &amp; text</summary>
 <div class="row"><button id="text">Download text</button><button id="screenCodes">Glyph IDs (.bin)</button></div><button id="colorRam" class="full-width">Export color RAM (.bin)</button>
 <textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div></details>
@@ -443,9 +443,15 @@ function updateDownloadPreview(){
  $('downloadFigure').hidden=data&&!moving;if($('downloadFigure').hidden)return;
  const source=animationSource(),picture=moving?animationCells(animationPreview?animationFrame:0,source):{cells:grid,inks:cellColors};
  const bg=data?colorHex('background'):motion?($('gifBackground').value==='transparent'&&$('animationFormat').value!=='video'?null:$('gifBackground').value==='white'?'#fff':colorHex('background')):stillBackground();
- artworkPreview($('downloadPreview'),picture.cells,picture.inks,W,H,bg);
+ let previewCells=picture.cells,previewInks=picture.inks,previewColumns=W,previewRows=H;const centered=data&&W<=40&&H<=25;
+ if(centered){
+  previewColumns=40;previewRows=25;previewCells=Array(1000).fill('');previewInks=Array(1000).fill(colors.ink);
+  const left=Math.floor((40-W)/2),top=Math.floor((25-H)/2);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const from=y*W+x,to=(top+y)*40+left+x;previewCells[to]=picture.cells[from];previewInks[to]=picture.inks[from]}
+ }
+ artworkPreview($('downloadPreview'),previewCells,previewInks,previewColumns,previewRows,bg);
  const pixels=data?8:motion?8*Number($('gifScale').value):$('stillFormat').value==='svg'?16:16*Number($('pngScale').value),loops=motion&&$('animationFormat').value==='video'?Number($('videoRepeats').value):1;
- $('downloadDimensions').textContent=(moving?'Animation':'Drawing')+' · '+W*pixels+' × '+H*pixels+' pixels'+(moving?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
+ $('downloadDimensions').textContent=(moving?'Animation':'Drawing')+' · '+previewColumns*pixels+' × '+previewRows*pixels+' pixels'+(centered?' · '+W+' × '+H+' cells centered':'')+(moving?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
  $('downloadDescription').textContent=moving?'Use Play preview to watch the selected animation here.':'Original drawing, without editing grid lines.';
 }
 function updateResizeDraft(){

@@ -1,6 +1,6 @@
 // Compile sampled row states to exact native drawing kernels. No wave math is
 // approximated: each lookup entry describes the browser's original frame.
-export function planNativeRows({columns,rows,frames,screenAddress,blank}){
+export function planNativeRows({columns,rows,frames,screenAddress,blank,screenOffset=0}){
  if(frames.length<2||frames.length>256)throw Error('Native row rendering supports 2–256 sampled frames.');
  // Repeated cycles can contain identical complete pictures at different times.
  // Share their lookup columns, but keep every original duration in the stream.
@@ -12,7 +12,7 @@ export function planNativeRows({columns,rows,frames,screenAddress,blank}){
  });
  const kernels=[],lookup=new Map(),calls=[],stateCosts=Array(states.length).fill(2500);
  for(const plane of ['cells','inks'])for(let y=0;y<rows;y++){
-  const destination=(plane==='cells'?screenAddress:0xd800)+y*40,page=destination&0xff00,offset=destination&255,ids=[];
+  const destination=(plane==='cells'?screenAddress:0xd800)+screenOffset+y*40,page=destination&0xff00,offset=destination&255,ids=[];
   for(let f=0;f<states.length;f++){
    const values=states[f][plane].slice(y*columns,(y+1)*columns).map(v=>v===''?blank:v),key=page+':'+values.join(',');
    let id=lookup.get(key);
