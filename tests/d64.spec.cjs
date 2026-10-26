@@ -1,6 +1,7 @@
 const {glyphRows}=require('./glyph-reference.cjs');
 const {test,expect,ui,download,contents,loadProject,project}=require('./helpers.cjs');
 const {spawnSync}=require('node:child_process');
+const {artwork,capacityPage}=require('./c64-capacity-fixtures.cjs');
 
 // Independent reader: follow on-disk links, then reconcile every allocation bit.
 function readDisk(bytes,name){
@@ -68,4 +69,14 @@ test('D64 preserves and executes a player containing packed color literals',asyn
  const r=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...extracted],stopAfterTicks:8}),encoding:'utf8'});expect(r.status,r.stderr).toBe(0);
  const shot=JSON.parse(r.stdout).snapshots[0];
  for(let y=0;y<25;y++)for(let x=0;x<40;x++){expect(shot.colors[y*40+x]).toBe(y<8&&x<16?inks[y*16+x]:14);expect(shot.screen[y*40+x]).toBe(y<8&&x<16?160:32)}
+});
+
+test('D64 contains and executes the shared-block full-screen animation player',async({page})=>{
+ await capacityPage(page);const {grid,cellColors}=artwork('detailed-fast');
+ await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',motionCycles:4,colorCycles:4,seconds:8,scale:1,background:'dark'}}));
+ const expected=await page.evaluate(()=>window.capacityInput().frames[0]);
+ await ui(page,'#c64Mode','selectOption','animation');await ui(page,'#c64Format','selectOption','prg');const prg=await download(page,'#exportC64');expect(prg.length).toBeLessThan(25000);
+ await ui(page,'#c64Format','selectOption','d64');const extracted=readDisk(await download(page,'#exportC64'),'ANIMATION');expect(extracted).toEqual(prg);
+ const r=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...extracted],stopAfterTicks:20}),encoding:'utf8',maxBuffer:8e6});expect(r.status,r.stderr).toBe(0);
+ const shots=JSON.parse(r.stdout).snapshots;expect(shots.length).toBeGreaterThanOrEqual(2);expect(shots[0].screen.slice(0,960)).toEqual(expected.cells);expect(shots[0].colors.slice(0,960)).toEqual(expected.inks);
 });

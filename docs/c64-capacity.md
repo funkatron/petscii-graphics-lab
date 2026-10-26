@@ -12,6 +12,25 @@ npx playwright test tests/c64-capacity.spec.cjs --workers=1
 
 Each browser attaches `c64-wave-capacity.json` to its Playwright result. The fixtures are deterministic and use the editor's actual frame sampling and exporter. There is no second implementation of wave math.
 
+## Shared update blocks — implemented
+
+The exporter can now store an identical sequence of frame-update instructions once and call it from multiple frames. It compares exact encoded instructions, including destination addresses, rather than just comparing visible pictures. Each frame retains its own duration. Shared blocks contain no further calls, so stack nesting is bounded to one level.
+
+The four-cycle 40 × 24 workload falls from **80,257 to 22,269 program bytes**, a further **72.3% reduction** after color packing. It uses 24 shared blocks and 96 references, while preserving all 96 sampled frames. Including the original uncompressed-color baseline, it falls from 107,234 to 22,269 bytes.
+
+| Four-cycle loop duration | Memory | Estimated timing | Exporter result |
+| --- | --- | --- | --- |
+| 2 seconds | Fits | About 500% of budget | Rejected for timing |
+| 4 seconds | Fits | About 250% | Rejected for timing |
+| 8 seconds | Fits | Just below 100% | Accepted, little estimated headroom |
+| 12 seconds | Fits | About 67% | Accepted |
+
+The eight-second result is **99.995%** of the conservative estimate; a displayed rounded 100% is not an additional margin or a hardware guarantee. CPU regressions execute all 96 samples twice at PAL/NTSC CPU speeds, checking every screen/color cell, cumulative decoder start times and copies within each frame budget. Smaller regressions cover unequal holds, independent movement/color rates, finite and continuous loops, ROM/RAM characters, stack restoration and the size threshold. A D64 regression independently extracts and executes the same shared-block player.
+
+The other four one-cycle workloads have no profitable exact update repetition and retain their packed-color sizes. Sharing adds a 41-byte call/return routine only when net stream savings exceed that cost. Each reference is charged an additional conservative 300 CPU cycles in the readiness estimate. If sharing exceeds the timing estimate while the unshared program fits both timing and memory, keep that viable unshared program. Both analysis and download use the same selection. Shared calls, block terminators and frame timing count toward framing bytes; screen/color/character counts reflect stored unique data.
+
+This is exact instruction reuse, not procedural approximation or reduced sampling. Full VICE and physical-hardware validation of the shared decoder remain open.
+
 ## Packed colors — implemented
 
 C64 inks need four bits each. The exporter now packs two inks per byte in color literal runs, with the low nibble first. It retains ordinary repeat instructions and emits the extra decoder only when the total stream saving exceeds its 45-byte code cost. Small exports retain the original encoding.
@@ -24,7 +43,7 @@ The same 20-case matrix now reports:
 | Repeated two-glyph pattern | 39,542 | 32,476 | Now fits at 4, 8 and 12 seconds; 2 seconds still exceeds timing |
 | Detailed numeric-code pattern | 28,574 | 21,508 | Fits at all four durations |
 | Mixed-bank eight-glyph pattern | 28,686 | 21,620 | Fits at all four durations |
-| Detailed pattern, four cycles | 107,234 | 80,257 | Still exceeds memory at every duration |
+| Detailed pattern, four cycles | 107,234 | 80,257 | Packed colors alone remain over memory; shared blocks above resolve this |
 
 The formerly oversized repeated pattern shrinks by **7,066 bytes (17.9%)**, without changing any sample, ink or duration. Its color stream falls from 15,056 to 7,945 bytes. The optional decoder grows from 384 to 429 bytes. Its estimated timing use is 116.5% at two seconds and 58.2% at four seconds. The detailed and mixed-bank two-second cases remain close to the timing limit at 99.6%.
 
@@ -66,8 +85,8 @@ The mixed-bank fixture needs only a small number of unique RAM patterns, so its 
 
 ## Next implementation experiments
 
-1. **Compress repeated frame content.** Compare reusable frame/delta blocks and repeated-cycle storage. Retain every shared sample and cumulative tick boundary; independent cycle rates can prevent whole-cycle reuse.
-2. **Extend color-stream compression.** Packed color literals are implemented. Compare reusable color blocks next; the four-cycle fixture still exceeds memory.
+1. **Extend shared update blocks.** Exact complete update-body reuse is implemented. Compare reuse of individual screen/color blocks where complete updates differ. Retain every sample and cumulative tick boundary; independent cycle rates can prevent whole-cycle reuse.
+2. **Extend color-stream compression.** Packed color literals and exact complete update-body reuse are implemented. Compare reusable color-only blocks next for pictures without identical complete updates.
 3. **Measure faster decoding.** This can improve the timing percentage, but cannot by itself make an oversized program fit. Preserve conservative work estimation and test its actual CPU cost.
 4. **Evaluate procedural effects.** Native movement/color routines could avoid storing full deltas, but must reproduce browser rounding, wrapping, per-cell inks, directions and independent rates exactly. Treat approximation as a separate product decision.
 5. **Validate promising candidates in full VICE.** Check ROM and RAM character paths, every completed frame, two-loop timing/drift, finite/continuous playback, RUN/STOP and machine-state restoration on PAL and NTSC. Physical hardware remains a later check.

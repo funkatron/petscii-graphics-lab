@@ -28,11 +28,59 @@ export function createD64Disk(prg,filename='PICTURE'){
  return disk;
 }
 
+// Reuse exact update bodies, without changing their durations or delta writes.
+// Blocks contain only ordinary run commands and a zero-address return; calls
+// are emitted only in the main frame stream, so nesting is bounded to one level.
+function shareFrameBlocks(encoded){
+ const {stream,records}=encoded,groups=new Map();
+ for(const r of records){
+  const body=stream.slice(r.start,r.end),key=body.join(',');
+  if(!groups.has(key))groups.set(key,{body,records:[]});groups.get(key).records.push(r);
+ }
+ const blocks=[...groups.values()].filter(b=>(b.records.length-1)*b.body.length-4*b.records.length-2>0);
+ const sharedBlockSavings=blocks.reduce((n,b)=>n+(b.records.length-1)*b.body.length-4*b.records.length-2,0);
+ // The optional call/return routine adds 41 bytes, including no nested calls.
+ if(sharedBlockSavings<=41)return {...encoded,sharedBlockSavings:0,sharedPointers:[],sharedOffsets:[]};
+ const chosen=new Map();blocks.forEach((b,id)=>b.records.forEach(r=>chosen.set(r,id)));
+ const output=[],sharedPointers=[],sharedOffsets=[],streamBytes={...encoded.streamBytes};let cursor=0;
+ for(const r of records){
+  for(let i=cursor;i<r.start;i++)output.push(stream[i]);
+  if(chosen.has(r)){output.push(1,0,0,0);sharedPointers.push({at:output.length-2,id:chosen.get(r)})}
+  else for(let i=r.start;i<r.end;i++)output.push(stream[i]);
+  cursor=r.end;
+ }
+ for(let i=cursor;i<stream.length;i++)output.push(stream[i]);
+ for(const b of blocks){
+  sharedOffsets.push(output.length);for(const byte of b.body)output.push(byte);output.push(0,0);
+  for(const kind of ['characters','screen','color'])streamBytes[kind]-=(b.records.length-1)*b.records[0].bytes[kind];
+ }
+ const translate=offset=>offset+records.reduce((n,r)=>n+(r.end<=offset&&chosen.has(r)?4-(r.end-r.start):0),0);
+ const worstUpdateRatio=records.reduce((worst,r)=>r.initial?worst:Math.max(worst,(r.cost+(chosen.has(r)?300:0))/(r.ticks*985248/60)),0);
+ return {...encoded,stream:output,streamBytes,worstUpdateRatio,sharedBlockSavings,sharedPointers,sharedOffsets,
+  loopOffset:translate(encoded.loopOffset),continuationOffset:translate(encoded.continuationOffset),continuationPointer:translate(encoded.continuationPointer)};
+}
+
 // C64 PRG exporter. No character ROM is embedded: the VIC-II selects the machine's own ROM.
 // Each frame: 16-bit 60 Hz duration, then changed repeated/literal runs.
 // [addressLo,addressHi,count,value]; count 0 means [length,...literalBytes] instead.
 // Address 0 ends a frame; duration 0 ends a loop; $FFFF redirects the stream. Frame zero initializes both planes once.
-export function createC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits,analyze=false}){
+export function createC64Program(input){
+ let result=compileC64Program(input,true);
+ // Sharing costs CPU time. Keep a previously viable unshared program when the
+ // call overhead would reject it; use actual compiled sizes, not a size guess.
+ if(result.diagnostics.sharedBlockCount&&result.diagnostics.worstUpdateRatio>1){
+  const fallback=compileC64Program(input,false),d=fallback.diagnostics;
+  if(d.worstUpdateRatio<=1&&d.programBytes<=d.memoryLimit)result=fallback;
+ }
+ if(!input.analyze){
+  const d=result.diagnostics;
+  if(d.worstUpdateRatio>1)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
+  // Keep the complete program below BASIC ROM ($A000).
+  if(d.programBytes>d.memoryLimit)throw Error('This animation exceeds the C64 player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
+ }
+ return result;
+}
+function compileC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits},allowSharing){
  if(!Number.isInteger(columns)||columns<1||columns>40||!Number.isInteger(rows)||rows<1||rows>25)throw Error('C64 programs support up to 40 columns × 25 rows. Resize the canvas first.');
  if(![0,1].includes(charset)||![background,ink].every(c=>Number.isInteger(c)&&c>=0&&c<16))throw Error('Invalid C64 display settings');
  if(!Number.isInteger(repetitions)||repetitions<0||repetitions>100)throw Error('C64 repetitions must be a whole number from 0 to 100 (0 loops continuously)');
@@ -53,7 +101,7 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
  }
  function encodeStream(packColors){
  let usesPackedColors=false,packedSavings=0;
- const stream=[],streamBytes={characters:0,screen:0,color:0,framing:0};
+ const stream=[],records=[],streamBytes={characters:0,screen:0,color:0,framing:0};
  const changedRuns=(values,previous,address)=>{
   let cost=0;const start=stream.length;
   const repeatLength=i=>{let count=1;while(count<255&&i+count<values.length&&values[i+count]===values[i]&&(!previous||values[i+count]!==previous[i+count]))count++;return count};
@@ -87,24 +135,29 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
   stream.push(ticks&255,ticks>>8);
   const screen=Array(1000).fill(custom?0:32),colors=Array(1000).fill(ink);
   for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=y*40+x;screen[d]=frame.cells[i]===''?(custom?0:32):frame.cells[i];colors[d]=frame.inks[i]}
+  const start=stream.length,before={...streamBytes};
   if(custom&&!previousScreen)changedRuns(characterBytes,undefined,0xc800);
   const cost=changedRuns(screen,previousScreen,custom?0xc400:0x400)+changedRuns(colors,previousColors,0xd800)+2500;
+  records.push({start,end:stream.length,ticks,cost,initial:!previousScreen,bytes:Object.fromEntries(['characters','screen','color'].map(k=>[k,streamBytes[k]-before[k]]))});
   if(previousScreen)worstUpdateRatio=Math.max(worstUpdateRatio,cost/(ticks*985248/60));
   stream.push(0,0);if(!firstScreen){firstScreen=screen;firstColors=colors;firstTicks=ticks;continuationOffset=stream.length}previousScreen=screen;previousColors=colors;
  }
  stream.push(0,0);
  const loopOffset=stream.length;stream.push(firstTicks&255,firstTicks>>8);
+ const start=stream.length,before={...streamBytes};
  const loopCost=changedRuns(firstScreen,previousScreen,custom?0xc400:0x400)+changedRuns(firstColors,previousColors,0xd800)+2500;
+ records.push({start,end:stream.length,ticks:firstTicks,cost:loopCost,initial:frames.length===1,bytes:Object.fromEntries(['characters','screen','color'].map(k=>[k,streamBytes[k]-before[k]]))});
  if(frames.length>1)worstUpdateRatio=Math.max(worstUpdateRatio,loopCost/(firstTicks*985248/60));
  stream.push(0,0,255,255);const continuationPointer=stream.length;stream.push(0,0);
- return {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer};
+ return {stream,records,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer};
  }
  // The optional decoder adds 45 bytes. Keep the original encoding unless packing
  // saves more than its complete code footprint, including the dispatch branch.
  let encoded=encodeStream(true);
  if(encoded.packedSavings<=45)encoded=encodeStream(false);
- const {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer}=encoded;
- if(!analyze&&worstUpdateRatio>1)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
+ encoded=allowSharing?shareFrameBlocks(encoded):{...encoded,sharedBlockSavings:0,sharedPointers:[],sharedOffsets:[]};
+ const {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer,sharedBlockSavings,sharedPointers,sharedOffsets}=encoded;
+ const usesSharedBlocks=sharedPointers.length>0;
  // Small label-aware emitter: operands/fixups are checked, including relative branch ranges.
  const origin=0x0801,bytes=[0x0b,0x08,10,0,0x9e,50,48,54,49,0,0,0],labels={},fixups=[];
  const emit=(...b)=>bytes.push(...b),label=n=>{labels[n]=origin+bytes.length},word=n=>emit(n&255,n>>8),abs=(op,target)=>{emit(op);if(typeof target==='string'){fixups.push({at:bytes.length,target});word(0)}else word(target)},branch=(op,target)=>{emit(op);fixups.push({at:bytes.length,target,relative:true});emit(0)},immLabel=(op,target,high=false)=>{emit(op);fixups.push({at:bytes.length,target,byte:true,high});emit(0)};
@@ -135,9 +188,16 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
  // Clear the picture before BASIC prints READY; restore its normal cursor behavior.
  emit(0xa9,147);abs(0x20,0xffd2);emit(0x60);
  label('get');emit(0xa0,0,0xb1,0xfb,0xe6,0xfb);branch(0xd0,'got');emit(0xe6,0xfc);label('got');emit(0xc9,0,0x60);
- label('plane');abs(0x20,'get');emit(0x85,0xfd);abs(0x20,'get');emit(0x85,0xfe);branch(0xf0,'planeEnd');
+ label('plane');abs(0x20,'get');emit(0x85,0xfd);abs(0x20,'get');emit(0x85,0xfe);branch(0xf0,usesSharedBlocks?'planeControl':'planeEnd');
  abs(0x20,'get');emit(0xaa);branch(0xf0,'literal');abs(0x20,'get');
  label('run');emit(0x91,0xfd,0xc8,0xca);branch(0xd0,'run');abs(0x4c,'plane');label('planeEnd');emit(0x60);
+ // Address $0001 invokes one pooled update body, then resumes this frame.
+ if(usesSharedBlocks){
+  label('planeControl');emit(0xa5,0xfd);branch(0xf0,'planeEnd');
+  abs(0x20,'get');emit(0xaa);abs(0x20,'get');emit(0x85,0xfe,0x86,0xfd);
+  emit(0xa5,0xfb,0x48,0xa5,0xfc,0x48,0xa5,0xfd,0x85,0xfb,0xa5,0xfe,0x85,0xfc);
+  abs(0x20,'plane');emit(0x68,0x85,0xfc,0x68,0x85,0xfb);abs(0x4c,'plane');
+ }
  label('literal');abs(0x20,'get');emit(0xaa);if(usesPackedColors)branch(0xf0,'packed');
  label('literalByte');abs(0x20,'get');emit(0x91,0xfd,0xe6,0xfd);branch(0xd0,'literalNext');emit(0xe6,0xfe);
  label('literalNext');emit(0xca);branch(0xd0,'literalByte');abs(0x4c,'plane');
@@ -150,10 +210,9 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
   label('putInk');emit(0x91,0xfd,0xe6,0xfd);branch(0xd0,'inkNext');emit(0xe6,0xfe);label('inkNext');emit(0x60);
  }
  for(const name of ['remaining','lastTick','delay','delayHigh','started']){label(name);emit(0)}
- label('data');labels.loopData=labels.data+loopOffset;labels.continuation=labels.data+continuationOffset;fixups.push({at:bytes.length+continuationPointer,target:'continuation'});for(const byte of stream)emit(byte);
- // Stay below BASIC ROM ($A000), leaving KERNAL, I/O and the stack intact.
- if(!analyze&&origin+bytes.length>0xa000)throw Error('This animation exceeds the C64 player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
+ label('data');labels.loopData=labels.data+loopOffset;labels.continuation=labels.data+continuationOffset;fixups.push({at:bytes.length+continuationPointer,target:'continuation'});for(const [id,offset] of sharedOffsets.entries())labels['shared'+id]=labels.data+offset;for(const {at,id} of sharedPointers)fixups.push({at:bytes.length+at,target:'shared'+id});for(const byte of stream)emit(byte);
+ // Resolve pointers after optional decoders have fixed the code/data layout.
  for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown C64 player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error('C64 branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
  // Host-side symbols let full-machine checks observe frames without changing the PRG.
- return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
+ return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,sharedBlockSavings,sharedBlockCount:sharedOffsets.length,sharedFrameReferences:sharedPointers.length,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }
