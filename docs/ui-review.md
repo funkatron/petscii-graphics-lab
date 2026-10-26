@@ -141,3 +141,9 @@ Remove the separate Inverse button and its special selection path. Paired glyphs
 Remove the whole-drawing character-set switch. One visible Show letters & numbers checkbox reveals uppercase and lowercase together, alongside all graphics. Selecting a glyph never changes existing shapes. Matching uppercase/lowercase pairs are together in the letter section; duplicate source-bank graphics are omitted. Graphics remain the default view. Projects and exports now use per-cell atlas IDs, with no compatibility migration for the early v2 format.
 
 Richer drawing tools are the next priority: fill, lines and rectangles, selection/move/duplicate, then reusable stamps and motifs.
+
+## Compact cleanup — 25 October 2026
+
+Drawing tools now use compact familiar icons with accessible names; Undo/Redo stay together. Stamps were removed in favor of Select and Duplicate. Selection actions occupy a reserved scrolling strip below the artwork. The 28 px help buttons sit beside headings, outside disclosure controls, and open on tap or keyboard activation. Portrait settings begin closed. Tap endpoints and canvas arrow/Enter controls provide alternatives to dragging. C64 download readiness distinguishes dimensions, glyph patterns, memory and estimated update time.
+
+These changes supersede the earlier 44 px target recommendation for compact drawing/help controls. Physical reach and larger-text checks remain open.

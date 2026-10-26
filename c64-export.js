@@ -51,9 +51,9 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
    codes.set(g,slot);return slot;
   })}));
  }
- const stream=[];
+ const stream=[],streamBytes={characters:0,screen:0,color:0,framing:0};
  const changedRuns=(values,previous,address)=>{
-  let cost=0;
+  let cost=0;const start=stream.length;
   const repeatLength=i=>{let count=1;while(count<255&&i+count<values.length&&values[i+count]===values[i]&&(!previous||values[i+count]!==previous[i+count]))count++;return count};
   for(let i=0;i<values.length;){if(previous&&values[i]===previous[i]){i++;continue}
    let count=repeatLength(i);const target=address+i;
@@ -66,7 +66,7 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
    }
    i+=count;
   }
-  return cost;
+  streamBytes[address===0xc800?'characters':address===0xd800?'color':'screen']+=stream.length-start;return cost;
  };
  let previousScreen,previousColors,firstScreen,firstColors,firstTicks,continuationOffset;
  let elapsed=0,previousTick=0,worstUpdateRatio=0;
@@ -134,5 +134,5 @@ export function createC64Program({columns,rows,charset=0,background,ink,frames,r
  if(!analyze&&origin+bytes.length>0xa000)throw Error('This animation exceeds the C64 player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
  for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown C64 player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error('C64 branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
  // Host-side symbols let full-machine checks observe frames without changing the PRG.
- return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
+ return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }
