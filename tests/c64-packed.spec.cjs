@@ -78,13 +78,22 @@ test('two-second 40 × 24 combined waves execute two complete loops with exact c
  }
 });
 
-test('C64 readiness offers the newly viable two-second loop and keeps that adjustment undoable',async({page})=>{
+test('C64 readiness accepts native rows without slowing the requested loop',async({page})=>{
  const {grid,cellColors}=artwork('repeated');
  await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',seconds:1,scale:1,background:'dark'}}));
  await ui(page,'#c64Mode','selectOption','animation');
+ const panel=page.locator('#c64Readiness');await expect(panel).toContainText('Ready — exporter checks passed');
+ await expect(panel.getByRole('button',{name:/Apply tested/})).toHaveCount(0);
+ const bytes=await download(page,'#exportC64');expect(bytes.length).toBeLessThan(32488);
+ await expect(page.locator('#animationSeconds')).toHaveValue('1');
+});
+test('C64 readiness keeps tested longer-loop remedies undoable when native rows exceed memory',async({page})=>{
+ const {grid,cellColors}=artwork('detailed-fast');
+ await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',motionCycles:4,colorCycles:4,seconds:2,scale:1,background:'dark'}}));
+ await ui(page,'#c64Mode','selectOption','animation');
  const panel=page.locator('#c64Readiness');await expect(panel).toContainText('Needs adjustment');
- const fix=panel.getByRole('button',{name:'Apply tested 2-second loop'});await expect(fix).toBeVisible();
- await expect(panel).not.toContainText('Program memory exceeded');await fix.click();await expect(panel).toContainText('Ready — exporter checks passed');
- const bytes=await download(page,'#exportC64');expect(bytes.length).toBe(32488);
- await ui(page,'#undo');await expect(page.locator('#animationSeconds')).toHaveValue('1');
+ const fix=panel.getByRole('button',{name:'Apply tested 8-second loop'});await expect(fix).toBeVisible();
+ await fix.click();await expect(panel).toContainText('Ready — exporter checks passed');
+ expect((await download(page,'#exportC64')).length).toBeLessThan(25000);
+ await ui(page,'#undo');await expect(page.locator('#animationSeconds')).toHaveValue('2');
 });
