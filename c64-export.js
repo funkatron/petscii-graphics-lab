@@ -1,3 +1,5 @@
+import {planNativeRows,nativeFrameStream} from './c64-native-rows.js';
+
 // Standard 35-track D64, with one closed PRG and no appended error table.
 // Layout: https://vice-emu.sourceforge.io/vice_17.html (D64 disk image format).
 export function createD64Disk(prg,filename='PICTURE'){
@@ -80,7 +82,18 @@ export function createC64Program(input){
  }
  return result;
 }
-function compileC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits},allowSharing){
+// Experimental opt-in: it shares exact sampled row states, preserving all frames.
+// The ordinary exporter remains on its validated generic path until full-machine
+// checks establish the native renderer's behavior with IRQ and VIC-II contention.
+export function createC64RowProgram(input){
+ const result=compileC64Program(input,false,true),d=result.diagnostics;
+ if(!input.analyze){
+  if(d.worstUpdateRatio>1)throw Error('Native row rendering exceeds the estimated C64 timing budget.');
+  if(d.programBytes>d.memoryLimit)throw Error('Native row rendering exceeds the C64 player memory budget.');
+ }
+ return result;
+}
+function compileC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits},allowSharing,nativeRows=false){
  if(!Number.isInteger(columns)||columns<1||columns>40||!Number.isInteger(rows)||rows<1||rows>25)throw Error('C64 programs support up to 40 columns × 25 rows. Resize the canvas first.');
  if(![0,1].includes(charset)||![background,ink].every(c=>Number.isInteger(c)&&c>=0&&c<16))throw Error('Invalid C64 display settings');
  if(!Number.isInteger(repetitions)||repetitions<0||repetitions>100)throw Error('C64 repetitions must be a whole number from 0 to 100 (0 loops continuously)');
@@ -135,18 +148,18 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
   stream.push(ticks&255,ticks>>8);
   const screen=Array(1000).fill(custom?0:32),colors=Array(1000).fill(ink);
   for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=y*40+x;screen[d]=frame.cells[i]===''?(custom?0:32):frame.cells[i];colors[d]=frame.inks[i]}
-  const start=stream.length,before={...streamBytes};
+  const start=stream.length,before={...streamBytes},packingBefore=packedSavings;
   if(custom&&!previousScreen)changedRuns(characterBytes,undefined,0xc800);
   const cost=changedRuns(screen,previousScreen,custom?0xc400:0x400)+changedRuns(colors,previousColors,0xd800)+2500;
-  records.push({start,end:stream.length,ticks,cost,initial:!previousScreen,bytes:Object.fromEntries(['characters','screen','color'].map(k=>[k,streamBytes[k]-before[k]]))});
+  records.push({start,end:stream.length,ticks,cost,initial:!previousScreen,packedSavings:packedSavings-packingBefore,bytes:Object.fromEntries(['characters','screen','color'].map(k=>[k,streamBytes[k]-before[k]]))});
   if(previousScreen)worstUpdateRatio=Math.max(worstUpdateRatio,cost/(ticks*985248/60));
   stream.push(0,0);if(!firstScreen){firstScreen=screen;firstColors=colors;firstTicks=ticks;continuationOffset=stream.length}previousScreen=screen;previousColors=colors;
  }
  stream.push(0,0);
  const loopOffset=stream.length;stream.push(firstTicks&255,firstTicks>>8);
- const start=stream.length,before={...streamBytes};
+ const start=stream.length,before={...streamBytes},packingBefore=packedSavings;
  const loopCost=changedRuns(firstScreen,previousScreen,custom?0xc400:0x400)+changedRuns(firstColors,previousColors,0xd800)+2500;
- records.push({start,end:stream.length,ticks:firstTicks,cost:loopCost,initial:frames.length===1,bytes:Object.fromEntries(['characters','screen','color'].map(k=>[k,streamBytes[k]-before[k]]))});
+ records.push({start,end:stream.length,ticks:firstTicks,cost:loopCost,initial:frames.length===1,packedSavings:packedSavings-packingBefore,bytes:Object.fromEntries(['characters','screen','color'].map(k=>[k,streamBytes[k]-before[k]]))});
  if(frames.length>1)worstUpdateRatio=Math.max(worstUpdateRatio,loopCost/(firstTicks*985248/60));
  stream.push(0,0,255,255);const continuationPointer=stream.length;stream.push(0,0);
  return {stream,records,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer};
@@ -154,8 +167,9 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  // The optional decoder adds 51 bytes. Keep the original encoding unless packing
  // saves more than its complete code footprint, including the dispatch branch.
  let encoded=encodeStream(true);
- if(encoded.packedSavings<=51)encoded=encodeStream(false);
- encoded=allowSharing?shareFrameBlocks(encoded):{...encoded,sharedBlockSavings:0,sharedPointers:[],sharedOffsets:[]};
+ if((nativeRows?encoded.records[0].packedSavings:encoded.packedSavings)<=51)encoded=encodeStream(false);
+ const nativePlan=nativeRows?planNativeRows({columns,rows,frames,screenAddress:custom?0xc400:0x400,blank:custom?0:32}):null;
+ encoded=nativePlan?nativeFrameStream(encoded,nativePlan):allowSharing?shareFrameBlocks(encoded):{...encoded,sharedBlockSavings:0,sharedPointers:[],sharedOffsets:[]};
  const {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer,sharedBlockSavings,sharedPointers,sharedOffsets}=encoded;
  const usesSharedBlocks=sharedPointers.length>0;
  // Small label-aware emitter: operands/fixups are checked, including relative branch ranges.
@@ -188,9 +202,13 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  // Clear the picture before BASIC prints READY; restore its normal cursor behavior.
  emit(0xa9,147);abs(0x20,0xffd2);emit(0x60);
  label('get');emit(0xa0,0,0xb1,0xfb,0xe6,0xfb);branch(0xd0,'got');emit(0xe6,0xfc);label('got');emit(0xc9,0,0x60);
- label('plane');abs(0x20,'get');emit(0x85,0xfd);abs(0x20,'get');emit(0x85,0xfe);branch(0xf0,usesSharedBlocks?'planeControl':'planeEnd');
+ label('plane');abs(0x20,'get');emit(0x85,0xfd);abs(0x20,'get');emit(0x85,0xfe);branch(0xf0,nativePlan?'nativeControl':usesSharedBlocks?'planeControl':'planeEnd');
  abs(0x20,'get');emit(0xaa);branch(0xf0,'literal');abs(0x20,'get');
  label('run');emit(0x91,0xfd,0xc8,0xca);branch(0xd0,'run');abs(0x4c,'plane');label('planeEnd');emit(0x60);
+ if(nativePlan){
+  label('nativeControl');emit(0xa5,0xfd);branch(0xf0,'planeEnd');
+  abs(0x20,'get');emit(0xaa);abs(0x20,'nativeRender');abs(0x4c,'plane');
+ }
  // Address $0001 invokes one pooled update body, then resumes this frame.
  if(usesSharedBlocks){
   label('planeControl');emit(0xa5,0xfd);branch(0xf0,'planeEnd');
@@ -216,10 +234,21 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
   label('packedHigh');emit(0xca);branch(0xd0,'packedByte');abs(0x4c,'plane');
   label('packedOdd');emit(0x68);abs(0x4c,'plane');
  }
+ let nativeBytes=0;
+ if(nativePlan){
+  const start=bytes.length;label('nativeRender');
+  nativePlan.calls.forEach((call,i)=>{
+   abs(0xbd,'nativeLo'+i);abs(0x8d,'nativeCallLo'+i);abs(0xbd,'nativeHi'+i);abs(0x8d,'nativeCallHi'+i);
+   emit(0xa0,call.offset);label('nativeCall'+i);labels['nativeCallLo'+i]=labels['nativeCall'+i]+1;labels['nativeCallHi'+i]=labels['nativeCall'+i]+2;emit(0x20,0,0);
+  });emit(0x60);
+  nativePlan.kernels.forEach((kernel,i)=>{label('nativeKernel'+i);for(const {value,positions} of kernel.groups){emit(0xa9,value);for(const x of positions)abs(0x99,kernel.page+x)}emit(0x60)});
+  nativePlan.calls.forEach((call,i)=>{for(const high of [false,true]){label((high?'nativeHi':'nativeLo')+i);for(const id of call.ids){fixups.push({at:bytes.length,target:'nativeKernel'+id,byte:true,high});emit(0)}}});
+  nativeBytes=bytes.length-start;
+ }
  for(const name of ['remaining','lastTick','delay','delayHigh','started']){label(name);emit(0)}
  label('data');labels.loopData=labels.data+loopOffset;labels.continuation=labels.data+continuationOffset;fixups.push({at:bytes.length+continuationPointer,target:'continuation'});for(const [id,offset] of sharedOffsets.entries())labels['shared'+id]=labels.data+offset;for(const {at,id} of sharedPointers)fixups.push({at:bytes.length+at,target:'shared'+id});for(const byte of stream)emit(byte);
  // Resolve pointers after optional decoders have fixed the code/data layout.
  for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown C64 player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error('C64 branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
  // Host-side symbols let full-machine checks observe frames without changing the PRG.
- return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,sharedBlockSavings,sharedBlockCount:sharedOffsets.length,sharedFrameReferences:sharedPointers.length,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
+ return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{renderer:nativePlan?'native-rows':'generic',nativeBytes,nativeRowKernels:nativePlan?.kernels.length??0,programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,sharedBlockSavings,sharedBlockCount:sharedOffsets.length,sharedFrameReferences:sharedPointers.length,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }
