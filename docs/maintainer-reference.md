@@ -261,3 +261,9 @@ Undo/Redo remain grouped. Selection actions occupy a reserved strip below the ca
 C64 `analyze:true` uses the same run encoder and work estimator, returns program size and worst update/budget ratio, and suppresses only memory/work rejection for diagnostics. Ordinary export still enforces both. Preflight snapshots source settings, invalidates stale async results and checks geometry/patterns before generation. Longer-loop remedies must pass the ordinary exporter and apply through history. Estimates are not hardware guarantees. Full PAL/NTSC 40 × 24 wave capacity expansion remains an investigation.
 
 Portrait iPad settings start closed and dock beside the canvas when opened, keeping artwork and export cancellation reachable. Phone settings retain their overlay behavior.
+
+## C64 capacity measurements
+
+The exporter diagnostics also report `playerBytes` and `streamBytes` split into `characters`, `screen`, `color` and `framing`. These are byte counts, not cycle measurements. Their sum equals `programBytes`, excluding the two-byte PRG load address. Diagnostic accounting does not change encoding or acceptance limits.
+
+`tests/c64-capacity.spec.cjs` samples the actual browser animation functions through a test-only route injection; the shipped page exposes no test API. It checks 20 full-screen cases, accepted/rejected agreement, analysis byte identity, RAM-character accounting and exact loop ticks. Its JSON attachment records the capacity matrix for each browser. See [results and next experiments](c64-capacity.md).
