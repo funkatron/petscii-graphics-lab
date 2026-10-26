@@ -1,28 +1,10 @@
 // Exercise the actual browser sampling functions; expose a test-only closure,
 // rather than maintaining a second implementation of movement/color waves.
 const {test,expect,project,loadProject}=require('./helpers.cjs');
-const profiles=['sparse','repeated','detailed','mixed-bank','detailed-fast'];
-const ramp=[2,8,7,13,3,14,6,4];
-function artwork(profile){
- const grid=Array.from({length:960},(_,i)=>{
-  const x=i%40,y=Math.floor(i/40);
-  if(profile==='sparse')return x===y||x===39-y?160:'';
-  if(profile==='repeated')return (x+y)%4<2?160:102;
-  if(profile==='mixed-bank')return [1,257,2,258,160,102,127,255][(x*7+y*11)%8];
-  return (x*17+y*31+x*y)%256;
- });
- return {grid,cellColors:grid.map((_,i)=>ramp[(i%40+Math.floor(i/40)*3)%8])};
-}
+const {profiles,artwork,capacityPage}=require('./c64-capacity-fixtures.cjs');
 test('40 × 24 combined-wave capacity matrix separates memory from timing limits',async({page},testInfo)=>{
  test.setTimeout(60000);
- await page.route('**/',async route=>{
-  const response=await route.fetch();
-  const body=(await response.text()).replace('(async()=>{',`(async()=>{
-   window.capacityInput=()=>{const s=animationSource();const frames=animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs}));return {columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,...(frames.some(f=>f.cells.some(g=>g>255))?{glyphBits:rom.slice()}:{})}};
-  `);
-  await route.fulfill({response,body});
- });
- await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
+ await capacityPage(page);
  const results=[];
  for(const profile of profiles)for(const seconds of [2,4,8,12]){
   const {grid,cellColors}=artwork(profile);
@@ -44,6 +26,8 @@ test('40 × 24 combined-wave capacity matrix separates memory from timing limits
  }
  // Slowing these fixed-sample loops can relieve timing, but cannot reclaim memory.
  for(const profile of profiles){const rows=results.filter(r=>r.profile===profile);expect(new Set(rows.map(r=>r.programBytes)).size).toBe(1);expect(rows[3].worstUpdateRatio).toBeLessThan(rows[0].worstUpdateRatio)}
+ expect(results.find(r=>r.profile==='repeated'&&r.seconds===4).error).toBe('');
+ expect(results.find(r=>r.profile==='repeated'&&r.seconds===4).programBytes).toBeLessThan(33000);
  expect(results.find(r=>r.profile==='detailed-fast'&&r.seconds===12).programBytes).toBeGreaterThan(results[0].memoryLimit);
  await testInfo.attach('c64-wave-capacity.json',{body:JSON.stringify(results,null,2),contentType:'application/json'});
 });
