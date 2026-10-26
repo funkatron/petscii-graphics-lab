@@ -82,9 +82,19 @@ export function createC64Program(input){
  }
  return result;
 }
-// Experimental opt-in: it shares exact sampled row states, preserving all frames.
-// The ordinary exporter remains on its validated generic path until full-machine
-// checks establish the native renderer's behavior with IRQ and VIC-II contention.
+// Preserve accepted generic bytes; promote only a native candidate that fits
+// both limits. Analysis and downloads must select the identical program.
+export function createC64AdaptiveProgram(input){
+ let result=createC64Program({...input,analyze:true});
+ const fits=p=>p.diagnostics.worstUpdateRatio<=1&&p.diagnostics.programBytes<=p.diagnostics.memoryLimit;
+ if(!fits(result)&&input.frames.length>=2&&input.frames.length<=256){
+  const native=createC64RowProgram({...input,analyze:true});
+  if(fits(native))result=native;
+ }
+ if(!input.analyze&&!fits(result))return createC64Program(input);
+ return result;
+}
+// Explicit native API for measurement and regression checks.
 export function createC64RowProgram(input){
  const result=compileC64Program(input,false,true),d=result.diagnostics;
  if(!input.analyze){

@@ -68,6 +68,8 @@ Start from ordinary C64 BASIC. The first player does not target cartridge enviro
 
 The editor uses authentic numeric C64 glyphs throughout. Animation cycle counts, directions, and waveform settings use the same sampled frames as modern outputs.
 
+The exporter first tries its compact general player. If that exceeds estimated timing or memory limits, it tries compiled row routines and uses them only when both limits pass. Readiness and downloads make the same choice; frame count and loop duration are preserved. The two-second reference animation was manually checked in Poke on iPad, including RUN/STOP. Broader PAL/NTSC and physical-machine checks remain open.
+
 The player stores the same **sampled frames** used by GIF, video, and frame ZIP, as character/color changes. It does not run a native mathematical implementation of each effect. Long replays may skip recorded steps, just as the other animation downloads do.
 
 ### Timing

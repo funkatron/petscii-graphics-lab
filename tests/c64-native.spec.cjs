@@ -1,6 +1,6 @@
 const {spawnSync}=require('node:child_process');
 const {glyphRows}=require('./glyph-reference.cjs');
-const {test,expect,loadProject,project}=require('./helpers.cjs');
+const {test,expect,loadProject,project,ui,download}=require('./helpers.cjs');
 const {capacityPage}=require('./c64-capacity-fixtures.cjs');
 function emulate(bytes,options){
  const r=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:bytes,...options}),encoding:'utf8',maxBuffer:16e6});expect(r.status,r.stderr).toBe(0);return JSON.parse(r.stdout);
@@ -10,15 +10,24 @@ test('native rows preserve all 96 full-screen wave/color samples at two seconds 
  const ids=[489,361,192,160,66],grid=Array.from({length:960},(_,i)=>ids[(Math.floor(i%40/4)+Math.floor(Math.floor(i/40)%8/3))%5]);
  await loadProject(page,project(grid,40,24,{cellColors:Array(960).fill(1),colors:{ink:1,background:0},animation:{effect:'wave',colorEffect:'color-wave',motionCycles:4,colorCycles:2,seconds:2,scale:1,background:'dark',colorWaveShape:'reverse-sawtooth'}}));
  const {bytes,frames,diagnostics,debugSymbols,generic}=await page.evaluate(async()=>{
-  const {createC64RowProgram,createC64Program}=await import('./c64-export.js'),input=window.capacityInput(),p=createC64RowProgram({...input,repetitions:2}),a=createC64RowProgram({...input,repetitions:2,analyze:true});
+  const {createC64RowProgram,createC64Program,createC64AdaptiveProgram}=await import('./c64-export.js'),input=window.capacityInput(),p=createC64AdaptiveProgram({...input,repetitions:2}),a=createC64AdaptiveProgram({...input,repetitions:2,analyze:true}),native=createC64RowProgram({...input,repetitions:2});
   if(p.bytes.some((v,i)=>v!==a.bytes[i])||p.bytes.length!==a.bytes.length)throw Error('Analysis changed native program bytes');
+  if(p.bytes.some((v,i)=>v!==native.bytes[i])||p.bytes.length!==native.bytes.length)throw Error('Adaptive export did not select the native program');
   return {bytes:[...p.bytes],frames:input.frames,diagnostics:p.diagnostics,debugSymbols:p.debugSymbols,generic:createC64Program({...input,analyze:true}).diagnostics};
  });
  expect(frames).toHaveLength(96);expect(diagnostics.renderer).toBe('native-rows');expect(diagnostics.programBytes).toBeLessThanOrEqual(diagnostics.memoryLimit);expect(diagnostics.worstUpdateRatio).toBeLessThanOrEqual(1);expect(diagnostics.worstUpdateRatio).toBeLessThan(generic.worstUpdateRatio);
  expect(diagnostics.playerBytes+Object.values(diagnostics.streamBytes).reduce((a,b)=>a+b,0)).toBe(diagnostics.programBytes);
+ await ui(page,'#c64Mode','selectOption','animation');await ui(page,'#c64Repeats','fill','2');await page.locator('#c64Repeats').press('Tab');
+ await expect(page.locator('#c64Readiness')).toContainText('Ready — exporter checks passed');
+ await expect(page.locator('#c64Readiness')).toContainText(diagnostics.programBytes.toLocaleString()+' / ');
+ const before=await download(page,'#saveProject');await ui(page,'#c64Format','selectOption','prg');
+ const exported=await download(page,'#exportC64');expect([...exported]).toEqual(bytes);
+ await ui(page,'#c64Format','selectOption','d64');const disk=await download(page,'#exportC64');
+ const expectedDisk=await page.evaluate(async bytes=>{const {createD64Disk}=await import('./c64-export.js');return [...createD64Disk(Uint8Array.from(bytes),'ANIMATION')]},bytes);
+ expect([...disk]).toEqual(expectedDisk);expect(await download(page,'#saveProject')).toEqual(before);
  const expectedKeys=frames.map(f=>f.cells.map(g=>glyphRows(g).join(','))),reports=[];
  for(const clockHz of [985248,1022727]){
-  const r=emulate(bytes,{clockHz,startJiffy:245,stopAfterTicks:260,maxSteps:5000000,observe:{start:debugSymbols.frameStart,ready:debugSymbols.frameReady}}),o=r.observations;
+  const r=emulate([...exported],{clockHz,startJiffy:245,stopAfterTicks:260,maxSteps:5000000,observe:{start:debugSymbols.frameStart,ready:debugSymbols.frameReady}}),o=r.observations;
   expect(o.start).toHaveLength(192);expect(o.ready).toHaveLength(192);expect(r.snapshots).toHaveLength(192);
   const slotKeys=Array.from({length:256},(_,i)=>r.snapshots[0].characters.slice(i*8,i*8+8).join(','));let elapsed=0,maxCopyCycles=0;
   r.snapshots.forEach((s,i)=>{
@@ -28,6 +37,24 @@ test('native rows preserve all 96 full-screen wave/color samples at two seconds 
   });expect(maxCopyCycles).toBeLessThan(14500);reports.push({clockHz,maxCopyCycles,...diagnostics});
  }
  await testInfo.attach('native-row-cpu.json',{body:JSON.stringify(reports,null,2),contentType:'application/json'});
+});
+test('adaptive selection preserves accepted generic bytes and original blockers when no native candidate fits',async({page})=>{
+ await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
+ const results=await page.evaluate(async()=>{
+  const {createC64Program,createC64AdaptiveProgram,createC64RowProgram}=await import('./c64-export.js');
+  const base={columns:40,rows:25,background:6,ink:14,frames:[0,1].map(f=>({cells:Array(1000).fill(f?102:160),inks:Array(1000).fill(f?2:1),durationMs:1000}))};
+  const detailed=durationMs=>({...base,frames:Array.from({length:16},(_,f)=>({cells:Array.from({length:1000},(_,i)=>(i*31+f*17)%256),inks:Array.from({length:1000},(_,i)=>(i+f)%16),durationMs}))});
+  return [base,{...base,frames:[base.frames[0]]},detailed(1e3),detailed(20),{...base,frames:Array.from({length:257},(_,i)=>({...base.frames[i%2],durationMs:20}))}].map(input=>{
+   const before=JSON.stringify(input),generic=createC64Program({...input,analyze:true}),adaptive=createC64AdaptiveProgram({...input,analyze:true});let genericError='',adaptiveError='',nativeSize=0;
+   try{createC64Program(input)}catch(e){genericError=e.message}
+   try{createC64AdaptiveProgram(input)}catch(e){adaptiveError=e.message}
+   if(input.frames.length>=2&&input.frames.length<=256)nativeSize=createC64RowProgram({...input,analyze:true}).diagnostics.programBytes;
+   return {same:generic.bytes.length===adaptive.bytes.length&&generic.bytes.every((v,i)=>v===adaptive.bytes[i]),genericError,adaptiveError,unchanged:before===JSON.stringify(input),nativeSize,limit:adaptive.diagnostics.memoryLimit};
+  });
+ });
+ for(const r of results){expect(r.same).toBe(true);expect(r.unchanged).toBe(true);expect(r.adaptiveError).toBe(r.genericError)}
+ expect(results[0].genericError).toBe('');expect(results[1].genericError).toBe('');
+ expect(results[2].nativeSize).toBeGreaterThan(results[2].limit);expect(results[3].genericError).toContain('playback speed');
 });
 test('native ROM rows handle zero, empties, page crossings, small widths and continuous/finite playback',async({page})=>{
  test.setTimeout(60000);await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();

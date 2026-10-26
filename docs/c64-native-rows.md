@@ -1,6 +1,6 @@
-# Native row renderer prototype
+# Native row renderer
 
-This prototype targets full-screen animations with repeated row patterns. It preserves the browser's complete sampled frames and timing. It is **not yet selected by the editor's ordinary Download action**.
+This prototype targets full-screen animations with repeated row patterns. It preserves the browser's complete sampled frames and timing. The editor tries it when the generic renderer exceeds timing or memory limits. It selects native rows only when that candidate fits both limits; otherwise the original blockers remain. Previously accepted generic exports retain identical bytes.
 
 ## What changed
 
@@ -36,7 +36,7 @@ const disk = createD64Disk(program.bytes, 'ANIMATION');
 
 Use the existing exporter input schema: sampled frames, dimensions, colors, repetitions and runtime glyph bits for mixed-bank artwork. The prototype supports 2–256 sampled frames and the existing 40-column, 25-row geometry limit. Too many distinct row states can exceed memory; the ordinary call rejects memory or timing overflow. `analyze:true` reports diagnostics but must not be used to create a playback download that bypasses rejection.
 
-`diagnostics.renderer` is `native-rows`; `nativeBytes` counts its row code and lookup tables, already included in `playerBytes`. Stream counts cover first-frame initialization and frame dispatch records. The total accounting still equals `programBytes`. The generic exporter retains `renderer: generic` and unchanged output bytes.
+`diagnostics.renderer` is `native-rows`; `nativeBytes` counts its row code and lookup tables, already included in `playerBytes`. Stream counts cover first-frame initialization and frame dispatch records. The total accounting still equals `programBytes`. The generic exporter retains `renderer: generic` and unchanged output bytes. `createC64AdaptiveProgram` shares candidate selection between readiness, longer-loop remedies and ordinary PRG/D64 downloads. Analysis and downloads select identical program bytes.
 
 The work model includes 2,500 cycles of frame overhead, 32 per row dispatch, two per distinct value loaded and five per stored cell. It includes worst-case indexed table reads, but does not model VIC-II bus contention or real KERNAL interrupt latency.
 
@@ -44,6 +44,6 @@ The work model includes 2,500 cycles of frame overhead, 32 per row dispatch, two
 
 `tests/c64-native.spec.cjs` uses generated artwork rather than the private reference drawing. It verifies all 96 samples twice at two seconds and both CPU speeds; ROM/RAM glyphs; small widths; full height; zero and empty cells; destination-page crossings; finite/continuous playback; byte accounting; analysis identity; input preservation; and memory/frame-count rejection. The ordinary browser/export regressions remain enabled.
 
-**46 targeted Chromium tests passed.** The ordinary exporter remains selected in the app. Full VICE checks with IRQ/chip behavior, VIC-II pixels and 1541 loading, followed by physical-hardware checks, are required before claiming equivalent hardware playback. VICE was unavailable in the current runtime; the attempted package setup failed before installation. The prototype is not raster synchronized and may show intermediate updates/tearing.
+The prototype passed **46 targeted Chromium tests** before integration. On October 26, 2026, the owner loaded the private reference D64 in Poke on iPad and reported correct playback and RUN/STOP return to BASIC. This is a manual check of that project; the emulator model and an exact timed run were not recorded. Full VICE checks with IRQ/chip behavior, VIC-II pixels and 1541 loading, followed by physical-hardware checks, are required before claiming equivalent hardware playback. VICE was unavailable in the current runtime; the attempted package setup failed before installation. The prototype is not raster synchronized and may show intermediate updates/tearing.
 
-Next: measure real-machine headroom, then compare generic/native candidates inside one readiness/download workflow. Preserve the exact two-second reference target and retain the generic path when the native candidate is unsuitable.
+Follow-up: broaden full-machine PAL/NTSC coverage and measure physical-machine headroom. Preserve the exact two-second reference target and retain the generic path when the native candidate is unsuitable. Integration regressions exercise the ordinary Download action, compare PRG/D64 bytes with the selected candidate, execute the downloaded PRG at both CPU speeds, and preserve accepted generic output and rejection behavior.
