@@ -18,6 +18,7 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Show C64 export readiness and offer only exporter-tested longer-loop remedies.
 - [x] Add automated pointer, keyboard and iPad layout regressions.
 - [ ] Verify physical finger/Pencil reach and larger text on an iPad.
+- [ ] Validate 200% text in both iPad orientations, including header controls, glyph selection, download navigation and saved artwork; automated regression and flexible-header change are in review.
 
 ## C64 animation capacity — lower-priority follow-ups
 
