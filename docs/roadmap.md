@@ -8,6 +8,12 @@ This page tracks requested work and completed milestones. For current controls, 
 2. **Drawing and import usability:** evaluate richer color-aware imports and other improvements to the everyday drawing workflow.
 3. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
 
+## Color-aware text exchange — in review
+
+- [x] Add optional labeled text with cell inks and shared background.
+- [x] Preserve glyph-only imports, atomic validation and one-step Undo.
+- [ ] Complete Chromium and iPad WebKit CI validation before release.
+
 ## Major UI cleanup — implemented
 
 - [x] Review drawing, selection, animation and download workflows; simplify tool grouping and contextual actions.

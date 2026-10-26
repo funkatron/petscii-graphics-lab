@@ -209,8 +209,9 @@ dialog::backdrop{background:#0009}
 <button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note">Runs on a standard C64 or emulator. Up to 40 × 25 cells, centered on screen. Uses the canvas background. Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
 <details class="help-disclosure" id="rawDataDetails"><summary>Raw bytes &amp; text</summary>
 <div class="row"><button id="text">Download text</button><button id="screenCodes">Glyph IDs (.bin)</button></div><button id="colorRam" class="full-width">Export color RAM (.bin)</button>
+<label class="glyph-filter"><input id="textColors" type="checkbox">Include colors in text</label><p class="note">Paste a labeled glyph grid below, then choose Import text. Color text also restores each cell’s ink and the background. Import is undoable.</p>
 <textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div></details>
-<details class="help-disclosure"><summary>Data formats</summary><p class="note">Glyph IDs select one of 512 source atlas slots across both C64 character sets. Text uses PETSCII-GLYPHS with three-digit hexadecimal IDs. Binary uses two bytes per cell, little-endian, with FFFF for empty. These are not native screen-code or PETSCII bytes. Color RAM stores one ink index per cell. JSON keeps the complete artwork.</p></details>
+<details class="help-disclosure"><summary>Data formats</summary><p class="note">Glyph IDs select one of 512 source atlas slots across both C64 character sets. Text uses PETSCII-GLYPHS with three-digit hexadecimal IDs. Include colors in text adds cell inks and the shared background; imports detect either format automatically. Binary uses two bytes per cell, little-endian, with FFFF for empty. These are not native screen-code or PETSCII bytes. Color RAM stores one ink index per cell. JSON keeps the complete artwork.</p></details>
 </div></div>
 </div><figure id="downloadFigure"><canvas id="downloadPreview" aria-label="Artwork output preview"></canvas><figcaption id="downloadDimensions" class="note"></figcaption><p id="downloadDescription" class="note"></p></figure></div><div id="downloadStatus" class="status" role="status"></div><button id="cancelSheetDownload" hidden>Cancel export</button></dialog>
 <script>
@@ -406,7 +407,8 @@ function fit(){
  redraw();
 }
 function textGrid(){
- return '# PETSCII-GLYPHS 1 '+W+' '+H+'\n'+Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map(g=>g===''?'--':g.toString(16).padStart(3,'0').toUpperCase()).join(' ')).join('\n');
+ const withColors=$('textColors').checked,hex=n=>n.toString(16).toUpperCase();
+ return '# PETSCII-GLYPHS '+(withColors?'2 ':'1 ')+W+' '+H+(withColors?' '+hex(colors.background):'')+'\n'+Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map((g,x)=>(g===''?'--':hex(g).padStart(3,'0'))+(withColors?':'+hex(cellColors[y*W+x]):'')).join(' ')).join('\n');
 }
 // Draw in backing-store pixels to avoid stale HiDPI transforms after WebKit canvas resizing.
 function renderGrid(cells,inks=cellColors){
@@ -841,16 +843,26 @@ $('screenCodes').onclick=()=>{
  a.href=url;a.download='c64-glyph-ids-'+W+'x'+H+'.bin';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);
  setStatus('Downloaded glyph IDs (16-bit little-endian; FFFF = empty)');
 };
+$('textColors').onchange=()=>{out.value=textGrid()};
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(textGrid());setStatus('Text copied')}catch{setStatus('Select text to copy')}};
 $('import').onclick=()=>{
  try{
-  const lines=out.value.replace(/\r/g,'').split('\n'),header=lines.shift().match(/^# PETSCII-GLYPHS 1 (\d+) (\d+)$/);
-  if(!header)throw Error('Use a labeled PETSCII-GLYPHS grid');
-  const nw=Number(header[1]),nh=Number(header[2]),next=[];
+  const lines=out.value.replace(/\r/g,'').trimEnd().split('\n'),header=lines.shift().match(/^# PETSCII-GLYPHS ([12]) (\d+) (\d+)(?: ([0-9a-f]))?$/i);
+  if(!header||(header[1]==='2')!==!!header[4])throw Error('Use PETSCII-GLYPHS 1, or version 2 with a background ink');
+  const colored=header[1]==='2',nw=Number(header[2]),nh=Number(header[3]),next=[],inks=[];
+  if(nw<1||nw>40||nh<1||nh>40)throw Error('Dimensions must be 1–40');
   if(lines.length!==nh)throw Error('Incorrect row count');
-  for(const line of lines){const tokens=line.split(' ');if(tokens.length!==nw)throw Error('Incorrect column count');for(const t of tokens){if(t==='--')next.push('');else if(/^[0-9a-f]{3}$/i.test(t))next.push(parseInt(t,16));else throw Error('Invalid screen code')}}
-  validateProject({format:'petscii-stencil-lab',version:3,columns:nw,rows:nh,grid:next});
-  remember();W=nw;H=nh;grid=next;cellColors=Array(grid.length).fill(colors.ink);resetReplay();$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
+  for(const line of lines){
+   const tokens=line.split(' ');if(tokens.length!==nw)throw Error('Incorrect column count');
+   for(const token of tokens){
+    const t=token.match(colored?/^(--|[0-9a-f]{3}):([0-9a-f])$/i:/^(--|[0-9a-f]{3})$/i);
+    if(!t)throw Error(colored?'Use glyph:ink tokens, such as 0A0:F or --:0':'Invalid glyph ID');
+    next.push(t[1]==='--'?'':parseInt(t[1],16));inks.push(colored?parseInt(t[2],16):colors.ink);
+   }
+  }
+  const nextColors={...colors,background:colored?parseInt(header[4],16):colors.background};
+  validateProject({format:'petscii-stencil-lab',version:3,columns:nw,rows:nh,grid:next,cellColors:inks,colors:nextColors});
+  remember();W=nw;H=nh;grid=next;cellColors=inks;setColors(nextColors);resetReplay();$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
  }catch(e){setStatus('Import failed: '+e.message)}
 };
 function projectData(){return {format:'petscii-stencil-lab',version:3,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()}}}
