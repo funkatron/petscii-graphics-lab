@@ -86,12 +86,13 @@ export function createC64Program(input){
 // both limits. Analysis and downloads must select the identical program.
 export function createC64AdaptiveProgram(input){
  let result=createC64Program({...input,analyze:true});
- const fits=p=>p.diagnostics.worstUpdateRatio<=1&&p.diagnostics.programBytes<=p.diagnostics.memoryLimit;
+ const memoryFits=p=>p.diagnostics.programBytes<=p.diagnostics.memoryLimit;
+ const fits=p=>p.diagnostics.worstUpdateRatio<=1&&memoryFits(p);
  if(!fits(result)&&input.frames.length>=2&&input.frames.length<=256){
   const native=createC64RowProgram({...input,analyze:true});
-  if(fits(native))result=native;
+  if(fits(native)||(input.allowTimingOverrun&&memoryFits(native)&&(!memoryFits(result)||native.diagnostics.worstUpdateRatio<result.diagnostics.worstUpdateRatio)))result=native;
  }
- if(!input.analyze&&!fits(result))return createC64Program(input);
+ if(!input.analyze&&!fits(result)&&!(input.allowTimingOverrun&&memoryFits(result)))return createC64Program(input);
  return result;
 }
 // Explicit native API for measurement and regression checks.

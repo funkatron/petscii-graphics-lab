@@ -86,9 +86,11 @@ For each timed update, the exporter estimates its CPU cycles, including command/
 | --- | --- |
 | 50% | Estimated drawing work takes half the available interval |
 | 100% | Estimated work fills the interval |
-| 120% | Estimated work exceeds the interval; export is rejected at that speed |
+| 120% | Estimated work exceeds the interval; explicit timing override is required |
 
 For example, 192 samples over eight seconds average about 24 frames per second. The C64 clock schedules them in two- or three-tick intervals (about 33 or 50 ms); it does not require 60 pictures per second. Faster requested loops leave fewer cycles per update. Longer loops can ease that limit without reducing sample count.
+
+When timing is the remaining blocker, the C64 panel offers **Download despite timing warning**. Check it to experiment at the requested speed. The warning remains visible and playback may run late or stutter. This bypasses only the timing estimate: program memory, dimensions, valid frames and glyph limits are still enforced. Consent applies to the current artwork and animation settings; changing them clears it. PRG and D64 share the same choice.
 
 This is a software work estimate, not a direct measurement of the complete C64. It allows for player overhead but does not explicitly simulate video-chip bus contention or KERNAL interrupt delays. A pass is useful screening, followed by CPU-emulator checks and full-emulator or hardware testing; it does not promise tear-free display.
 
