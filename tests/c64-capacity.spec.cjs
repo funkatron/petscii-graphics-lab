@@ -28,6 +28,8 @@ test('40 × 24 combined-wave capacity matrix separates memory from timing limits
  for(const profile of profiles){const rows=results.filter(r=>r.profile===profile);expect(new Set(rows.map(r=>r.programBytes)).size).toBe(1);expect(rows[3].worstUpdateRatio).toBeLessThan(rows[0].worstUpdateRatio)}
  expect(results.find(r=>r.profile==='repeated'&&r.seconds===4).error).toBe('');
  expect(results.find(r=>r.profile==='repeated'&&r.seconds===4).programBytes).toBeLessThan(33000);
- expect(results.find(r=>r.profile==='detailed-fast'&&r.seconds===12).programBytes).toBeGreaterThan(results[0].memoryLimit);
+ expect(results.find(r=>r.profile==='detailed-fast'&&r.seconds===12).programBytes).toBeLessThan(results[0].memoryLimit);
+ expect(results.find(r=>r.profile==='detailed-fast'&&r.seconds===12).error).toBe('');
+ expect(results.find(r=>r.profile==='detailed-fast'&&r.seconds===12).sharedBlockCount).toBeGreaterThan(0);
  await testInfo.attach('c64-wave-capacity.json',{body:JSON.stringify(results,null,2),contentType:'application/json'});
 });
