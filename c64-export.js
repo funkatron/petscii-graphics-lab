@@ -116,8 +116,8 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
      // Color RAM stores four-bit inks. Zero literal length introduces packed colors.
      usesPackedColors=true;packedSavings+=count-1-Math.ceil(count/2);stream.push(target&255,target>>8,0,0,count);
      for(let j=0;j<count;j+=2)stream.push(values[i+j]|((j+1<count?values[i+j+1]:0)<<4));
-     cost+=count*60+300;
-    }else{stream.push(target&255,target>>8,0,count,...values.slice(i,i+count));cost+=count*60+200}
+     cost+=count*40+320;
+    }else{stream.push(target&255,target>>8,0,count,...values.slice(i,i+count));cost+=count*20+220}
    }
    i+=count;
   }
@@ -151,10 +151,10 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  stream.push(0,0,255,255);const continuationPointer=stream.length;stream.push(0,0);
  return {stream,records,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer};
  }
- // The optional decoder adds 45 bytes. Keep the original encoding unless packing
+ // The optional decoder adds 51 bytes. Keep the original encoding unless packing
  // saves more than its complete code footprint, including the dispatch branch.
  let encoded=encodeStream(true);
- if(encoded.packedSavings<=45)encoded=encodeStream(false);
+ if(encoded.packedSavings<=51)encoded=encodeStream(false);
  encoded=allowSharing?shareFrameBlocks(encoded):{...encoded,sharedBlockSavings:0,sharedPointers:[],sharedOffsets:[]};
  const {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer,sharedBlockSavings,sharedPointers,sharedOffsets}=encoded;
  const usesSharedBlocks=sharedPointers.length>0;
@@ -199,15 +199,22 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
   abs(0x20,'plane');emit(0x68,0x85,0xfc,0x68,0x85,0xfb);abs(0x4c,'plane');
  }
  label('literal');abs(0x20,'get');emit(0xaa);if(usesPackedColors)branch(0xf0,'packed');
- label('literalByte');abs(0x20,'get');emit(0x91,0xfd,0xe6,0xfd);branch(0xd0,'literalNext');emit(0xe6,0xfe);
- label('literalNext');emit(0xca);branch(0xd0,'literalByte');abs(0x4c,'plane');
+ // Copy a literal with indexed addressing; advance the source once per run.
+ // The next run supplies a new destination, so no destination advance is needed.
+ label('literalByte');emit(0xb1,0xfb,0x91,0xfd,0xc8,0xca);branch(0xd0,'literalByte');
+ emit(0x98,0x18,0x65,0xfb,0x85,0xfb);branch(0x90,'literalDone');emit(0xe6,0xfc);
+ label('literalDone');abs(0x4c,'plane');
  // Packed ink literals: low nibble first, with no padding write for odd counts.
  if(usesPackedColors){
   label('packed');abs(0x20,'get');emit(0xaa);
-  label('packedByte');abs(0x20,'get');emit(0x48,0x29,15);abs(0x20,'putInk');emit(0xca);branch(0xf0,'packedOdd');
-  emit(0x68,0x4a,0x4a,0x4a,0x4a);abs(0x20,'putInk');emit(0xca);branch(0xd0,'packedByte');abs(0x4c,'plane');
+  // Y stays zero. Inline the byte read and both nibble writes to avoid three
+  // subroutine calls per pair, retaining source/destination page carry handling.
+  label('packedByte');emit(0xb1,0xfb,0xe6,0xfb);branch(0xd0,'packedGot');emit(0xe6,0xfc);
+  label('packedGot');emit(0x48,0x29,15,0x91,0xfd,0xe6,0xfd);branch(0xd0,'packedLow');emit(0xe6,0xfe);
+  label('packedLow');emit(0xca);branch(0xf0,'packedOdd');
+  emit(0x68,0x4a,0x4a,0x4a,0x4a,0x91,0xfd,0xe6,0xfd);branch(0xd0,'packedHigh');emit(0xe6,0xfe);
+  label('packedHigh');emit(0xca);branch(0xd0,'packedByte');abs(0x4c,'plane');
   label('packedOdd');emit(0x68);abs(0x4c,'plane');
-  label('putInk');emit(0x91,0xfd,0xe6,0xfd);branch(0xd0,'inkNext');emit(0xe6,0xfe);label('inkNext');emit(0x60);
  }
  for(const name of ['remaining','lastTick','delay','delayHigh','started']){label(name);emit(0)}
  label('data');labels.loopData=labels.data+loopOffset;labels.continuation=labels.data+continuationOffset;fixups.push({at:bytes.length+continuationPointer,target:'continuation'});for(const [id,offset] of sharedOffsets.entries())labels['shared'+id]=labels.data+offset;for(const {at,id} of sharedPointers)fixups.push({at:bytes.length+at,target:'shared'+id});for(const byte of stream)emit(byte);

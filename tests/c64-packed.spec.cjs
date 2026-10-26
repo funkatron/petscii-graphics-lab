@@ -31,28 +31,28 @@ test('packed inks preserve odd/even runs, page boundaries, unchanged gaps and lo
   }
  }
 });
-test('small color changes retain the original decoder and packing pays for its complete code size',async({page})=>{
+test('small color changes omit the optional packed decoder and packing pays for its complete code size',async({page})=>{
  const rows=await page.evaluate(async()=>{
   const {createC64Program}=await import('./c64-export.js');return [1,4,8,40,100,128,255,256,1000].map(n=>{
    const p=createC64Program({columns:40,rows:25,background:6,ink:14,frames:[{cells:Array(1000).fill(160),inks:Array.from({length:1000},(_,i)=>i<n?i%16:14),durationMs:500}]});
    return {n,...p.diagnostics};
   });
  });
- const baseline=[434,438,442,474,534,562,684,689,1430];
+ const baseline=[438,442,446,478,538,566,688,693,1434];
  rows.forEach((r,i)=>{
   expect(r.programBytes).toBeLessThanOrEqual(baseline[i]);
-  expect(r.playerBytes).toBe(r.packedColorSavings?429:384);
-  if(r.packedColorSavings)expect(r.packedColorSavings).toBeGreaterThan(45);
-  expect(r.programBytes).toBe(baseline[i]-r.packedColorSavings+(r.packedColorSavings?45:0));
+  expect(r.playerBytes).toBe(r.packedColorSavings?439:388);
+  if(r.packedColorSavings)expect(r.packedColorSavings).toBeGreaterThan(51);
+  expect(r.programBytes).toBe(baseline[i]-r.packedColorSavings+(r.packedColorSavings?51:0));
  });
 });
 
-test('previously oversized 40 × 24 combined waves execute two complete loops with exact colors',async({page})=>{
+test('two-second 40 × 24 combined waves execute two complete loops with exact colors',async({page})=>{
  test.setTimeout(60000);
  // Replace the ordinary page with a sampler bridge, then import through the editor.
  await capacityPage(page);
  const {grid,cellColors}=artwork('repeated');
- await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',seconds:4,scale:1,background:'dark'}}));
+ await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',seconds:2,scale:1,background:'dark'}}));
  const {bytes,frames,diagnostics,debugSymbols}=await page.evaluate(async()=>{
   const {createC64Program}=await import('./c64-export.js'),input=window.capacityInput();
   const p=createC64Program({...input,repetitions:2});return {bytes:[...p.bytes],frames:input.frames,diagnostics:p.diagnostics,debugSymbols:p.debugSymbols};
@@ -65,26 +65,26 @@ test('previously oversized 40 × 24 combined waves execute two complete loops wi
   boundaries.push(Math.round(elapsed*60/1000));const key=JSON.stringify([screen,colors]);if(key!==last)expected.push({screen,colors,frame:boundaries.length-1});last=key;elapsed+=frame.durationMs;
  }
  for(const clockHz of [985248,1022727]){
-  const {snapshots,observations}=emulate(bytes,{clockHz,startJiffy:245,stopAfterTicks:495,maxSteps:6000000,observe:{start:debugSymbols.frameStart,ready:debugSymbols.frameReady}});
+  const {snapshots,observations}=emulate(bytes,{clockHz,startJiffy:245,stopAfterTicks:255,maxSteps:6000000,observe:{start:debugSymbols.frameStart,ready:debugSymbols.frameReady}});
   expect(snapshots).toHaveLength(expected.length);
   expect(observations.start).toHaveLength(48);expect(observations.ready).toHaveLength(48);
   observations.start.forEach((start,i)=>{
    if(i===0)return; // First-frame initialization precedes the playback clock.
    expect(Math.abs(start.tick-observations.ready[0].tick-boundaries[i])).toBeLessThanOrEqual(1);
-   const ticks=(boundaries[i+1]??480)-boundaries[i];
+   const ticks=(boundaries[i+1]??Math.round(elapsed*60/1000))-boundaries[i];
    expect(observations.ready[i].cycles-start.cycles).toBeLessThanOrEqual(ticks*clockHz/60);
   });
   snapshots.forEach((s,i)=>{expect(s.screen).toEqual(expected[i].screen);expect(s.colors).toEqual(expected[i].colors);expect(Math.abs(s.tick-observations.ready[expected[i].frame].tick)).toBeLessThanOrEqual(1)});
  }
 });
 
-test('C64 readiness offers the newly viable four-second loop and keeps that adjustment undoable',async({page})=>{
+test('C64 readiness offers the newly viable two-second loop and keeps that adjustment undoable',async({page})=>{
  const {grid,cellColors}=artwork('repeated');
- await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',seconds:2,scale:1,background:'dark'}}));
+ await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',seconds:1,scale:1,background:'dark'}}));
  await ui(page,'#c64Mode','selectOption','animation');
  const panel=page.locator('#c64Readiness');await expect(panel).toContainText('Needs adjustment');
- const fix=panel.getByRole('button',{name:'Apply tested 4-second loop'});await expect(fix).toBeVisible();
+ const fix=panel.getByRole('button',{name:'Apply tested 2-second loop'});await expect(fix).toBeVisible();
  await expect(panel).not.toContainText('Program memory exceeded');await fix.click();await expect(panel).toContainText('Ready — exporter checks passed');
- const bytes=await download(page,'#exportC64');expect(bytes.length).toBe(32478);
- await ui(page,'#undo');await expect(page.locator('#animationSeconds')).toHaveValue('2');
+ const bytes=await download(page,'#exportC64');expect(bytes.length).toBe(32488);
+ await ui(page,'#undo');await expect(page.locator('#animationSeconds')).toHaveValue('1');
 });

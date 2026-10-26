@@ -28,7 +28,8 @@ Target: export a **40-column × 24-row** drawing with movement waves and color w
 - [ ] Measure actual decode time, frame timing and loop drift for the combined-wave workloads on PAL/NTSC.
 - [x] Pack two color inks per byte when savings exceed decoder overhead; the repeated-pattern baseline now fits at 4/8/12 seconds.
 - [x] Reuse exact frame-update bodies; the four-cycle full-screen baseline falls to 22,269 bytes and fits exporter checks at 8/12 seconds.
-- [ ] Compare reusable color-only blocks, faster decoding, staged screen updates, and native procedural movement/color effects. Keep the browser animation as the reference for intended output.
+- [x] Use indexed literal copies and inline packed colors; combined full-screen updates need 47.8% fewer measured CPU cycles in the deterministic CPU fixture.
+- [ ] Compare reusable color-only blocks, further decoder improvements, staged screen updates, and native procedural movement/color effects. Keep the browser animation as the reference for intended output.
 - [ ] Measure achievable speeds and visual tradeoffs on PAL and NTSC in full VICE emulation; include the mixed-bank RAM character path where applicable.
 - [ ] Update export limits and actionable messages from measured results, and document any approximation or remaining hardware limits.
 

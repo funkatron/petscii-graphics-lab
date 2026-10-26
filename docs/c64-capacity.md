@@ -12,7 +12,38 @@ npx playwright test tests/c64-capacity.spec.cjs --workers=1
 
 Each browser attaches `c64-wave-capacity.json` to its Playwright result. The fixtures are deterministic and use the editor's actual frame sampling and exporter. There is no second implementation of wave math.
 
-## Shared update blocks — implemented
+## Faster decoder — implemented
+
+Ordinary literals now copy with indexed addressing and advance the source pointer once per run. Packed colors inline each input-byte read and the two nibble writes, avoiding three helper calls per pair. Repeated-value runs are unchanged. Stream contents, samples and timing remain the same; generated code grows by four bytes without packing, or ten bytes with packing.
+
+The measured decoder-only CPU work for deterministic 40 × 25 two-state fixtures is:
+
+| Update workload | Previous maximum cycles | Faster maximum cycles | Reduction |
+| --- | ---: | ---: | ---: |
+| Differing glyph bytes, unchanged inks | 48,639 | 19,277 | 60.4% |
+| Packed color changes, unchanged glyphs | 54,333 | 34,301 | 36.9% |
+| Combined glyph/color changes | 103,171 | 53,865 | 47.8% |
+| Repeated glyph/color fills | 27,119 | 27,119 | Unchanged |
+
+`tests/c64-decoder.spec.cjs` records frame-entry and completed-copy cycle counts in independent py65 execution, compares all 1,000 glyph and color cells, and checks two loops. It also checks literal lengths around 255-byte boundaries, small literals, packed odd tails and untouched cells. Earlier long-loop regressions still check ROM/RAM paths, references, register/stack restoration and PAL/NTSC CPU speeds. These cycle counts exclude KERNAL interrupt/chip stalls and are not full VICE or physical-hardware measurements.
+
+The conservative work model is now 20 cycles per ordinary literal cell plus 220 per run, and 40 per packed-color cell plus 320 per run. Repeated runs, frame overhead and reference overhead retain their existing charges. Estimates still govern exporter acceptance; lowering them alone is not the optimization.
+
+Latest full-screen results supersede the historical stage measurements below:
+
+| Workload | Program bytes | Estimated budget at 2 s | At 4 s | At 8 s |
+| --- | ---: | ---: | ---: | ---: |
+| Sparse diagonals | 12,424 | 46.5% | 23.3% | 11.6% |
+| Repeated two-glyph pattern | 32,486 | 99.0% | 49.5% | 24.7% |
+| Detailed numeric-code pattern | 21,518 | 55.1% | 27.5% | 13.8% |
+| Mixed-bank eight-glyph pattern | 21,630 | 55.1% | 27.5% | 13.8% |
+| Detailed, four cycles (96 frames) | 22,279 | 277.1% | 138.5% | 55.4% |
+
+The repeated-pattern two-second loop now passes both exporter and two-loop CPU checks. Its one-second version still needs a longer loop; the readiness panel offers the tested two-second remedy. The four-cycle example still rejects two/four seconds, but eight seconds now has more estimated headroom; twelve seconds uses about 38.7% of the worst-frame budget.
+
+The optional packed decoder is now 51 bytes and is still omitted when its stream savings do not exceed its code cost. Shared calls remain 41 bytes. Timing-based fallback selection still uses actual compiled sizes, with a new 40 × 4 fast-animation regression preserving viable unshared output.
+
+## Shared update blocks — earlier baseline
 
 The exporter can now store an identical sequence of frame-update instructions once and call it from multiple frames. It compares exact encoded instructions, including destination addresses, rather than just comparing visible pictures. Each frame retains its own duration. Shared blocks contain no further calls, so stack nesting is bounded to one level.
 
@@ -31,7 +62,7 @@ The other four one-cycle workloads have no profitable exact update repetition an
 
 This is exact instruction reuse, not procedural approximation or reduced sampling. Full VICE and physical-hardware validation of the shared decoder remain open.
 
-## Packed colors — implemented
+## Packed colors — earlier baseline
 
 C64 inks need four bits each. The exporter now packs two inks per byte in color literal runs, with the low nibble first. It retains ordinary repeat instructions and emits the extra decoder only when the total stream saving exceeds its 45-byte code cost. Small exports retain the original encoding.
 
