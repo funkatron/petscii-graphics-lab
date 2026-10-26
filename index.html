@@ -78,7 +78,8 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 .export-tabs button{flex:1;min-width:0;padding:8px 3px;font-size:.77rem}
 .export-tabs [aria-selected=true]{background:#176655;border-color:#77ddc4}
 [role=tabpanel]{padding-top:2px}
-.motion-summary{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:.72rem;color:#bfcedd;margin-bottom:10px}
+.motion-summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;font-size:.72rem;color:#bfcedd;margin-bottom:10px}
+.motion-summary span{flex-basis:100%}
 .motion-summary button{padding:6px 9px}
 .glyph-picker{width:320px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:#18263a;padding:10px;border-left:1px solid #344761;scrollbar-width:thin}
 .glyph-picker h2{font-size:.9rem;margin:0}
@@ -121,7 +122,7 @@ button,select,.field input[type=number]{min-height:44px}
 dialog{color:#eef5fa;background:#18263a;border:1px solid #54718c;border-radius:14px;width:min(820px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:18px;overscroll-behavior:contain}
 dialog::backdrop{background:#0009}
 .dialog-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.dialog-heading h2{font-size:1.1rem;margin:0}
-.download-layout:has(#export-data:not([hidden])){grid-template-columns:minmax(0,1fr)}
+.download-layout:has(#downloadFigure[hidden]){grid-template-columns:minmax(0,1fr)}
 .download-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
 #downloadFigure{margin:16px 0;padding:14px;background:#101b2c;border-radius:10px;align-self:start;min-width:0}
 #downloadPreview,#resizePreview{width:auto;height:auto;max-height:260px;margin:auto;background:repeating-conic-gradient(#304055 0 25%,#1c2a3b 0 50%) 0/16px 16px;cursor:default}
@@ -192,7 +193,7 @@ dialog::backdrop{background:#0009}
 <button id="png" class="full-width">Download PNG</button><div class="row"><button id="svg" hidden>Download SVG</button></div><p class="note">Grid-free artwork with each cell’s ink color. Background applies to PNG and SVG.</p>
 </div>
 <div id="export-motion" role="tabpanel" aria-labelledby="export-tab-motion" data-export-mode="motion" hidden>
-<div class="motion-summary"><span id="motionSummary">Replay drawing · 2 s / loop</span><button id="editAnimation" aria-label="Edit animation settings">Edit</button></div>
+<div class="motion-summary"><span id="motionSummary">Replay drawing · 2 s / loop</span><button id="motionPreview" aria-pressed="false">▶ Play preview</button><button id="editAnimation" aria-label="Edit animation settings">Edit</button></div>
 <div class="field"><label for="animationFormat">Animation format</label><select id="animationFormat"><option value="gif">Animated GIF</option><option value="video">Video (MP4 / WebM)</option><option value="frames">PNG frames (.zip)</option></select></div>
 <div class="row"><div class="field"><label for="gifScale">Animation resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option></select></div><div class="field"><label for="gifBackground">Animation background</label><select id="gifBackground"><option value="dark">Canvas color</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
 <div data-motion-format="gif"><button id="exportGif" class="full-width">Download GIF</button><p class="note">Loops automatically. Supports transparency.</p></div>
@@ -202,7 +203,7 @@ dialog::backdrop{background:#0009}
 <div id="export-data" role="tabpanel" aria-labelledby="export-tab-data" data-export-mode="data" hidden>
 <div class="field"><label for="c64Mode">C64 program</label><select id="c64Mode"><option value="still">Still drawing</option><option value="animation">Selected animation</option></select></div>
 <div class="field"><label for="c64Format">C64 file format</label><select id="c64Format"><option value="prg">Program (.prg)</option><option value="d64">Disk image (.d64)</option></select></div><p class="note" id="c64DiskHelp" hidden>Virtual 1541 disk containing PICTURE or ANIMATION. Attach as device 8, then LOAD "*",8,1 and RUN. The disk contains the same player as the PRG download.</p>
-<div id="c64LoopSettings" hidden><div class="field"><label for="c64Repeats">C64 repetitions (0 = continuous)</label><input id="c64Repeats" type="number" min="0" max="100" step="1" inputmode="numeric" value="0"></div><p class="note" id="c64MotionSummary"></p></div>
+<div id="c64LoopSettings" hidden><div class="field"><label for="c64Repeats">C64 repetitions (0 = continuous)</label><input id="c64Repeats" type="number" min="0" max="100" step="1" inputmode="numeric" value="0"></div><p class="note" id="c64MotionSummary"></p><button id="c64Preview" aria-pressed="false">▶ Play preview</button></div>
 <button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note">Runs on a standard C64 or emulator. Up to 40 × 25 cells, placed at the top left. Uses the canvas background. Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
 <details class="help-disclosure" id="rawDataDetails"><summary>Raw bytes &amp; text</summary>
 <div class="row"><button id="text">Download text</button><button id="screenCodes">Glyph IDs (.bin)</button></div><button id="colorRam" class="full-width">Export color RAM (.bin)</button>
@@ -436,14 +437,14 @@ function artworkPreview(target,cells,inks,cols,rows,background){
 }
 function updateDownloadPreview(){
  if(!$('downloadDialog').open)return;
- const motion=!$('export-motion').hidden,data=!$('export-data').hidden;
- $('downloadFigure').hidden=data;if(data)return;
- const source=animationSource(),picture=motion?animationCells(animationPreview?animationFrame:animationCount(source)-1,source):{cells:grid,inks:cellColors};
- const bg=motion?($('gifBackground').value==='transparent'&&$('animationFormat').value!=='video'?null:$('gifBackground').value==='white'?'#fff':colorHex('background')):stillBackground();
+ const motion=!$('export-motion').hidden,data=!$('export-data').hidden,moving=motion||(data&&$('c64Mode').value==='animation');
+ $('downloadFigure').hidden=data&&!moving;if($('downloadFigure').hidden)return;
+ const source=animationSource(),picture=moving?animationCells(animationPreview?animationFrame:0,source):{cells:grid,inks:cellColors};
+ const bg=data?colorHex('background'):motion?($('gifBackground').value==='transparent'&&$('animationFormat').value!=='video'?null:$('gifBackground').value==='white'?'#fff':colorHex('background')):stillBackground();
  artworkPreview($('downloadPreview'),picture.cells,picture.inks,W,H,bg);
- const pixels=motion?8*Number($('gifScale').value):$('stillFormat').value==='svg'?16:16*Number($('pngScale').value),loops=motion&&$('animationFormat').value==='video'?Number($('videoRepeats').value):1;
- $('downloadDimensions').textContent=(motion?'Animation':'Drawing')+' · '+W*pixels+' × '+H*pixels+' pixels'+(motion?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
- $('downloadDescription').textContent=motion?'Selected animation effect. Use Play to preview motion on the canvas.':'Original drawing, without editing grid lines.';
+ const pixels=data?8:motion?8*Number($('gifScale').value):$('stillFormat').value==='svg'?16:16*Number($('pngScale').value),loops=motion&&$('animationFormat').value==='video'?Number($('videoRepeats').value):1;
+ $('downloadDimensions').textContent=(moving?'Animation':'Drawing')+' · '+W*pixels+' × '+H*pixels+' pixels'+(moving?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
+ $('downloadDescription').textContent=moving?'Use Play preview to watch the selected animation here.':'Original drawing, without editing grid lines.';
 }
 function updateResizeDraft(){
  const nw=Number($('columns').value),nh=Number($('rows').value),changed=nw!==W||nh!==H;$('resizeDraft').hidden=!changed;if(!changed)return;
@@ -541,6 +542,7 @@ function animationButtons(){
  updateMotionSummary();$('previewBanner').hidden=!animationPreview;$('previewLabel').textContent='Read-only preview · '+animationName()+(animationPlaying?'':' · Paused');
  $('animationPlay').textContent=animationPlaying?'❚❚ Pause':'▶ Play';$('quickPlay').textContent=animationPlaying?'❚❚':'▶';
  for(const id of ['animationPlay','quickPlay']){$(id).setAttribute('aria-pressed',String(animationPlaying));$(id).setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation')}
+ for(const id of ['motionPreview','c64Preview']){$(id).textContent=animationPreview?'■ Stop preview':'▶ Play preview';$(id).setAttribute('aria-pressed',String(animationPreview))}
  canvas.classList.toggle('preview-locked',animationPreview);
  $('paint').disabled=animationPreview||!rom;$('erase').disabled=animationPreview;
  for(const id of ['paint','erase'])$(id).title=animationPreview?'Choose Return to drawing to edit':id==='paint'?'Paint with the selected glyph':'Erase cells';
@@ -564,6 +566,7 @@ function toggleAnimation(){
  cancelToolDrag();selection=null;cancelStroke();animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
 }
 $('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
+ for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Ready to draw')}else toggleAnimation()};
 $('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
 for(const id of ['animationEffect','animationColor','animationSeconds','animationCycles','animationColorCycles','scrollDirection','waveDirection','waveShape','colorWaveDirection','colorWaveShape'])$(id).onchange=()=>{if(id==='animationEffect'&&['scroll-x','scroll-y'].includes($(id).value))$('scrollDirection').value=$(id).value==='scroll-y'?'up':'left';if(id==='scrollDirection')$('animationEffect').value=['left','right'].includes($(id).value)?'scroll-x':'scroll-y';updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
 for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;

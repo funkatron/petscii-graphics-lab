@@ -180,6 +180,8 @@ Long recordings use selected points from the recording instead of showing every 
 
 Open **Download artwork**, choose a tab and format, then use its **Download** button. The preview shows output dimensions in pixels and, for animations, duration and frame count. Editing grid lines are omitted.
 
+In **Animation**, use **Play preview** to watch the selected animation directly in the download panel. **Stop preview** resets it to the first frame. The same control appears in **C64 data** when **Selected animation** is chosen. The C64 preview uses the drawing’s background color; it previews the animation in the browser, not C64 execution speed.
+
 | Goal | Tab and format | Result |
 | --- | --- | --- |
 | Share a still picture | **Image → PNG image** | A still image at 16, 32, 64, or 128 pixels per cell |

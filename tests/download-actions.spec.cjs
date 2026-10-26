@@ -4,7 +4,7 @@ test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[da
 test('each animation format has one download action and reuses a completed file on a second tap',async({page})=>{
  await expect(page.locator('#gifDownload,#videoDownload,#framesDownload')).toHaveCount(0);
  for(const [id,label] of [['exportGif','Download GIF'],['exportFrames','Download frame ZIP'],['exportVideo','Download video']]){
-  const first=await download(page,'#'+id),button=page.locator('#'+id),url=await button.getAttribute('data-download-url');await expect(button).toHaveText(label);expect(url).toMatch(/^blob:/);const second=await download(page,'#'+id);expect(second).toEqual(first);await expect(button).toHaveAttribute('data-download-url',url);await expect(page.locator('#export-motion button:visible')).toHaveCount(2); // Edit plus the single format action.
+  const first=await download(page,'#'+id),button=page.locator('#'+id),url=await button.getAttribute('data-download-url');await expect(button).toHaveText(label);expect(url).toMatch(/^blob:/);const second=await download(page,'#'+id);expect(second).toEqual(first);await expect(button).toHaveAttribute('data-download-url',url);await expect(page.locator('#export-motion button:visible')).toHaveCount(3); // Preview, Edit and the single format action.
  }
 });
 test('artwork and output changes regenerate the file instead of downloading stale content',async({page})=>{
