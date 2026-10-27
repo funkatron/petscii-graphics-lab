@@ -5,14 +5,15 @@ This page tracks requested work and completed milestones. For current controls, 
 ## Current priorities
 
 1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
-2. **Drawing and import usability:** validate typed alphanumeric entry, then evaluate the next everyday drawing improvement.
+2. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
 3. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
 
-## Typed alphanumeric entry — in review
+## Typed alphanumeric entry — implemented
 
 - [x] Enter letters and numbers with the Text tool instead of selecting each glyph.
 - [x] Use native textarea input for uppercase/lowercase C64 glyphs and a visible starting cell.
-- [ ] Complete Chromium and both iPad WebKit CI layouts; verify the physical iPad on-screen keyboard separately.
+- [x] Complete Chromium and both iPad WebKit CI layouts; released with PR #23.
+- [ ] Verify the physical iPad on-screen keyboard.
 - [x] Preview placement, explicit line breaks and right-edge wrapping; support native corrections and one-step Apply/Undo with cell colors.
 - [x] Keep the graphics palette’s letters-and-numbers filter independent of typing.
 
@@ -20,10 +21,10 @@ This page tracks requested work and completed milestones. For current controls, 
 
 - [ ] Add more animation types; choose the specific effects in a future design pass.
 - [ ] Preserve source artwork and share effect behavior across preview and supported downloads.
-- [ ] Add movement-wave amplitude (the waveform’s “height”) choices of **10%, 25%, 50%, 75%, and 100%**. Scale displacement only; keep direction, waveform, timing and canvas dimensions independent. Interpret 100% as the current displacement range.
-- [ ] Save amplitude with the project and share it across preview and supported animation downloads.
+- [x] Add movement-wave amplitude (the waveform’s “height”) choices of **10%, 25%, 50%, 75%, and 100%**. Scale displacement only; keep direction, waveform, timing and canvas dimensions independent. Interpret 100% as the current displacement range.
+- [x] Save amplitude with the project and share it across preview and supported animation downloads.
 
-This is a requested expansion. Existing animation optimization and C64 validation remain lower-priority follow-ups.
+Wave height is in review; full browser CI validation remains required before release. Additional effects remain a requested expansion. Existing animation optimization and C64 validation remain lower-priority follow-ups.
 
 ## Color-aware text exchange — implemented
 
