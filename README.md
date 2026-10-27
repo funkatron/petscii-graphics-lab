@@ -256,7 +256,7 @@ You can skip this section for ordinary drawing and image downloads.
 
 ### Text and binary formats
 
-- **Glyph-ID text:** a labeled grid with dimensions. It preserves numeric IDs and empty cells, but omits cell colors.
+- **Glyph-ID text:** a labeled grid with dimensions. Enable **Include colors in text** to preserve cell inks and background as well as glyph IDs and empty cells.
 - **Glyph IDs (.bin):** two bytes per cell, little-endian, in row-major order. Empty cells use `FFFF`. These are not native C64 screen bytes or PETSCII bytes.
 - **Color RAM (.bin):** one foreground color index, 0–15, per cell, including empty cells. Pair it with the glyph-ID file.
 
@@ -282,6 +282,16 @@ Each row must have one space-separated token per column:
 
 - Three hexadecimal digits, such as `000` or `180`: a glyph ID, at most `1FF`.
 - `--`: an empty cell.
+
+To copy or download colors too, open **Download artwork → C64 data → Raw bytes & text** and check **Include colors in text**. Version 2 adds a hexadecimal background index to the header and a colon plus ink index to every cell:
+
+```text
+# PETSCII-GLYPHS 2 2 2 6
+100:F 0A0:0
+--:7 180:2
+```
+
+Color indices run from `0` to `F` (0–15). Empty cells retain their ink index. Paste either version into the text box and choose **Import text**; the header determines the format, independently of the checkbox. Color text restores the background and cell inks, while leaving the brush ink unchanged. Glyph-only text uses the current brush ink and keeps the current background. One **Undo** restores the previous drawing. Use an editable JSON project to retain animation and replay settings.
 
 An empty cell differs from a deliberately placed space glyph (ID `020` in hexadecimal). Import checks the whole document before changing the drawing. The older PETSCII-GRID format is unsupported.
 

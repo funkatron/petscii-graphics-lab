@@ -59,7 +59,7 @@ For drawing instructions, start with the [user guide](../README.md).
 
 - **Glyph-ID binary.** Binary export is row-major, two-byte little-endian atlas IDs 0–511, with FFFF for empty cells. It is neither native screen data nor PETSCII and contains no dimensions, load address, or colors.
 
-- **Text grid.** Use `# PETSCII-GLYPHS 1 columns rows`, followed by space-separated three-digit hex atlas IDs or `--` empty cells. Require the header and validate the whole input before changing artwork. Old PETSCII-GRID, Unicode-only and mixed-shape imports are unsupported. Blank drawings use the same explicit header and empty tokens.
+- **Text grid.** Use `# PETSCII-GLYPHS 1 columns rows`, followed by space-separated three-digit hex atlas IDs or `--` empty cells. Optional Include colors in text emits `# PETSCII-GLYPHS 2 columns rows background`, with one hexadecimal background digit and `glyph:ink` tokens (`--:ink` for empty cells). Each ink is one hex digit 0–F. Import detects either version, retains the current brush ink, and applies version-2 background/cell colors; version 1 keeps the existing background and fills inks from the brush. Allow CRLF and a final newline. Require the header and validate the whole input before changing artwork or undo history. One Undo restores geometry, glyphs, inks, background and replay. The checkbox is output UI state, not project data. Old PETSCII-GRID, Unicode-only and mixed-shape imports are unsupported. Blank drawings use the same explicit header and empty tokens.
 
 - **JSON compatibility.** Format v3 retains `format: "petscii-stencil-lab"`. Every grid, selected glyph and replay value is an integer atlas ID 0–511 or an empty cell. ID = source bank × 256 + screen code; bitmap offset = ID × 8. There is no global charset; reject that field, older versions, string glyphs and explicitly custom sources atomically. Saves include `glyphSource: "builtin"`. No migration is required by owner decision. Numeric ID 0 remains valid.
 
@@ -198,7 +198,7 @@ These are per-cycle sampling targets. Independent cycle counts multiply those ta
 
 - **Frame colors.** `animationCells` returns `{cells, inks}` so replay, scrolling, waves and inverse effects move colors with glyphs. GIF/ZIP/video share the same indexed raster with index 0 reserved for background/transparency and indices 1–16 for C64 inks, preserving opaque black and inks equal to the background under transparency. Video falls back to the snapshotted canvas background. Retain snapshot isolation while editing during export.
 
-- **Color RAM.** Color RAM export is one byte per cell, row-major, values 0–15 including empty cells. Glyph-ID and text exports remain glyph-only. Neither binary has dimensions, character set or a load address. JSON preserves all cell colors and replay.
+- **Color RAM.** Color RAM export is one byte per cell, row-major, values 0–15 including empty cells. Glyph-ID binary exports remain glyph-only. Optional text version 2 preserves cell inks and background. Neither binary has dimensions, character set or a load address. JSON preserves all cell colors and replay.
 
 - **Color tests.** Tests inspect swatch RGB, brush-only selection, same-glyph repaint, recoloring, symmetry, resize, patterns, undo/autosave, old file defaults and invalid array/replay rejection. Independently inspect SVG/PNG/GIF/ZIP pixels, opaque black with transparency, inverse slots, colored replay and decoded native repeated-video colors. Shared FFmpeg helpers are in tests/video-utils.cjs.
 
