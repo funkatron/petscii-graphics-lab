@@ -5,15 +5,16 @@ This page tracks requested work and completed milestones. For current controls, 
 ## Current priorities
 
 1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
-2. **Drawing and import usability:** open labeled text grids directly from files, then add typed alphanumeric entry for the everyday drawing workflow.
+2. **Drawing and import usability:** validate typed alphanumeric entry, then evaluate the next everyday drawing improvement.
 3. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
 
-## Typed alphanumeric entry — requested
+## Typed alphanumeric entry — in review
 
-- [ ] Enter letters and numbers directly on the canvas instead of selecting each glyph.
-- [ ] Support iPad on-screen and physical keyboards, uppercase/lowercase C64 glyphs, and a visible insertion position.
-- [ ] Define placement, line breaks and correction behavior; preserve cell colors and undoable edits.
-- [ ] Keep the graphics palette’s letters-and-numbers filter independent of typing.
+- [x] Enter letters and numbers with the Text tool instead of selecting each glyph.
+- [x] Use native textarea input for uppercase/lowercase C64 glyphs and a visible starting cell.
+- [ ] Complete Chromium and both iPad WebKit CI layouts; verify the physical iPad on-screen keyboard separately.
+- [x] Preview placement, explicit line breaks and right-edge wrapping; support native corrections and one-step Apply/Undo with cell colors.
+- [x] Keep the graphics palette’s letters-and-numbers filter independent of typing.
 
 ## Additional animations — requested
 
@@ -29,7 +30,7 @@ This is a requested expansion. Existing animation optimization and C64 validatio
 - [x] Add optional labeled text with cell inks and shared background.
 - [x] Preserve glyph-only imports, atomic validation and one-step Undo.
 - [x] Complete Chromium and both iPad WebKit CI layouts; released with PR #21.
-- [ ] Open labeled text-grid files directly from Project with atomic validation and one-step Undo.
+- [x] Open labeled text-grid files directly from Project with atomic validation and one-step Undo; released with PR #22.
 
 ## Major UI cleanup — implemented
 
