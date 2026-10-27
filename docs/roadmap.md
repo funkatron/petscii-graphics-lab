@@ -19,6 +19,8 @@ This page tracks requested work and completed milestones. For current controls, 
 
 - [ ] Add more animation types; choose the specific effects in a future design pass.
 - [ ] Preserve source artwork and share effect behavior across preview and supported downloads.
+- [ ] Add movement-wave amplitude (the waveform’s “height”) choices of **10%, 25%, 50%, 75%, and 100%**. Scale displacement only; keep direction, waveform, timing and canvas dimensions independent. Interpret 100% as the current displacement range.
+- [ ] Save amplitude with the project and share it across preview and supported animation downloads.
 
 This is a requested expansion. Existing animation optimization and C64 validation remain lower-priority follow-ups.
 
