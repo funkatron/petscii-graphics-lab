@@ -184,7 +184,9 @@ Wave controls appear only when their effect is selected. Movement and color wave
 | **Sawtooth** | Rises steadily, then jumps back |
 | **Reverse sawtooth** | Falls steadily, then jumps back |
 
-Character movement uses whole cells, so even smooth waveforms appear stepped on a small grid. Color waveforms choose from eight palette inks. A square color wave switches between two ramp positions.
+**Wave height** sets movement distance to **10%, 25%, 50%, 75%, or 100%** of the original wave. The default 100% preserves existing movement. Height changes distance independently of direction, waveform, loop duration and cycles. It applies to movement waves; color waves keep their existing behavior.
+
+Character movement uses whole cells, so even smooth waveforms appear stepped on a small grid. Low heights can round to no movement on small canvases. Color waveforms choose from eight palette inks. A square color wave switches between two ramp positions.
 
 Settings apply to preview, GIF, video, PNG frames, and C64 animation programs, and are saved with the editable project.
 
