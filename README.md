@@ -23,6 +23,7 @@ The drawing strip stays visible when settings are hidden. Tap **☰** to show or
 | Choose a shape | **Glyphs** |
 | Change the brush color | **Ink** |
 | Draw or erase | **Paint** / **Eraser** |
+| Type letters and numbers | **Text** |
 | Repeat strokes across an axis | **Symmetry** |
 | Reverse or restore an edit | **Undo** / **Redo** |
 | Change canvas dimensions | **☰ → Canvas setup** |
@@ -63,6 +64,7 @@ The compact drawing strip uses familiar tool icons with accessible names. The se
 | Fill | Tap to replace a connected region of matching glyph and ink; empty regions ignore ink |
 | Line / Rectangle | Drag to preview a straight line or outlined rectangle; release to apply |
 | Select | Drag a rectangular marquee, then drag inside it to move the region |
+| Text | Tap a starting cell, type, then choose Apply text |
 | Duplicate | Select a region, choose Duplicate, then drag inside it to place a copy |
 | Delete | Remove the selected region |
 
@@ -75,6 +77,22 @@ For lines, rectangles and selections, enable **Tap endpoints** to mark two point
 Optional explanations are available through compact question marks beside section headings. Selection actions sit in a reserved strip below the canvas, keeping artwork uncovered. Help supports keyboard activation, Close and Escape. Portrait iPad settings start closed to leave more canvas space.
 
 The C64 download panel checks readiness before downloading: dimensions, distinct patterns, program memory and estimated update time. PRG and D64 share the same limits. When playback is too demanding, a longer loop is offered only after the exporter accepts that candidate. Applying it is undoable. When needed, the exporter tries a faster row renderer while preserving the sampled frames and requested speed. If timing is the remaining blocker, check **Download despite timing warning** to try the animation anyway. The warning stays visible; memory and artwork limits still apply. Changing the artwork or animation settings clears this choice. These estimates do not guarantee smooth physical-hardware playback; broader capacity validation remains on the roadmap.
+
+### Type letters and numbers
+
+1. Choose **Text** (the T icon), then tap a starting cell on the canvas.
+2. Type in **Text to place** using the on-screen or physical keyboard. The canvas previews the C64 glyphs. Tap another cell to reposition the draft.
+3. Choose **Apply text** to place the whole draft as one undoable edit, or **Cancel text** to discard it.
+
+Uppercase, lowercase, digits and spaces use authentic C64 glyphs and the current brush ink. Typing does not enable **Show letters & numbers** in the palette. Spaces overwrite cells with the C64 space glyph.
+
+For keyboard-only placement, focus the canvas, use arrow keys to position the starting cell, then press **Enter** to focus text entry.
+
+**Enter** starts a new line at the starting column. Long lines wrap at the canvas’s right edge and continue from that column. Use normal text selection, Backspace and Delete to correct the draft. **Ctrl/Command + Enter** applies it; **Escape** cancels it.
+
+Common punctuation from `!` through `?`, plus `@`, `[` and `]`, is supported. Other characters, including accented letters, emoji, backslash and underscore, show an error. Text that extends below the canvas also shows an error. Correct or reposition the draft before applying; the editor does not silently drop characters.
+
+Drafts are excluded from downloads and automatic saves. Switching drawing tools, applying another artwork edit, opening a project, or starting animation discards the draft. Choose **Apply text** first to keep it. Text is unavailable during read-only animation preview.
 
 ### Change colors
 
