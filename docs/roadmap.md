@@ -5,14 +5,31 @@ This page tracks requested work and completed milestones. For current controls, 
 ## Current priorities
 
 1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
-2. **Drawing and import usability:** evaluate richer color-aware imports and other improvements to the everyday drawing workflow.
+2. **Drawing and import usability:** open labeled text grids directly from files, then add typed alphanumeric entry for the everyday drawing workflow.
 3. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
 
-## Color-aware text exchange — in review
+## Typed alphanumeric entry — requested
+
+- [ ] Enter letters and numbers directly on the canvas instead of selecting each glyph.
+- [ ] Support iPad on-screen and physical keyboards, uppercase/lowercase C64 glyphs, and a visible insertion position.
+- [ ] Define placement, line breaks and correction behavior; preserve cell colors and undoable edits.
+- [ ] Keep the graphics palette’s letters-and-numbers filter independent of typing.
+
+## Additional animations — requested
+
+- [ ] Add more animation types; choose the specific effects in a future design pass.
+- [ ] Preserve source artwork and share effect behavior across preview and supported downloads.
+- [ ] Add movement-wave amplitude (the waveform’s “height”) choices of **10%, 25%, 50%, 75%, and 100%**. Scale displacement only; keep direction, waveform, timing and canvas dimensions independent. Interpret 100% as the current displacement range.
+- [ ] Save amplitude with the project and share it across preview and supported animation downloads.
+
+This is a requested expansion. Existing animation optimization and C64 validation remain lower-priority follow-ups.
+
+## Color-aware text exchange — implemented
 
 - [x] Add optional labeled text with cell inks and shared background.
 - [x] Preserve glyph-only imports, atomic validation and one-step Undo.
-- [ ] Complete Chromium and iPad WebKit CI validation before release.
+- [x] Complete Chromium and both iPad WebKit CI layouts; released with PR #21.
+- [ ] Open labeled text-grid files directly from Project with atomic validation and one-step Undo.
 
 ## Major UI cleanup — implemented
 
@@ -24,7 +41,7 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Show C64 export readiness and offer only exporter-tested longer-loop remedies.
 - [x] Add automated pointer, keyboard and iPad layout regressions.
 - [ ] Verify physical finger/Pencil reach and larger text on an iPad.
-- [ ] Validate 200% text in both iPad orientations, including header controls, glyph selection, download navigation and saved artwork; automated regression and flexible-header change are in review.
+- [x] Validate 200% text in both iPad orientations, including header controls, glyph selection, download navigation and saved artwork; flexible-header change released with PR #20. Physical device text testing remains open.
 
 ## C64 animation capacity — lower-priority follow-ups
 

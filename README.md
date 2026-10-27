@@ -114,6 +114,8 @@ Resizing keeps the overlapping artwork at the top left. Applying both dimensions
 
 **Project → Download editable project** saves a JSON project file containing the drawing, cell colors, animation settings, and drawing replay. Use **Open project** to resume editing on this or another device.
 
+**Project → Open text grid** opens a `.txt` glyph-grid file downloaded from the editor. It detects glyph-only or color text automatically, replaces the drawing, and supports Undo. Color text restores cell inks and background; glyph-only text uses the current brush ink and keeps the background. Text grids omit animation settings and replay; use an editable project to preserve those. Invalid files leave your work unchanged.
+
 The editor also keeps **one automatic draft on this device**. Look for **Saved on this device**. If saving fails, the editor shows a backup notice.
 
 - Download an editable project before clearing browser storage or changing devices. Browser storage may be cleared or unavailable, including in private browsing.

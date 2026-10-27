@@ -138,7 +138,8 @@ dialog::backdrop{background:#0009}
 <body>
 <div class="app">
 <header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="saveProject">Download editable project</button><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
-<p class="note">Project files keep editable art and replay. Changes also autosave on this device.</p>
+<div class="row"><button id="openTextGrid">Open text grid</button></div><input id="textGridFile" type="file" accept=".txt,text/plain" hidden>
+<p class="note">Text grids replace the drawing and can be undone. Project files keep editable art and replay. Changes also autosave on this device.</p>
 </div></details><span id="saveStatus" class="note" role="status">Saved on this device</span><button id="downloadOpen">Download artwork</button><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
 <div class="drawing-strip" role="toolbar" aria-label="Drawing controls"><button id="glyphToggle" aria-expanded="false" aria-controls="glyphPicker" title="Choose a glyph"><canvas id="glyphPreview" width="24" height="24" aria-hidden="true"></canvas><span>Glyphs</span></button><button id="inkQuick" aria-label="Choose ink color" popovertarget="inkPopover" aria-controls="inkPopover"><span id="inkChip" class="color-chip"></span><span class="tool-label">Ink</span></button><button id="paint" aria-pressed="true">Paint</button><button id="erase" aria-pressed="false">Eraser</button><details id="symmetryMenu"><summary aria-label="Symmetry" id="symmetrySummary">↔<span class="tool-label" id="symmetryLabel"> Symmetry</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
 </div></details><button id="undo" aria-label="Undo" disabled>↶<span class="tool-label"> Undo</span></button><button id="redo" aria-label="Redo" disabled>↷<span class="tool-label"> Redo</span></button></div><section id="inkPopover" popover="auto" aria-labelledby="inkTitle"><div class="dialog-heading"><h2 id="inkTitle">Brush ink</h2><button id="inkClose" popovertarget="inkPopover" popovertargetaction="hide" aria-label="Close ink palette">✕</button></div><p id="inkSelection" class="note"></p><p class="note">For your next strokes. Existing cells keep their colors.</p><div id="quickInkPalette" class="color-grid" role="group" aria-label="Brush ink colors"></div></section><div class="layout">
@@ -845,9 +846,8 @@ $('screenCodes').onclick=()=>{
 };
 $('textColors').onchange=()=>{out.value=textGrid()};
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(textGrid());setStatus('Text copied')}catch{setStatus('Select text to copy')}};
-$('import').onclick=()=>{
- try{
-  const lines=out.value.replace(/\r/g,'').trimEnd().split('\n'),header=lines.shift().match(/^# PETSCII-GLYPHS ([12]) (\d+) (\d+)(?: ([0-9a-f]))?$/i);
+function importTextGrid(text){
+  const lines=text.replace(/\r/g,'').trimEnd().split('\n'),header=lines.shift().match(/^# PETSCII-GLYPHS ([12]) (\d+) (\d+)(?: ([0-9a-f]))?$/i);
   if(!header||(header[1]==='2')!==!!header[4])throw Error('Use PETSCII-GLYPHS 1, or version 2 with a background ink');
   const colored=header[1]==='2',nw=Number(header[2]),nh=Number(header[3]),next=[],inks=[];
   if(nw<1||nw>40||nh<1||nh>40)throw Error('Dimensions must be 1–40');
@@ -863,7 +863,16 @@ $('import').onclick=()=>{
   const nextColors={...colors,background:colored?parseInt(header[4],16):colors.background};
   validateProject({format:'petscii-stencil-lab',version:3,columns:nw,rows:nh,grid:next,cellColors:inks,colors:nextColors});
   remember();W=nw;H=nh;grid=next;cellColors=inks;setColors(nextColors);resetReplay();$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
- }catch(e){setStatus('Import failed: '+e.message)}
+}
+$('import').onclick=()=>{try{importTextGrid(out.value)}catch(e){setStatus('Import failed: '+e.message)}};
+$('openTextGrid').onclick=()=>{$('projectMenu').open=false;$('textGridFile').click()};
+$('textGridFile').onchange=async e=>{
+ const input=e.target,file=input.files?.[0];if(!file)return;
+ try{
+  if(file.size>65536)throw Error('Text grids must be 64 KiB or smaller');
+  importTextGrid(await file.text());setStatus('Imported text file');
+ }catch(err){setStatus('Import failed: '+err.message)}
+ finally{input.value=''}
 };
 function projectData(){return {format:'petscii-stencil-lab',version:3,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()}}}
 function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()));$('saveStatus').textContent='Saved on this device';$('saveStatus').dataset.state='saved';$('saveFailure').hidden=true}catch{$('saveStatus').textContent='Not saved — download a project backup';$('saveStatus').dataset.state='failed';$('saveFailure').hidden=false;setStatus('Autosave unavailable; download JSON to keep your work')}}
