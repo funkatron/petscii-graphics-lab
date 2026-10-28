@@ -193,7 +193,7 @@ For **Starfield**, scatter small glyphs across the canvas. The effect uses those
 
 ### Shape a wave
 
-Wave controls appear only when their effect is selected. Sine scroller uses a fixed sine curve and exposes travel direction and movement height. Raster-style bars exposes the same color direction, waveform and height controls as Rainbow wave. Movement and color waves have separate directions and waveforms. **Wave direction** is the direction the pattern travels: Up/Down shifts rows sideways; Left/Right shifts columns vertically.
+Wave controls appear only when their effect is selected. Sine scroller uses a fixed sine curve and exposes travel direction, movement height and wavelength. Raster-style bars and Plasma field expose the same color direction, waveform, height and wavelength controls as Rainbow wave. Movement and color waves have separate directions and waveforms. **Wave direction** is the direction the pattern travels: Up/Down shifts rows sideways; Left/Right shifts columns vertically.
 
 | Waveform | How it changes |
 | --- | --- |
@@ -203,9 +203,11 @@ Wave controls appear only when their effect is selected. Sine scroller uses a fi
 | **Sawtooth** | Rises steadily, then jumps back |
 | **Reverse sawtooth** | Falls steadily, then jumps back |
 
+**Wavelength** changes the spacing between waves. Movement and Color each have their own setting: **10%, 25%, 50%, 75%, or 100%**. **50% matches the original appearance; 100% is twice as long**, and 25% is half as long. Shorter wavelengths fit more waves into the same area. This changes spacing independently of height and cycles per loop. Movement wavelength applies to Wave rows / columns and Sine scroller; color wavelength applies to Rainbow wave, Raster-style bars and Plasma field. Existing projects start at 50%.
+
 **Movement → Height** sets movement distance to **10%, 25%, 50%, 75%, or 100%** of the expanded movement range. At 100%, the maximum distance is twice the previous range; 50% matches the previous range. Height changes distance independently of direction, waveform, loop duration and cycles. **Color → Height** offers the same percentages for **Rainbow wave** and **Raster-style bars**, independently of movement. At 100% it uses the full existing color sequence; lower heights use a smaller range starting from each cell’s position in that sequence. Color cycle and Warm glow do not use waveforms and have no height control. Low color heights may hold a single color.
 
-Character movement uses whole cells, so even smooth waveforms appear stepped on a small grid. Low heights can round to no movement on small canvases. Color waveforms choose from eight palette inks. A square color wave switches between two ramp positions.
+Character movement uses whole cells, so even smooth waveforms appear stepped on a small grid. Low heights can round to no movement on small canvases. Short wavelengths can repeat the same sampled phase on small grids, producing stripes or little visible variation. Color waveforms choose from eight palette inks. A square color wave switches between two ramp positions.
 
 Settings apply to preview, GIF, video, PNG frames, and C64 animation programs, and are saved with the editable project.
 
