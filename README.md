@@ -119,6 +119,8 @@ The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic
 
 For **Border**, **Checkerboard**, or **Clear drawing**, open **Canvas setup → Whole drawing actions**. Each operation can be undone.
 
+Canvas setup groups dimensions and staged resizing under **Canvas size**. Colors groups brush/background selection and swapping under **Paint colors**, with whole-drawing recoloring kept in its own disclosure.
+
 ### Resize the canvas
 
 1. Open **Canvas setup**.
@@ -144,7 +146,7 @@ The editor opens version 3 projects containing numeric glyph IDs across both sou
 
 ## Preview an animation
 
-Controls are grouped into **Timeline & preview**, **Movement**, and **Color**. Related wave options sit side by side; options appear only for the selected effect. Duration and playback are at the top.
+Controls are grouped into **Timeline & preview**, **Movement**, and **Color**. Related wave options sit side by side; options appear only for the selected effect. Duration, movement/color cycles and playback are together at the top. Direction pairs with waveform; wavelength pairs with height.
 
 1. Open **☰ → Animation**.
 2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
