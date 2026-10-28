@@ -25,7 +25,7 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Release Bouncing logo and Stretching logo with contextual Travel/Squeeze controls; PR #29.
 - [x] Release a deterministic three-layer Starfield using the drawing’s glyphs and inks; PR #29.
 - [x] Release Diagonal, Checkerboard and Blinds wipes with reveal/hold/hide loops; PR #29.
-- [ ] Add independent movement/color wavelengths: 10/25/50/75/100%, with 50% matching the prior spacing and 100% twice as long.
+- [x] Release independent movement/color wavelengths (PR #30): 10/25/50/75/100%, with 50% matching the prior spacing and 100% twice as long.
 - [ ] Use C64 demoscene productions and cracker intros (cracktros) as visual references when choosing effects. Explore sine-wave text/graphic scrollers, bouncing or stretching logos, raster-style color bars, plasma-like color fields, starfields and patterned wipes/reveals.
 - [ ] Adapt those references to the editor’s character grid, per-cell inks and shared background. Evaluate smooth loops, useful combinations with existing effects, and preview/export consistency. Treat these as candidates to prototype, not a committed feature list.
 - [ ] Preserve source artwork and share effect behavior across preview and supported downloads.
@@ -33,7 +33,7 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Add independent Color wave height percentages to Rainbow wave for every waveform; preserve the full color sequence at 100%.
 - [x] Save both amplitude settings with the project and share it across preview and supported animation downloads.
 
-Wave height shipped in PR #24; doubled movement range and independent color-wave height shipped in PR #25. Grouped animation controls shipped in PR #26. Sine scroller and Raster-style bars shipped in PR #27 after Chromium and both iPad WebKit layouts passed. Plasma field shipped in PR #28. Bouncing/stretching logos, Starfield and Patterned wipe shipped in PR #29 after all three browser jobs passed. Independent wavelength controls are in implementation; full browser CI validation remains required before release. Existing animation optimization and C64 validation remain lower-priority follow-ups.
+Wave height shipped in PR #24; doubled movement range and independent color-wave height shipped in PR #25. Grouped animation controls shipped in PR #26. Sine scroller and Raster-style bars shipped in PR #27 after Chromium and both iPad WebKit layouts passed. Plasma field shipped in PR #28. Bouncing/stretching logos, Starfield and Patterned wipe shipped in PR #29 after all three browser jobs passed. Independent wavelength controls shipped in PR #30 after all three browser jobs passed. A fresh sidebar grouping pass comes next, followed by Ripple animation. Existing animation optimization and C64 validation remain lower-priority follow-ups.
 
 ## Color-aware text exchange — implemented
 
@@ -41,6 +41,13 @@ Wave height shipped in PR #24; doubled movement range and independent color-wave
 - [x] Preserve glyph-only imports, atomic validation and one-step Undo.
 - [x] Complete Chromium and both iPad WebKit CI layouts; released with PR #21.
 - [x] Open labeled text-grid files directly from Project with atomic validation and one-step Undo; released with PR #22.
+
+## Sidebar follow-up — in progress
+
+- [ ] Group all animation timing in Timeline & preview; pair wavelength/height under each effect.
+- [ ] Add semantic Canvas size and Paint colors groups; retain separate whole-drawing actions.
+- [ ] Check iPad layouts, larger text, source preservation and existing workflows before release.
+- [ ] Implement Ripple after this sidebar pass; Tunnel and Twist remain proposals.
 
 ## Major UI cleanup — implemented
 
