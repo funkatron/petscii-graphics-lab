@@ -134,7 +134,7 @@ Resizing keeps the overlapping artwork at the top left. Applying both dimensions
 
 **Project → Download editable project** saves a JSON project file containing the drawing, cell colors, animation settings, and drawing replay. Use **Open project** to resume editing on this or another device.
 
-Set **Project → File name** before either saving action. The app adds `.json` if needed and replaces characters unsuitable for filenames with underscores. This name is an export preference, not part of the drawing.
+**Project → File name** starts with a memorable random three-word name, such as `amber-lunar-otter.json`. Edit it before either saving action if you prefer. The name stays the same for the current page session. The app adds `.json` if needed and replaces characters unsuitable for filenames with underscores. This name is an export preference, not part of the drawing.
 
 On devices that support file sharing, **Project → Share / Save project** opens the native share sheet. On iPad, choose **Save to Files** and select a folder. Use this if Safari reports a download error. Canceling leaves your artwork unchanged. Download status means the browser received the request; check Downloads or Files to confirm the file was saved.
 
