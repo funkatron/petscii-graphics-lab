@@ -439,6 +439,8 @@ function renderGrid(cells,inks=cellColors){
  ctx.strokeStyle=bg[0]*.299+bg[1]*.587+bg[2]*.114>125?'rgba(0,0,0,.2)':'rgba(255,255,255,.2)';ctx.lineWidth=line*ratio;
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const xx=x*cellW,yy=y*cellH;
+  // Paint cell backgrounds explicitly so WebKit retains them across animated redraws.
+  ctx.fillStyle=colorHex('background');ctx.fillRect(xx,yy,cellW,cellH);
   ctx.strokeRect(xx,yy,cellW,cellH);
   const g=cells[y*W+x];if(typeof g==='number'&&rom){
    // Draw bitmap runs directly: WebKit can retain stale pixels when cached
