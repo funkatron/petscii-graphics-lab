@@ -6,7 +6,7 @@ This page tracks requested work and completed milestones. For current controls, 
 
 1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
 2. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
-3. **New animation types:** prioritize additional creative effects over C64 capacity optimization and memory-expansion support; choose specific effects in a future design pass.
+3. **New animation types:** prioritize additional creative effects over C64 capacity optimization and memory-expansion support; continue the demoscene-inspired effects below.
 4. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
 
 ## Typed alphanumeric entry — implemented
@@ -18,9 +18,11 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Preview placement, explicit line breaks and right-edge wrapping; support native corrections and one-step Apply/Undo with cell colors.
 - [x] Keep the graphics palette’s letters-and-numbers filter independent of typing.
 
-## Additional animations — requested
+## Additional animations — in progress
 
-- [ ] Add more animation types; choose the specific effects in a future design pass.
+- [x] Release Sine scroller and Raster-style bars with shared preview/download behavior; PR #27.
+- [ ] Add Plasma field using intersecting color waves and the existing color controls.
+- [ ] Explore bouncing/stretching logos, starfields and patterned wipes/reveals next.
 - [ ] Use C64 demoscene productions and cracker intros (cracktros) as visual references when choosing effects. Explore sine-wave text/graphic scrollers, bouncing or stretching logos, raster-style color bars, plasma-like color fields, starfields and patterned wipes/reveals.
 - [ ] Adapt those references to the editor’s character grid, per-cell inks and shared background. Evaluate smooth loops, useful combinations with existing effects, and preview/export consistency. Treat these as candidates to prototype, not a committed feature list.
 - [ ] Preserve source artwork and share effect behavior across preview and supported downloads.
@@ -28,7 +30,7 @@ This page tracks requested work and completed milestones. For current controls, 
 - [x] Add independent Color wave height percentages to Rainbow wave for every waveform; preserve the full color sequence at 100%.
 - [x] Save both amplitude settings with the project and share it across preview and supported animation downloads.
 
-Initial wave height shipped in PR #24. Doubling the movement range and adding independent color-wave height are in review; full browser CI validation remains required before release. Additional effects remain a requested expansion. Existing animation optimization and C64 validation remain lower-priority follow-ups.
+Wave height shipped in PR #24; doubled movement range and independent color-wave height shipped in PR #25. Grouped animation controls shipped in PR #26. Sine scroller and Raster-style bars shipped in PR #27 after Chromium and both iPad WebKit layouts passed. Plasma field is the next implementation; browser CI validation remains required before release. Existing animation optimization and C64 validation remain lower-priority follow-ups.
 
 ## Color-aware text exchange — implemented
 

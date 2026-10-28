@@ -164,6 +164,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Scroll horizontally / Scroll vertically** | The drawing wraps around. **Scroll direction** chooses left, right, up, or down. |
 | **Wave rows / columns** | Rows or columns shift in a repeating wave. Choose its travel direction and waveform. |
 | **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Scroll direction chooses travel; Movement → Height controls the bend. Glyphs and their inks move together. |
+| **Plasma field** | Intersecting color waves flow across occupied cells. Color → Direction, Waveform, Height and Cycles / loop shape the field; Sine is the starting waveform. Glyphs and the shared background stay unchanged. |
 | **Raster-style bars** | Blue/cyan/white bands move across occupied cells. Color → Direction, Waveform and Height shape the bands. Empty cells and the shared background stay unchanged. |
 | **Inverse pulse** | C64 glyphs alternate with their inverse slots. |
 | **Color cycle** | Each cell cycles through all 16 inks, starting with its original color. |
