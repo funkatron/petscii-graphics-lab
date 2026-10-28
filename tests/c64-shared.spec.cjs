@@ -1,3 +1,4 @@
+// Historical C64 workloads use 50% height: the movement range before 100% was doubled.
 const {spawnSync}=require('node:child_process');
 const {glyphRows}=require('./glyph-reference.cjs');
 const {test,expect,loadProject,project}=require('./helpers.cjs');
@@ -54,7 +55,7 @@ test('shared update bodies retain unequal holds, finite/continuous loops and ROM
 test('four-cycle 40 × 24 combined waves fit memory and execute every sampled frame twice',async({page})=>{
  test.setTimeout(90000);await capacityPage(page);
  const {grid,cellColors}=artwork('detailed-fast');
- await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',motionCycles:4,colorCycles:4,seconds:8,scale:1,background:'dark'}}));
+ await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',waveAmplitude:50,colorEffect:'color-wave',motionCycles:4,colorCycles:4,seconds:8,scale:1,background:'dark'}}));
  const {bytes,frames,diagnostics,debugSymbols}=await page.evaluate(async()=>{
   const {createC64Program}=await import('./c64-export.js'),input=window.capacityInput();
   const p=createC64Program({...input,repetitions:2});return {bytes:[...p.bytes],frames:input.frames,diagnostics:p.diagnostics,debugSymbols:p.debugSymbols};
@@ -70,7 +71,7 @@ test('four-cycle 40 × 24 combined waves fit memory and execute every sampled fr
 test('shared blocks preserve independent movement and color rates',async({page})=>{
  test.setTimeout(60000);await capacityPage(page);
  const grid=Array.from({length:64},(_,i)=>(i*17)%128),cellColors=Array.from({length:64},(_,i)=>[2,8,7,13,3,14,6,4][i%8]);
- await loadProject(page,project(grid,8,8,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',motionCycles:4,colorCycles:2,seconds:4,scale:1,background:'dark'}}));
+ await loadProject(page,project(grid,8,8,{cellColors,animation:{effect:'wave',waveAmplitude:50,colorEffect:'color-wave',motionCycles:4,colorCycles:2,seconds:4,scale:1,background:'dark'}}));
  const {bytes,frames,diagnostics,debugSymbols}=await page.evaluate(async()=>{
   const {createC64Program}=await import('./c64-export.js'),input=window.capacityInput(),p=createC64Program({...input,repetitions:1});
   return {bytes:[...p.bytes],frames:input.frames,diagnostics:p.diagnostics,debugSymbols:p.debugSymbols};

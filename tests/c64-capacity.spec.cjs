@@ -1,3 +1,4 @@
+// Historical C64 workloads use 50% height: the movement range before 100% was doubled.
 // Exercise the actual browser sampling functions; expose a test-only closure,
 // rather than maintaining a second implementation of movement/color waves.
 const {test,expect,project,loadProject}=require('./helpers.cjs');
@@ -8,7 +9,7 @@ test('40 × 24 combined-wave capacity matrix separates memory from timing limits
  const results=[];
  for(const profile of profiles)for(const seconds of [2,4,8,12]){
   const {grid,cellColors}=artwork(profile);
-  await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',seconds,scale:1,background:'dark',motionCycles:profile==='detailed-fast'?4:1,colorCycles:profile==='detailed-fast'?4:1,waveDirection:'up',waveShape:'sine',colorWaveDirection:'up-left',colorWaveShape:'sawtooth'}}));
+  await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',waveAmplitude:50,colorEffect:'color-wave',seconds,scale:1,background:'dark',motionCycles:profile==='detailed-fast'?4:1,colorCycles:profile==='detailed-fast'?4:1,waveDirection:'up',waveShape:'sine',colorWaveDirection:'up-left',colorWaveShape:'sawtooth'}}));
   const result=await page.evaluate(async()=>{
    const {createC64Program}=await import('./c64-export.js'),input=window.capacityInput();
    const analysis=createC64Program({...input,analyze:true});let error='';

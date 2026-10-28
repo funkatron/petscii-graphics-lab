@@ -1,3 +1,4 @@
+// Historical C64 workloads use 50% height: the movement range before 100% was doubled.
 const {glyphRows}=require('./glyph-reference.cjs');
 const {test,expect,ui,download,contents,loadProject,project}=require('./helpers.cjs');
 const {spawnSync}=require('node:child_process');
@@ -73,7 +74,7 @@ test('D64 preserves and executes a player containing packed color literals',asyn
 
 test('D64 contains and executes the shared-block full-screen animation player',async({page})=>{
  await capacityPage(page);const {grid,cellColors}=artwork('detailed-fast');
- await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',motionCycles:4,colorCycles:4,seconds:8,scale:1,background:'dark'}}));
+ await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',waveAmplitude:50,colorEffect:'color-wave',motionCycles:4,colorCycles:4,seconds:8,scale:1,background:'dark'}}));
  const expected=await page.evaluate(()=>window.capacityInput().frames[0]);
  await ui(page,'#c64Mode','selectOption','animation');await ui(page,'#c64Format','selectOption','prg');const prg=await download(page,'#exportC64');expect(prg.length).toBeLessThan(25000);
  await ui(page,'#c64Format','selectOption','d64');const extracted=readDisk(await download(page,'#exportC64'),'ANIMATION');expect(extracted).toEqual(prg);
