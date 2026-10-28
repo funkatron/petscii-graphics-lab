@@ -44,10 +44,10 @@ Wave height shipped in PR #24; doubled movement range and independent color-wave
 
 ## Sidebar follow-up — in progress
 
-- [ ] Group all animation timing in Timeline & preview; pair wavelength/height under each effect.
-- [ ] Add semantic Canvas size and Paint colors groups; retain separate whole-drawing actions.
-- [ ] Check iPad layouts, larger text, source preservation and existing workflows before release.
-- [ ] Implement Ripple after this sidebar pass; Tunnel and Twist remain proposals.
+- [x] Group all animation timing in Timeline & preview; pair wavelength/height under each effect.
+- [x] Add semantic Canvas size and Paint colors groups; retain separate whole-drawing actions.
+- [x] Check automated iPad layouts, larger text, source preservation and existing workflows; released in PR #31. Physical-device checks remain open.
+- [ ] Add Ripple: center-out radial movement using existing waveform, wavelength, height and cycle controls. Tunnel and Twist remain proposals.
 
 ## Major UI cleanup — implemented
 
