@@ -163,6 +163,8 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Replay drawing** | Paint, erase, and repaint actions appear in recorded order. The finished picture holds for the last quarter of each cycle. |
 | **Scroll horizontally / Scroll vertically** | The drawing wraps around. **Scroll direction** chooses left, right, up, or down. |
 | **Wave rows / columns** | Rows or columns shift in a repeating wave. Choose its travel direction and waveform. |
+| **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Scroll direction chooses travel; Movement → Height controls the bend. Glyphs and their inks move together. |
+| **Raster-style bars** | Blue/cyan/white bands move across occupied cells. Color → Direction, Waveform and Height shape the bands. Empty cells and the shared background stay unchanged. |
 | **Inverse pulse** | C64 glyphs alternate with their inverse slots. |
 | **Color cycle** | Each cell cycles through all 16 inks, starting with its original color. |
 | **Rainbow wave** | Bands of eight C64 colors change the ink. Choose a cardinal or diagonal direction and a waveform. Glyphs remain stationary with **Still drawing**. |
@@ -176,7 +178,7 @@ Faster rates use fewer intermediate positions or colors per cycle. Increase loop
 
 ### Shape a wave
 
-Wave controls appear only when their effect is selected. Movement and color waves have separate directions and waveforms. **Wave direction** is the direction the pattern travels: Up/Down shifts rows sideways; Left/Right shifts columns vertically.
+Wave controls appear only when their effect is selected. Sine scroller uses a fixed sine curve and exposes travel direction and movement height. Raster-style bars exposes the same color direction, waveform and height controls as Rainbow wave. Movement and color waves have separate directions and waveforms. **Wave direction** is the direction the pattern travels: Up/Down shifts rows sideways; Left/Right shifts columns vertically.
 
 | Waveform | How it changes |
 | --- | --- |
@@ -186,11 +188,13 @@ Wave controls appear only when their effect is selected. Movement and color wave
 | **Sawtooth** | Rises steadily, then jumps back |
 | **Reverse sawtooth** | Falls steadily, then jumps back |
 
-**Movement → Height** sets movement distance to **10%, 25%, 50%, 75%, or 100%** of the expanded movement range. At 100%, the maximum distance is twice the previous range; 50% matches the previous range. Height changes distance independently of direction, waveform, loop duration and cycles. **Color → Height** offers the same percentages for **Rainbow wave**, independently of movement. At 100% it uses the full existing color sequence; lower heights use a smaller range starting from each cell’s position in that sequence. Other color effects do not use waveforms and have no height control. Low color heights may hold a single color.
+**Movement → Height** sets movement distance to **10%, 25%, 50%, 75%, or 100%** of the expanded movement range. At 100%, the maximum distance is twice the previous range; 50% matches the previous range. Height changes distance independently of direction, waveform, loop duration and cycles. **Color → Height** offers the same percentages for **Rainbow wave** and **Raster-style bars**, independently of movement. At 100% it uses the full existing color sequence; lower heights use a smaller range starting from each cell’s position in that sequence. Color cycle and Warm glow do not use waveforms and have no height control. Low color heights may hold a single color.
 
 Character movement uses whole cells, so even smooth waveforms appear stepped on a small grid. Low heights can round to no movement on small canvases. Color waveforms choose from eight palette inks. A square color wave switches between two ramp positions.
 
 Settings apply to preview, GIF, video, PNG frames, and C64 animation programs, and are saved with the editable project.
+
+Raster-style bars color the artwork at character-cell resolution; they do not change the background on individual display scanlines. Combine them with Sine scroller for moving artwork and color bands together. As with other effects, C64 output remains subject to memory and timing checks.
 
 ### What replay records
 
