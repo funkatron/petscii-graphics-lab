@@ -6,7 +6,8 @@ This page tracks requested work and completed milestones. For current controls, 
 
 1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
 2. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
-3. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
+3. **New animation types:** prioritize additional creative effects over C64 capacity optimization and memory-expansion support; choose specific effects in a future design pass.
+4. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
 
 ## Typed alphanumeric entry — implemented
 
@@ -130,3 +131,11 @@ See the [C64 output guide](c64-output.md) for loading instructions, timing, memo
 - [x] Remove legacy approximate shapes, their renderers and stencil checker, v1 projects, Unicode/mixed text imports, and obsolete single-effect color settings. The later unified-alphabet change replaces numeric v2 projects with v3.
 
 The [UI review](ui-review.md#follow-ups-to-evaluate) tracks layout experiments. [AGENTS.md](../AGENTS.md#future-features-to-explore) lists other possible editing features.
+
+## C64 memory expansion / REU support — lowest priority
+
+New animation types take priority over this optional hardware feature.
+
+- [ ] Investigate an optional REU-aware export/player mode for larger animations, with expansion detection, loading and DMA transfers into main memory.
+- [ ] Validate capacity, timing, glyph/color accuracy and RUN/STOP behavior in VICE with REU emulation before physical-hardware testing.
+- [ ] Keep standard C64 exports available. Extra RAM does not automatically extend the current player or remove every playback-speed limit.
