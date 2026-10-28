@@ -164,6 +164,10 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Scroll horizontally / Scroll vertically** | The drawing wraps around. **Scroll direction** chooses left, right, up, or down. |
 | **Wave rows / columns** | Rows or columns shift in a repeating wave. Choose its travel direction and waveform. |
 | **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Scroll direction chooses travel; Movement → Height controls the bend. Glyphs and their inks move together. |
+| **Bouncing logo** | Move the occupied part of the drawing around the canvas. Leave empty margins for travel. Movement → Travel sets how far it moves. |
+| **Stretching logo** | Squeeze and release the occupied area horizontally and vertically. Movement → Squeeze sets the amount. Whole C64 glyphs stay intact; shrinking can skip cells. |
+| **Starfield** | Move the drawing’s glyphs at three speeds, like stars at different distances. Use sparse artwork and choose Scroll direction. Nearer glyphs cover farther ones when they meet. |
+| **Patterned wipe** | Reveal, hold, then hide the drawing. Choose Wipe direction and a Diagonal, Checkerboard or Blinds pattern. |
 | **Plasma field** | Intersecting color waves flow across occupied cells. Color → Direction, Waveform, Height and Cycles / loop shape the field; Sine is the starting waveform. Glyphs and the shared background stay unchanged. |
 | **Raster-style bars** | Blue/cyan/white bands move across occupied cells. Color → Direction, Waveform and Height shape the bands. Empty cells and the shared background stay unchanged. |
 | **Inverse pulse** | C64 glyphs alternate with their inverse slots. |
@@ -176,6 +180,16 @@ Movement carries each cell’s ink with its glyph. Color animation then changes 
 For example, an **8-second loop** with **4× movement** and **8× color** repeats movement every 2 seconds and color every 1 second. Both return to their starting phase at the loop boundary. Video repetitions still count complete 8-second loops.
 
 Faster rates use fewer intermediate positions or colors per cycle. Increase loop duration for more detail. Very short loops cannot represent every high cycle rate reliably. If a warning appears, increase **Loop duration** or reduce cycles. Preview and animation downloads wait for a supported combination instead of silently skipping whole cycles. Repeated replay completes and holds the finished drawing within each cycle.
+
+### Try the intro effects
+
+For **Bouncing logo**, draw a small logo with empty space around it. Playback centers its travel within the canvas; a full-canvas drawing has no room to move. **Travel** ranges from 10% to 100% of the available space.
+
+**Stretching logo** keeps the occupied area in its original position. At **100% Squeeze**, it shrinks to about half width and half height at different points in the loop. At 10%, the change is small. It resamples whole cells, so small details can disappear temporarily and narrow artwork may look unchanged.
+
+For **Starfield**, scatter small glyphs across the canvas. The effect uses those glyphs and their inks as stars, with three wrapping depth layers. Each layer completes one, two or three crossings per movement cycle. It uses your artwork rather than adding random stars.
+
+**Patterned wipe** starts hidden, reveals the complete drawing, holds it, then hides it again. Diagonal sweeps across both axes; Checkerboard reveals alternating cell groups; Blinds opens repeated strips. All four intro effects can combine with any color animation.
 
 ### Shape a wave
 
