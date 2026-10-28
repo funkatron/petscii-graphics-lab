@@ -144,6 +144,8 @@ The editor opens version 3 projects containing numeric glyph IDs across both sou
 
 ## Preview an animation
 
+Controls are grouped into **Timeline & preview**, **Movement**, and **Color**. Related wave options sit side by side; options appear only for the selected effect. Duration and playback are at the top.
+
 1. Open **☰ → Animation**.
 2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
 3. Set the direction and waveform controls that appear for your selected effects.
@@ -184,7 +186,7 @@ Wave controls appear only when their effect is selected. Movement and color wave
 | **Sawtooth** | Rises steadily, then jumps back |
 | **Reverse sawtooth** | Falls steadily, then jumps back |
 
-**Wave height** sets movement distance to **10%, 25%, 50%, 75%, or 100%** of the expanded movement range. At 100%, the maximum distance is twice the previous range; 50% matches the previous range. Height changes distance independently of direction, waveform, loop duration and cycles. **Color wave height** offers the same percentages for **Rainbow wave**, independently of movement. At 100% it uses the full existing color sequence; lower heights use a smaller range starting from each cell’s position in that sequence. Other color effects do not use waveforms and have no height control. Low color heights may hold a single color.
+**Movement → Height** sets movement distance to **10%, 25%, 50%, 75%, or 100%** of the expanded movement range. At 100%, the maximum distance is twice the previous range; 50% matches the previous range. Height changes distance independently of direction, waveform, loop duration and cycles. **Color → Height** offers the same percentages for **Rainbow wave**, independently of movement. At 100% it uses the full existing color sequence; lower heights use a smaller range starting from each cell’s position in that sequence. Other color effects do not use waveforms and have no height control. Low color heights may hold a single color.
 
 Character movement uses whole cells, so even smooth waveforms appear stepped on a small grid. Low heights can round to no movement on small canvases. Color waveforms choose from eight palette inks. A square color wave switches between two ramp positions.
 
