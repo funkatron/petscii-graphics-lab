@@ -143,6 +143,7 @@ dialog::backdrop{background:#0009}
 #animationMovement>.field:first-of-type,#animationColors>.field:first-of-type,#animationTimeline>.field,#animationTimeline>.row{grid-column:1/-1}
 #animationTimeline>.row{margin:0}#animationTimeline label{min-height:0}
 #scrollOptions,#waveOptions,#colorWaveOptions{display:contents}
+#introMotionHelp{grid-column:1/-1;margin:0}
 @media(min-width:691px){.animation-section{grid-template-columns:repeat(auto-fit,minmax(min(95px,100%),1fr))}}
 </style>
 </head>
@@ -168,10 +169,12 @@ dialog::backdrop{background:#0009}
 <div class="row"><button id="animationPlay" aria-pressed="false">▶ Play</button><button id="animationStop">Return to drawing</button></div>
 </fieldset>
 <fieldset class="animation-section" id="animationMovement"><legend>Movement</legend>
-<div class="field"><label for="animationEffect">Movement / reveal</label><select id="animationEffect"><option value="none">Still drawing</option><option value="replay">Replay drawing</option><option value="scroll-x">Scroll horizontally</option><option value="scroll-y">Scroll vertically</option><option value="wave">Wave rows / columns</option><option value="inverse">Inverse pulse</option><option value="sine-scroll">Sine scroller</option></select></div>
+<div class="field"><label for="animationEffect">Movement / reveal</label><select id="animationEffect"><option value="none">Still drawing</option><option value="replay">Replay drawing</option><option value="scroll-x">Scroll horizontally</option><option value="scroll-y">Scroll vertically</option><option value="wave">Wave rows / columns</option><option value="inverse">Inverse pulse</option><option value="sine-scroll">Sine scroller</option><option value="logo-bounce">Bouncing logo</option><option value="logo-stretch">Stretching logo</option><option value="starfield">Starfield</option><option value="wipe">Patterned wipe</option></select></div>
 <div id="scrollOptions" hidden><div class="field"><label for="scrollDirection">Scroll direction</label><select id="scrollDirection"><option value="left">Left</option><option value="right">Right</option><option value="up">Up</option><option value="down">Down</option></select></div></div>
 <div id="waveOptions" hidden><div class="field"><label for="waveDirection">Direction</label><select id="waveDirection" aria-label="Wave direction"><option value="left">Left</option><option value="right">Right</option><option value="up" selected>Up</option><option value="down">Down</option></select></div><div class="field"><label for="waveShape">Waveform</label><select id="waveShape" aria-label="Movement waveform"><option value="sine">Sine</option><option value="triangle">Triangle</option><option value="square">Square</option><option value="sawtooth">Sawtooth</option><option value="reverse-sawtooth">Reverse sawtooth</option></select></div><div class="field"><label for="waveAmplitude">Height</label><select id="waveAmplitude" aria-label="Wave height"><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option><option value="75">75%</option><option value="100" selected>100%</option></select></div></div>
+<div id="wipeOptions" class="field" hidden><label for="wipePattern">Pattern</label><select id="wipePattern" aria-label="Wipe pattern"><option value="diagonal">Diagonal</option><option value="checkerboard">Checkerboard</option><option value="blinds">Blinds</option></select></div>
 <div id="movementCyclesOptions" class="field" hidden><label for="animationCycles">Cycles / loop</label><select id="animationCycles" aria-label="Movement cycles per loop"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16×</option></select></div>
+<p id="introMotionHelp" class="note" hidden></p>
 </fieldset>
 <fieldset class="animation-section" id="animationColors"><legend>Color</legend>
 <div class="field"><label for="animationColor">Color animation</label><select id="animationColor"><option value="none">Original colors</option><option value="color-cycle">Color cycle</option><option value="color-wave">Rainbow wave</option><option value="color-glow">Warm glow</option><option value="raster-bars">Raster-style bars</option><option value="plasma">Plasma field</option></select></div>
@@ -495,14 +498,19 @@ function redraw(){
 function recordCell(i){if(replayEvents.length>=20000){resetReplay();return}replayEvents.push([i,grid[i]]);replayEventColors.push(cellColors[i])}
 function resetReplay(){replayBase=Array(W*H).fill('');replayBaseColors=cellColors.slice();replayEvents=[];replayEventColors=[];for(let i=0;i<grid.length;i++)if(grid[i]!=='')recordCell(i)}
 const ANIMATION_CYCLES=[1,2,4,8,16];
+const INTRO_MOTIONS=['logo-bounce','logo-stretch','starfield','wipe'];
+const WIPE_PATTERNS=['diagonal','checkerboard','blinds'];
 const WAVE_AMPLITUDES=[10,25,50,75,100];
 const WAVE_SHAPES=['sine','triangle','square','sawtooth','reverse-sawtooth'];
 const WAVE_DIRECTIONS=['left','right','up','down'];
 const COLOR_WAVE_DIRECTIONS=[...WAVE_DIRECTIONS,'up-left','up-right','down-left','down-right'];
 function updateAnimationOptions(){
  const effect=$('animationEffect').value;
- $('scrollOptions').hidden=!['scroll-x','scroll-y','sine-scroll'].includes(effect);
- $('waveOptions').hidden=!['wave','sine-scroll'].includes(effect);for(const id of ['waveDirection','waveShape'])$(id).closest('.field').hidden=effect==='sine-scroll';$('colorWaveOptions').hidden=!['color-wave','raster-bars','plasma'].includes($('animationColor').value);
+ $('scrollOptions').hidden=!['scroll-x','scroll-y','sine-scroll','starfield','wipe'].includes(effect);
+ $('waveOptions').hidden=!['wave','sine-scroll','logo-bounce','logo-stretch'].includes(effect);for(const id of ['waveDirection','waveShape'])$(id).closest('.field').hidden=effect!=='wave';
+ const amountName=effect==='logo-bounce'?'Travel':effect==='logo-stretch'?'Squeeze':'Height';document.querySelector('label[for=waveAmplitude]').textContent=amountName;$('waveAmplitude').setAttribute('aria-label',effect==='logo-bounce'?'Bounce travel':effect==='logo-stretch'?'Logo squeeze':'Wave height');
+ $('wipeOptions').hidden=effect!=='wipe';document.querySelector('label[for=scrollDirection]').textContent=effect==='wipe'?'Wipe direction':'Scroll direction';
+ const help={'logo-bounce':'Leave empty space around the drawing for it to bounce. Travel sets how far it moves.','logo-stretch':'Squeeze the drawn area horizontally and vertically, using whole glyphs.','starfield':'Use a sparse drawing: each glyph becomes a star in one of three moving depth layers. Nearer stars cover farther ones.','wipe':'Reveal, hold, then hide the drawing in a repeating pattern.'};$('introMotionHelp').hidden=!help[effect];$('introMotionHelp').textContent=help[effect]??'';$('colorWaveOptions').hidden=!['color-wave','raster-bars','plasma'].includes($('animationColor').value);
  $('movementCyclesOptions').hidden=effect==='none';$('colorCyclesOptions').hidden=$('animationColor').value==='none';
  const warning=animationPlan(animationSource()).warning;
  $('animationWarning').hidden=!warning;$('animationWarning').textContent=warning;
@@ -517,18 +525,18 @@ function waveValue(shape,phase){
  return Math.sin(t*Math.PI*2);
 }
 function scrollDirection(s){return s.scrollDirection??(s.effect==='scroll-y'?'up':'left')}
-function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=['scroll-x','scroll-y'].includes(a.effect)?(['left','right'].includes(scrollDirection(a))?'scroll-x':'scroll-y'):a.effect;$('animationColor').value=a.colorEffect??'none';$('animationCycles').value=String(a.motionCycles??1);$('animationColorCycles').value=String(a.colorCycles??1);$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;$('scrollDirection').value=scrollDirection(a);$('waveDirection').value=a.waveDirection??'up';$('waveShape').value=a.waveShape??'sine';$('waveAmplitude').value=String(a.waveAmplitude??100);$('colorWaveDirection').value=a.colorWaveDirection??(a.colorEffect==='raster-bars'?'up':'up-left');$('colorWaveShape').value=a.colorWaveShape??(a.colorEffect==='plasma'?'sine':'sawtooth');$('colorWaveAmplitude').value=String(a.colorWaveAmplitude??100);updateAnimationOptions();videoRepeats=a.videoRepeats??1;$('videoRepeats').value=String(videoRepeats);updateMotionSummary()}
-function animationSettings(){return {motionCycles:Number($('animationCycles').value),colorCycles:Number($('animationColorCycles').value),scrollDirection:$('scrollDirection').value,waveDirection:$('waveDirection').value,waveShape:$('waveShape').value,waveAmplitude:Number($('waveAmplitude').value),colorWaveDirection:$('colorWaveDirection').value,colorWaveShape:$('colorWaveShape').value,colorWaveAmplitude:Number($('colorWaveAmplitude').value),effect:$('animationEffect').value,colorEffect:$('animationColor').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value,videoRepeats}}
+function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=['scroll-x','scroll-y'].includes(a.effect)?(['left','right'].includes(scrollDirection(a))?'scroll-x':'scroll-y'):a.effect;$('animationColor').value=a.colorEffect??'none';$('wipePattern').value=a.wipePattern??'diagonal';$('animationCycles').value=String(a.motionCycles??1);$('animationColorCycles').value=String(a.colorCycles??1);$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;$('scrollDirection').value=scrollDirection(a);$('waveDirection').value=a.waveDirection??'up';$('waveShape').value=a.waveShape??'sine';$('waveAmplitude').value=String(a.waveAmplitude??100);$('colorWaveDirection').value=a.colorWaveDirection??(a.colorEffect==='raster-bars'?'up':'up-left');$('colorWaveShape').value=a.colorWaveShape??(a.colorEffect==='plasma'?'sine':'sawtooth');$('colorWaveAmplitude').value=String(a.colorWaveAmplitude??100);updateAnimationOptions();videoRepeats=a.videoRepeats??1;$('videoRepeats').value=String(videoRepeats);updateMotionSummary()}
+function animationSettings(){return {wipePattern:$('wipePattern').value,motionCycles:Number($('animationCycles').value),colorCycles:Number($('animationColorCycles').value),scrollDirection:$('scrollDirection').value,waveDirection:$('waveDirection').value,waveShape:$('waveShape').value,waveAmplitude:Number($('waveAmplitude').value),colorWaveDirection:$('colorWaveDirection').value,colorWaveShape:$('colorWaveShape').value,colorWaveAmplitude:Number($('colorWaveAmplitude').value),effect:$('animationEffect').value,colorEffect:$('animationColor').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value,videoRepeats}}
 function animationSource(){return {W,H,grid,inks:cellColors,base:replayBase,baseColors:replayBaseColors,events:replayEvents,eventColors:replayEventColors,colors:{...colors},...animationSettings()}}
 function effectCycles(s){return {motion:s.effect==='none'?1:(s.motionCycles??1),color:s.colorEffect==='none'?1:(s.colorCycles??1)}}
 function animationPlan(s){
  const colorSteps=s.colorEffect==='plasma'?24:COLOR_CYCLES[s.colorEffect]?.length??1,{motion,color}=effectCycles(s),budget=Math.floor(s.seconds*1000/20);
  if(s.effect==='replay'&&colorSteps===1&&motion===1)return {count:Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1)),warning:''};
- const steps=['scroll-x','scroll-y'].includes(s.effect)?(['left','right'].includes(scrollDirection(s))?s.W:s.H):s.effect==='inverse'?2:s.effect==='sine-scroll'?Math.max(24,['left','right'].includes(scrollDirection(s))?s.W:s.H):s.effect==='wave'?24:s.effect==='replay'?Math.max(4,Math.min(48,Math.ceil(s.events.length/.75)+1)):1;
+ const steps=s.effect==='starfield'?Math.max(24,(['left','right'].includes(scrollDirection(s))?s.W:s.H)*3):INTRO_MOTIONS.includes(s.effect)?24:['scroll-x','scroll-y'].includes(s.effect)?(['left','right'].includes(scrollDirection(s))?s.W:s.H):s.effect==='inverse'?2:s.effect==='sine-scroll'?Math.max(24,['left','right'].includes(scrollDirection(s))?s.W:s.H):s.effect==='wave'?24:s.effect==='replay'?Math.max(4,Math.min(48,Math.ceil(s.events.length/.75)+1)):1;
  if(motion===1&&color===1)return {count:Math.max(1,Math.min(s.effect==='replay'?48:Infinity,Math.max(steps,colorSteps),budget)),warning:''};
  // Powers of two share an integer subdivision, keeping every cycle boundary exact.
  const subdivision=Math.max(motion,color),wanted=Math.max(steps*motion,colorSteps*color);
- const minimum=Math.max(s.effect==='none'?1:motion*(['wave','replay','sine-scroll'].includes(s.effect)?4:2),colorSteps===1?1:color*(s.colorEffect==='plasma'?4:2));
+ const minimum=Math.max(s.effect==='none'?1:motion*(s.effect==='starfield'?12:INTRO_MOTIONS.includes(s.effect)?8:['wave','replay','sine-scroll'].includes(s.effect)?4:2),colorSteps===1?1:color*(s.colorEffect==='plasma'?4:2));
  const count=Math.max(subdivision,Math.floor(Math.min(wanted,budget)/subdivision)*subdivision);
  const warning=count<minimum?'Too many cycles for this loop duration. Increase Loop duration or reduce cycles per loop.':'';
  return {count:Math.max(count,minimum),warning};
@@ -536,11 +544,45 @@ function animationPlan(s){
 function animationCount(s){return animationPlan(s).count}
 function animationDelay(i,s){const n=animationCount(s);return s.effect==='replay'&&s.colorEffect==='none'&&(s.motionCycles??1)===1?(i===n-1?s.seconds*250:s.seconds*750/(n-1)):s.seconds*1000/n}
 function cyclePhase(frame,count,cycles){const samples=count/cycles;return (frame%samples)/samples}
+function introMotionFrame(phase,s){
+ const cells=Array(s.W*s.H).fill(''),inks=s.inks.slice(),put=(destination,source)=>{cells[destination]=s.grid[source];inks[destination]=s.inks[source]};
+ if(s.effect==='starfield'){
+  const direction=scrollDirection(s),horizontal=['left','right'].includes(direction),size=horizontal?s.W:s.H,sign=['left','up'].includes(direction)?-1:1;
+  // Draw far layers first, so nearer stars win deterministic cell collisions.
+  for(let depth=1;depth<=3;depth++)for(let i=0;i<s.grid.length;i++)if(s.grid[i]!==''&&1+(i%s.W*17+Math.floor(i/s.W)*31)%3===depth){
+   const x=i%s.W,y=Math.floor(i/s.W),travel=Math.floor(phase*size*depth)*sign,wrap=v=>(v%size+size)%size;
+   put(horizontal?y*s.W+wrap(x+travel):wrap(y+travel)*s.W+x,i);
+  }
+ }else if(s.effect==='wipe'){
+  const d=scrollDirection(s),horizontal=['left','right'].includes(d),size=horizontal?s.W:s.H,reverse=['left','up'].includes(d),progress=Math.min(1,phase/.35,(1-phase)/.35),pattern=s.wipePattern??'diagonal';
+  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
+   const axis=horizontal?x:y,along=(axis+.5)/size,u=reverse?1-along:along,v=horizontal?(y+.5)/s.H:(x+.5)/s.W,stripe=Math.min(4,size),blind=(axis%stripe+.5)/stripe;
+   const rank=pattern==='checkerboard'?((x+y)%2+u)/2:pattern==='blinds'?(reverse?1-blind:blind):(u+v)/2;
+   if(rank<=progress)put(y*s.W+x,y*s.W+x);
+  }
+ }else{
+  let left=s.W,top=s.H,right=-1,bottom=-1;
+  for(let i=0;i<s.grid.length;i++)if(s.grid[i]!==''){left=Math.min(left,i%s.W);right=Math.max(right,i%s.W);top=Math.min(top,Math.floor(i/s.W));bottom=Math.max(bottom,Math.floor(i/s.W))}
+  if(right<0)return {cells,inks};
+  const width=right-left+1,height=bottom-top+1,amount=(s.waveAmplitude??100)/100;
+  if(s.effect==='logo-bounce'){
+   const dx=Math.round((s.W-width)/2*(1-Math.sin(phase*Math.PI*2)*amount))-left,dy=Math.round((s.H-height)/2*(1-Math.cos(phase*Math.PI*4)*amount))-top;
+   for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++)put((y+dy)*s.W+x+dx,y*s.W+x);
+  }else{
+   // Resize the cell region, keeping the authentic glyph bitmaps intact.
+   const w=Math.max(1,Math.round(width*(1-amount*.25*(1-Math.cos(phase*Math.PI*2))))),h=Math.max(1,Math.round(height*(1-amount*.25*(1-Math.cos(phase*Math.PI*4))))),dx=left+Math.floor((width-w)/2),dy=top+Math.floor((height-h)/2);
+   for(let y=0;y<h;y++)for(let x=0;x<w;x++)put((dy+y)*s.W+dx+x,(top+Math.min(height-1,Math.floor((y+.5)*height/h)))*s.W+left+Math.min(width-1,Math.floor((x+.5)*width/w)));
+  }
+ }
+ return {cells,inks};
+}
 function animationCells(frame,s){
  const n=animationCount(s),cycles=effectCycles(s),phase=cyclePhase(frame,n,cycles.motion),colorPhase=cyclePhase(frame,n,cycles.color),cells=s.effect==='replay'?s.base.slice():Array(s.W*s.H).fill(''),inks=s.effect==='replay'?s.baseColors.slice():s.inks.slice();
  if(s.effect==='replay'){
   const progress=s.colorEffect==='none'&&cycles.motion===1?frame/(n-1):Math.min(1,phase/.75),end=Math.floor(progress*s.events.length);
   for(let j=0;j<end;j++){const [i,g]=s.events[j];cells[i]=g;inks[i]=s.eventColors[j]}
+ }else if(INTRO_MOTIONS.includes(s.effect)){
+  const picture=introMotionFrame(phase,s);cells.splice(0,cells.length,...picture.cells);inks.splice(0,inks.length,...picture.inks);
  }else{
   const wrap=(x,size)=>(x%size+size)%size;
   for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
@@ -615,7 +657,7 @@ function toggleAnimation(){
 $('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
  for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Ready to draw')}else toggleAnimation()};
 $('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
-for(const id of ['animationEffect','animationColor','animationSeconds','animationCycles','animationColorCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude'])$(id).onchange=()=>{if(id==='animationEffect'&&['scroll-x','scroll-y'].includes($(id).value))$('scrollDirection').value=$(id).value==='scroll-y'?'up':'left';if(id==='animationColor'&&$('animationColor').value==='raster-bars')$('colorWaveDirection').value='up';if(id==='animationColor'&&$('animationColor').value==='plasma'){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};if(id==='scrollDirection'&&$('animationEffect').value!=='sine-scroll')$('animationEffect').value=['left','right'].includes($(id).value)?'scroll-x':'scroll-y';updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
+for(const id of ['animationEffect','animationColor','animationSeconds','animationCycles','animationColorCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude','wipePattern'])$(id).onchange=()=>{if(id==='animationEffect'&&['scroll-x','scroll-y'].includes($(id).value))$('scrollDirection').value=$(id).value==='scroll-y'?'up':'left';if(id==='animationColor'&&$('animationColor').value==='raster-bars')$('colorWaveDirection').value='up';if(id==='animationColor'&&$('animationColor').value==='plasma'){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};if(id==='scrollDirection'&&!['sine-scroll','starfield','wipe'].includes($('animationEffect').value))$('animationEffect').value=['left','right'].includes($(id).value)?'scroll-x':'scroll-y';updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
 for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseAnimation()});
 // GIF and PNG sequences share source snapshots, exact pixels, and encoded frame durations.
@@ -709,7 +751,7 @@ async function exportAnimation(kind){
   if(kind==='gif'){gif.finish();blob=new Blob([gif.bytes()],{type:'image/gif'})}
   else if(kind==='video'){setStatus('Finalizing video…');blob=await video.finish()}
   else{
-   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:2,effect:s.effect,colorEffect:s.colorEffect,motionCycles:s.motionCycles,colorCycles:s.colorCycles,scrollDirection:s.scrollDirection,waveDirection:s.waveDirection,waveShape:s.waveShape,waveAmplitude:s.waveAmplitude,colorWaveDirection:s.colorWaveDirection,colorWaveShape:s.colorWaveShape,colorWaveAmplitude:s.colorWaveAmplitude,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,glyphEncoding:'c64-atlas-id',background:s.background,colorPalette:'pepto-pal',colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
+   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:2,effect:s.effect,colorEffect:s.colorEffect,wipePattern:s.wipePattern,motionCycles:s.motionCycles,colorCycles:s.colorCycles,scrollDirection:s.scrollDirection,waveDirection:s.waveDirection,waveShape:s.waveShape,waveAmplitude:s.waveAmplitude,colorWaveDirection:s.colorWaveDirection,colorWaveShape:s.colorWaveShape,colorWaveAmplitude:s.colorWaveAmplitude,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,glyphEncoding:'c64-atlas-id',background:s.background,colorPalette:'pepto-pal',colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
    addFile('timing.json',text.encode(JSON.stringify(manifest,null,2)+'\n'));
    addFile('project.json',text.encode(JSON.stringify(snapshot.project,null,2)+'\n'));
    addFile('README.txt',text.encode("PETSCII Graphics Lab: PNG animation frames\n\nSTART HERE\n1. Open frames/ to find the numbered PNG pictures in playback order.\n2. Keep timing.json with the pictures. It gives each frame's startMs\n   (start time) and durationMs (how long to show it), in milliseconds.\n3. To edit the artwork again, open project.json in PETSCII Graphics Lab.\n\nTIMING\nFrame durations can differ: do not assume a fixed frame rate.\nThe durationMs values add up to one complete loop.\nDrawing replay holds the finished picture for the last quarter of each replay cycle.\nLong replays use selected points from the recording, matching GIF export.\n\nWHAT THESE FILES ARE\nEach PNG is a complete picture without editing grid lines.\nThese are image frames for modern software, not runnable C64 programs.\nFor runnable C64 programs and binary data, see the C64 output guide.\n\nEditor: https://funkatron.github.io/petscii-graphics-lab/\nC64 guide: https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md\n"));
@@ -954,7 +996,7 @@ function validateProject(data){
  const validGlyph=g=>g===''||(Number.isInteger(g)&&g>=0&&g<=511);
  if(data.drawingReplay!==undefined){const r=data.drawingReplay;if(!r||!Array.isArray(r.base)||r.base.length!==data.grid.length||r.base.some(g=>!validGlyph(g))||!Array.isArray(r.events)||r.events.length>20000||r.events.some(e=>!Array.isArray(e)||e.length!==2||!Number.isInteger(e[0])||e[0]<0||e[0]>=data.grid.length||!validGlyph(e[1])))throw Error('Invalid drawing replay');const end=r.base.slice();for(const [i,g] of r.events)end[i]=g;if(end.some((g,i)=>g!==data.grid[i]))throw Error('Replay does not match drawing')}
  if(data.drawingReplay){const r=data.drawingReplay;if((r.baseColors!==undefined&&!validColors(r.baseColors,data.grid.length))||(r.eventColors!==undefined&&!validColors(r.eventColors,r.events.length)))throw Error('Invalid replay colors');const ink=data.colors?.ink??14,end=r.baseColors?.slice()??Array(data.grid.length).fill(ink);r.events.forEach(([i],j)=>end[i]=r.eventColors?.[j]??ink);if(end.some((c,i)=>c!==(data.cellColors?.[i]??ink)))throw Error('Replay colors do not match drawing')}
- if(data.animation!==undefined){const a=data.animation;if(!a||['waveAmplitude','colorWaveAmplitude'].some(key=>a[key]!==undefined&&!WAVE_AMPLITUDES.includes(a[key]))||['motionCycles','colorCycles'].some(key=>a[key]!==undefined&&!ANIMATION_CYCLES.includes(a[key]))||Object.entries({scrollDirection:WAVE_DIRECTIONS,waveDirection:WAVE_DIRECTIONS,waveShape:WAVE_SHAPES,colorWaveDirection:COLOR_WAVE_DIRECTIONS,colorWaveShape:WAVE_SHAPES}).some(([key,values])=>a[key]!==undefined&&!values.includes(a[key]))||!['none','replay','scroll-x','scroll-y','wave','inverse','sine-scroll'].includes(a.effect)||(a.colorEffect!==undefined&&!['none',...Object.keys(COLOR_CYCLES)].includes(a.colorEffect))||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background)||(a.videoRepeats!==undefined&&!validVideoRepeats(a.videoRepeats)))throw Error('Invalid animation settings')}
+ if(data.animation!==undefined){const a=data.animation;if(!a||(a.wipePattern!==undefined&&!WIPE_PATTERNS.includes(a.wipePattern))||['waveAmplitude','colorWaveAmplitude'].some(key=>a[key]!==undefined&&!WAVE_AMPLITUDES.includes(a[key]))||['motionCycles','colorCycles'].some(key=>a[key]!==undefined&&!ANIMATION_CYCLES.includes(a[key]))||Object.entries({scrollDirection:WAVE_DIRECTIONS,waveDirection:WAVE_DIRECTIONS,waveShape:WAVE_SHAPES,colorWaveDirection:COLOR_WAVE_DIRECTIONS,colorWaveShape:WAVE_SHAPES}).some(([key,values])=>a[key]!==undefined&&!values.includes(a[key]))||!['none','replay','scroll-x','scroll-y','wave','inverse','sine-scroll',...INTRO_MOTIONS].includes(a.effect)||(a.colorEffect!==undefined&&!['none',...Object.keys(COLOR_CYCLES)].includes(a.colorEffect))||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background)||(a.videoRepeats!==undefined&&!validVideoRepeats(a.videoRepeats)))throw Error('Invalid animation settings')}
 }
 function applyProject(data){
  stopAnimation();
