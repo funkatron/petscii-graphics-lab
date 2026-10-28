@@ -168,13 +168,13 @@ dialog::backdrop{background:#0009}
 <div class="row"><button id="animationPlay" aria-pressed="false">▶ Play</button><button id="animationStop">Return to drawing</button></div>
 </fieldset>
 <fieldset class="animation-section" id="animationMovement"><legend>Movement</legend>
-<div class="field"><label for="animationEffect">Movement / reveal</label><select id="animationEffect"><option value="none">Still drawing</option><option value="replay">Replay drawing</option><option value="scroll-x">Scroll horizontally</option><option value="scroll-y">Scroll vertically</option><option value="wave">Wave rows / columns</option><option value="inverse">Inverse pulse</option></select></div>
+<div class="field"><label for="animationEffect">Movement / reveal</label><select id="animationEffect"><option value="none">Still drawing</option><option value="replay">Replay drawing</option><option value="scroll-x">Scroll horizontally</option><option value="scroll-y">Scroll vertically</option><option value="wave">Wave rows / columns</option><option value="inverse">Inverse pulse</option><option value="sine-scroll">Sine scroller</option></select></div>
 <div id="scrollOptions" hidden><div class="field"><label for="scrollDirection">Scroll direction</label><select id="scrollDirection"><option value="left">Left</option><option value="right">Right</option><option value="up">Up</option><option value="down">Down</option></select></div></div>
 <div id="waveOptions" hidden><div class="field"><label for="waveDirection">Direction</label><select id="waveDirection" aria-label="Wave direction"><option value="left">Left</option><option value="right">Right</option><option value="up" selected>Up</option><option value="down">Down</option></select></div><div class="field"><label for="waveShape">Waveform</label><select id="waveShape" aria-label="Movement waveform"><option value="sine">Sine</option><option value="triangle">Triangle</option><option value="square">Square</option><option value="sawtooth">Sawtooth</option><option value="reverse-sawtooth">Reverse sawtooth</option></select></div><div class="field"><label for="waveAmplitude">Height</label><select id="waveAmplitude" aria-label="Wave height"><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option><option value="75">75%</option><option value="100" selected>100%</option></select></div></div>
 <div id="movementCyclesOptions" class="field" hidden><label for="animationCycles">Cycles / loop</label><select id="animationCycles" aria-label="Movement cycles per loop"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16×</option></select></div>
 </fieldset>
 <fieldset class="animation-section" id="animationColors"><legend>Color</legend>
-<div class="field"><label for="animationColor">Color animation</label><select id="animationColor"><option value="none">Original colors</option><option value="color-cycle">Color cycle</option><option value="color-wave">Rainbow wave</option><option value="color-glow">Warm glow</option></select></div>
+<div class="field"><label for="animationColor">Color animation</label><select id="animationColor"><option value="none">Original colors</option><option value="color-cycle">Color cycle</option><option value="color-wave">Rainbow wave</option><option value="color-glow">Warm glow</option><option value="raster-bars">Raster-style bars</option></select></div>
 <div id="colorWaveOptions" hidden><div class="field"><label for="colorWaveDirection">Direction</label><select id="colorWaveDirection" aria-label="Color wave direction"><option value="left">Left</option><option value="right">Right</option><option value="up">Up</option><option value="down">Down</option><option value="up-left" selected>Up Left</option><option value="up-right">Up Right</option><option value="down-left">Down Left</option><option value="down-right">Down Right</option></select></div><div class="field"><label for="colorWaveShape">Waveform</label><select id="colorWaveShape" aria-label="Color waveform"><option value="sine">Sine</option><option value="triangle">Triangle</option><option value="square">Square</option><option value="sawtooth" selected>Sawtooth</option><option value="reverse-sawtooth">Reverse sawtooth</option></select></div><div class="field"><label for="colorWaveAmplitude">Height</label><select id="colorWaveAmplitude" aria-label="Color wave height"><option value="10">10%</option><option value="25">25%</option><option value="50">50%</option><option value="75">75%</option><option value="100" selected>100%</option></select></div></div>
 <div id="colorCyclesOptions" class="field" hidden><label for="animationColorCycles">Cycles / loop</label><select id="animationColorCycles" aria-label="Color cycles per loop"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16×</option></select></div>
 </fieldset>
@@ -288,6 +288,7 @@ function updateMotionSummary(){$('motionSummary').textContent=animationName()+' 
 const C64_COLORS=[['Black','#000000'],['White','#ffffff'],['Red','#68372b'],['Cyan','#70a4b2'],['Purple','#6f3d86'],['Green','#588d43'],['Blue','#352879'],['Yellow','#b8c76f'],['Orange','#6f4f25'],['Brown','#433900'],['Light red','#9a6759'],['Dark gray','#444444'],['Gray','#6c6c6c'],['Light green','#9ad284'],['Light blue','#6c5eb5'],['Light gray','#959595']];
 // Ordered color ramps, using C64 hardware palette indices. Repeated warm shades form a return path.
 const COLOR_CYCLES={
+ 'raster-bars':[0,6,14,3,1,3,14,6],
  'color-cycle':[0,11,12,15,1,7,13,5,3,14,6,4,2,10,8,9],
  'color-wave':[2,8,7,13,3,14,6,4],
  'color-glow':[9,8,2,10,7,1,7,10,2,8]
@@ -497,8 +498,8 @@ const WAVE_DIRECTIONS=['left','right','up','down'];
 const COLOR_WAVE_DIRECTIONS=[...WAVE_DIRECTIONS,'up-left','up-right','down-left','down-right'];
 function updateAnimationOptions(){
  const effect=$('animationEffect').value;
- $('scrollOptions').hidden=!['scroll-x','scroll-y'].includes(effect);
- $('waveOptions').hidden=effect!=='wave';$('colorWaveOptions').hidden=$('animationColor').value!=='color-wave';
+ $('scrollOptions').hidden=!['scroll-x','scroll-y','sine-scroll'].includes(effect);
+ $('waveOptions').hidden=!['wave','sine-scroll'].includes(effect);for(const id of ['waveDirection','waveShape'])$(id).closest('.field').hidden=effect==='sine-scroll';$('colorWaveOptions').hidden=!['color-wave','raster-bars'].includes($('animationColor').value);
  $('movementCyclesOptions').hidden=effect==='none';$('colorCyclesOptions').hidden=$('animationColor').value==='none';
  const warning=animationPlan(animationSource()).warning;
  $('animationWarning').hidden=!warning;$('animationWarning').textContent=warning;
@@ -513,18 +514,18 @@ function waveValue(shape,phase){
  return Math.sin(t*Math.PI*2);
 }
 function scrollDirection(s){return s.scrollDirection??(s.effect==='scroll-y'?'up':'left')}
-function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=['scroll-x','scroll-y'].includes(a.effect)?(['left','right'].includes(scrollDirection(a))?'scroll-x':'scroll-y'):a.effect;$('animationColor').value=a.colorEffect??'none';$('animationCycles').value=String(a.motionCycles??1);$('animationColorCycles').value=String(a.colorCycles??1);$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;$('scrollDirection').value=scrollDirection(a);$('waveDirection').value=a.waveDirection??'up';$('waveShape').value=a.waveShape??'sine';$('waveAmplitude').value=String(a.waveAmplitude??100);$('colorWaveDirection').value=a.colorWaveDirection??'up-left';$('colorWaveShape').value=a.colorWaveShape??'sawtooth';$('colorWaveAmplitude').value=String(a.colorWaveAmplitude??100);updateAnimationOptions();videoRepeats=a.videoRepeats??1;$('videoRepeats').value=String(videoRepeats);updateMotionSummary()}
+function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){$('animationEffect').value=['scroll-x','scroll-y'].includes(a.effect)?(['left','right'].includes(scrollDirection(a))?'scroll-x':'scroll-y'):a.effect;$('animationColor').value=a.colorEffect??'none';$('animationCycles').value=String(a.motionCycles??1);$('animationColorCycles').value=String(a.colorCycles??1);$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;$('scrollDirection').value=scrollDirection(a);$('waveDirection').value=a.waveDirection??'up';$('waveShape').value=a.waveShape??'sine';$('waveAmplitude').value=String(a.waveAmplitude??100);$('colorWaveDirection').value=a.colorWaveDirection??(a.colorEffect==='raster-bars'?'up':'up-left');$('colorWaveShape').value=a.colorWaveShape??'sawtooth';$('colorWaveAmplitude').value=String(a.colorWaveAmplitude??100);updateAnimationOptions();videoRepeats=a.videoRepeats??1;$('videoRepeats').value=String(videoRepeats);updateMotionSummary()}
 function animationSettings(){return {motionCycles:Number($('animationCycles').value),colorCycles:Number($('animationColorCycles').value),scrollDirection:$('scrollDirection').value,waveDirection:$('waveDirection').value,waveShape:$('waveShape').value,waveAmplitude:Number($('waveAmplitude').value),colorWaveDirection:$('colorWaveDirection').value,colorWaveShape:$('colorWaveShape').value,colorWaveAmplitude:Number($('colorWaveAmplitude').value),effect:$('animationEffect').value,colorEffect:$('animationColor').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value,videoRepeats}}
 function animationSource(){return {W,H,grid,inks:cellColors,base:replayBase,baseColors:replayBaseColors,events:replayEvents,eventColors:replayEventColors,colors:{...colors},...animationSettings()}}
 function effectCycles(s){return {motion:s.effect==='none'?1:(s.motionCycles??1),color:s.colorEffect==='none'?1:(s.colorCycles??1)}}
 function animationPlan(s){
  const colorSteps=COLOR_CYCLES[s.colorEffect]?.length??1,{motion,color}=effectCycles(s),budget=Math.floor(s.seconds*1000/20);
  if(s.effect==='replay'&&colorSteps===1&&motion===1)return {count:Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1)),warning:''};
- const steps=['scroll-x','scroll-y'].includes(s.effect)?(['left','right'].includes(scrollDirection(s))?s.W:s.H):s.effect==='inverse'?2:s.effect==='wave'?24:s.effect==='replay'?Math.max(4,Math.min(48,Math.ceil(s.events.length/.75)+1)):1;
+ const steps=['scroll-x','scroll-y'].includes(s.effect)?(['left','right'].includes(scrollDirection(s))?s.W:s.H):s.effect==='inverse'?2:s.effect==='sine-scroll'?Math.max(24,['left','right'].includes(scrollDirection(s))?s.W:s.H):s.effect==='wave'?24:s.effect==='replay'?Math.max(4,Math.min(48,Math.ceil(s.events.length/.75)+1)):1;
  if(motion===1&&color===1)return {count:Math.max(1,Math.min(s.effect==='replay'?48:Infinity,Math.max(steps,colorSteps),budget)),warning:''};
  // Powers of two share an integer subdivision, keeping every cycle boundary exact.
  const subdivision=Math.max(motion,color),wanted=Math.max(steps*motion,colorSteps*color);
- const minimum=Math.max(s.effect==='none'?1:motion*(['wave','replay'].includes(s.effect)?4:2),colorSteps===1?1:color*2);
+ const minimum=Math.max(s.effect==='none'?1:motion*(['wave','replay','sine-scroll'].includes(s.effect)?4:2),colorSteps===1?1:color*2);
  const count=Math.max(subdivision,Math.floor(Math.min(wanted,budget)/subdivision)*subdivision);
  const warning=count<minimum?'Too many cycles for this loop duration. Increase Loop duration or reduce cycles per loop.':'';
  return {count:Math.max(count,minimum),warning};
@@ -545,6 +546,12 @@ function animationCells(frame,s){
     const d=scrollDirection(s),horizontal=['left','right'].includes(d),step=Math.floor(phase*(horizontal?s.W:s.H))*(d==='right'||d==='down'?-1:1);
     if(horizontal)xx=wrap(x+step,s.W);else yy=wrap(y+step,s.H);
    }
+   if(s.effect==='sine-scroll'){
+    const direction=scrollDirection(s),horizontal=['left','right'].includes(direction),sign=['right','down'].includes(direction)?-1:1;
+    const travel=Math.floor(phase*(horizontal?s.W:s.H))*sign,position=horizontal?x/s.W:y/s.H,size=horizontal?s.H:s.W;
+    const bend=Math.round(Math.sin(position*Math.PI*2)*Math.min(3,Math.max(1,size/4))*2*((s.waveAmplitude??100)/100));
+    if(horizontal){xx=wrap(x+travel,s.W);yy=wrap(y+bend,s.H)}else{yy=wrap(y+travel,s.H);xx=wrap(x+bend,s.W)}
+   }
    if(s.effect==='wave'){
     const d=s.waveDirection??'up',rows=d==='up'||d==='down',position=rows?y/Math.max(1,s.H):x/Math.max(1,s.W),size=rows?s.W:s.H;
     const sign=d==='down'||d==='right'?-1:1,value=(s.waveShape??'sine')==='sine'?Math.sin(phase*Math.PI*2*sign+position*Math.PI*2):waveValue(s.waveShape,position+phase*sign);
@@ -557,9 +564,9 @@ function animationCells(frame,s){
  }
  const cycle=COLOR_CYCLES[s.colorEffect];
  if(cycle)for(let i=0;i<cells.length;i++)if(cells[i]!==''){
-  const start=Math.max(0,cycle.indexOf(inks[i]));let step=Math.floor(colorPhase*cycle.length);
-  if(s.colorEffect==='color-wave'){
-   const d=s.colorWaveDirection??'up-left',x=i%s.W,y=Math.floor(i/s.W),offset=(d.includes('left')?x:d.includes('right')?-x:0)+(d.includes('up')?y:d.includes('down')?-y:0);
+  const start=s.colorEffect==='raster-bars'?0:Math.max(0,cycle.indexOf(inks[i]));let step=Math.floor(colorPhase*cycle.length);
+  if(['color-wave','raster-bars'].includes(s.colorEffect)){
+   const d=s.colorWaveDirection??(s.colorEffect==='raster-bars'?'up':'up-left'),x=i%s.W,y=Math.floor(i/s.W),offset=(d.includes('left')?x:d.includes('right')?-x:0)+(d.includes('up')?y:d.includes('down')?-y:0);
    const t=colorPhase+offset/cycle.length,shape=s.colorWaveShape??'sawtooth';
    step=shape==='sawtooth'?offset+Math.floor(colorPhase*cycle.length):Math.min(cycle.length-1,Math.floor((waveValue(shape,t)+1)/2*cycle.length));
    step=Math.floor(((step%cycle.length+cycle.length)%cycle.length)*((s.colorWaveAmplitude??100)/100));
@@ -598,7 +605,7 @@ function toggleAnimation(){
 $('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
  for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Ready to draw')}else toggleAnimation()};
 $('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
-for(const id of ['animationEffect','animationColor','animationSeconds','animationCycles','animationColorCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude'])$(id).onchange=()=>{if(id==='animationEffect'&&['scroll-x','scroll-y'].includes($(id).value))$('scrollDirection').value=$(id).value==='scroll-y'?'up':'left';if(id==='scrollDirection')$('animationEffect').value=['left','right'].includes($(id).value)?'scroll-x':'scroll-y';updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
+for(const id of ['animationEffect','animationColor','animationSeconds','animationCycles','animationColorCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude'])$(id).onchange=()=>{if(id==='animationEffect'&&['scroll-x','scroll-y'].includes($(id).value))$('scrollDirection').value=$(id).value==='scroll-y'?'up':'left';if(id==='animationColor'&&$('animationColor').value==='raster-bars')$('colorWaveDirection').value='up';if(id==='scrollDirection'&&$('animationEffect').value!=='sine-scroll')$('animationEffect').value=['left','right'].includes($(id).value)?'scroll-x':'scroll-y';updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
 for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseAnimation()});
 // GIF and PNG sequences share source snapshots, exact pixels, and encoded frame durations.
@@ -937,7 +944,7 @@ function validateProject(data){
  const validGlyph=g=>g===''||(Number.isInteger(g)&&g>=0&&g<=511);
  if(data.drawingReplay!==undefined){const r=data.drawingReplay;if(!r||!Array.isArray(r.base)||r.base.length!==data.grid.length||r.base.some(g=>!validGlyph(g))||!Array.isArray(r.events)||r.events.length>20000||r.events.some(e=>!Array.isArray(e)||e.length!==2||!Number.isInteger(e[0])||e[0]<0||e[0]>=data.grid.length||!validGlyph(e[1])))throw Error('Invalid drawing replay');const end=r.base.slice();for(const [i,g] of r.events)end[i]=g;if(end.some((g,i)=>g!==data.grid[i]))throw Error('Replay does not match drawing')}
  if(data.drawingReplay){const r=data.drawingReplay;if((r.baseColors!==undefined&&!validColors(r.baseColors,data.grid.length))||(r.eventColors!==undefined&&!validColors(r.eventColors,r.events.length)))throw Error('Invalid replay colors');const ink=data.colors?.ink??14,end=r.baseColors?.slice()??Array(data.grid.length).fill(ink);r.events.forEach(([i],j)=>end[i]=r.eventColors?.[j]??ink);if(end.some((c,i)=>c!==(data.cellColors?.[i]??ink)))throw Error('Replay colors do not match drawing')}
- if(data.animation!==undefined){const a=data.animation;if(!a||['waveAmplitude','colorWaveAmplitude'].some(key=>a[key]!==undefined&&!WAVE_AMPLITUDES.includes(a[key]))||['motionCycles','colorCycles'].some(key=>a[key]!==undefined&&!ANIMATION_CYCLES.includes(a[key]))||Object.entries({scrollDirection:WAVE_DIRECTIONS,waveDirection:WAVE_DIRECTIONS,waveShape:WAVE_SHAPES,colorWaveDirection:COLOR_WAVE_DIRECTIONS,colorWaveShape:WAVE_SHAPES}).some(([key,values])=>a[key]!==undefined&&!values.includes(a[key]))||!['none','replay','scroll-x','scroll-y','wave','inverse'].includes(a.effect)||(a.colorEffect!==undefined&&!['none',...Object.keys(COLOR_CYCLES)].includes(a.colorEffect))||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background)||(a.videoRepeats!==undefined&&!validVideoRepeats(a.videoRepeats)))throw Error('Invalid animation settings')}
+ if(data.animation!==undefined){const a=data.animation;if(!a||['waveAmplitude','colorWaveAmplitude'].some(key=>a[key]!==undefined&&!WAVE_AMPLITUDES.includes(a[key]))||['motionCycles','colorCycles'].some(key=>a[key]!==undefined&&!ANIMATION_CYCLES.includes(a[key]))||Object.entries({scrollDirection:WAVE_DIRECTIONS,waveDirection:WAVE_DIRECTIONS,waveShape:WAVE_SHAPES,colorWaveDirection:COLOR_WAVE_DIRECTIONS,colorWaveShape:WAVE_SHAPES}).some(([key,values])=>a[key]!==undefined&&!values.includes(a[key]))||!['none','replay','scroll-x','scroll-y','wave','inverse','sine-scroll'].includes(a.effect)||(a.colorEffect!==undefined&&!['none',...Object.keys(COLOR_CYCLES)].includes(a.colorEffect))||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background)||(a.videoRepeats!==undefined&&!validVideoRepeats(a.videoRepeats)))throw Error('Invalid animation settings')}
 }
 function applyProject(data){
  stopAnimation();
