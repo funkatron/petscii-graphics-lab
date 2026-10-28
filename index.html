@@ -448,7 +448,9 @@ function textGrid(){
 // Draw in backing-store pixels to avoid stale HiDPI transforms after WebKit canvas resizing.
 function renderGrid(cells,inks=cellColors){
  if(!Array.isArray(cells)){inks=cells.inks;cells=cells.cells}
- ctx.setTransform(1,0,0,1,0,0);
+ // Start each complete picture with fresh pixels and drawing state. WebKit can
+ // retain an earlier ink in empty cells when reusing a resized canvas context.
+ if(typeof ctx.reset==='function')ctx.reset();else canvas.width=canvas.width;
  const cellW=canvas.width/W,cellH=canvas.height/H;
  ctx.fillStyle=colorHex('background');ctx.fillRect(0,0,canvas.width,canvas.height);
  const line=unit>12?1:.5,ratio=canvas.width/(W*unit),bg=colorRGB(colorHex('background'));
