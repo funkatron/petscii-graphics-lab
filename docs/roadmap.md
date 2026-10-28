@@ -21,6 +21,8 @@ This page tracks requested work and completed milestones. For current controls, 
 ## Additional animations — requested
 
 - [ ] Add more animation types; choose the specific effects in a future design pass.
+- [ ] Use C64 demoscene productions and cracker intros (cracktros) as visual references when choosing effects. Explore sine-wave text/graphic scrollers, bouncing or stretching logos, raster-style color bars, plasma-like color fields, starfields and patterned wipes/reveals.
+- [ ] Adapt those references to the editor’s character grid, per-cell inks and shared background. Evaluate smooth loops, useful combinations with existing effects, and preview/export consistency. Treat these as candidates to prototype, not a committed feature list.
 - [ ] Preserve source artwork and share effect behavior across preview and supported downloads.
 - [x] Add movement-wave amplitude (the waveform’s “height”) choices of **10%, 25%, 50%, 75%, and 100%**. Scale displacement only; keep direction, waveform, timing and canvas dimensions independent. Interpret 100% as the current displacement range.
 - [x] Save amplitude with the project and share it across preview and supported animation downloads.
