@@ -7,7 +7,7 @@ const svg=fs.readFileSync('assets/c64-glyphs.svg','utf8');
 function bits(g){const b=Array(64).fill(false);if(g==='')return b;const symbol=svg.match(new RegExp('<symbol id="c64-0-'+g+'"[^>]*>([\\s\\S]*?)</symbol>'))[1];for(const r of symbol.matchAll(/<rect x="(\d+)" y="(\d+)" width="(\d+)" height="1"\/>/g))for(let x=+r[1];x<+r[1]+ +r[3];x++)b[+r[2]*8+x]=true;return b}
 function expected(p,f,count){const bytes=Buffer.alloc(p.columns*p.rows*64*4),ramp=ramps[p.animation.colorEffect],phase=f/count,wrap=(x,n)=>(x%n+n)%n;
  for(let y=0;y<p.rows;y++)for(let x=0;x<p.columns;x++){
-  let sx=x,sy=y;if(p.animation.effect==='scroll-x')sx=(x+Math.floor(phase*p.columns))%p.columns;if(p.animation.effect==='scroll-y')sy=(y+Math.floor(phase*p.rows))%p.rows;if(p.animation.effect==='wave')sx=wrap(x+Math.round(Math.sin(phase*2*Math.PI+y/p.rows*2*Math.PI)*Math.min(3,Math.max(1,p.columns/4))),p.columns);
+  let sx=x,sy=y;if(p.animation.effect==='scroll-x')sx=(x+Math.floor(phase*p.columns))%p.columns;if(p.animation.effect==='scroll-y')sy=(y+Math.floor(phase*p.rows))%p.rows;if(p.animation.effect==='wave')sx=wrap(x+Math.round(Math.sin(phase*2*Math.PI+y/p.rows*2*Math.PI)*(2*Math.min(3,Math.max(1,p.columns/4)))),p.columns);
   const source=sy*p.columns+sx,mask=bits(p.grid[source]),start=Math.max(0,ramp.indexOf(p.cellColors[source])),ink=ramp[(start+(p.animation.colorEffect==='color-wave'?x+y:0)+Math.floor(phase*ramp.length))%ramp.length];
   for(let py=0;py<8;py++)for(let px=0;px<8;px++){const i=((y*8+py)*p.columns*8+x*8+px)*4,solid=mask[py*8+px];bytes.set(solid?[...rgb(ink),255]:[0,0,0,0],i)}
  }return bytes;

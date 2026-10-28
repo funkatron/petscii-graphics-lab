@@ -24,10 +24,11 @@ This page tracks requested work and completed milestones. For current controls, 
 - [ ] Use C64 demoscene productions and cracker intros (cracktros) as visual references when choosing effects. Explore sine-wave text/graphic scrollers, bouncing or stretching logos, raster-style color bars, plasma-like color fields, starfields and patterned wipes/reveals.
 - [ ] Adapt those references to the editor’s character grid, per-cell inks and shared background. Evaluate smooth loops, useful combinations with existing effects, and preview/export consistency. Treat these as candidates to prototype, not a committed feature list.
 - [ ] Preserve source artwork and share effect behavior across preview and supported downloads.
-- [x] Add movement-wave amplitude (the waveform’s “height”) choices of **10%, 25%, 50%, 75%, and 100%**. Scale displacement only; keep direction, waveform, timing and canvas dimensions independent. Interpret 100% as the current displacement range.
-- [x] Save amplitude with the project and share it across preview and supported animation downloads.
+- [x] Add movement-wave amplitude (the waveform’s “height”) choices of **10%, 25%, 50%, 75%, and 100%**. Scale displacement only; keep direction, waveform, timing and canvas dimensions independent. At 100%, use twice the earlier displacement range; 50% matches that earlier range.
+- [x] Add independent Color wave height percentages to Rainbow wave for every waveform; preserve the full color sequence at 100%.
+- [x] Save both amplitude settings with the project and share it across preview and supported animation downloads.
 
-Wave height is in review; full browser CI validation remains required before release. Additional effects remain a requested expansion. Existing animation optimization and C64 validation remain lower-priority follow-ups.
+Initial wave height shipped in PR #24. Doubling the movement range and adding independent color-wave height are in review; full browser CI validation remains required before release. Additional effects remain a requested expansion. Existing animation optimization and C64 validation remain lower-priority follow-ups.
 
 ## Color-aware text exchange — implemented
 

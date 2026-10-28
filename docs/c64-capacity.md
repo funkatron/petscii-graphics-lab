@@ -1,5 +1,7 @@
 # Full-screen combined-wave capacity
 
+The historical combined-wave benchmarks below use **50% movement wave height**, matching the displacement range before 100% was doubled. Color wave height remains 100%.
+
 The existing player supports some 40 × 24 movement/color-wave pictures, but size alone cannot predict whether a picture will fit. Slowing a fixed-frame animation helps its timing budget; it does not reduce stored frame data.
 
 The original measurements below establish the baseline. The packed-color implementation described next expands the set of pictures that fit; it does not establish physical-hardware performance.
