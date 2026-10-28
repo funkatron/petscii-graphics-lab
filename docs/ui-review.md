@@ -147,3 +147,7 @@ Richer drawing tools are the next priority: fill, lines and rectangles, selectio
 Drawing tools now use compact familiar icons with accessible names; Undo/Redo stay together. Stamps were removed in favor of Select and Duplicate. Selection actions occupy a reserved scrolling strip below the artwork. The 28 px help buttons sit beside headings, outside disclosure controls, and open on tap or keyboard activation. Portrait settings begin closed. Tap endpoints and canvas arrow/Enter controls provide alternatives to dragging. C64 download readiness distinguishes dimensions, glyph patterns, memory and estimated update time.
 
 These changes supersede the earlier 44 px target recommendation for compact drawing/help controls. Physical reach and larger-text checks remain open.
+
+## Group animation controls
+
+Group the animation section into Timeline & preview, Movement and Color. Put common duration/playback first; pair each effect’s direction/waveform and height/cycles. Retain the existing control names and conditional options. Move the wave-height explanation into header help. Use semantic fieldsets, compact spacing and the existing sidebar scroll surface. Verify portrait/landscape iPad dimensions and enlarged text without changing artwork or saved settings.
