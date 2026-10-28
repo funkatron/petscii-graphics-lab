@@ -21,7 +21,7 @@ for(const shape of ['sine','triangle','square','sawtooth','reverse-sawtooth'])te
   const inks=Array.from({length:16},(_,i)=>i),p=project(Array(16).fill(160),4,4,{cellColors:inks,animation:{...settings,waveDirection:direction,waveShape:shape}});await loadProject(page,p);
   const gif=new GifReader(await download(page,'#exportGif'));expect(gif.numFrames()).toBe(24);
   for(const f of [0,3,6,12,18,23])for(let y=0;y<4;y++)for(let x=0;x<4;x++){
-   const rows=['up','down'].includes(direction),sign=['down','right'].includes(direction)?-1:1,shift=Math.round(sample(shape,(rows?y:x)/4+f/24*sign)),sx=rows?wrap(x+shift,4):x,sy=rows?y:wrap(y+shift,4);
+   const rows=['up','down'].includes(direction),sign=['down','right'].includes(direction)?-1:1,shift=Math.round(2*sample(shape,(rows?y:x)/4+f/24*sign)),sx=rows?wrap(x+shift,4):x,sy=rows?y:wrap(y+shift,4);
    expect(cell(frame(gif,f),32,x,y)).toEqual(rgb(inks[sy*4+sx]));
   }
  }
