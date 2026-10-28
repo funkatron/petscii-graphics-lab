@@ -1,3 +1,4 @@
+// Historical C64 workloads use 50% height: the movement range before 100% was doubled.
 const {spawnSync}=require('node:child_process');
 const {glyphRows}=require('./glyph-reference.cjs');
 const {test,expect,loadProject,project,ui,download}=require('./helpers.cjs');
@@ -52,7 +53,7 @@ test('two-second 40 × 24 combined waves execute two complete loops with exact c
  // Replace the ordinary page with a sampler bridge, then import through the editor.
  await capacityPage(page);
  const {grid,cellColors}=artwork('repeated');
- await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',seconds:2,scale:1,background:'dark'}}));
+ await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',waveAmplitude:50,colorEffect:'color-wave',seconds:2,scale:1,background:'dark'}}));
  const {bytes,frames,diagnostics,debugSymbols}=await page.evaluate(async()=>{
   const {createC64Program}=await import('./c64-export.js'),input=window.capacityInput();
   const p=createC64Program({...input,repetitions:2});return {bytes:[...p.bytes],frames:input.frames,diagnostics:p.diagnostics,debugSymbols:p.debugSymbols};
@@ -80,7 +81,7 @@ test('two-second 40 × 24 combined waves execute two complete loops with exact c
 
 test('C64 readiness accepts native rows without slowing the requested loop',async({page})=>{
  const {grid,cellColors}=artwork('repeated');
- await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',seconds:1,scale:1,background:'dark'}}));
+ await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',waveAmplitude:50,colorEffect:'color-wave',seconds:1,scale:1,background:'dark'}}));
  await ui(page,'#c64Mode','selectOption','animation');
  const panel=page.locator('#c64Readiness');await expect(panel).toContainText('Ready — exporter checks passed');
  await expect(panel.getByRole('button',{name:/Apply tested/})).toHaveCount(0);
@@ -89,7 +90,7 @@ test('C64 readiness accepts native rows without slowing the requested loop',asyn
 });
 test('C64 readiness keeps tested longer-loop remedies undoable when native rows exceed memory',async({page})=>{
  const {grid,cellColors}=artwork('detailed-fast');
- await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',colorEffect:'color-wave',motionCycles:4,colorCycles:4,seconds:2,scale:1,background:'dark'}}));
+ await loadProject(page,project(grid,40,24,{cellColors,animation:{effect:'wave',waveAmplitude:50,colorEffect:'color-wave',motionCycles:4,colorCycles:4,seconds:2,scale:1,background:'dark'}}));
  await ui(page,'#c64Mode','selectOption','animation');
  const panel=page.locator('#c64Readiness');await expect(panel).toContainText('Needs adjustment');
  const fix=panel.getByRole('button',{name:'Apply tested 8-second loop'});await expect(fix).toBeVisible();

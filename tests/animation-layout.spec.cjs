@@ -8,7 +8,7 @@ test('animation controls are grouped, paired and preserve projects at iPad sizes
   for(const [left,right]of [['waveDirection','waveShape'],['waveAmplitude','animationCycles'],['colorWaveDirection','colorWaveShape'],['colorWaveAmplitude','animationColorCycles']]){
    const a=await page.locator('#'+left).boundingBox(),b=await page.locator('#'+right).boundingBox();expect(Math.abs(a.y-b.y)).toBeLessThan(2);expect(b.x).toBeGreaterThan(a.x+a.width-1);
   }
-  const bounds=await page.locator('#animationDetails').boundingBox();expect(bounds.height).toBeLessThan(680);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  const bounds=await page.locator('#animationDetails').boundingBox();const stacked=await page.addStyleTag({content:'#animationDetails .animation-section{grid-template-columns:minmax(0,1fr)}#animationDetails .animation-section>.field{grid-column:1!important}'});const stackedHeight=(await page.locator('#animationDetails').boundingBox()).height;await stacked.evaluate(e=>e.remove());expect(bounds.height).toBeLessThan(stackedHeight*.85);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   await page.screenshot({path:'/tmp/animation-grouped-'+width+'.png',fullPage:true});
   await page.addStyleTag({content:'html{font-size:200%}'});await ui(page,'#waveAmplitude','selectOption','75');await ui(page,'#colorWaveAmplitude','selectOption','25');await ui(page,'#animationSeconds','selectOption','2');
   expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
