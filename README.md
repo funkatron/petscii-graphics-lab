@@ -165,6 +165,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Replay drawing** | Paint, erase, and repaint actions appear in recorded order. The finished picture holds for the last quarter of each cycle. |
 | **Scroll horizontally / Scroll vertically** | The drawing wraps around. **Scroll direction** chooses left, right, up, or down. |
 | **Wave rows / columns** | Rows or columns shift in a repeating wave. Choose its travel direction and waveform. |
+| **Ripple** | Waves radiate from the canvas center, shifting glyphs and their inks. Choose waveform, wavelength and height in Movement. The center stays fixed; edges can move out of view. |
 | **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Scroll direction chooses travel; Movement → Height controls the bend. Glyphs and their inks move together. |
 | **Bouncing logo** | Move the occupied part of the drawing around the canvas. Leave empty margins for travel. Movement → Travel sets how far it moves. |
 | **Stretching logo** | Squeeze and release the occupied area horizontally and vertically. Movement → Squeeze sets the amount. Whole C64 glyphs stay intact; shrinking can skip cells. |
@@ -205,7 +206,7 @@ Wave controls appear only when their effect is selected. Sine scroller uses a fi
 | **Sawtooth** | Rises steadily, then jumps back |
 | **Reverse sawtooth** | Falls steadily, then jumps back |
 
-**Wavelength** changes the spacing between waves. Movement and Color each have their own setting: **10%, 25%, 50%, 75%, or 100%**. **50% matches the original appearance; 100% is twice as long**, and 25% is half as long. Shorter wavelengths fit more waves into the same area. This changes spacing independently of height and cycles per loop. Movement wavelength applies to Wave rows / columns and Sine scroller; color wavelength applies to Rainbow wave, Raster-style bars and Plasma field. Existing projects start at 50%.
+**Wavelength** changes the spacing between waves. Movement and Color each have their own setting: **10%, 25%, 50%, 75%, or 100%**. **50% matches the original appearance; 100% is twice as long**, and 25% is half as long. Shorter wavelengths fit more waves into the same area. This changes spacing independently of height and cycles per loop. Movement wavelength applies to Wave rows / columns, Sine scroller and Ripple; color wavelength applies to Rainbow wave, Raster-style bars and Plasma field. Existing projects start at 50%.
 
 **Movement → Height** sets movement distance to **10%, 25%, 50%, 75%, or 100%** of the expanded movement range. At 100%, the maximum distance is twice the previous range; 50% matches the previous range. Height changes distance independently of direction, waveform, loop duration and cycles. **Color → Height** offers the same percentages for **Rainbow wave** and **Raster-style bars**, independently of movement. At 100% it uses the full existing color sequence; lower heights use a smaller range starting from each cell’s position in that sequence. Color cycle and Warm glow do not use waveforms and have no height control. Low color heights may hold a single color.
 
