@@ -134,6 +134,10 @@ Resizing keeps the overlapping artwork at the top left. Applying both dimensions
 
 **Project → Download editable project** saves a JSON project file containing the drawing, cell colors, animation settings, and drawing replay. Use **Open project** to resume editing on this or another device.
 
+**Project → File name** starts with a memorable random three-word name, such as `amber-lunar-otter.json`. Edit it before either saving action if you prefer. The name stays the same for the current page session. The app adds `.json` if needed and replaces characters unsuitable for filenames with underscores. This name is an export preference, not part of the drawing.
+
+On devices that support file sharing, **Project → Share / Save project** opens the native share sheet. On iPad, choose **Save to Files** and select a folder. Use this if Safari reports a download error. Canceling leaves your artwork unchanged. Download status means the browser received the request; check Downloads or Files to confirm the file was saved.
+
 **Project → Open text grid** opens a `.txt` glyph-grid file downloaded from the editor. It detects glyph-only or color text automatically, replaces the drawing, and supports Undo. Color text restores cell inks and background; glyph-only text uses the current brush ink and keeps the background. Text grids omit animation settings and replay; use an editable project to preserve those. Invalid files leave your work unchanged.
 
 The editor also keeps **one automatic draft on this device**. Look for **Saved on this device**. If saving fails, the editor shows a backup notice.

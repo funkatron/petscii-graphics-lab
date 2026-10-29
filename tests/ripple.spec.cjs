@@ -50,3 +50,24 @@ test('Ripple repeats cycles and preserves a one-cell center',async({page})=>{
  await ui(page,'#animationCycles','selectOption','16');await ui(page,'#animationSeconds','selectOption','0.5');await expect(page.locator('#quickPlay')).toBeDisabled();
  await loadProject(page,project([160],1,1,{cellColors:[2],animation:{...settings}}));const single=new GifReader(await download(page,'#exportGif'));for(let f=0;f<24;f++){const pixels=Buffer.alloc(8*8*4);single.decodeAndBlitFrameRGBA(f,pixels);expect([...pixels.subarray(0,4)]).toEqual([...rgb[2],255])}
 });
+
+for(const resetMode of ['native reset','width fallback'])test('ripple repaints empty cells throughout playback after workspace resizing with '+resetMode,async({page})=>{
+ if(resetMode==='width fallback')await page.evaluate(()=>{CanvasRenderingContext2D.prototype.reset=undefined});
+ test.setTimeout(60000);
+ await page.clock.install({time:new Date('2026-01-01T00:00:00Z')});
+ await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
+ const a=await art(page,{waveLength:25,colorWaveLength:100,colorEffect:'plasma'});
+ for(const sidebarOpen of [false,true]){
+  if(await page.locator('#sidebar').evaluate(e=>!e.classList.contains('closed'))!==sidebarOpen)await page.locator('#toggle').click();
+  await page.clock.runFor(300);
+  await ui(page,'#quickPlay');
+  const seen=new Set();
+  for(let sample=0;sample<65;sample++){
+   const {f,pixels}=await page.locator('#canvas').evaluate(c=>({f:Number(c.dataset.animationFrame),pixels:Array.from({length:32},(_,i)=>[...c.getContext('2d').getImageData(Math.floor((i%8+.5625)*c.width/8),Math.floor((Math.floor(i/8)+.5625)*c.height/4),1,1).data].slice(0,3))})),frame=reference(f,a);
+   seen.add(f);expect(pixels,`sidebar ${sidebarOpen}, frame ${f}`).toEqual(frame.cells.map((g,i)=>rgb[g===''?6:frame.inks[i]]));
+   await page.clock.runFor(16);
+  }
+  expect([...seen].sort((a,b)=>a-b)).toEqual(Array.from({length:24},(_,i)=>i));
+  await ui(page,'#quickPlay');await ui(page,'#returnDrawing');
+ }
+});
