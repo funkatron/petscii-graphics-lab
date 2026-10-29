@@ -114,7 +114,8 @@ button,select,.field input[type=number]{min-height:44px}
 #symmetryMenu{position:relative;border:1px solid #42536b;border-radius:9px}
 .tool-popover{position:absolute;top:100%;right:0;background:#18263a;border:1px solid #54718c;padding:14px;width:210px;border-radius:9px;box-shadow:0 10px 30px #0008}
 #projectMenu>summary{list-style:none;border:1px solid #42536b;border-radius:9px;padding:11px;font-size:.8rem}
-.project-menu{position:absolute;right:12px;top:58px;max-width:min(340px,95vw);padding:14px;background:#18263a;border:1px solid #54718c;z-index:12;border-radius:10px;box-shadow:0 10px 35px #0008}
+.project-menu{position:absolute;right:12px;top:58px;width:min(340px,calc(100vw - 24px));box-sizing:border-box;max-height:calc(100dvh - 80px);overflow:auto;padding:14px;background:#18263a;border:1px solid #54718c;z-index:12;border-radius:10px;box-shadow:0 10px 35px #0008}
+.project-menu fieldset{min-width:0;margin:0 0 12px;padding:10px;border:1px solid #42536b;border-radius:8px}.project-menu fieldset:last-child{margin-bottom:0}.project-menu legend{font-size:.8rem;font-weight:700}.project-menu input{box-sizing:border-box;max-width:100%;min-width:0}.project-menu .row{flex-direction:column}.project-menu .save-hint{font-size:.72rem;line-height:1.4;margin:6px 0}
 #saveStatus{max-width:145px;font-size:.68rem}
 .preview-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#b5e9dd;font-size:.8rem}
 .preview-banner button{font-size:.75rem}
@@ -157,9 +158,9 @@ dialog::backdrop{background:#0009}
 </head>
 <body>
 <div class="app">
-<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="field"><label for="projectFilename">File name</label><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false"></div><div class="row"><button id="saveProject">Download editable project</button><button id="loadProject">Open project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
+<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="projectMenu"><summary>Project</summary><div class="project-menu"><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">File name</label><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false"></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint">Download a JSON file, or use Share / Save project to choose Save to Files on iPad.</p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
 <div class="row"><button id="openTextGrid">Open text grid</button></div><input id="textGridFile" type="file" accept=".txt,text/plain" hidden>
-<p class="note">Text grids replace the drawing and can be undone. Project files keep editable art and replay. Changes also autosave on this device.</p>
+<p class="note">Text grids replace the drawing and can be undone. Project files keep editable art and replay. Changes also autosave on this device.</p></fieldset>
 </div></details><span id="saveStatus" class="note" role="status">Saved on this device</span><button id="downloadOpen">Download artwork</button><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
 <div class="drawing-strip" role="toolbar" aria-label="Drawing controls"><button id="glyphToggle" aria-expanded="false" aria-controls="glyphPicker" title="Choose a glyph"><canvas id="glyphPreview" width="24" height="24" aria-hidden="true"></canvas><span>Glyphs</span></button><button id="inkQuick" aria-label="Choose ink color" popovertarget="inkPopover" aria-controls="inkPopover"><span id="inkChip" class="color-chip"></span><span class="tool-label">Ink</span></button><button id="paint" aria-pressed="true">Paint</button><button id="erase" aria-pressed="false">Eraser</button><details id="symmetryMenu"><summary aria-label="Symmetry" id="symmetrySummary">↔<span class="tool-label" id="symmetryLabel"> Symmetry</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
 </div></details><button id="undo" aria-label="Undo" disabled>↶<span class="tool-label"> Undo</span></button><button id="redo" aria-label="Redo" disabled>↷<span class="tool-label"> Redo</span></button></div><section id="inkPopover" popover="auto" aria-labelledby="inkTitle"><div class="dialog-heading"><h2 id="inkTitle">Brush ink</h2><button id="inkClose" popovertarget="inkPopover" popovertargetaction="hide" aria-label="Close ink palette">✕</button></div><p id="inkSelection" class="note"></p><p class="note">For your next strokes. Existing cells keep their colors.</p><div id="quickInkPalette" class="color-grid" role="group" aria-label="Brush ink colors"></div></section><div class="layout">
@@ -1035,8 +1036,9 @@ function randomProjectFilename(){
  return words.map((list,i)=>list[values[i]%list.length]).join('-')+'.json';
 }
 $('projectFilename').value=randomProjectFilename();
+$('projectFilename').oninput=()=>{$('projectFilename').removeAttribute('aria-invalid')};
 function projectFilename(){
- const name=$('projectFilename').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_');if(!name||/^\.+$/.test(name))throw Error('Enter a project file name');return /\.json$/i.test(name)?name:name+'.json';
+ const name=$('projectFilename').value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_');if(!name||/^\.+$/.test(name)){$('projectMenu').open=true;$('projectFilename').setAttribute('aria-invalid','true');$('projectFilename').focus();throw Error('Enter a project file name')}$('projectFilename').removeAttribute('aria-invalid');return /\.json$/i.test(name)?name:name+'.json';
 }
 function projectFile(){return new File([JSON.stringify(projectData(),null,2)],projectFilename(),{type:'application/json'})}
 // Self-contained project URLs survive Safari's deferred download handoff.
@@ -1047,6 +1049,7 @@ function downloadProject(){
 }
 $('saveProject').onclick=()=>{$('projectMenu').open=false;try{downloadProject();setStatus('Project download requested. If it fails, use Share / Save project when available.')}catch(e){setStatus('Project download failed: '+e.message)}};
 try{$('shareProject').hidden=!(navigator.share&&navigator.canShare?.({files:[new File(['{}'],'petscii-project.json',{type:'application/json'})]}))}catch{$('shareProject').hidden=true}
+if($('shareProject').hidden)$('projectSaveHint').textContent='Download an editable JSON file. Check Downloads or Files to confirm it was saved.';
 $('shareProject').onclick=async()=>{
  $('projectMenu').open=false;const button=$('shareProject');button.disabled=true;
  try{const file=projectFile();await navigator.share({files:[file]});setStatus('Project handed to the share sheet.')}catch(e){setStatus(e.name==='AbortError'?'Project sharing canceled.':'Project sharing failed: '+e.message+'. Try Download editable project.')}finally{button.disabled=false}
