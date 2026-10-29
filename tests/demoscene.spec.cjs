@@ -1,5 +1,5 @@
 const {GifReader}=require('omggif'),AdmZip=require('adm-zip'),{PNG}=require('pngjs');
-const {test,expect,ui,project,loadProject,download}=require('./helpers.cjs');
+const {test,expect,ui,project,loadProject,waitForPreviewAdvance,waitForProjectAutosave,download}=require('./helpers.cjs');
 const colors=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'].map(c=>[0,2,4].map(n=>parseInt(c.slice(n,n+2),16)));
 const grid=Array.from({length:32},(_,i)=>i%5===0?'':160),inks=grid.map((_,i)=>i%16),ramp=[0,6,14,3,1,3,14,6],wrap=(n,s)=>(n%s+s)%s;
 const settings={effect:'sine-scroll',colorEffect:'raster-bars',seconds:1,scale:1,background:'dark',scrollDirection:'left',waveAmplitude:50,colorWaveAmplitude:100,colorWaveDirection:'up',colorWaveShape:'sawtooth'};
@@ -29,9 +29,9 @@ test('new animation exports exact shared C64 program and disk bytes',async({page
 test('new effects expose contextual controls, preserve source/preview and persist through project history',async({page})=>{
  await loadProject(page,project(grid,8,4,{cellColors:inks,animation:settings}));const before=JSON.parse(await download(page,'#saveProject'));
  await ui(page,'#scrollDirection','selectOption','right');await expect(page.locator('#animationEffect')).toHaveValue('sine-scroll');await expect(page.locator('#waveDirection')).toBeHidden();await expect(page.locator('#waveShape')).toBeHidden();await expect(page.locator('#waveAmplitude')).toBeVisible();await expect(page.locator('#colorWaveAmplitude')).toBeVisible();
- await ui(page,'#scrollDirection','selectOption','left');await ui(page,'#quickPlay');await page.waitForTimeout(120);await ui(page,'#quickPlay');const f=Number(await page.locator('#canvas').getAttribute('data-animation-frame'));
+ await ui(page,'#scrollDirection','selectOption','left');await ui(page,'#quickPlay');await waitForPreviewAdvance(page);await ui(page,'#quickPlay');const f=Number(await page.locator('#canvas').getAttribute('data-animation-frame'));
  const pixels=await page.locator('#canvas').evaluate(c=>{const ctx=c.getContext('2d');return Array.from({length:32},(_,i)=>[...ctx.getImageData(Math.floor((i%8+.5)*c.width/8),Math.floor((Math.floor(i/8)+.5)*c.height/4),1,1).data].slice(0,3))});const frame=expected()[f];expect(pixels).toEqual(frame.cells.map((g,i)=>colors[g===''?6:frame.inks[i]]));expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
- await ui(page,'#returnDrawing');await loadProject(page,project([160],1,1));await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await page.waitForTimeout(350);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ await ui(page,'#returnDrawing');await loadProject(page,project([160],1,1));await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
  await ui(page,'#animationColor','selectOption','none');await ui(page,'#animationColor','selectOption','raster-bars');await expect(page.locator('#colorWaveDirection')).toHaveValue('up');await ui(page,'#animationEffect','selectOption','wave');await expect(page.locator('#waveShape')).toBeVisible();
 });
 test('new effects freeze export settings before asynchronous loading',async({page})=>{

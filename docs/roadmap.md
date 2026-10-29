@@ -9,7 +9,9 @@ This page tracks requested work and completed milestones. For current controls, 
 3. **New animation types:** prioritize additional creative effects over C64 capacity optimization and memory-expansion support; continue the demoscene-inspired effects below.
 4. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
 
-## Brittle-test audit — planned
+## Brittle-test audit — in progress
+
+See the [audit findings and remaining work](test-reliability-audit.md).
 
 - [ ] Audit animation tests for fixed sleeps, frame-clock races and samples that cover only the first few frames. Prefer controlled clocks and assert the displayed frame and its pixels together.
 - [ ] Review fixed layout/pixel limits across both iPad orientations and enlarged text; preserve checks for actual overlap, reachability and glyph/color correctness.
