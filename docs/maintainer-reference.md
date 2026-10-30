@@ -322,8 +322,10 @@ Editable project downloads use a self-contained base64 data URL with an octet-st
 
 Feature-detect file sharing with canShare and a JSON File before exposing Share / Save project. Build the current file synchronously inside the click handler, then invoke navigator.share. Preserve source and autosave, restore the button after success/cancel/failure, and distinguish a browser download request/share handoff from verified disk saving. Native iPad save completion requires physical-device verification; headless WebKit download events alone do not prove the reported Safari error is fixed.
 
-Project filename is transient UI state shared by both save actions. Trim whitespace, replace filesystem-reserved/control characters, reject empty or dot-only names, and append .json case-insensitively when absent. Capture the name with the current project before download/share. Do not add it to v3 project data or history.
+Project filename is transient UI state shared by both save actions. Trim whitespace, remove pasted trailing .json suffixes case-insensitively, replace filesystem-reserved/control characters, reject empty or dot-only stems, and append the fixed lowercase .json suffix. Capture the name with the current project before download/share. Do not add it to v3 project data or history.
 
 Generate the initial filename once per page from three 16-word lists using crypto.getRandomValues; do not regenerate on menu navigation or saving, and never overwrite a user edit. Names are convenient defaults, not guaranteed unique identifiers.
 
 Project navigation groups filename/download/native sharing separately from project/text-grid opening. Keep the menu within the viewport and scrollable at enlarged text sizes. Invalid filenames reopen the menu, retain the entered value, mark the field invalid and focus it for correction; no file request occurs.
+
+Show only the capability-selected saving action: native sharing when available, otherwise project download. Do not reveal a duplicate download action on share failure; keep native retry available. The name field holds a stem with a separate fixed .json suffix. Strip pasted trailing .json suffixes case-insensitively before validation and append exactly one lowercase .json. Other suffixes are part of the stem and cannot change the output file type.
