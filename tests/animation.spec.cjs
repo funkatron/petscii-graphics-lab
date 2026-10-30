@@ -14,12 +14,13 @@ test('replay records paint, erase, repaint and symmetry without losing undo hist
  p=JSON.parse(await download(page,'#saveProject'));expect(p.drawingReplay.events.slice(-4).map(e=>e[0]).sort()).toEqual([1,2,5,6]);
 });
 test('preview changes pixels, pauses, stops, and never alters the saved grid',async({page})=>{
+ await page.clock.install();
  const original=[160,'','',''];await loadProject(page,project(original,4,1));await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#animationSeconds','selectOption','1');
  const pixels=()=>page.locator('#canvas').evaluate(c=>{const t=c.getContext('2d');return Array.from({length:4},(_,x)=>Array.from(t.getImageData(Math.floor(c.width*(x+.5)/4),Math.floor(c.height/2),1,1).data))});
  await expect.poll(pixels).toEqual([ink,[53,40,121,255],[53,40,121,255],[53,40,121,255]]);
  const before=await pixels();await ui(page,'#quickPlay');
  await expect.poll(pixels).not.toEqual(before);
- await ui(page,'#quickPlay');const paused=await pixels();await page.waitForTimeout(350);expect(await pixels()).toEqual(paused);
+ await ui(page,'#quickPlay');const paused=await pixels();await page.clock.runFor(2000);expect(await pixels()).toEqual(paused);
  expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(original);
  await ui(page,'#animationStop');expect(await pixels()).toEqual(before);
  await ui(page,'#quickPlay');await clickCell(page,1,0);await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');

@@ -13,7 +13,7 @@ This page tracks requested work and completed milestones. For current controls, 
 
 See the [audit findings and remaining work](test-reliability-audit.md).
 
-- [ ] Audit animation tests for fixed sleeps, frame-clock races and samples that cover only the first few frames. Prefer controlled clocks and assert the displayed frame and its pixels together.
+- [ ] Finish browser validation of animation timing audit: guessed waits replaced, pause/stop stability uses controlled clocks; continue reviewing frame/pixel sampling.
 - [ ] Review fixed layout/pixel limits across both iPad orientations and enlarged text; preserve checks for actual overlap, reachability and glyph/color correctness.
 - [ ] Review saved-project fixtures and default settings so schema additions and benchmark workload changes are explicit rather than accidental.
 - [ ] Identify flaky shared helpers and order-dependent browser state. Reproduce failures before changing assertions; retain regressions for confirmed product defects.
