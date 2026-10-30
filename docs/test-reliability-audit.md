@@ -94,3 +94,11 @@ Pin wavelength and color-wave amplitude explicitly in the capacity matrix, along
 PR #39 passed all nine jobs for `ca2df1d` in run 147. Its import-default contract and explicit capacity settings are validated.
 
 The native 96-frame and 192-frame CPU benchmarks still inherited movement height, both wavelengths, color height and some directions/shapes from import defaults. Pin these to their existing normalized values (movement/color height 100%, wavelengths 50%, upward sine movement, and the existing per-case color direction/shape). Preserve geometry, glyphs, cycles, duration, exported bytes, frame-state comparisons and CPU/drift ceilings. Direct exporter tests already construct their frame arrays explicitly. This changes workload ownership, not the intended workload or product. Syntax/discovery checks pass; browser and CPU execution remain subject to CI.
+
+## Seventh pass: navigation/download evidence
+
+PR #40 passed all nine CI jobs for `a51f091` (run 149). Native benchmark fixture settings are validated.
+
+Review retained the remaining layout geometry and rounding tolerances; no reproduced failure justifies relaxing them. The historical C64-only download flake remains unresolved. Add a repeated navigation scenario that alternates animation/data tabs, editable-project saving, text and PNG downloads, comparing complete file bytes with their initial output and checking exact glyph text. No claim is made that this reproduces or fixes the flake.
+
+On shared download-helper failure, attach the selected action, status, open panels, export tab/format and target geometry/disabled state. Rethrow the original error even if attachment collection fails. Preserve existing timeouts, retries and assertions. The attachment provides evidence for future failures without exposing project contents. Browser CI remains required.
