@@ -88,3 +88,9 @@ PR #38 passed all nine CI jobs for `263c2a1` (run 145). Shared sampling and comp
 Keep the historical four-second `project()` helper baseline separate from new-project UI defaults. Add a dedicated exact serialization test for omitted optional animation settings: first load deliberately different settings, then import the sparse fixture, compare against an explicit normalized object and equivalent explicit import, and verify exact autosave/reload plus stopped playback. This checks that omissions do not inherit previous-project state. The expected object is independent of application serialization code.
 
 Pin wavelength and color-wave amplitude explicitly in the capacity matrix, alongside its existing movement amplitude, directions, shapes, cycles and duration. These values match the previous normalized workload; future defaults must not silently change it. Existing byte/CPU and frame-count checks remain intact. Browser CI remains required for this pass. Other benchmark suites, layout tolerances and shared download/navigation helpers remain open.
+
+## Sixth pass: native benchmark settings
+
+PR #39 passed all nine jobs for `ca2df1d` in run 147. Its import-default contract and explicit capacity settings are validated.
+
+The native 96-frame and 192-frame CPU benchmarks still inherited movement height, both wavelengths, color height and some directions/shapes from import defaults. Pin these to their existing normalized values (movement/color height 100%, wavelengths 50%, upward sine movement, and the existing per-case color direction/shape). Preserve geometry, glyphs, cycles, duration, exported bytes, frame-state comparisons and CPU/drift ceilings. Direct exporter tests already construct their frame arrays explicitly. This changes workload ownership, not the intended workload or product. Syntax/discovery checks pass; browser and CPU execution remain subject to CI.

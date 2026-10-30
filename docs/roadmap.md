@@ -14,9 +14,10 @@ This page tracks requested work and completed milestones. For current controls, 
 See the [audit findings and remaining work](test-reliability-audit.md).
 
 - [x] Validate animation state waits and controlled-clock pause/stop checks in Chromium and both iPad WebKit layouts; released in PR #37 after all nine CI jobs passed.
-- [ ] Validate shared atomic frame/pixel sampling and composite preview/autosave synchronization in all three browsers.
+- [x] Validate shared atomic frame/pixel sampling and composite preview/autosave synchronization in all three browsers; PR #38.
 - [ ] Review fixed layout/pixel limits across both iPad orientations and enlarged text; preserve checks for actual overlap, reachability and glyph/color correctness.
-- [ ] Review saved-project fixtures and default settings so schema additions and benchmark workload changes are explicit rather than accidental.
+- [x] Add independent omitted-field serialization and autosave/reload checks; PR #39.
+- [ ] Finish benchmark fixture review: capacity settings are explicit; native-player workloads now pin wave settings and await browser CI.
 - [ ] Identify flaky shared helpers and order-dependent browser state. Reproduce failures before changing assertions; retain regressions for confirmed product defects.
 
 ## Phone UI — planned
