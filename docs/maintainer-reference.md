@@ -329,3 +329,7 @@ Generate the initial filename once per page from three 16-word lists using crypt
 Project navigation groups filename/download/native sharing separately from project/text-grid opening. Keep the menu within the viewport and scrollable at enlarged text sizes. Invalid filenames reopen the menu, retain the entered value, mark the field invalid and focus it for correction; no file request occurs.
 
 Show only the capability-selected saving action: native sharing when available, otherwise project download. Do not reveal a duplicate download action on share failure; keep native retry available. The name field holds a stem with a separate fixed .json suffix. Strip pasted trailing .json suffixes case-insensitively before validation and append exactly one lowercase .json. Other suffixes are part of the stem and cannot change the output file type.
+
+### Diagonal scrolling
+
+`scroll-diagonal` accepts `scrollDirection` up-left/up-right/down-left/down-right, default up-left when omitted. Other effects retain cardinal-only scroll directions. At motion phase p, inverse-map source x by floor(p × columns), source y by floor(p × rows), independently wrapped; right/down negate the corresponding offset. Carry glyphs and cell inks together before the shared color pass. Target max(columns,rows) samples per cycle using existing cycle/budget rules. Preserve existing cardinal bytes. Switching from diagonal to other effects resets to a supported direction. Existing v3 projects remain valid; earlier app versions reject the new effect identifier.
