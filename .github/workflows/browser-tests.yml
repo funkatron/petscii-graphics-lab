@@ -15,8 +15,9 @@ jobs:
       fail-fast: false
       matrix:
         project: [chromium, ipad-touch, ipad-portrait]
+        shard: [1, 2, 3]
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 20
     # Match @playwright/test in package-lock.json. Browsers and OS dependencies are included.
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-noble
@@ -35,16 +36,16 @@ jobs:
           /tmp/petscii-test-venv/bin/python -m pip install py65==1.2.0
           echo "/tmp/petscii-test-venv/bin" >> "$GITHUB_PATH"
       - name: Check portrait rendering and navigation regressions
-        if: matrix.project == 'ipad-portrait'
+        if: matrix.project == 'ipad-portrait' && matrix.shard == 1
         run: npx playwright test tests/colors.spec.cjs tests/layout.spec.cjs --project=ipad-portrait --workers=1 --grep 'authentic bitmap geometry|glyph picker is independent'
-      # Allow 25 minutes for the full suite; keep room for setup and artifact upload.
+      # Run each browser in three independent shards; retain every test in every browser.
       # Per-test timeouts and retries remain defined in playwright.config.cjs.
       - name: Run browser and export checks
-        run: npm test -- --project=${{ matrix.project }} --workers=1 --global-timeout=1500000
+        run: npm test -- --project=${{ matrix.project }} --workers=1 --shard=${{ matrix.shard }}/3 --global-timeout=900000
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-${{ matrix.project }}
+          name: playwright-report-${{ matrix.project }}-${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
