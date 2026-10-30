@@ -35,3 +35,21 @@ The existing independent pixel references, project round trips, Undo checks and 
 - [ ] Confirm the audit changes in Chromium and both iPad WebKit CI projects.
 
 A passing retry alone is not evidence that a defect is fixed. Preserve failure logs and screenshots, distinguish test synchronization problems from product rendering defects, and report what was actually reproduced.
+
+## CI suite budget follow-up
+
+PR #35's first run reached the 20-minute suite limit in both WebKit jobs: portrait had 268 passing tests and seven unrun tests; landscape had 258 passing tests and sixteen unrun tests. Chromium completed successfully. No final assertion failure caused either WebKit job to stop.
+
+Allow 25 minutes for the complete suite and 35 minutes for each Actions job, including setup, the portrait preflight and artifact upload. Individual test timeouts and retries stay unchanged. This budget change must be verified by a complete CI run; it does not establish that the remaining tests pass.
+
+The landscape C64-only palette/tool test also timed out waiting for a download on its first attempt and passed on retry. Keep this flake open for investigation under shared helpers/download handoffs; a larger suite budget does not fix it.
+
+## Parallel CI execution
+
+The successful PR #35 run 136 still took 20 minutes 32 seconds for portrait tests (21 minutes 20 seconds including setup), compared with about 13 minutes for the other browsers. The portrait HTML report attributes 1,220 seconds to tests. Work was spread across files: intro-motion took 105 seconds, animation-controls 62 seconds and c64-native 55 seconds. The slowest individual test took about 30 seconds.
+
+Run three Playwright shards for each of the three browsers, keeping one worker per job and existing per-test timeout/retry settings. File-level grouping and order within each file remain the Playwright defaults. No tests or browsers are removed. Portrait preflight runs only in portrait shard 1, and each shard uploads uniquely named artifacts plus a JSON timing report.
+
+Test discovery assigns all 276 tests exactly once per browser. Applying run 136 portrait timings to the discovered shards estimates 7.72, 7.11 and 5.51 minutes of test work. These estimates exclude setup, queue time and runtime variability; the next CI run must establish actual elapsed time. Nine jobs increase setup overhead and may queue when runner concurrency is limited.
+
+Replace the temporary 25-minute suite budget with a 15-minute budget per shard and a 20-minute Actions job limit. The limits remain safeguards; they are not performance measurements. The download flake recorded above remains open.

@@ -325,3 +325,5 @@ Feature-detect file sharing with canShare and a JSON File before exposing Share 
 Project filename is transient UI state shared by both save actions. Trim whitespace, replace filesystem-reserved/control characters, reject empty or dot-only names, and append .json case-insensitively when absent. Capture the name with the current project before download/share. Do not add it to v3 project data or history.
 
 Generate the initial filename once per page from three 16-word lists using crypto.getRandomValues; do not regenerate on menu navigation or saving, and never overwrite a user edit. Names are convenient defaults, not guaranteed unique identifiers.
+
+Project navigation groups filename/download/native sharing separately from project/text-grid opening. Keep the menu within the viewport and scrollable at enlarged text sizes. Invalid filenames reopen the menu, retain the entered value, mark the field invalid and focus it for correction; no file request occurs.
