@@ -15,10 +15,11 @@ See the [audit findings and remaining work](test-reliability-audit.md).
 
 - [x] Validate animation state waits and controlled-clock pause/stop checks in Chromium and both iPad WebKit layouts; released in PR #37 after all nine CI jobs passed.
 - [x] Validate shared atomic frame/pixel sampling and composite preview/autosave synchronization in all three browsers; PR #38.
-- [ ] Review fixed layout/pixel limits across both iPad orientations and enlarged text; preserve checks for actual overlap, reachability and glyph/color correctness.
+- [x] Review animation/layout thresholds; retain geometry, overlap and rounding checks. PR #37 removes the undocumented height percentage; PR #41 retains the remaining tolerances.
 - [x] Add independent omitted-field serialization and autosave/reload checks; PR #39.
-- [ ] Finish benchmark fixture review: capacity settings are explicit; native-player workloads now pin wave settings and await browser CI.
-- [ ] Identify flaky shared helpers and order-dependent browser state. Reproduce failures before changing assertions; retain regressions for confirmed product defects.
+- [x] Pin capacity and native-player benchmark wave settings; PR #39 and PR #40 passed all nine CI jobs.
+- [x] Add repeated download/navigation coverage and failure-state attachments; PR #41 passed all nine CI jobs.
+- [ ] Reproduce the recorded download flake using failure evidence. Keep it open; no confirmed fix or order-dependence claim.
 
 ## Phone UI — planned
 
@@ -46,7 +47,7 @@ A shader is a visual effect applied over the rendered canvas. Explore quick ways
 
 ## Additional animations — in progress
 
-- [ ] Investigate diagonal directions for movement animations, using the existing color-animation direction choices as a reference. Determine which effects benefit, define movement speed and wrapping at corners, and verify preview/export consistency before committing to implementation.
+- [ ] Investigate diagonal directions for movement animations, using the existing color-animation direction choices as a reference. Source review and a proposed first scroll implementation are documented in the [diagonal movement investigation](diagonal-movement.md). Validate preview/export consistency before release.
 
 - [x] Release Sine scroller and Raster-style bars with shared preview/download behavior; PR #27.
 - [x] Release Plasma field using intersecting color waves and the existing color controls; PR #28.
