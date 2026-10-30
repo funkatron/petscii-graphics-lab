@@ -26,3 +26,14 @@ test('diagonal controls, preview, history and saved projects preserve direction 
  for(const effect of ['starfield','sine-scroll','wipe','scroll-x']){await loadProject(page,{...before,animation:{...before.animation,effect}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
  await ui(page,'#animationEffect','selectOption','starfield');await expect(page.locator('#scrollDirection')).toHaveValue('left');await ui(page,'#animationEffect','selectOption','scroll-diagonal');await expect(page.locator('#scrollDirection')).toHaveValue('up-left');
 });
+test('independent color cycles share diagonal frames with native PRG and D64 exports',async({page})=>{
+ const p=art(5,3,'down-left');p.animation={...p.animation,seconds:4,colorEffect:'color-cycle',motionCycles:2,colorCycles:4};await loadProject(page,p);
+ const gif=new GifReader(await download(page,'#exportGif')),zip=new AdmZip(await download(page,'#exportFrames')),timing=JSON.parse(zip.readAsText('timing.json')),ramp=[0,11,12,15,1,7,13,5,3,14,6,4,2,10,8,9],frames=[];
+ expect(gif.numFrames()).toBe(64);
+ for(let f=0;f<64;f++){
+  const picture=frame(p,'down-left',f%32,32);picture.inks=picture.inks.map((ink,i)=>picture.cells[i]===''?ink:ramp[(ramp.indexOf(ink)+f%16)%16]);
+  const actual=Buffer.alloc(5*8*3*8*4);gif.decodeAndBlitFrameRGBA(f,actual);expect(actual).toEqual(pixels(p,picture));expect(PNG.sync.read(zip.readFile(timing.frames[f].file)).data).toEqual(pixels(p,picture));frames.push({...picture,durationMs:timing.frames[f].durationMs});
+ }
+ const expected=await page.evaluate(async frames=>{const {createC64AdaptiveProgram,createD64Disk}=await import('./c64-export.js');const {bytes}=createC64AdaptiveProgram({columns:5,rows:3,background:6,ink:14,repetitions:0,frames});return {prg:[...bytes],d64:[...createD64Disk(bytes,'ANIMATION')]}},frames);
+ await ui(page,'#c64Mode','selectOption','animation');expect([...await download(page,'#exportC64')]).toEqual(expected.prg);await ui(page,'#c64Format','selectOption','d64');expect([...await download(page,'#exportC64')]).toEqual(expected.d64);
+});
