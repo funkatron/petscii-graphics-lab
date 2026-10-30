@@ -80,3 +80,11 @@ Review found that the live Ripple regression already sampled its frame marker an
 The composite preview check used `not.toBe('0')`, which also accepts an empty or missing marker. Require positive frame advancement with the existing helper. Before its reload, wait for the exact expected autosaved project instead of relying on earlier export/navigation work to outlast the debounce. No reproduced product defect or download-flake fix is claimed.
 
 Syntax and test discovery cover 189 cases across the six affected suites and three browser projects. Browser CI is still required for this pass. Shared navigation/download behavior, serialization fixtures and remaining layout thresholds remain open.
+
+## Fifth pass: fixture ownership and import defaults
+
+PR #38 passed all nine CI jobs for `263c2a1` (run 145). Shared sampling and composite synchronization are validated.
+
+Keep the historical four-second `project()` helper baseline separate from new-project UI defaults. Add a dedicated exact serialization test for omitted optional animation settings: first load deliberately different settings, then import the sparse fixture, compare against an explicit normalized object and equivalent explicit import, and verify exact autosave/reload plus stopped playback. This checks that omissions do not inherit previous-project state. The expected object is independent of application serialization code.
+
+Pin wavelength and color-wave amplitude explicitly in the capacity matrix, alongside its existing movement amplitude, directions, shapes, cycles and duration. These values match the previous normalized workload; future defaults must not silently change it. Existing byte/CPU and frame-count checks remain intact. Browser CI remains required for this pass. Other benchmark suites, layout tolerances and shared download/navigation helpers remain open.
