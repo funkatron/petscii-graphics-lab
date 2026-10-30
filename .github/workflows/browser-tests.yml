@@ -16,7 +16,7 @@ jobs:
       matrix:
         project: [chromium, ipad-touch, ipad-portrait]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     # Match @playwright/test in package-lock.json. Browsers and OS dependencies are included.
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-noble
@@ -37,8 +37,10 @@ jobs:
       - name: Check portrait rendering and navigation regressions
         if: matrix.project == 'ipad-portrait'
         run: npx playwright test tests/colors.spec.cjs tests/layout.spec.cjs --project=ipad-portrait --workers=1 --grep 'authentic bitmap geometry|glyph picker is independent'
+      # Allow 25 minutes for the full suite; keep room for setup and artifact upload.
+      # Per-test timeouts and retries remain defined in playwright.config.cjs.
       - name: Run browser and export checks
-        run: npm test -- --project=${{ matrix.project }} --workers=1 --global-timeout=1200000
+        run: npm test -- --project=${{ matrix.project }} --workers=1 --global-timeout=1500000
       - uses: actions/upload-artifact@v4
         if: always()
         with:
