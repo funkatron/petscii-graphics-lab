@@ -5,6 +5,7 @@ test.beforeEach(async({page})=>{
  await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,3,4,5],animation:{effect:'scroll-x',colorEffect:'color-wave',seconds:1,scale:2,background:'transparent'}}));
 });
 test('Animation plays the output preview in the modal and Stop restores its first frame without editing the project',async({page})=>{
+ await page.clock.install();
  const before=await download(page,'#saveProject');await ui(page,'#animationFormat','selectOption','gif');
  const button=page.locator('#motionPreview'),first=await pixels(page);
  await expect(button).toHaveText('▶ Play preview');await button.focus();await page.keyboard.press('Space');
@@ -14,7 +15,7 @@ test('Animation plays the output preview in the modal and Stop restores its firs
  await page.locator('#animationFormat').selectOption('video');await expect(button).toHaveText('■ Stop preview');
  await page.locator('#animationFormat').selectOption('gif');await button.click();
  await expect(button).toHaveText('▶ Play preview');await expect(button).toHaveAttribute('aria-pressed','false');
- expect(await pixels(page)).toEqual(first);await page.waitForTimeout(250);expect(await pixels(page)).toEqual(first);
+ expect(await pixels(page)).toEqual(first);await page.clock.runFor(2000);expect(await pixels(page)).toEqual(first);
  await expect(page.locator('#previewBanner')).toBeHidden();expect(await download(page,'#saveProject')).toEqual(before);
 });
 test('C64 animation shows the same live preview with canvas colors and synchronized Play/Stop controls',async({page})=>{

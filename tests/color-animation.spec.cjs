@@ -21,12 +21,13 @@ for(const effect of Object.keys(ramps))test(effect+' exports exact C64 color seq
  }
 });
 test('color previews pause, stop and reload safely, while static exports keep original cell colors',async({page})=>{
+ await page.clock.install();
  // This scenario serially exercises all three effects, PNG export, reload, and import undo.
  test.setTimeout(60000);
  await loadProject(page,project([160,160],2,1,{cellColors:[2,3],colors:{ink:14,background:6}}));
  const pixels=()=>page.locator('#canvas').evaluate(c=>[.25,.75].map(x=>Array.from(c.getContext('2d').getImageData(c.width*x,c.height*.5,1,1).data))),original=await pixels();
  for(const effect of Object.keys(ramps)){
-  await ui(page,'#animationEffect','selectOption','none');await ui(page,'#animationColor','selectOption',effect);await ui(page,'#animationSeconds','selectOption','0.5');const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#quickPlay');await expect.poll(pixels).not.toEqual(original);await ui(page,'#quickPlay');const paused=await pixels();await page.waitForTimeout(100);expect(await pixels()).toEqual(paused);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+  await ui(page,'#animationEffect','selectOption','none');await ui(page,'#animationColor','selectOption',effect);await ui(page,'#animationSeconds','selectOption','0.5');const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#quickPlay');await expect.poll(pixels).not.toEqual(original);await ui(page,'#quickPlay');const paused=await pixels();await page.clock.runFor(2000);expect(await pixels()).toEqual(paused);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
   const png=PNG.sync.read(await download(page,'#png'));expect(Array.from(png.data.slice((32*png.width+32)*4,(32*png.width+32)*4+4))).toEqual([...rgb(2),255]);await ui(page,'#animationStop');expect(await pixels()).toEqual(original);
  }
  await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationColor')).toHaveValue('color-glow');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');expect(await pixels()).toEqual(original);
