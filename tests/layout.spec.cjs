@@ -37,3 +37,16 @@ test('export remains cancelable when its sheet is closed and previous completed 
  let release,started;const gate=new Promise(r=>release=r),requested=new Promise(r=>started=r);await page.route('**/video-export.js',async route=>{started();await gate;await route.continue()});
  await page.locator('#animationFormat').selectOption('video');await page.locator('#exportVideo').click();await requested;await page.locator('#downloadClose').click();await expect(page.locator('#cancelAnimationExport')).toBeVisible();await page.locator('#cancelAnimationExport').click();release();await expect(page.locator('#exportBadge')).toHaveText('Canceled');await expect(page.locator('#cancelAnimationExport')).toBeHidden();expect(await page.locator('#exportGif').getAttribute('data-download-url')).toBe(old);
 });
+
+test('repeated project and artwork downloads survive panel navigation with identical contents',async({page})=>{
+ await loadProject(page,project([160,257,'',0],2,2,{cellColors:[2,3,4,5]}));
+ const saved=await download(page,'#saveProject'),text=await download(page,'#text'),png=await download(page,'#png');
+ expect(text.toString()).toBe('# PETSCII-GLYPHS 1 2 2\n0A0 101\n-- 000');
+ const {PNG}=require('pngjs'),decoded=PNG.sync.read(png);expect(decoded.width).toBeGreaterThan(0);expect(decoded.height).toBe(decoded.width);
+ for(let repeat=0;repeat<3;repeat++){
+  await page.locator('#export-tab-motion').click();await page.locator('#export-tab-data').click();
+  expect(await download(page,'#saveProject')).toEqual(saved);
+  expect(await download(page,'#text')).toEqual(text);
+  expect(await download(page,'#png')).toEqual(png);
+ }
+});

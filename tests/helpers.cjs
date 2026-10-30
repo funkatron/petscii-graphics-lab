@@ -22,7 +22,23 @@ async function reveal(page,selector){
  if(location.format)await page.locator('#animationFormat').selectOption(location.format);
 }
 async function ui(page,selector,method='click',...args){await reveal(page,selector);const result=await page.locator(selector).first()[method](...args);if(method==='selectOption'&&['#columns','#rows'].includes(selector))await page.locator('#applyResize').click();return result}
-async function download(page,selector){await reveal(page,selector);const [file]=await Promise.all([page.waitForEvent('download'),page.locator(selector).click()]);return contents(file)}
+async function download(page,selector){
+ try{
+  await reveal(page,selector);
+  const [file]=await Promise.all([page.waitForEvent('download'),page.locator(selector).click()]);
+  return await contents(file);
+ }catch(error){
+  // Preserve the original failure; diagnostics must never replace it.
+  try{
+   const state=await page.evaluate(selector=>{
+    const target=document.querySelector(selector);
+    return {selector,status:document.querySelector('#status')?.textContent,dialogOpen:document.querySelector('#downloadDialog')?.open,projectOpen:document.querySelector('#projectMenu')?.open,activeTab:document.querySelector('[data-export-tab][aria-selected="true"]')?.getAttribute('data-export-tab'),animationFormat:document.querySelector('#animationFormat')?.value,target:target?{disabled:target.disabled,hidden:target.hidden,rect:target.getBoundingClientRect().toJSON()}:null};
+   },selector);
+   await base.info().attach('download-navigation-state',{body:JSON.stringify(state,null,2),contentType:'application/json'});
+  }catch{}
+  throw error;
+ }
+}
 // Wait for observable state, not a runner-speed-dependent sleep.
 async function waitForPreviewAdvance(page){await expect.poll(async()=>Number(await page.locator('#canvas').getAttribute('data-animation-frame')||0)).toBeGreaterThan(0)}
 // Capture the frame marker and its rendered pixels in one browser task.
