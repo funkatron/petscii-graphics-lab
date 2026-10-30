@@ -45,6 +45,8 @@ A shader is a visual effect applied over the rendered canvas. Explore quick ways
 
 ## Additional animations — in progress
 
+- [ ] Investigate diagonal directions for movement animations, using the existing color-animation direction choices as a reference. Determine which effects benefit, define movement speed and wrapping at corners, and verify preview/export consistency before committing to implementation.
+
 - [x] Release Sine scroller and Raster-style bars with shared preview/download behavior; PR #27.
 - [x] Release Plasma field using intersecting color waves and the existing color controls; PR #28.
 - [x] Release Bouncing logo and Stretching logo with contextual Travel/Squeeze controls; PR #29.
