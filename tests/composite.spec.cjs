@@ -1,5 +1,5 @@
 const fs=require('node:fs'),{PNG}=require('pngjs'),{GifReader}=require('omggif'),AdmZip=require('adm-zip');
-const {ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
+const {waitForPreviewAdvance,waitForProjectAutosave,ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
 const {decodeVideo,nearPixel}=require('./video-utils.cjs');
 const palette=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'],rgb=i=>[0,2,4].map(n=>parseInt(palette[i].slice(n,n+2),16));
 const ramps={'color-cycle':[0,11,12,15,1,7,13,5,3,14,6,4,2,10,8,9],'color-wave':[2,8,7,13,3,14,6,4],'color-glow':[9,8,2,10,7,1,7,10,2,8]};
@@ -23,8 +23,8 @@ for(const effect of ['scroll-x','scroll-y','wave'])for(const colorEffect of Obje
 });
 test('independent controls persist, reject invalid colors, and preserve artwork after preview and undo',async({page})=>{
  await loadProject(page,project([160,'',160,''],4,1,{cellColors:[0,14,2,14]}));await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#animationColor','selectOption','color-wave');await ui(page,'#animationSeconds','selectOption','0.5');
- const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#quickPlay');await expect(page.locator('#previewLabel')).toContainText('Scroll left + Rainbow wave');await expect.poll(()=>page.locator('#canvas').getAttribute('data-animation-frame')).not.toBe('0');await ui(page,'#animationStop');
- expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationEffect')).toHaveValue('scroll-x');await expect(page.locator('#animationColor')).toHaveValue('color-wave');
+ const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#quickPlay');await expect(page.locator('#previewLabel')).toContainText('Scroll left + Rainbow wave');await waitForPreviewAdvance(page);await ui(page,'#animationStop');
+ expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationEffect')).toHaveValue('scroll-x');await expect(page.locator('#animationColor')).toHaveValue('color-wave');
  await loadProject(page,{...before,animation:{...before.animation,colorEffect:'nope'}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
  await ui(page,'#clear');await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
 });
