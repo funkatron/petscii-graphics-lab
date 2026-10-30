@@ -8,7 +8,7 @@ function emulate(bytes,options){
 test('native rows preserve all 96 full-screen wave/color samples at two seconds on both CPU speeds',async({page},testInfo)=>{
  test.setTimeout(90000);await capacityPage(page);
  const ids=[489,361,192,160,66],grid=Array.from({length:960},(_,i)=>ids[(Math.floor(i%40/4)+Math.floor(Math.floor(i/40)%8/3))%5]);
- await loadProject(page,project(grid,40,24,{cellColors:Array(960).fill(1),colors:{ink:1,background:0},animation:{effect:'wave',colorEffect:'color-wave',motionCycles:4,colorCycles:2,seconds:2,scale:1,background:'dark',colorWaveShape:'reverse-sawtooth'}}));
+ await loadProject(page,project(grid,40,24,{cellColors:Array(960).fill(1),colors:{ink:1,background:0},animation:{effect:'wave',waveAmplitude:100,waveLength:50,colorWaveLength:50,colorWaveAmplitude:100,waveDirection:'up',waveShape:'sine',colorEffect:'color-wave',motionCycles:4,colorCycles:2,seconds:2,scale:1,background:'dark',colorWaveDirection:'up-left',colorWaveShape:'reverse-sawtooth'}}));
  const {bytes,frames,diagnostics,debugSymbols,generic}=await page.evaluate(async()=>{
   const {createC64RowProgram,createC64Program,createC64AdaptiveProgram}=await import('./c64-export.js'),input=window.capacityInput(),p=createC64AdaptiveProgram({...input,repetitions:2}),a=createC64AdaptiveProgram({...input,repetitions:2,analyze:true}),native=createC64RowProgram({...input,repetitions:2});
   if(p.bytes.some((v,i)=>v!==a.bytes[i])||p.bytes.length!==a.bytes.length)throw Error('Analysis changed native program bytes');
@@ -59,7 +59,7 @@ test('adaptive selection preserves accepted generic bytes and original blockers 
 test('native lookup reuse preserves all 192 eight-cycle samples and their original deadlines',async({page},testInfo)=>{
  test.setTimeout(120000);await capacityPage(page);
  const ids=[489,361,192,160,66],grid=Array.from({length:960},(_,i)=>ids[(Math.floor(i%40/4)+Math.floor(Math.floor(i/40)%8/3))%5]);
- await loadProject(page,project(grid,40,24,{cellColors:Array(960).fill(1),colors:{ink:1,background:0},animation:{effect:'wave',colorEffect:'color-wave',motionCycles:8,colorCycles:8,seconds:8,scale:1,background:'dark',colorWaveDirection:'down',colorWaveShape:'sawtooth'}}));
+ await loadProject(page,project(grid,40,24,{cellColors:Array(960).fill(1),colors:{ink:1,background:0},animation:{effect:'wave',waveAmplitude:100,waveLength:50,colorWaveLength:50,colorWaveAmplitude:100,waveDirection:'up',waveShape:'sine',colorEffect:'color-wave',motionCycles:8,colorCycles:8,seconds:8,scale:1,background:'dark',colorWaveDirection:'down',colorWaveShape:'sawtooth'}}));
  const {bytes,frames,p,cycleBytes}=await page.evaluate(async()=>{
   const {createC64RowProgram}=await import('./c64-export.js'),input=window.capacityInput(),p=createC64RowProgram({...input,repetitions:2}),cycle=createC64RowProgram({...input,frames:input.frames.slice(0,24),repetitions:2});
   return {bytes:[...p.bytes],frames:input.frames,p:{diagnostics:p.diagnostics,frameCount:p.frameCount,durationTicks:p.durationTicks,debugSymbols:p.debugSymbols},cycleBytes:cycle.bytes.length};
