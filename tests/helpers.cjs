@@ -25,6 +25,17 @@ async function ui(page,selector,method='click',...args){await reveal(page,select
 async function download(page,selector){await reveal(page,selector);const [file]=await Promise.all([page.waitForEvent('download'),page.locator(selector).click()]);return contents(file)}
 // Wait for observable state, not a runner-speed-dependent sleep.
 async function waitForPreviewAdvance(page){await expect.poll(async()=>Number(await page.locator('#canvas').getAttribute('data-animation-frame')||0)).toBeGreaterThan(0)}
+// Capture the frame marker and its rendered pixels in one browser task.
+// Keep sampling geometry explicit: mixed glyph tests need an exact ROM pixel.
+async function previewSample(page,columns,rows,offset=.5){
+ const sample=await page.locator('#canvas').evaluate((c,{columns,rows,offset})=>{
+  const marker=c.dataset.animationFrame;
+  if(!/^(0|[1-9]\d*)$/.test(marker||''))throw new Error('Expected an active animation preview frame');
+  const ctx=c.getContext('2d');
+  return {f:Number(marker),pixels:Array.from({length:columns*rows},(_,i)=>[...ctx.getImageData(Math.floor((i%columns+offset)*c.width/columns),Math.floor((Math.floor(i/columns)+offset)*c.height/rows),1,1).data].slice(0,3))};
+ },{columns,rows,offset});
+ return sample;
+}
 async function waitForProjectAutosave(page,expected){await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('petscii-graphics-project-v3')))).toEqual(expected)}
 async function loadProject(page,data){await page.locator('#projectFile').setInputFiles({name:'project.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});await expect(page.locator('#projectFile')).toHaveValue('')}
 // Keep historical fixtures at an explicit four-second baseline; new-project speed is tested separately.
@@ -34,4 +45,4 @@ function project(grid,columns=grid.length,rows=1,extra={}){
  if(p.charset===1){const id=g=>g===''?g:g+256;p.grid=p.grid.map(id);p.selectedGlyph=id(p.selectedGlyph);if(p.drawingReplay)p.drawingReplay={...p.drawingReplay,base:p.drawingReplay.base.map(id),events:p.drawingReplay.events.map(([i,g])=>[i,id(g)])}}
  delete p.charset;return p;
 }
-module.exports={waitForPreviewAdvance,waitForProjectAutosave,reveal,ui,test,expect,contents,download,loadProject,project};
+module.exports={previewSample,waitForPreviewAdvance,waitForProjectAutosave,reveal,ui,test,expect,contents,download,loadProject,project};

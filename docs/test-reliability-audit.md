@@ -29,10 +29,11 @@ The existing independent pixel references, project round trips, Undo checks and 
 
 - [x] Inventory timing, layout and saved-default risks in the first pass.
 - [x] Replace six guessed waits in three animation control tests.
-- [x] Replace remaining guessed waits and add controlled-clock pause/stop stability checks; full CI validation remains pending.
+- [x] Replace remaining guessed waits and add controlled-clock pause/stop stability checks; PR #37 passed all nine CI jobs.
 - [ ] Review layout thresholds against explicit UI requirements.
 - [ ] Review serialization fixtures, shared helpers and order-dependent state.
-- [ ] Confirm the audit changes in Chromium and both iPad WebKit CI projects.
+- [x] Confirm the timing and pause-stability changes in Chromium and both iPad WebKit CI projects (PR #37, run 142).
+- [ ] Confirm the fourth-pass sampling and composite synchronization changes in all three browsers.
 
 A passing retry alone is not evidence that a defect is fixed. Preserve failure logs and screenshots, distinguish test synchronization problems from product rendering defects, and report what was actually reproduced.
 
@@ -69,3 +70,13 @@ Install Playwright's clock before playback in the three pause/stop stability sce
 Animation layout previously demanded a 15% height reduction, although the documented requirement is to group related controls and use space efficiently. Require the grouped layout to be shorter than the same controls stacked vertically; retain paired-field geometry, viewport overflow and enlarged-text interaction checks. The test still detects layouts that stop saving space.
 
 These changes complete the fixed-sleep inventory in browser tests. Serialization fixtures, shared-helper side effects and the previously recorded download flake still need investigation. Browser CI must validate controlled-clock behavior across all three projects.
+
+## Fourth pass: frame sampling and composite synchronization
+
+PR #37 passed all nine shards for head `225f016` in run 142 and was merged and deployed. Its state-wait and controlled-clock changes are browser-validated; the wider audit remains open.
+
+Review found that the live Ripple regression already sampled its frame marker and pixels in one browser task. The five effect suites read paused frames, so their separate reads did not establish a reproduced race. Consolidate their sampling in `previewSample` anyway, preserving each test's explicit grid dimensions, sampling offsets and independent expected pixels. Keep Ripple's live all-frame coverage and both context-reset paths. Reject empty or missing frame markers rather than converting an inactive preview to frame zero.
+
+The composite preview check used `not.toBe('0')`, which also accepts an empty or missing marker. Require positive frame advancement with the existing helper. Before its reload, wait for the exact expected autosaved project instead of relying on earlier export/navigation work to outlast the debounce. No reproduced product defect or download-flake fix is claimed.
+
+Syntax and test discovery cover 189 cases across the six affected suites and three browser projects. Browser CI is still required for this pass. Shared navigation/download behavior, serialization fixtures and remaining layout thresholds remain open.

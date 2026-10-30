@@ -13,10 +13,26 @@ This page tracks requested work and completed milestones. For current controls, 
 
 See the [audit findings and remaining work](test-reliability-audit.md).
 
-- [ ] Finish browser validation of animation timing audit: guessed waits replaced, pause/stop stability uses controlled clocks; continue reviewing frame/pixel sampling.
+- [x] Validate animation state waits and controlled-clock pause/stop checks in Chromium and both iPad WebKit layouts; released in PR #37 after all nine CI jobs passed.
+- [ ] Validate shared atomic frame/pixel sampling and composite preview/autosave synchronization in all three browsers.
 - [ ] Review fixed layout/pixel limits across both iPad orientations and enlarged text; preserve checks for actual overlap, reachability and glyph/color correctness.
 - [ ] Review saved-project fixtures and default settings so schema additions and benchmark workload changes are explicit rather than accidental.
 - [ ] Identify flaky shared helpers and order-dependent browser state. Reproduce failures before changing assertions; retain regressions for confirmed product defects.
+
+## Phone UI — planned
+
+- [ ] Adapt the editor for phone-sized screens in portrait and landscape, keeping the canvas usable and primary drawing, project and export actions reachable.
+- [ ] Review panel placement, touch targets, safe areas and on-screen keyboard behavior; preserve artwork while resizing or rotating.
+- [ ] Add phone browser coverage for overflow, drawing and save/export workflows, then verify on a physical phone.
+
+## Canvas shaders — exploration
+
+A shader is a visual effect applied over the rendered canvas. Explore quick ways to choose and apply optional effects while preserving the editable glyphs and cell colors.
+
+- [ ] Compare approaches for applying shader presets with a small number of controls, including preview performance on phones and iPads.
+- [ ] Include the selected effect in image and animation exports, matching the canvas preview. Evaluate raster output and how SVG should handle effects.
+- [ ] Keep C64 native exports free of shaders; retain authentic glyph, ink and playback data in PRG/D64 output.
+- [ ] Define export snapshots, animation timing and project persistence for shader settings before implementation; add pixel and source-preservation checks.
 
 ## Typed alphanumeric entry — implemented
 
