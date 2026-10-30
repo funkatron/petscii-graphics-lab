@@ -42,7 +42,7 @@ See the [audit findings and remaining work](test-reliability-audit.md).
 - [x] Add independent Color wave height percentages to Rainbow wave for every waveform; preserve the full color sequence at 100%.
 - [x] Save both amplitude settings with the project and share it across preview and supported animation downloads.
 
-Wave height shipped in PR #24; doubled movement range and independent color-wave height shipped in PR #25. Grouped animation controls shipped in PR #26. Sine scroller and Raster-style bars shipped in PR #27 after Chromium and both iPad WebKit layouts passed. Plasma field shipped in PR #28. Bouncing/stretching logos, Starfield and Patterned wipe shipped in PR #29 after all three browser jobs passed. Independent wavelength controls shipped in PR #30 after all three browser jobs passed. A fresh sidebar grouping pass comes next, followed by Ripple animation. Existing animation optimization and C64 validation remain lower-priority follow-ups.
+Wave height shipped in PR #24; doubled movement range and independent color-wave height shipped in PR #25. Grouped animation controls shipped in PR #26. Sine scroller and Raster-style bars shipped in PR #27 after Chromium and both iPad WebKit layouts passed. Plasma field shipped in PR #28. Bouncing/stretching logos, Starfield and Patterned wipe shipped in PR #29 after all three browser jobs passed. Independent wavelength controls shipped in PR #30 after all three browser jobs passed. The sidebar grouping pass shipped in PR #31 and Ripple in PR #32. Existing animation optimization and C64 validation remain lower-priority follow-ups.
 
 ## Color-aware text exchange — implemented
 
@@ -56,7 +56,7 @@ Wave height shipped in PR #24; doubled movement range and independent color-wave
 - [x] Group all animation timing in Timeline & preview; pair wavelength/height under each effect.
 - [x] Add semantic Canvas size and Paint colors groups; retain separate whole-drawing actions.
 - [x] Check automated iPad layouts, larger text, source preservation and existing workflows; released in PR #31. Physical-device checks remain open.
-- [ ] Add Ripple: center-out radial movement using existing waveform, wavelength, height and cycle controls. Tunnel and Twist remain proposals.
+- [x] Add Ripple: center-out radial movement using existing waveform, wavelength, height and cycle controls; released in PR #32. Tunnel and Twist remain proposals.
 
 ## Major UI cleanup — implemented
 

@@ -1,5 +1,5 @@
 const {GifReader}=require('omggif'),AdmZip=require('adm-zip');
-const {test,expect,ui,project,loadProject,download}=require('./helpers.cjs');
+const {test,expect,ui,waitForProjectAutosave,project,loadProject,download}=require('./helpers.cjs');
 const palette=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'];
 const rgb=i=>[0,2,4].map(n=>parseInt(palette[i].slice(n,n+2),16));
 const settings={effect:'wave',colorEffect:'none',seconds:1,scale:1,background:'dark',waveDirection:'up',waveShape:'sine'};
@@ -31,7 +31,7 @@ test('C64 bytes and ZIP metadata use the selected amplitude; omitted height reta
 });
 test('height is contextual, persists, follows history and rejects invalid imports atomically',async({page})=>{
  await expect(page.locator('#waveAmplitude')).toBeHidden();await loadProject(page,project(grid,12,4,{cellColors:inks,animation:settings}));await ui(page,'#waveAmplitude','selectOption','25');const before=JSON.parse(await download(page,'#saveProject'));expect(before.animation.waveAmplitude).toBe(25);
- await page.waitForTimeout(350);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
  await loadProject(page,{...before,animation:{...before.animation,waveAmplitude:75}});await ui(page,'#undo');await expect(page.locator('#waveAmplitude')).toHaveValue('25');await ui(page,'#redo');await expect(page.locator('#waveAmplitude')).toHaveValue('75');await ui(page,'#undo');
  for(const value of [0,101,20,'25',null]){await loadProject(page,{...before,animation:{...before.animation,waveAmplitude:value}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
  await ui(page,'#animationEffect','selectOption','none');await ui(page,'#animationColor','selectOption','color-wave');await expect(page.locator('#waveAmplitude')).toBeHidden();const color=await download(page,'#exportGif');
@@ -58,7 +58,7 @@ test('color height narrows waveform colors independently and preserves full-heig
 test('color height persists, validates, and supplies C64 and ZIP exports',async({page})=>{
  const art=project(grid,12,4,{cellColors:inks,animation:{...settings,colorEffect:'color-wave',colorWaveAmplitude:25,waveAmplitude:50}});await loadProject(page,art);await ui(page,'#colorWaveAmplitude','selectOption','50');await ui(page,'#colorWaveAmplitude','selectOption','25');
  const before=JSON.parse(await download(page,'#saveProject'));expect(before.animation.colorWaveAmplitude).toBe(25);expect(before.animation.waveAmplitude).toBe(50);
- await page.waitForTimeout(350);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
  for(const value of [0,20,101,'50',null]){await loadProject(page,{...before,animation:{...before.animation,colorWaveAmplitude:value}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
  const zip=new AdmZip(await download(page,'#exportFrames')),timing=JSON.parse(zip.readAsText('timing.json'));expect(timing.colorWaveAmplitude).toBe(25);expect(JSON.parse(zip.readAsText('project.json')).animation.colorWaveAmplitude).toBe(25);
  const ramp=[2,8,7,13,3,14,6,4],expected=frames(50).map((f,i)=>({...f,durationMs:timing.frames[i].durationMs,inks:f.inks.map((ink,j)=>{const start=Math.max(0,ramp.indexOf(ink)),offset=j%12+Math.floor(j/12),step=Math.floor(((offset+Math.floor(i/24*8))%8)*.25);return ramp[(start+step)%8]})}));

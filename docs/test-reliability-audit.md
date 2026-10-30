@@ -17,7 +17,7 @@ The existing independent pixel references, project round trips, Undo checks and 
 | --- | --- | --- |
 | Preview synchronization | Ripple, Plasma and demoscene used elapsed-time guesses. | Replaced in this pass; validate all three CI projects. |
 | Autosave synchronization | The same tests waited 350 ms for a 250 ms debounce. | Replaced with exact persisted-project checks. |
-| Other animation tests | Intro motion and wavelength still use 120 ms waits; wave height, cycles and animation controls also use autosave sleeps. | Apply state-based waits in a separate tested pass. |
+| Other animation tests | Intro motion and wavelength used 120 ms waits; wave height, cycles and animation controls also used autosave sleeps. | Replaced with preview advancement and exact persisted-project checks in this second pass; full CI remains required. |
 | Paused playback | Color animation, animation and download-preview tests deliberately wait to detect unwanted changes. | Keep the stability assertion; evaluate controlled clocks rather than deleting the observation interval. |
 | Layout | Animation layout compares grouped height against a stacked version, but requires a fixed 15% saving. | Check whether that percentage is a product requirement. Retain overflow, alignment and reachability assertions. |
 | Layout tolerances | Alignment checks allow small rounding differences; viewport bounds use actual geometry. | Reproduce cross-browser failures before changing tolerances. Do not replace geometry checks with button-presence checks. |
@@ -53,3 +53,11 @@ Run three Playwright shards for each of the three browsers, keeping one worker p
 Test discovery assigns all 276 tests exactly once per browser. Applying run 136 portrait timings to the discovered shards estimates 7.72, 7.11 and 5.51 minutes of test work. These estimates exclude setup, queue time and runtime variability; the next CI run must establish actual elapsed time. Nine jobs increase setup overhead and may queue when runner concurrency is limited.
 
 Replace the temporary 25-minute suite budget with a 15-minute budget per shard and a 20-minute Actions job limit. The limits remain safeguards; they are not performance measurements. The download flake recorded above remains open.
+
+## Second pass: remaining state synchronization
+
+Replace eight more guessed waits in intro-motion, wavelength, wave-height, cycles and animation-controls: two playback waits and six autosave waits. Use the existing shared assertions, keeping independent frame/pixel references, exact serialization, Undo and invalid-import checks intact. Four intro effects share the intro-motion scenario, so that source replacement covers all four.
+
+The remaining fixed waits in animation, color-animation and download-preview intentionally observe stability after pausing. Keep them until controlled-clock checks can establish equivalent coverage. This pass does not mark the whole audit complete or claim to fix the recorded download flake.
+
+PR #35's sharded run 137 passed all nine jobs in 8 minutes 40 seconds, compared with 21 minutes 20 seconds for the prior run. This is an observed elapsed time including job setup, rather than the earlier estimate. PR #36 also passed all nine jobs.

@@ -1,5 +1,5 @@
 const {GifReader}=require('omggif'),AdmZip=require('adm-zip'),{PNG}=require('pngjs');
-const {test,expect,ui,download,loadProject,project}=require('./helpers.cjs');
+const {test,expect,ui,waitForProjectAutosave,download,loadProject,project}=require('./helpers.cjs');
 const palette=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'];
 const rgb=c=>[0,2,4].map(i=>parseInt(palette[c].slice(i,i+2),16));
 const wrap=(x,n)=>(x%n+n)%n;
@@ -41,7 +41,7 @@ test('color wave directions and waveforms change only occupied cell inks',async(
 test('context controls persist and reject malformed options without altering the project',async({page})=>{
  await loadProject(page,project([160,'',160,''],2,2));await ui(page,'#animationEffect','selectOption','none');await ui(page,'#animationColor','selectOption','none');await expect(page.locator('#scrollDirection')).toBeHidden();await expect(page.locator('#waveShape')).toBeHidden();await expect(page.locator('#colorWaveShape')).toBeHidden();
  await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#scrollDirection','selectOption','right');await expect(page.locator('#waveShape')).toBeHidden();await ui(page,'#animationEffect','selectOption','wave');await ui(page,'#waveDirection','selectOption','down');await ui(page,'#waveShape','selectOption','triangle');await ui(page,'#animationColor','selectOption','color-wave');await ui(page,'#colorWaveDirection','selectOption','down-right');await ui(page,'#colorWaveShape','selectOption','square');
- const before=JSON.parse(await download(page,'#saveProject'));await page.waitForTimeout(350);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ const before=JSON.parse(await download(page,'#saveProject'));await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
  for(const key of ['scrollDirection','waveDirection','waveShape','colorWaveDirection','colorWaveShape']){await loadProject(page,{...before,animation:{...before.animation,[key]:'invalid'}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
  await ui(page,'#quickPlay');await expect(page.locator('#previewBanner')).toBeVisible();await ui(page,'#waveShape','selectOption','sawtooth');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#animationStop');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(before.grid);
 });
