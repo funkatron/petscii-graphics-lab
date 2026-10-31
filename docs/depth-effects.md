@@ -76,3 +76,17 @@ Twenty local surface tests cover geometry boundaries, a fixed floor-coordinate v
 Floor and road now start at the top edge instead of leaving the upper quarter empty. Road width has a half-cell minimum so very narrow grids retain a road sample on the top row. Source texture transparency/empty cells still apply.
 
 A 5×3 row-banded tunnel fixture reproduced mismatched mirrored depth rows at frame 12/48: the previous normalization subtracted 1 after division, producing unequal floating-point radii on opposite sides. Compute centered integer numerators before division on both axes. Mirrored rays now have identical radii without forcing asymmetric artwork to become symmetric. Pure and decoded GIF regressions cover this boundary.
+
+## Travel waveform controls
+
+All four depth effects expose Travel waveform beside Depth travel. Optional `depthWaveShape` defaults to `sawtooth` (Sawtooth), preserving existing depth output. Sine uses a smooth out-and-return phase; Triangle uses an even-speed return; Reverse sawtooth reverses the linear phase; Square alternates phases zero and one-half. Complete texture repeats are equivalent, so endpoint one is canonicalized to zero. Exact sine quarter phases are fixed at one-half to avoid floating-point texture-boundary drift. Color waveforms remain independent.
+
+These controls remap the shared motion phase before projection, so preview and exported frames use the same setting. Height and Wavelength use the projection-specific definitions below. Thirty pure depth tests pass locally; twelve browser cases check quarter-cycle GIF pixels, metadata persistence and invalid settings. Browser CI remains required.
+
+The depth waveform picker uses the same labels and order as other waveform controls: Sine, Triangle, Square, Sawtooth, Reverse sawtooth. Depth-specific behavior is explained in contextual help.
+
+### Height and wavelength
+
+Depth effects expose the existing movement Height and Wavelength percentages (10/25/50/75/100), independently of color settings. Defaults 100% height and 50% wavelength preserve previous depth geometry. Height reduces perspective distortion toward an undistorted plane/placement; it also scales the road bend. Wavelength changes spatial texture spacing for surfaces and the depth span for Space warp; 100% doubles the Space warp span, while surface coordinates use 50/length. Travel phase, timeline and cycle rates remain independent. These definitions are specific to depth projection and are explained in the contextual help.
+
+Local tests check that each control independently changes all four effects, defaults are preserved and all percentage combinations close at the cycle boundary. Browser regressions preserve Height/Wavelength across save/reload and check that color controls and loop timing remain unchanged.
