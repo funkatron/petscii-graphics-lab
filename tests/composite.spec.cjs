@@ -22,9 +22,9 @@ for(const effect of ['scroll-x','scroll-y','wave'])for(const colorEffect of Obje
  expect(JSON.parse(zip.readAsText('project.json'))).toEqual(before);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
 });
 test('independent controls persist, reject invalid colors, and preserve artwork after preview and undo',async({page})=>{
- await loadProject(page,project([160,'',160,''],4,1,{cellColors:[0,14,2,14]}));await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#animationColor','selectOption','color-wave');await ui(page,'#animationSeconds','selectOption','0.5');
+ await loadProject(page,project([160,'',160,''],4,1,{cellColors:[0,14,2,14]}));await ui(page,'#animationEffect','selectOption','scroll');await ui(page,'#animationColor','selectOption','color-wave');await ui(page,'#animationSeconds','selectOption','0.5');
  const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#quickPlay');await expect(page.locator('#previewLabel')).toContainText('Scroll left + Rainbow wave');await waitForPreviewAdvance(page);await ui(page,'#animationStop');
- expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationEffect')).toHaveValue('scroll-x');await expect(page.locator('#animationColor')).toHaveValue('color-wave');
+ expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationEffect')).toHaveValue('scroll');await expect(page.locator('#animationColor')).toHaveValue('color-wave');
  await loadProject(page,{...before,animation:{...before.animation,colorEffect:'nope'}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
  await ui(page,'#clear');await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
 });

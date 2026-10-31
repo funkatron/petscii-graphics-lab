@@ -15,7 +15,7 @@ test('replay records paint, erase, repaint and symmetry without losing undo hist
 });
 test('preview changes pixels, pauses, stops, and never alters the saved grid',async({page})=>{
  await page.clock.install();
- const original=[160,'','',''];await loadProject(page,project(original,4,1));await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#animationSeconds','selectOption','1');
+ const original=[160,'','',''];await loadProject(page,project(original,4,1));await ui(page,'#animationEffect','selectOption','scroll');await ui(page,'#animationSeconds','selectOption','1');
  const pixels=()=>page.locator('#canvas').evaluate(c=>{const t=c.getContext('2d');return Array.from({length:4},(_,x)=>Array.from(t.getImageData(Math.floor(c.width*(x+.5)/4),Math.floor(c.height/2),1,1).data))});
  await expect.poll(pixels).toEqual([ink,[53,40,121,255],[53,40,121,255],[53,40,121,255]]);
  const before=await pixels();await ui(page,'#quickPlay');
@@ -38,7 +38,7 @@ test('drawing replay GIF contains the recorded states and holds the finished dra
  await expect(page.locator('#exportGif')).toBeVisible();const again=await download(page,'#exportGif');expect(again).toEqual(buffer);
 });
 test('scroll GIF wraps cells and encodes loop duration and selected resolution',async({page})=>{
- await loadProject(page,project([160,'','',''],4,1));await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#animationSeconds','selectOption','2');await ui(page,'#gifScale','selectOption','2');
+ await loadProject(page,project([160,'','',''],4,1));await ui(page,'#animationEffect','selectOption','scroll');await ui(page,'#animationSeconds','selectOption','2');await ui(page,'#gifScale','selectOption','2');
  const g=decoded(await download(page,'#exportGif'));expect(g.r.width).toBe(64);expect(g.r.height).toBe(16);expect(g.r.numFrames()).toBe(4);expect(g.frames.map(f=>f.info.delay)).toEqual([50,50,50,50]);
  for(let f=0;f<4;f++)for(let x=0;x<4;x++)expect(rgbaAt(g,f,x*16+8,8)).toEqual(x===(4-f)%4?ink:dark);
 });
@@ -49,7 +49,7 @@ test('inverse GIF uses actual reverse glyphs and preserves empty cells',async({p
 test('every effect exports and authentic glyphs render on a white background',async({page})=>{
  await loadProject(page,project([160,'','',''],2,2,{selectedGlyph:160}));await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','white');
  for(const effect of ['replay','scroll-y','wave']){
-  await ui(page,'#animationEffect','selectOption',effect);const g=decoded(await download(page,'#exportGif'));expect(g.r.width).toBe(16);expect(g.r.height).toBe(16);expect(g.r.numFrames()).toBeGreaterThan(1);
+  await ui(page,'#animationEffect','selectOption',effect.startsWith('scroll-')?'scroll':effect);if(effect.startsWith('scroll-'))await ui(page,'#scrollDirection','selectOption',effect==='scroll-y'?'up':'left');const g=decoded(await download(page,'#exportGif'));expect(g.r.width).toBe(16);expect(g.r.height).toBe(16);expect(g.r.numFrames()).toBeGreaterThan(1);
   expect(g.frames.reduce((sum,f)=>sum+f.info.delay,0)).toBe(400);expect(g.frames.some((_,i)=>rgbaAt(g,i,4,4).slice(0,3).every((v,c)=>v===ink[c]))).toBe(true);
  }
 });
@@ -77,7 +77,7 @@ test('undoing project import restores its animation settings and replay',async({
  await ui(page,'#redo');await expect(page.locator('#animationEffect')).toHaveValue('inverse');
 });
 test('GIF export is a snapshot even when the canvas is edited during encoder loading',async({page})=>{
- await loadProject(page,project([160,'',''],3,1));await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#gifScale','selectOption','1');
+ await loadProject(page,project([160,'',''],3,1));await ui(page,'#animationEffect','selectOption','scroll');await ui(page,'#gifScale','selectOption','1');
  await page.route('**/vendor/gifenc.esm.js',async r=>{await new Promise(resolve=>setTimeout(resolve,200));await r.continue()});
  const waiting=page.waitForEvent('download');await ui(page,'#exportGif');await ui(page,'#columns','selectOption','2');
  const {contents}=require('./helpers.cjs');const g=decoded(await contents(await waiting));expect(g.r.width).toBe(24);expect(g.r.numFrames()).toBe(3);await expect(page.locator('#columns')).toHaveValue('2');expect(JSON.parse(await download(page,'#saveProject')).grid).toHaveLength(2);

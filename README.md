@@ -169,7 +169,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | --- | --- |
 | **Still drawing / Original colors** | Disable movement or color animation independently. |
 | **Replay drawing** | Paint, erase, and repaint actions appear in recorded order. The finished picture holds for the last quarter of each cycle. |
-| **Scroll horizontally / Scroll vertically** | The drawing wraps around. **Scroll direction** chooses left, right, up, or down. |
+| **Scroll** | The drawing wraps around in any of eight directions. Choose **Scroll direction**. Diagonal movement crosses one canvas width and height per cycle, following the canvas diagonal. |
 | **Wave rows / columns** | Rows or columns shift in a repeating wave. Choose its travel direction and waveform. |
 | **Ripple** | Waves radiate from the canvas center, shifting glyphs and their inks. Choose waveform, wavelength and height in Movement. The center stays fixed; edges can move out of view. |
 | **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Scroll direction chooses travel; Movement → Height controls the bend. Glyphs and their inks move together. |
