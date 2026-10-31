@@ -67,6 +67,12 @@ Six pure projection tests pass locally. Nine browser cases cover every GIF/ZIP f
 
 ## Surface prototype status
 
-Perspective floor, Curved road and Tunnel flight are implemented in a separate review pass using a pure inverse texture sampler. They share optional Depth travel, a 48-sample target and 12-sample minimum per cycle. Floor uses horizon 0.25 and capped inverse row depth. Road clips outside a widening band with a periodic centerline bend. Tunnel maps angle to texture columns and inverse normalized radius to texture rows, leaving radius below 0.12 empty. Travel changes by a whole texture repeat per cycle. These are coarse whole-cell effects, with fixed prototype constants.
+Perspective floor, Curved road and Tunnel flight are implemented in a separate review pass using a pure inverse texture sampler. They share optional Depth travel, a 48-sample target and 12-sample minimum per cycle. Floor uses horizon 0 (the top edge) and capped inverse row depth. Road clips outside a widening band with a periodic centerline bend. Tunnel maps angle to texture columns and inverse normalized radius to texture rows, leaving radius below 0.12 empty. Travel changes by a whole texture repeat per cycle. These are coarse whole-cell effects, with fixed prototype constants.
 
 Twenty local surface tests cover geometry boundaries, a fixed floor-coordinate vector, source/ink pairing, empty/degenerate grids and loop closure. Eighteen browser cases compare all GIF/ZIP frames, require actual frame variation and verify exact persistence and invalid-direction rejection. Visual motion review, independent full-frame references for road/tunnel, native/video checks, color combinations and performance measurement remain open. No visual quality or native smoothness claim is made.
+
+## Full-height surfaces and tunnel symmetry fix
+
+Floor and road now start at the top edge instead of leaving the upper quarter empty. Road width has a half-cell minimum so very narrow grids retain a road sample on the top row. Source texture transparency/empty cells still apply.
+
+A 5×3 row-banded tunnel fixture reproduced mismatched mirrored depth rows at frame 12/48: the previous normalization subtracted 1 after division, producing unequal floating-point radii on opposite sides. Compute centered integer numerators before division on both axes. Mirrored rays now have identical radii without forcing asymmetric artwork to become symmetric. Pure and decoded GIF regressions cover this boundary.

@@ -175,7 +175,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Scroll direction chooses travel; Movement → Height controls the bend. Glyphs and their inks move together. |
 | **Bouncing logo** | Move the occupied part of the drawing around the canvas. Leave empty margins for travel. Movement → Travel sets how far it moves. |
 | **Stretching logo** | Squeeze and release the occupied area horizontally and vertically. Movement → Squeeze sets the amount. Whole C64 glyphs stay intact; shrinking can skip cells. |
-| **Perspective floor** | Repeat the drawing below a horizon and move it through depth. |
+| **Perspective floor** | Repeat the drawing from the top edge and move it through depth. |
 | **Curved road** | Texture a widening road with looping bends; the sides stay empty. |
 | **Tunnel flight** | Wrap artwork around a tunnel and move through its depth; the central opening stays empty. |
 | **Space warp** | Sparse glyphs approach or recede through depth. Choose **Depth travel**; near glyphs cover distant ones. Glyphs stay whole. Objects can pop as their depth wraps. |
