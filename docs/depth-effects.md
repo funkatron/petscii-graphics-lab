@@ -76,3 +76,9 @@ Twenty local surface tests cover geometry boundaries, a fixed floor-coordinate v
 Floor and road now start at the top edge instead of leaving the upper quarter empty. Road width has a half-cell minimum so very narrow grids retain a road sample on the top row. Source texture transparency/empty cells still apply.
 
 A 5×3 row-banded tunnel fixture reproduced mismatched mirrored depth rows at frame 12/48: the previous normalization subtracted 1 after division, producing unequal floating-point radii on opposite sides. Compute centered integer numerators before division on both axes. Mirrored rays now have identical radii without forcing asymmetric artwork to become symmetric. Pure and decoded GIF regressions cover this boundary.
+
+## Travel waveform controls
+
+All four depth effects expose Travel waveform beside Depth travel. Optional `depthWaveShape` defaults to `sawtooth` (Steady travel), preserving existing depth output. Sine uses a smooth out-and-return phase; Triangle uses an even-speed return; Reverse ramp reverses the linear phase; Square alternates phases zero and one-half. Complete texture repeats are equivalent, so endpoint one is canonicalized to zero. Exact sine quarter phases are fixed at one-half to avoid floating-point texture-boundary drift. Color waveforms remain independent.
+
+These controls remap the shared motion phase before projection, so preview and exported frames use the same setting. They do not add spatial wavelength/height controls where no clear meaning is defined. Thirty pure depth tests pass locally; twelve browser cases check quarter-cycle GIF pixels, metadata persistence and invalid settings. Browser CI remains required.

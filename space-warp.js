@@ -1,6 +1,7 @@
+import {depthPhase} from './depth-phase.js';
 // Whole-cell perspective projection. Pure phase input keeps preview/export identical.
 export function spaceWarpFrame(phase,s){
- const p=((phase%1)+1)%1,cells=Array(s.W*s.H).fill(''),inks=s.inks.slice(),objects=[];
+ const p=depthPhase(phase,s.depthWaveShape),cells=Array(s.W*s.H).fill(''),inks=s.inks.slice(),objects=[];
  const cx=(s.W-1)/2,cy=(s.H-1)/2,sign=s.depthTravel==='away'?1:-1;
  for(let i=0;i<s.grid.length;i++)if(s.grid[i]!==''){
   const seed=((i*37)%101+.5)/101,z=.35+1.4*((seed+sign*p+1)%1);

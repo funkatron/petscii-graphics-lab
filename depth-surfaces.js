@@ -1,6 +1,7 @@
+import {depthPhase} from './depth-phase.js';
 // Repeating whole-cell textures; no source artwork or glyph bitmap mutation.
 export function depthSurfaceFrame(phase,s){
- const p=((phase%1)+1)%1,travel=(s.depthTravel==='away'?-1:1)*p;
+ const p=depthPhase(phase,s.depthWaveShape),travel=(s.depthTravel==='away'?-1:1)*p;
  const cells=Array(s.W*s.H).fill(''),inks=s.inks.slice(),wrap=(n,size)=>(n%size+size)%size;
  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
   const u=(x+.5)/s.W,v=(y+.5)/s.H;let tx,ty;
