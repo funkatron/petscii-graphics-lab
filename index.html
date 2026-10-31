@@ -1100,6 +1100,15 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  .context-help h3{margin:0}.context-help button{float:right}#c64Readiness{border:1px solid #64778d;border-radius:8px;padding:12px;margin:10px 0;font-size:.85rem}#c64Readiness p{margin:5px 0}#c64Readiness ul{padding-left:20px}
  @media(min-width:691px) and (max-width:900px){.sidebar{position:static;width:260px;box-shadow:none}.sidebar.closed{width:0;padding:0;visibility:hidden}.app-title h1{font-size:.95rem}#saveStatus{display:none}}
  @media(max-width:600px){.drawing-strip{gap:4px}header{gap:6px}.app-title{min-width:0}.app-title h1{font-size:.8rem}}
+ /* Keep phone controls inside notches/home indicators in either orientation. */
+ @media(max-width:600px),(max-height:500px) and (max-width:1000px){
+  .app{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  .sidebar{position:absolute;left:0;top:0;bottom:0;z-index:5;width:min(310px,86%);box-shadow:12px 0 30px #0008}
+  .sidebar.closed{transform:translateX(-100%);width:min(310px,86%);padding:10px;visibility:hidden}
+  .stage{padding:6px;gap:5px}
+  .canvas-frame{padding:5px}
+ }
+
  `;document.head.append(style);
  const icons={paint:'M4 20l4-1L20 7l-3-3L5 16z M14 7l3 3',erase:'M3 14l9-10 9 8-7 8H9z M8 9l9 8 M14 20h7',fill:'M5 10l7-7 9 9-7 7z M4 11h17 M5 3l7 7 M3 17c-4 5 3 5 0 0',line:'M4 20L20 4',rectangle:'M4 5h16v14H4z',select:'M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5',text:'M4 5h16 M12 5v15 M8 20h8',undo:'M9 5L3 10l6 5 M3 10h10c8 0 8 10 1 10',redo:'M15 5l6 5-6 5 M21 10h-10c-8 0-8 10-1 10'};
  for(const [name,path] of Object.entries(icons)){const b=$('tool-'+name)||$(name);if(!b)continue;b.classList.add('tool-icon');b.setAttribute('aria-label',({paint:'Paint',erase:'Eraser',fill:'Fill',line:'Line',rectangle:'Rectangle',select:'Select',text:'Text',undo:'Undo',redo:'Redo'})[name]);b.title=b.getAttribute('aria-label');b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+path+'"/></svg>'}
