@@ -1100,6 +1100,11 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  .context-help h3{margin:0}.context-help button{float:right}#c64Readiness{border:1px solid #64778d;border-radius:8px;padding:12px;margin:10px 0;font-size:.85rem}#c64Readiness p{margin:5px 0}#c64Readiness ul{padding-left:20px}
  @media(min-width:691px) and (max-width:900px){.sidebar{position:static;width:260px;box-shadow:none}.sidebar.closed{width:0;padding:0;visibility:hidden}.app-title h1{font-size:.95rem}#saveStatus{display:none}}
  @media(max-width:600px){.drawing-strip{gap:4px}header{gap:6px}.app-title{min-width:0}.app-title h1{font-size:.8rem}}
+ @media(max-height:500px) and (max-width:1000px) and (orientation:landscape){
+  .app:has(#paint[aria-pressed=true],#erase[aria-pressed=true],#tool-text[aria-pressed=true]) .selection-dock:has(>.selection-actions[hidden]){display:none}
+  /* Retain the current-tool hint for assistive technology; help remains available. */
+  #stageHint{position:absolute;width:1px;height:1px;min-height:0;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ }
  /* Keep phone controls inside notches/home indicators in either orientation. */
  @media(max-width:600px),(max-height:500px) and (max-width:1000px){
   .app{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}

@@ -339,3 +339,5 @@ The movement menu exposes one `scroll` UI option with all eight directions. `ani
 ### Phone workspace first pass
 
 At widths up to 600px, or short viewports up to 1000px wide and 500px high, apply safe-area insets to the app and keep settings as an absolute overlay. This overrides the tablet dock rule in short phone landscape windows. Keep viewport fitting and source data unchanged. `phone-workspace.spec.cjs` covers three phone sizes and their rotations with real erase/Undo actions, exact project comparison, exported PNG pixel checks and screenshot attachments. Headless viewport tests do not verify a physical notch, on-screen keyboard or finger reach.
+
+Short phone landscape additionally hides the idle selection dock for Paint/Eraser/Text and visually hides the tool hint while retaining it for assistive technology. Selection/shape tools reserve the dock before pointer-down, avoiding mid-gesture canvas resizing. A regression compares canvas height against the prior reserved-space layout and checks stable selection geometry and reachable Deselect.
