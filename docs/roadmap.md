@@ -47,7 +47,7 @@ A shader is a visual effect applied over the rendered canvas. Explore quick ways
 
 ## Additional animations — in progress
 
-- [ ] Investigate diagonal directions for movement animations, using the existing color-animation direction choices as a reference. Source review and a proposed first scroll implementation are documented in the [diagonal movement investigation](diagonal-movement.md). Validate preview/export consistency before release.
+- [ ] Investigate diagonal directions for movement animations, using the existing color-animation direction choices as a reference. Source review and a proposed first scroll implementation are documented in the [diagonal movement investigation](diagonal-movement.md). A first ordinary-scroll implementation is in review; diagonal Starfield, waves, Sine scroller and Wipe remain separate follow-ups. Validate preview/export consistency before release.
 
 - [x] Release Sine scroller and Raster-style bars with shared preview/download behavior; PR #27.
 - [x] Release Plasma field using intersecting color waves and the existing color controls; PR #28.

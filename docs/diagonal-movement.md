@@ -28,7 +28,7 @@ Sampling should target `max(columns, rows)` frames per diagonal cycle, then use 
 ## Data and UI changes
 
 - Keep existing `scroll-x` and `scroll-y` projects valid. Add an explicit diagonal-scroll effect identifier rather than treating every nonhorizontal direction as vertical. Save it with the existing `scrollDirection` field.
-- Show one readable scroll choice in the movement menu, with eight direction choices only for ordinary scrolling. Existing cardinal labels/behavior can remain until a separately tested UI consolidation.
+- Show one Scroll choice in the movement menu with all eight directions. Preserve existing cardinal identifiers in serialized settings, mapping the UI choice according to direction.
 - Update `setAnimationSettings`, effect-change handlers, `animationName`, validation, `animationPlan` and `animationCells` together. Restrict unsupported diagonal combinations atomically; do not let Starfield, Sine scroller or Wipe silently interpret them as vertical.
 - Preserve source snapshots, cell inks, history, autosave and cache identity. Preview and modern/native exports should consume the same sampled frames. C64 exporter memory/timing limits still apply.
 
