@@ -21,11 +21,11 @@ See the [audit findings and remaining work](test-reliability-audit.md).
 - [x] Add repeated download/navigation coverage and failure-state attachments; PR #41 passed all nine CI jobs.
 - [ ] Reproduce the recorded download flake using failure evidence. Keep it open; no confirmed fix or order-dependence claim.
 
-## Phone UI — planned
+## Phone UI — first pass in review
 
-- [ ] Adapt the editor for phone-sized screens in portrait and landscape, keeping the canvas usable and primary drawing, project and export actions reachable.
+- [ ] Validate the first phone pass: safe-area spacing and overlay settings on short landscape screens; preserve canvas space and primary actions.
 - [ ] Review panel placement, touch targets, safe areas and on-screen keyboard behavior; preserve artwork while resizing or rotating.
-- [ ] Add phone browser coverage for overflow, drawing and save/export workflows, then verify on a physical phone.
+- [ ] Run new 320/390/430-pixel portrait and rotated landscape checks for overflow, control reach, erase/Undo, exact projects and exported pixels; verify on a physical phone afterward.
 
 ## Canvas shaders — exploration
 
