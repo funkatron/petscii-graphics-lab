@@ -79,6 +79,8 @@ A 5×3 row-banded tunnel fixture reproduced mismatched mirrored depth rows at fr
 
 ## Travel waveform controls
 
-All four depth effects expose Travel waveform beside Depth travel. Optional `depthWaveShape` defaults to `sawtooth` (Steady travel), preserving existing depth output. Sine uses a smooth out-and-return phase; Triangle uses an even-speed return; Reverse ramp reverses the linear phase; Square alternates phases zero and one-half. Complete texture repeats are equivalent, so endpoint one is canonicalized to zero. Exact sine quarter phases are fixed at one-half to avoid floating-point texture-boundary drift. Color waveforms remain independent.
+All four depth effects expose Travel waveform beside Depth travel. Optional `depthWaveShape` defaults to `sawtooth` (Sawtooth), preserving existing depth output. Sine uses a smooth out-and-return phase; Triangle uses an even-speed return; Reverse sawtooth reverses the linear phase; Square alternates phases zero and one-half. Complete texture repeats are equivalent, so endpoint one is canonicalized to zero. Exact sine quarter phases are fixed at one-half to avoid floating-point texture-boundary drift. Color waveforms remain independent.
 
 These controls remap the shared motion phase before projection, so preview and exported frames use the same setting. They do not add spatial wavelength/height controls where no clear meaning is defined. Thirty pure depth tests pass locally; twelve browser cases check quarter-cycle GIF pixels, metadata persistence and invalid settings. Browser CI remains required.
+
+The depth waveform picker uses the same labels and order as other waveform controls: Sine, Triangle, Square, Sawtooth, Reverse sawtooth. Depth-specific behavior is explained in contextual help.
