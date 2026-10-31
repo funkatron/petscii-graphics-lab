@@ -19,6 +19,7 @@ test('Animation plays the output preview in the modal and Stop restores its firs
  await expect(page.locator('#previewBanner')).toBeHidden();expect(await download(page,'#saveProject')).toEqual(before);
 });
 test('C64 animation shows the same live preview with canvas colors and synchronized Play/Stop controls',async({page})=>{
+ await page.clock.install();
  await ui(page,'#c64Mode','selectOption','still');await expect(page.locator('#c64Preview')).toBeHidden();await expect(page.locator('#downloadFigure')).toBeHidden();
  await page.locator('#c64Mode').selectOption('animation');await expect(page.locator('#downloadFigure')).toBeVisible();
  const first=await pixels(page),button=page.locator('#c64Preview');
@@ -26,11 +27,13 @@ test('C64 animation shows the same live preview with canvas colors and synchroni
  expect(await page.locator('#downloadPreview').evaluate(c=>Array.from(c.getContext('2d').getImageData(18*8+4,12*8+4,1,1).data))).toEqual([104,55,43,255]);
  expect(first.slice(0,4)).toEqual([53,40,121,255]);
  expect(first.filter((_,i)=>i%4===3).every(a=>a===255)).toBe(true);
- await button.click();await expect.poll(()=>pixels(page)).not.toEqual(first);
+ await button.click();await expect(button).toHaveText('■ Stop preview');
+ await page.clock.runFor(250);expect(await pixels(page)).not.toEqual(first);
  await page.locator('#c64Format').selectOption('d64');await expect(button).toHaveText('■ Stop preview');
  await page.locator('#export-tab-motion').click();await expect(page.locator('#motionPreview')).toHaveText('■ Stop preview');
  await page.locator('#motionPreview').click();await page.locator('#export-tab-data').click();
  await expect(button).toHaveText('▶ Play preview');expect(await pixels(page)).toEqual(first);
+ await page.clock.runFor(2000);expect(await pixels(page)).toEqual(first);
  await page.locator('#downloadClose').click();await ui(page,'#quickPlay');await ui(page,'#quickPlay');
  await ui(page,'#c64Mode','selectOption','animation');await expect(button).toHaveText('■ Stop preview');
  await button.click();await expect(page.locator('#previewBanner')).toBeHidden();

@@ -106,3 +106,12 @@ On shared download-helper failure, attach the selected action, status, open pane
 ## Current audit status
 
 PR #41 passed all nine CI jobs for `bc6030c` in run 151. Repeated download/navigation coverage is validated. Timing waits, atomic samples, explicit import contracts, representative benchmark settings and layout-threshold review are complete for this audit pass. The historical download flake remains open: the added scenario is coverage, not a reproduction or confirmed fix. Investigate future failure attachments before changing product behavior or test assertions. No broad order-independence guarantee is claimed.
+
+
+## C64 preview clock follow-up
+
+PR #51 run 179 passed all nine jobs, but the existing iPad landscape C64 preview test passed only on retry. Its failure was the live-preview pixel-change assertion, before native downloads. This is separate from the historical download failure above.
+
+The test polls a repeating one-second animation using wall-clock timing. That permits sampling the same phase repeatedly; it is a timing ambiguity, not a demonstrated root cause of the recorded failure. Install the controlled browser clock, advance 250 ms after Play, and require changed pixels. After Stop, require the original pixels immediately and after another two seconds. Keep the canvas-color, centering, opacity, synchronized controls and navigation assertions. No application change, timeout increase or retry change is included.
+
+Syntax and discovery checks are local; Chromium and both iPad WebKit layouts still require CI. The historical download flake remains unresolved.
