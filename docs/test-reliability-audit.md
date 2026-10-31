@@ -30,10 +30,10 @@ The existing independent pixel references, project round trips, Undo checks and 
 - [x] Inventory timing, layout and saved-default risks in the first pass.
 - [x] Replace six guessed waits in three animation control tests.
 - [x] Replace remaining guessed waits and add controlled-clock pause/stop stability checks; PR #37 passed all nine CI jobs.
-- [ ] Review layout thresholds against explicit UI requirements.
+- [x] Review animation/layout thresholds; remove undocumented percentage and retain geometry/rounding checks.
 - [ ] Review serialization fixtures, shared helpers and order-dependent state.
 - [x] Confirm the timing and pause-stability changes in Chromium and both iPad WebKit CI projects (PR #37, run 142).
-- [ ] Confirm the fourth-pass sampling and composite synchronization changes in all three browsers.
+- [x] Confirm fourth-pass sampling and composite synchronization in all three browsers; PR #38.
 
 A passing retry alone is not evidence that a defect is fixed. Preserve failure logs and screenshots, distinguish test synchronization problems from product rendering defects, and report what was actually reproduced.
 
@@ -102,3 +102,7 @@ PR #40 passed all nine CI jobs for `a51f091` (run 149). Native benchmark fixture
 Review retained the remaining layout geometry and rounding tolerances; no reproduced failure justifies relaxing them. The historical C64-only download flake remains unresolved. Add a repeated navigation scenario that alternates animation/data tabs, editable-project saving, text and PNG downloads, comparing complete file bytes with their initial output and checking exact glyph text. No claim is made that this reproduces or fixes the flake.
 
 On shared download-helper failure, attach the selected action, status, open panels, export tab/format and target geometry/disabled state. Rethrow the original error even if attachment collection fails. Preserve existing timeouts, retries and assertions. The attachment provides evidence for future failures without exposing project contents. Browser CI remains required.
+
+## Current audit status
+
+PR #41 passed all nine CI jobs for `bc6030c` in run 151. Repeated download/navigation coverage is validated. Timing waits, atomic samples, explicit import contracts, representative benchmark settings and layout-threshold review are complete for this audit pass. The historical download flake remains open: the added scenario is coverage, not a reproduction or confirmed fix. Investigate future failure attachments before changing product behavior or test assertions. No broad order-independence guarantee is claimed.
