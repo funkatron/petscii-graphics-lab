@@ -10,13 +10,25 @@ for(const effect of ['perspective-floor','curved-road','tunnel-flight'])for(cons
  assert.equal(JSON.stringify(s),original);
  const empty={...s,grid:Array(W*H).fill('')};assert.ok(depthSurfaceFrame(.25,empty).cells.every(g=>g===''));
 });
-test('floor leaves sky empty; road clips the sides; tunnel leaves its center empty',()=>{
+test('floor fills the top; road clips the sides; tunnel leaves its center empty',()=>{
  const s={W:9,H:9,grid:Array(81).fill(160),inks:Array(81).fill(3)};
- assert.ok(depthSurfaceFrame(0,{...s,effect:'perspective-floor'}).cells.slice(0,18).every(g=>g===''));
+ assert.ok(depthSurfaceFrame(0,{...s,effect:'perspective-floor'}).cells.slice(0,9).every(g=>g===160));
  const road=depthSurfaceFrame(0,{...s,effect:'curved-road'});assert.equal(road.cells[72],'');assert.equal(road.cells[80],'');assert.equal(road.cells[76],160);
  assert.equal(depthSurfaceFrame(.5,{...s,effect:'tunnel-flight'}).cells[40],'');
 });
 test('floor uses the specified repeating texture coordinates at phase zero',()=>{
  const s={effect:'perspective-floor',W:4,H:4,grid:Array.from({length:16},(_,i)=>i),inks:Array.from({length:16},(_,i)=>i)};
- const p=depthSurfaceFrame(0,s);assert.deepEqual(p.cells,['','','','',14,15,12,13,11,9,10,8,12,13,14,15]);p.cells.forEach((g,i)=>{if(g!=='')assert.equal(p.inks[i],g)});
+ const p=depthSurfaceFrame(0,s);assert.deepEqual(p.cells,[14,15,12,13,11,9,10,8,12,13,14,15,8,9,10,11]);p.cells.forEach((g,i)=>{if(g!=='')assert.equal(p.inks[i],g)});
+});
+
+test('mirrored tunnel rays sample identical depth bands at texture-row boundaries',()=>{
+ for(const [W,H]of [[5,3],[5,5],[9,7],[40,25]])for(const depthTravel of ['toward','away'])for(let f=0;f<48;f++){
+  const s={effect:'tunnel-flight',depthTravel,W,H,grid:Array.from({length:W*H},(_,i)=>Math.floor(i/W)%2?'':160),inks:Array.from({length:W*H},(_,i)=>Math.floor(i/W)%16)},p=depthSurfaceFrame(f/48,s);
+  for(let y=0;y<H;y++)for(let x=0;x<Math.floor(W/2);x++){const a=y*W+x,b=y*W+W-1-x;assert.equal(p.cells[a],p.cells[b]);if(p.cells[a]!=='')assert.equal(p.inks[a],p.inks[b])}
+ }
+});
+test('floor and road reach the top with a solid texture throughout the loop',()=>{
+ for(const effect of ['perspective-floor','curved-road'])for(const [W,H]of [[1,1],[2,3],[7,5],[40,25]])for(let f=0;f<48;f++){
+  const p=depthSurfaceFrame(f/48,{effect,W,H,grid:Array(W*H).fill(160),inks:Array(W*H).fill(2)});assert.ok(p.cells.slice(0,W).some(g=>g===160));
+ }
 });
