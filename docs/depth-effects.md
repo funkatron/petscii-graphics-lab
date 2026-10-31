@@ -58,3 +58,9 @@ First controls: Travel toward / away and existing timeline/cycles. Keep a fixed 
 - [ ] Prototype Perspective floor separately and decide whether it warrants a road variant.
 
 This planning pass is based on the current `animationPlan`, `introMotionFrame`, `animationCells` and export contracts. Historical game references and licensing review for any future reference images remain a separate research task; no game assets are proposed for inclusion.
+
+## Space warp prototype status
+
+A first implementation is in review. Depth ranges from 0.35 to 1.75 with focal factor 0.8, stable source-index seeds and far-to-near ordering. The optional `depthTravel` setting defaults to `toward` and is serialized only for this effect, keeping unrelated project metadata unchanged. The initial target is 48 samples per motion cycle, minimum 12, under the existing budget rules. These constants are prototype choices, not measured optimal settings.
+
+Six pure projection tests pass locally. Nine browser cases cover every GIF/ZIP frame in both directions, paused preview, source preservation, import defaults/rejection and autosave/history. Browser execution, visual inspection, direct native/video coverage, color combinations and measured frame cost remain required before calling this effect release-ready.

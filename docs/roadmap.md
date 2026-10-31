@@ -51,7 +51,7 @@ A shader is a visual effect applied over the rendered canvas. Explore quick ways
 
 See the [depth-effects plan](depth-effects.md) for artwork mapping, projection, loop closure and validation.
 
-- [ ] Prototype Space warp: occupied glyphs approach or recede through depth with deterministic projection and occlusion.
+- [ ] Validate the Space warp prototype: deterministic occupied-glyph depth projection is implemented in review; browser/visual/export validation remains open.
 - [ ] Prototype Perspective floor: use artwork as a repeated ground texture moving toward/away from a horizon.
 - [ ] Evaluate Curved road and Tunnel flight after the first prototypes are visually convincing.
 - [ ] Preserve shared preview/export frames, independent color effects, source artwork and existing C64 limits; validate phone/iPad readability and sampling cost.
