@@ -46,12 +46,12 @@ test('transparent PNG sequences retain both banks and verbatim inverse glyphs',a
 test('every procedural effect matches GIF frames at the selected scale and white background',async({page})=>{
  await loadProject(page,project([160,'',81,''],2,2));await ui(page,'#gifScale','selectOption','2');await ui(page,'#gifBackground','selectOption','white');await ui(page,'#animationSeconds','selectOption','2');
  for(const effect of ['scroll-x','scroll-y','wave']){
-  await ui(page,'#animationEffect','selectOption',effect);const s=unpack(await download(page,'#exportFrames'));expect(s.frames[0].width).toBe(32);expect(s.frames[0].height).toBe(32);
+  await ui(page,'#animationEffect','selectOption',effect.startsWith('scroll-')?'scroll':effect);if(effect.startsWith('scroll-'))await ui(page,'#scrollDirection','selectOption',effect==='scroll-y'?'up':'left');const s=unpack(await download(page,'#exportFrames'));expect(s.frames[0].width).toBe(32);expect(s.frames[0].height).toBe(32);
   expect(s.timing.frames.reduce((n,f)=>n+f.durationMs,0)).toBe(2000);expect(s.timing.frames.at(-1).startMs+s.timing.frames.at(-1).durationMs).toBe(2000);matchesGif(s,await download(page,'#exportGif'));
  }
 });
 test('ZIP snapshots dimensions, bank, options and editable project before loading the encoder',async({page})=>{
- await loadProject(page,project([160,'',''],3,1));await ui(page,'#animationEffect','selectOption','scroll-x');await ui(page,'#gifScale','selectOption','1');
+ await loadProject(page,project([160,'',''],3,1));await ui(page,'#animationEffect','selectOption','scroll');await ui(page,'#gifScale','selectOption','1');
  const before=JSON.parse(await download(page,'#saveProject'));let release;const gate=new Promise(resolve=>release=resolve);let requested;const started=new Promise(resolve=>requested=resolve);
  await page.route('**/vendor/fflate-zip.esm.js',async r=>{requested();await gate;await r.continue()});
  const waiting=page.waitForEvent('download');await ui(page,'#exportFrames');await started;

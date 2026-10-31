@@ -24,7 +24,7 @@ test('diagonal controls, preview, history and saved projects preserve direction 
  await ui(page,'#quickPlay');await waitForPreviewAdvance(page);await ui(page,'#quickPlay');const {f,pixels:actual}=await previewSample(page,5,3),picture=frame(p,'down-right',f,5);expect(actual).toEqual(picture.cells.map((g,i)=>rgb[g===''?6:picture.inks[i]]));
  expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await ui(page,'#returnDrawing');await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
  for(const effect of ['starfield','sine-scroll','wipe','scroll-x']){await loadProject(page,{...before,animation:{...before.animation,effect}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
- await ui(page,'#animationEffect','selectOption','starfield');await expect(page.locator('#scrollDirection')).toHaveValue('left');await ui(page,'#animationEffect','selectOption','scroll-diagonal');await expect(page.locator('#scrollDirection')).toHaveValue('up-left');
+ await ui(page,'#animationEffect','selectOption','starfield');await expect(page.locator('#scrollDirection')).toHaveValue('left');await ui(page,'#animationEffect','selectOption','scroll');await expect(page.locator('#scrollDirection')).toHaveValue('left');
 });
 test('independent color cycles share diagonal frames with native PRG and D64 exports',async({page})=>{
  const p=art(5,3,'down-left');p.animation={...p.animation,seconds:4,colorEffect:'color-cycle',motionCycles:2,colorCycles:4};await loadProject(page,p);
@@ -36,4 +36,18 @@ test('independent color cycles share diagonal frames with native PRG and D64 exp
  }
  const expected=await page.evaluate(async frames=>{const {createC64AdaptiveProgram,createD64Disk}=await import('./c64-export.js');const {bytes}=createC64AdaptiveProgram({columns:5,rows:3,background:6,ink:14,repetitions:0,frames});return {prg:[...bytes],d64:[...createD64Disk(bytes,'ANIMATION')]}},frames);
  await ui(page,'#c64Mode','selectOption','animation');expect([...await download(page,'#exportC64')]).toEqual(expected.prg);await ui(page,'#c64Format','selectOption','d64');expect([...await download(page,'#exportC64')]).toEqual(expected.d64);
+});
+test('one Scroll choice exposes eight directions and restores existing scroll projects',async({page})=>{
+ await loadProject(page,art(5,3,'up-left'));await ui(page,'#animationEffect','selectOption','scroll');
+ await expect(page.locator('#animationEffect option').filter({hasText:/^Scroll$/})).toHaveCount(1);
+ await expect(page.locator('#animationEffect option[value="scroll-x"],#animationEffect option[value="scroll-y"],#animationEffect option[value="scroll-diagonal"]')).toHaveCount(0);
+ expect(await page.locator('#scrollDirection option').evaluateAll(options=>options.filter(o=>!o.hidden).map(o=>o.value))).toEqual(['left','right','up','down',...directions]);
+ for(const direction of ['left','right','up','down',...directions]){
+  await ui(page,'#scrollDirection','selectOption',direction);await expect(page.locator('#animationEffect')).toHaveValue('scroll');
+  const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.animation.scrollDirection).toBe(direction);expect(saved.animation.effect).toBe(direction.includes('-')?'scroll-diagonal':['left','right'].includes(direction)?'scroll-x':'scroll-y');
+  await loadProject(page,saved);await expect(page.locator('#animationEffect')).toHaveValue('scroll');await expect(page.locator('#scrollDirection')).toHaveValue(direction);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(saved);
+ }
+ for(const [effect,direction]of [['scroll-x','left'],['scroll-y','up']]){
+  const p=art(5,3,'up-left');p.animation={effect,seconds:2,scale:1,background:'dark'};await loadProject(page,p);await expect(page.locator('#animationEffect')).toHaveValue('scroll');await expect(page.locator('#scrollDirection')).toHaveValue(direction);
+ }
 });
