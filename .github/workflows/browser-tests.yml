@@ -28,6 +28,9 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci
+      - name: Check pure depth projection
+        if: matrix.project == 'chromium' && matrix.shard == 1
+        run: node --test tests/space-warp.unit.mjs
       - name: Install export validation tools
         run: |
           apt-get update

@@ -175,6 +175,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Scroll direction chooses travel; Movement → Height controls the bend. Glyphs and their inks move together. |
 | **Bouncing logo** | Move the occupied part of the drawing around the canvas. Leave empty margins for travel. Movement → Travel sets how far it moves. |
 | **Stretching logo** | Squeeze and release the occupied area horizontally and vertically. Movement → Squeeze sets the amount. Whole C64 glyphs stay intact; shrinking can skip cells. |
+| **Space warp** | Sparse glyphs approach or recede through depth. Choose **Depth travel**; near glyphs cover distant ones. Glyphs stay whole. Objects can pop as their depth wraps. |
 | **Starfield** | Move the drawing’s glyphs at three speeds, like stars at different distances. Use sparse artwork and choose Scroll direction. Nearer glyphs cover farther ones when they meet. |
 | **Patterned wipe** | Reveal, hold, then hide the drawing. Choose Wipe direction and a Diagonal, Checkerboard or Blinds pattern. |
 | **Plasma field** | Intersecting color waves flow across occupied cells. Color → Direction, Waveform, Height and Cycles / loop shape the field; Sine is the starting waveform. Glyphs and the shared background stay unchanged. |
