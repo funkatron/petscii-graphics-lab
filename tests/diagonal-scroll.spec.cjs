@@ -51,3 +51,19 @@ test('one Scroll choice exposes eight directions and restores existing scroll pr
   const p=art(5,3,'up-left');p.animation={effect,seconds:2,scale:1,background:'dark'};await loadProject(page,p);await expect(page.locator('#animationEffect')).toHaveValue('scroll');await expect(page.locator('#scrollDirection')).toHaveValue(direction);
  }
 });
+
+test('cardinal-only effects remove unsupported native picker entries',async({page})=>{
+ await loadProject(page,art(5,3,'down-right'));
+ for(const effect of ['sine-scroll','starfield','wipe']){
+  await ui(page,'#animationEffect','selectOption',effect);expect(await page.locator('#scrollDirection option').evaluateAll(options=>options.map(o=>o.value))).toEqual(['left','right','up','down']);
+  await ui(page,'#scrollDirection','selectOption','right');expect(JSON.parse(await download(page,'#saveProject')).animation.scrollDirection).toBe('right');
+  await ui(page,'#animationEffect','selectOption','scroll');await ui(page,'#scrollDirection','selectOption','down-right');await expect(page.locator('#scrollDirection')).toHaveValue('down-right');
+ }
+});
+test('choosing diagonal Scroll directions through the UI changes exported pixels correctly',async({page})=>{
+ const p=art(5,3,'up-left');await loadProject(page,p);
+ for(const d of directions){
+  await ui(page,'#scrollDirection','selectOption',d);await expect(page.locator('#scrollDirection')).toHaveValue(d);const gif=new GifReader(await download(page,'#exportGif'));
+  for(let f=0;f<5;f++){const actual=Buffer.alloc(40*24*4);gif.decodeAndBlitFrameRGBA(f,actual);expect(actual).toEqual(pixels(p,frame(p,d,f,5)))}
+ }
+});
