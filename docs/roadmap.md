@@ -19,6 +19,7 @@ See the [audit findings and remaining work](test-reliability-audit.md).
 - [x] Add independent omitted-field serialization and autosave/reload checks; PR #39.
 - [x] Pin capacity and native-player benchmark wave settings; PR #39 and PR #40 passed all nine CI jobs.
 - [x] Add repeated download/navigation coverage and failure-state attachments; PR #41 passed all nine CI jobs.
+- [ ] Validate controlled-clock C64 download-preview playback and two-second Stop stability in all three browsers; recurring iPad retry observed in PR #51.
 - [ ] Reproduce the recorded download flake using failure evidence. Keep it open; no confirmed fix or order-dependence claim.
 
 ## Phone UI — first pass in review
