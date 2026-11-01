@@ -12,7 +12,7 @@ for(const effect of effects)test('browser preview pacing: '+effect,async({page},
  const colors=grid.map((_,i)=>i%16);
  await loadProject(page,project(grid,width,height,{cellColors:colors,animation:{effect,seconds:4,scale:1,background:'dark'}}));
  const before=await download(page,'#saveProject');
- await ui(page,'#animationColor','selectOption','rainbow-wave');
+ await ui(page,'#animationColor','selectOption','color-wave');
  await ui(page,'#depthWaveShape','selectOption','sine');
  await ui(page,'#waveAmplitude','selectOption','100');
  await ui(page,'#waveLength','selectOption','100');
