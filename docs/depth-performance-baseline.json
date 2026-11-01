@@ -1,0 +1,1621 @@
+{
+  "scope": "Pure geometry only; excludes color pass, glyph rasterization, layout, encoding and physical devices. Times are diagnostic, without pass/fail thresholds.",
+  "node": "v24.22.1",
+  "platform": "linux",
+  "arch": "x64",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "dimensions": [
+    40,
+    25
+  ],
+  "warmupFrames": 96,
+  "samplesPerCase": 480,
+  "hashes": {
+    "space-warp.js": "c01715ba8c1d4a6d94774f71be010042d023b02ad9c7e20e4234001cfb3716e4",
+    "depth-surfaces.js": "8a678e14dbc995c185cd93b846e79ea7be39df8ebb41e21c5c072c7b3ecfdeed",
+    "depth-phase.js": "8a65eb82215579d5fed4e026a759d407cda0ab0e675e0b5ce6ef2f1a964de76a"
+  },
+  "checksum": 510534224,
+  "results": [
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0026,
+      "p95Ms": 0.0379,
+      "maxMs": 0.9207
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0028,
+      "p95Ms": 0.0035,
+      "maxMs": 0.2222
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0027,
+      "p95Ms": 0.0036,
+      "maxMs": 0.2244
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0027,
+      "p95Ms": 0.0032,
+      "maxMs": 0.1748
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0045,
+      "p95Ms": 0.0059,
+      "maxMs": 0.2352
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0022,
+      "p95Ms": 0.0444,
+      "maxMs": 0.5006
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0026,
+      "p95Ms": 0.0032,
+      "maxMs": 0.1787
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0024,
+      "p95Ms": 0.0029,
+      "maxMs": 0.1698
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0025,
+      "p95Ms": 0.003,
+      "maxMs": 0.1998
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0025,
+      "p95Ms": 0.003,
+      "maxMs": 0.2179
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.013,
+      "p95Ms": 0.0237,
+      "maxMs": 0.2802
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0088,
+      "p95Ms": 0.0131,
+      "maxMs": 0.2866
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0086,
+      "p95Ms": 0.0102,
+      "maxMs": 0.2579
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0073,
+      "p95Ms": 0.0087,
+      "maxMs": 0.2561
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0092,
+      "p95Ms": 0.0106,
+      "maxMs": 0.1963
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0096,
+      "p95Ms": 0.0157,
+      "maxMs": 0.3148
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0083,
+      "p95Ms": 0.0096,
+      "maxMs": 0.1727
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0089,
+      "p95Ms": 0.0102,
+      "maxMs": 0.3305
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0074,
+      "p95Ms": 0.0083,
+      "maxMs": 0.3066
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0095,
+      "p95Ms": 0.0107,
+      "maxMs": 0.1604
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.1651,
+      "p95Ms": 0.6616,
+      "maxMs": 1.2579
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.1642,
+      "p95Ms": 0.2226,
+      "maxMs": 0.5289
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.1647,
+      "p95Ms": 0.223,
+      "maxMs": 0.5159
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.1188,
+      "p95Ms": 0.1932,
+      "maxMs": 0.6939
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.1685,
+      "p95Ms": 0.3683,
+      "maxMs": 0.6952
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.1711,
+      "p95Ms": 0.337,
+      "maxMs": 2.0396
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.1707,
+      "p95Ms": 0.3227,
+      "maxMs": 1.205
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.1697,
+      "p95Ms": 0.2807,
+      "maxMs": 0.7471
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.1492,
+      "p95Ms": 0.6888,
+      "maxMs": 2.39
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.1695,
+      "p95Ms": 0.2614,
+      "maxMs": 0.6487
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0339,
+      "p95Ms": 0.049,
+      "maxMs": 0.2795
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.033,
+      "p95Ms": 0.0617,
+      "maxMs": 0.3024
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.033,
+      "p95Ms": 0.0619,
+      "maxMs": 0.3094
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0244,
+      "p95Ms": 0.0325,
+      "maxMs": 0.3654
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0339,
+      "p95Ms": 0.0494,
+      "maxMs": 0.2875
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0338,
+      "p95Ms": 0.0477,
+      "maxMs": 0.3005
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0323,
+      "p95Ms": 0.0534,
+      "maxMs": 0.2709
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0326,
+      "p95Ms": 0.0468,
+      "maxMs": 0.3668
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0248,
+      "p95Ms": 0.0335,
+      "maxMs": 0.3774
+    },
+    {
+      "effect": "space-warp",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0342,
+      "p95Ms": 0.0491,
+      "maxMs": 0.373
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0514,
+      "p95Ms": 0.0714,
+      "maxMs": 0.4542
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0515,
+      "p95Ms": 0.0735,
+      "maxMs": 0.4396
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0514,
+      "p95Ms": 0.0759,
+      "maxMs": 0.4335
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0514,
+      "p95Ms": 0.074,
+      "maxMs": 0.2798
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0515,
+      "p95Ms": 0.0755,
+      "maxMs": 0.6589
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0509,
+      "p95Ms": 0.0627,
+      "maxMs": 0.1819
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.051,
+      "p95Ms": 0.0713,
+      "maxMs": 0.3292
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0512,
+      "p95Ms": 0.0709,
+      "maxMs": 0.395
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.051,
+      "p95Ms": 0.0662,
+      "maxMs": 0.2912
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0509,
+      "p95Ms": 0.0732,
+      "maxMs": 0.2867
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0535,
+      "p95Ms": 0.0687,
+      "maxMs": 0.3139
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0534,
+      "p95Ms": 0.0667,
+      "maxMs": 0.4016
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0535,
+      "p95Ms": 0.067,
+      "maxMs": 0.1741
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0519,
+      "p95Ms": 0.0687,
+      "maxMs": 0.4626
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0538,
+      "p95Ms": 0.0751,
+      "maxMs": 0.3057
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0532,
+      "p95Ms": 0.0807,
+      "maxMs": 0.8118
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0532,
+      "p95Ms": 0.101,
+      "maxMs": 0.6281
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.053,
+      "p95Ms": 0.0692,
+      "maxMs": 0.3051
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0517,
+      "p95Ms": 0.0822,
+      "maxMs": 1.298
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.053,
+      "p95Ms": 0.0705,
+      "maxMs": 0.3299
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0515,
+      "p95Ms": 0.0934,
+      "maxMs": 0.2118
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0513,
+      "p95Ms": 0.0811,
+      "maxMs": 0.3507
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0515,
+      "p95Ms": 0.0751,
+      "maxMs": 0.2331
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0522,
+      "p95Ms": 0.0716,
+      "maxMs": 0.3319
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0523,
+      "p95Ms": 0.0655,
+      "maxMs": 0.1659
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0519,
+      "p95Ms": 0.0666,
+      "maxMs": 0.2542
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0505,
+      "p95Ms": 0.0744,
+      "maxMs": 0.3072
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0505,
+      "p95Ms": 0.0642,
+      "maxMs": 0.172
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0519,
+      "p95Ms": 0.0649,
+      "maxMs": 0.2903
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0519,
+      "p95Ms": 0.0712,
+      "maxMs": 0.4088
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0524,
+      "p95Ms": 0.0662,
+      "maxMs": 0.2694
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0526,
+      "p95Ms": 0.0686,
+      "maxMs": 0.2866
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0527,
+      "p95Ms": 0.0984,
+      "maxMs": 0.3097
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0523,
+      "p95Ms": 0.0729,
+      "maxMs": 0.9272
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0527,
+      "p95Ms": 0.0743,
+      "maxMs": 0.4985
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0517,
+      "p95Ms": 0.0667,
+      "maxMs": 0.2938
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0517,
+      "p95Ms": 0.0647,
+      "maxMs": 0.2082
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0519,
+      "p95Ms": 0.0662,
+      "maxMs": 0.3058
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0518,
+      "p95Ms": 0.0691,
+      "maxMs": 0.36
+    },
+    {
+      "effect": "perspective-floor",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0517,
+      "p95Ms": 0.0729,
+      "maxMs": 0.2638
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0397,
+      "p95Ms": 0.062,
+      "maxMs": 0.1953
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0386,
+      "p95Ms": 0.0559,
+      "maxMs": 0.449
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0397,
+      "p95Ms": 0.0532,
+      "maxMs": 0.1622
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0391,
+      "p95Ms": 0.0531,
+      "maxMs": 0.2811
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0399,
+      "p95Ms": 0.0505,
+      "maxMs": 0.1732
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0385,
+      "p95Ms": 0.0526,
+      "maxMs": 0.167
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0388,
+      "p95Ms": 0.0531,
+      "maxMs": 0.5131
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0386,
+      "p95Ms": 0.0479,
+      "maxMs": 0.1196
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0372,
+      "p95Ms": 0.0467,
+      "maxMs": 0.626
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0385,
+      "p95Ms": 0.0514,
+      "maxMs": 0.279
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.041,
+      "p95Ms": 0.0515,
+      "maxMs": 0.2742
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0402,
+      "p95Ms": 0.0522,
+      "maxMs": 0.1867
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.041,
+      "p95Ms": 0.0641,
+      "maxMs": 0.2474
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.039,
+      "p95Ms": 0.0469,
+      "maxMs": 0.2698
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.041,
+      "p95Ms": 0.0502,
+      "maxMs": 0.1837
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0402,
+      "p95Ms": 0.0574,
+      "maxMs": 0.2985
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0402,
+      "p95Ms": 0.0565,
+      "maxMs": 0.4957
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.04,
+      "p95Ms": 0.0528,
+      "maxMs": 0.3063
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0371,
+      "p95Ms": 0.0464,
+      "maxMs": 0.1643
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.04,
+      "p95Ms": 0.0539,
+      "maxMs": 0.2287
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0381,
+      "p95Ms": 0.0518,
+      "maxMs": 0.4058
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0381,
+      "p95Ms": 0.0543,
+      "maxMs": 0.1569
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.038,
+      "p95Ms": 0.0486,
+      "maxMs": 0.3124
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0373,
+      "p95Ms": 0.0503,
+      "maxMs": 0.1116
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0381,
+      "p95Ms": 0.0509,
+      "maxMs": 0.262
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0381,
+      "p95Ms": 0.0481,
+      "maxMs": 0.46
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0382,
+      "p95Ms": 0.0491,
+      "maxMs": 0.1722
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0382,
+      "p95Ms": 0.0505,
+      "maxMs": 0.2839
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0368,
+      "p95Ms": 0.0465,
+      "maxMs": 0.0962
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0379,
+      "p95Ms": 0.0552,
+      "maxMs": 0.2505
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0413,
+      "p95Ms": 0.0617,
+      "maxMs": 0.5246
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0396,
+      "p95Ms": 0.0439,
+      "maxMs": 0.266
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0412,
+      "p95Ms": 0.053,
+      "maxMs": 0.1545
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0386,
+      "p95Ms": 0.0485,
+      "maxMs": 0.2085
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0414,
+      "p95Ms": 0.0579,
+      "maxMs": 0.365
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0401,
+      "p95Ms": 0.0472,
+      "maxMs": 0.0973
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0403,
+      "p95Ms": 0.0505,
+      "maxMs": 0.272
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0403,
+      "p95Ms": 0.0587,
+      "maxMs": 0.2479
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0369,
+      "p95Ms": 0.0467,
+      "maxMs": 0.2648
+    },
+    {
+      "effect": "curved-road",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.04,
+      "p95Ms": 0.0493,
+      "maxMs": 0.1686
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0753,
+      "p95Ms": 0.0975,
+      "maxMs": 0.506
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0754,
+      "p95Ms": 0.0986,
+      "maxMs": 0.3072
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0756,
+      "p95Ms": 0.1227,
+      "maxMs": 0.3155
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0747,
+      "p95Ms": 0.1073,
+      "maxMs": 0.3053
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0755,
+      "p95Ms": 0.1082,
+      "maxMs": 0.3315
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0749,
+      "p95Ms": 0.1009,
+      "maxMs": 0.362
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0749,
+      "p95Ms": 0.1081,
+      "maxMs": 0.3152
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.075,
+      "p95Ms": 0.1019,
+      "maxMs": 0.3211
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0744,
+      "p95Ms": 0.1022,
+      "maxMs": 0.2972
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "empty",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.075,
+      "p95Ms": 0.1063,
+      "maxMs": 0.345
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0779,
+      "p95Ms": 0.1059,
+      "maxMs": 0.3106
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0777,
+      "p95Ms": 0.1112,
+      "maxMs": 0.5755
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0776,
+      "p95Ms": 0.0958,
+      "maxMs": 0.3428
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.076,
+      "p95Ms": 0.1009,
+      "maxMs": 0.5262
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0778,
+      "p95Ms": 0.0945,
+      "maxMs": 0.311
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0773,
+      "p95Ms": 0.1308,
+      "maxMs": 0.464
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0772,
+      "p95Ms": 0.0939,
+      "maxMs": 0.3448
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0773,
+      "p95Ms": 0.1026,
+      "maxMs": 0.3633
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0759,
+      "p95Ms": 0.1018,
+      "maxMs": 0.4101
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "sparse",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0775,
+      "p95Ms": 0.1276,
+      "maxMs": 2.3604
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0745,
+      "p95Ms": 0.0923,
+      "maxMs": 0.3188
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0745,
+      "p95Ms": 0.095,
+      "maxMs": 0.9508
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0746,
+      "p95Ms": 0.0916,
+      "maxMs": 0.4346
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0738,
+      "p95Ms": 0.1011,
+      "maxMs": 0.3427
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0744,
+      "p95Ms": 0.0931,
+      "maxMs": 0.2899
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0742,
+      "p95Ms": 0.0921,
+      "maxMs": 0.2837
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0741,
+      "p95Ms": 0.1114,
+      "maxMs": 0.3121
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0741,
+      "p95Ms": 0.0912,
+      "maxMs": 0.3261
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0736,
+      "p95Ms": 0.099,
+      "maxMs": 0.3708
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "dense",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0747,
+      "p95Ms": 0.0941,
+      "maxMs": 0.4277
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.0766,
+      "p95Ms": 0.1296,
+      "maxMs": 0.7679
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0764,
+      "p95Ms": 0.1066,
+      "maxMs": 0.4798
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0766,
+      "p95Ms": 0.1143,
+      "maxMs": 0.3226
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0752,
+      "p95Ms": 0.0922,
+      "maxMs": 0.4096
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "toward",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0765,
+      "p95Ms": 0.1258,
+      "maxMs": 0.6825
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "sawtooth",
+      "frames": 480,
+      "medianMs": 0.076,
+      "p95Ms": 0.0938,
+      "maxMs": 0.3017
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "sine",
+      "frames": 480,
+      "medianMs": 0.0762,
+      "p95Ms": 0.1135,
+      "maxMs": 0.4624
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "triangle",
+      "frames": 480,
+      "medianMs": 0.0766,
+      "p95Ms": 0.1038,
+      "maxMs": 0.3797
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "square",
+      "frames": 480,
+      "medianMs": 0.0755,
+      "p95Ms": 0.1314,
+      "maxMs": 0.3235
+    },
+    {
+      "effect": "tunnel-flight",
+      "fixture": "asymmetric",
+      "depthTravel": "away",
+      "depthWaveShape": "reverse-sawtooth",
+      "frames": 480,
+      "medianMs": 0.0762,
+      "p95Ms": 0.126,
+      "maxMs": 0.3309
+    }
+  ]
+}

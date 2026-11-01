@@ -19,14 +19,20 @@ See the [audit findings and remaining work](test-reliability-audit.md).
 - [x] Add independent omitted-field serialization and autosave/reload checks; PR #39.
 - [x] Pin capacity and native-player benchmark wave settings; PR #39 and PR #40 passed all nine CI jobs.
 - [x] Add repeated download/navigation coverage and failure-state attachments; PR #41 passed all nine CI jobs.
-- [ ] Validate controlled-clock C64 download-preview playback and two-second Stop stability in all three browsers; recurring iPad retry observed in PR #51.
+- [x] Validate controlled-clock C64 download-preview playback and two-second Stop stability in all three browsers; PR #53.
 - [ ] Reproduce the recorded download flake using failure evidence. Keep it open; no confirmed fix or order-dependence claim.
 
-## Phone UI — first pass in review
+## Phone UI — automated first pass released
 
-- [ ] Validate the first phone pass: safe-area spacing and overlay settings on short landscape screens; preserve canvas space and primary actions.
+- [x] Release the automated first phone pass in PR #45: safe-area spacing and overlay settings on short landscape screens; preserve canvas space and primary actions.
 - [ ] Review panel placement, touch targets, safe areas and on-screen keyboard behavior; preserve artwork while resizing or rotating.
-- [ ] Run new 320/390/430-pixel portrait and rotated landscape checks for overflow, control reach, erase/Undo, exact projects and exported pixels; verify on a physical phone afterward.
+- [x] Run 320/390/430-pixel portrait and rotated landscape checks for overflow, control reach, erase/Undo, exact projects and exported pixels; PR #45.
+- [ ] Verify the phone workflows on a physical device.
+
+## Canvas space — released
+
+- [x] Reclaim the empty selection dock for idle drawing tools at every screen size; PR #54.
+- [x] Reserve action space before Select/Line/Rectangle gestures so artwork stays stationary; browser checks cover tablet, desktop and short phone layouts.
 
 ## Canvas shaders — exploration
 
@@ -48,17 +54,20 @@ A shader is a visual effect applied over the rendered canvas. Explore quick ways
 
 ## Additional animations — in progress
 
-### Racing and space depth effects — planning
+### Racing and space depth effects — released, review continues
 
 See the [depth-effects plan](depth-effects.md) for artwork mapping, projection, loop closure and validation.
 
-- [ ] Validate the Space warp prototype: deterministic occupied-glyph depth projection is implemented in review; browser/visual/export validation remains open.
+- [x] Release deterministic Space warp (PR #47), surface effects (PR #48), top-edge and tunnel symmetry fixes (PR #49), and waveform/height/wavelength controls (PR #52).
+- [x] Validate mixed glyphs and independent colors in GIF/ZIP/native bytes and repeated video cycles across all three browsers; PR #51.
+- [x] Record a reproducible 160-case pure projection cost baseline; see [measurement scope and results](depth-performance.md).
+- [ ] Measure full browser rendering and physical-device cost before changing sampling limits.
 - [ ] Validate Perspective floor prototype: repeated artwork texture moves toward/away from a horizon; review quantized motion and exports.
 - [ ] Evaluate Curved road and Tunnel flight prototypes against the simpler effects; retain them only if visual review shows useful, readable depth.
 - [ ] Preserve shared preview/export frames, independent color effects, source artwork and existing C64 limits; validate phone/iPad readability and sampling cost.
 
 
-- [ ] Investigate diagonal directions for movement animations, using the existing color-animation direction choices as a reference. Source review and a proposed first scroll implementation are documented in the [diagonal movement investigation](diagonal-movement.md). A first ordinary-scroll implementation is in review; diagonal Starfield, waves, Sine scroller and Wipe remain separate follow-ups. Validate preview/export consistency before release.
+- [ ] Investigate diagonal directions for movement animations, using the existing color-animation direction choices as a reference. Source review and a proposed first scroll implementation are documented in the [diagonal movement investigation](diagonal-movement.md). Ordinary Scroll shipped with eight directions in PR #44; unsupported picker entries were removed in PR #50; diagonal Starfield, waves, Sine scroller and Wipe remain separate follow-ups. Validate preview/export consistency before release.
 
 - [x] Release Sine scroller and Raster-style bars with shared preview/download behavior; PR #27.
 - [x] Release Plasma field using intersecting color waves and the existing color controls; PR #28.
