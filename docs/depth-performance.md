@@ -26,3 +26,9 @@ Across these workloads, pure projection p95 stays below 0.7 ms on this host. Ind
 - Measure full preview frame time in Chromium and both iPad WebKit layouts, then on a physical iPad.
 - Include color effects, glyph rendering, both height/wavelength extremes and high cycle rates.
 - Review depth readability, clipping and stepping before adding Orbital field or more depth controls.
+
+## Browser preview diagnostic
+
+`tests/depth-preview-pacing.spec.cjs` exercises all four depth effects in Chromium and both iPad WebKit configurations using dense 40 × 25 mixed-bank, mixed-color artwork, a Rainbow wave, and 100% height/wavelength. It samples 99 `requestAnimationFrame` intervals during live preview, records median/p95/maximum cadence and distinct preview frame markers, and attaches screenshots and JSON to the test report. It also checks that returning to drawing does not change saved artwork, inks or animation settings.
+
+The diagnostic uses no wall-clock performance pass/fail threshold. `requestAnimationFrame` cadence is influenced by browser scheduling, headless execution and the CI host; it is not an isolated cost for the color pass, glyph rasterization, layout, or compositor. Screenshots permit later visual review but do not themselves prove visual quality. Profile full rendering and inspect output on physical phone/iPad hardware before making performance or sampling-limit claims.
