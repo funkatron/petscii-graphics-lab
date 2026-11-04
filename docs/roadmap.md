@@ -54,12 +54,12 @@ A shader is a visual effect applied over the rendered canvas. Explore quick ways
 
 ## Additional animations — in progress
 
-### Rotating 3-D objects — implementation ready for browser validation
+### Rotating 3-D objects — released, device review pending
 
 - [x] Add Rotating cube, Spinning globe and Rolling drum using artwork as whole-cell surface textures.
 - [x] Preserve original artwork, ink pairs, nearest-surface visibility and exact cycle closure; 20 new geometry checks pass locally.
 - [x] Add shared preview/export integration, project persistence and sampling warnings.
-- [ ] Complete Chromium and both iPad WebKit browser checks, including GIF/ZIP/native bytes, repeated video and preview screenshots.
+- [x] Pass the focused Chromium and both iPad WebKit browser checks for PR #56, including preview and exports.
 - [ ] Review readability and motion on a physical iPad; evaluate full browser performance.
 
 ### Racing and space depth effects — released, review continues
@@ -69,6 +69,7 @@ See the [depth-effects plan](depth-effects.md) for artwork mapping, projection, 
 - [x] Release deterministic Space warp (PR #47), surface effects (PR #48), top-edge and tunnel symmetry fixes (PR #49), and waveform/height/wavelength controls (PR #52).
 - [x] Validate mixed glyphs and independent colors in GIF/ZIP/native bytes and repeated video cycles across all three browsers; PR #51.
 - [x] Record a reproducible 160-case pure projection cost baseline; see [measurement scope and results](depth-performance.md).
+- [x] Record live browser preview cadence for all four effects in Chromium and both iPad WebKit layouts; see [browser results](depth-performance.md#recorded-browser-result).
 - [ ] Measure full browser rendering and physical-device cost before changing sampling limits.
 - [ ] Validate Perspective floor prototype: repeated artwork texture moves toward/away from a horizon; review quantized motion and exports.
 - [ ] Evaluate Curved road and Tunnel flight prototypes against the simpler effects; retain them only if visual review shows useful, readable depth.
