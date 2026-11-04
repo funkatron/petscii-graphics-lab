@@ -8,7 +8,8 @@ export function solidMotionFrame(phase,s){
  const cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(tilt),sx=Math.sin(tilt);
  // Inverse of world Y rotation followed by X rotation.
  const local=([x,y,z])=>{const yy=cx*y+sx*z,zz=-sx*y+cx*z;return [cy*x-sy*zz,yy,sy*x+cy*zz]};
- const orbit=(s.cameraOrbit??0)*Math.PI/180,elevation=(s.cameraElevation??0)*Math.PI/180;
+ // Orbit opposite the globe's spin so the camera keeps revealing new texture.
+ const orbit=(s.cameraOrbit??0)*Math.PI/180-(s.cameraMotion===1?a:0),elevation=(s.cameraElevation??0)*Math.PI/180;
  const cosOrbit=Math.cos(orbit),sinOrbit=Math.sin(orbit),cosElevation=Math.cos(elevation),sinElevation=Math.sin(elevation);
  // Move both the ray origin and direction with the camera to keep the object centered.
  const cameraLocal=(x,y,z)=>{
