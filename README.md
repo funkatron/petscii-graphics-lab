@@ -178,6 +178,9 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Perspective floor** | Repeat the drawing from the top edge and move it through depth. |
 | **Curved road** | Texture a widening road with looping bends; the sides stay empty. |
 | **Tunnel flight** | Wrap artwork around a tunnel and move through its depth; the central opening stays empty. |
+| **Rotating cube** | Wrap the drawing around six faces of a tumbling cube. |
+| **Spinning globe** | Wrap the drawing around a tilted rotating sphere. |
+| **Rolling drum** | Roll the drawing around a cylinder with textured end caps. |
 | **Space warp** | Sparse glyphs approach or recede through depth. Choose **Depth travel**; near glyphs cover distant ones. Glyphs stay whole. Objects can pop as their depth wraps. |
 | **Starfield** | Move the drawing’s glyphs at three speeds, like stars at different distances. Use sparse artwork and choose Scroll direction. Nearer glyphs cover farther ones when they meet. |
 | **Patterned wipe** | Reveal, hold, then hide the drawing. Choose Wipe direction and a Diagonal, Checkerboard or Blinds pattern. |
@@ -203,6 +206,14 @@ For **Bouncing logo**, draw a small logo with empty space around it. Playback ce
 For **Starfield**, scatter small glyphs across the canvas. The effect uses those glyphs and their inks as stars, with three wrapping depth layers. Each layer completes one, two or three crossings per movement cycle. It uses your artwork rather than adding random stars.
 
 **Patterned wipe** starts hidden, reveals the complete drawing, holds it, then hides it again. Diagonal sweeps across both axes; Checkerboard reveals alternating cell groups; Blinds opens repeated strips. All four intro effects can combine with any color animation.
+
+### Try the 3-D objects
+
+Choose **Rotating cube**, **Spinning globe**, or **Rolling drum** under **Movement / reveal**. Start with a colorful pattern or a picture with a border, preferably on a 40 × 25 canvas. Small canvases show only a coarse silhouette.
+
+The drawing becomes the surface texture; glyphs remain whole and keep their inks. The nearest surface hides the back, even where the texture is empty. Empty texture cells show the background. Fine details may disappear as the surface turns. No shading changes your chosen colors.
+
+Use **Loop duration** and **Movement cycles per loop** to set speed, and combine with any **Color animation**. Each movement cycle returns to its starting orientation. These effects share the preview and animation download frames, including C64 output subject to its existing memory and timing limits. **Return to drawing** restores your original artwork.
 
 ### Shape a wave
 

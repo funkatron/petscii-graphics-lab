@@ -54,6 +54,14 @@ A shader is a visual effect applied over the rendered canvas. Explore quick ways
 
 ## Additional animations — in progress
 
+### Rotating 3-D objects — implementation ready for browser validation
+
+- [x] Add Rotating cube, Spinning globe and Rolling drum using artwork as whole-cell surface textures.
+- [x] Preserve original artwork, ink pairs, nearest-surface visibility and exact cycle closure; 20 new geometry checks pass locally.
+- [x] Add shared preview/export integration, project persistence and sampling warnings.
+- [ ] Complete Chromium and both iPad WebKit browser checks, including GIF/ZIP/native bytes, repeated video and preview screenshots.
+- [ ] Review readability and motion on a physical iPad; evaluate full browser performance.
+
 ### Racing and space depth effects — released, review continues
 
 See the [depth-effects plan](depth-effects.md) for artwork mapping, projection, loop closure and validation.

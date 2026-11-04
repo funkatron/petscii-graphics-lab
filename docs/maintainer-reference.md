@@ -278,6 +278,9 @@ KERNAL call contracts: [STOP `$FFE1`](https://www.devili.iki.fi/Computers/Commod
 
 ## CI environment
 
+For a PR limited to motion rendering and small additions to existing motion controls, apply the `ci: motion only` label. CI runs one job each for Chromium, iPad landscape and iPad portrait, covering motion, preview, independent color and movement cycles, and exports. Depth geometry checks still run. Before labeling, confirm the focused list includes the specs for the affected behavior. Remove the label for broader UI or interaction changes. Unlabeled PRs, pushes to main and manual workflow runs use the full matrix.
+
+
 GitHub Actions uses the official `mcr.microsoft.com/playwright:v1.58.2-noble` image, matching the pinned npm package. Update both versions together. The image supplies browser builds and OS dependencies; installing them from the runner's slow Ubuntu mirror previously consumed the entire job deadline before tests began. FFmpeg and a Python virtual environment with `py65==1.2.0` provide independent export checks.
 
 Run CI with one worker for stable headless WebKit resource use. The two serial multi-effect/project-color scenarios have explicit 60-second limits; their assertions are unchanged. Each browser runs in a separate matrix job with one worker. Playwright's 20-minute per-browser global timeout leaves time to upload reports inside the 30-minute job budget; obsolete runs on the same ref are canceled automatically. Source: [Playwright CI guidance](https://playwright.dev/docs/ci) and [Docker image guidance](https://playwright.dev/docs/docker).
@@ -341,3 +344,12 @@ The movement menu exposes one `scroll` UI option with all eight directions. `ani
 At widths up to 600px, or short viewports up to 1000px wide and 500px high, apply safe-area insets to the app and keep settings as an absolute overlay. This overrides the tablet dock rule in short phone landscape windows. Keep viewport fitting and source data unchanged. `phone-workspace.spec.cjs` covers three phone sizes and their rotations with real erase/Undo actions, exact project comparison, exported PNG pixel checks and screenshot attachments. Headless viewport tests do not verify a physical notch, on-screen keyboard or finger reach.
 
 Short phone landscape additionally hides the idle selection dock for Paint/Eraser/Text and visually hides the tool hint while retaining it for assistive technology. Selection/shape tools reserve the dock before pointer-down, avoiding mid-gesture canvas resizing. A regression compares canvas height against the prior reserved-space layout and checks stable selection geometry and reachable Deselect.
+
+
+### Rotating solid surfaces
+
+`solid-motion.js` implements `rotating-cube`, `spinning-globe` and `rolling-drum`. Inverse-rotate perspective rays from camera (0,0,-4) and sample the nearest cube slab, sphere, or capped X-axis cylinder intersection. Fit using the shorter canvas dimension so cells remain square. Cube faces each map the full artwork; the sphere uses longitude/latitude; the drum uses axial/angular coordinates and planar end caps. Clamp planar texture edges and wrap angular seams. Empty nearest-surface samples show background rather than revealing rear faces. No lighting, glyph deformation, randomness or new project fields are introduced.
+
+Normalize phase modulo one before rotation for exact endpoint closure. Cube yaw completes a full turn while tilt oscillates; the globe has fixed tilt; the drum rolls around its axis with a fixed yaw. Select 48 samples per cycle and require 12 when rates compete for the shared budget. The usual independent color pass follows projection. Hide wave and depth-travel controls. All three identifiers validate in v3 and flow through snapshots, cache identity, autosave, JSON and ZIP metadata. Existing files keep their behavior; older application versions cannot open these new effect identifiers.
+
+Geometry tests cover empty and narrow grids, mixed-bank glyph/ink pairs, silhouettes, latitude mapping and source preservation. Browser checks extend the depth export matrix to GIF/ZIP pixel equality, PRG/D64 bytes and repeated video cycles; separate UI tests compare paused preview pixels to GIF, save/reload settings and reject undersampled rates. Local geometry checks are not browser or physical-device performance evidence.

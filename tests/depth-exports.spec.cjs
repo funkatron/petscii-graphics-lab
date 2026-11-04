@@ -1,7 +1,7 @@
 const {GifReader}=require('omggif'),AdmZip=require('adm-zip'),{PNG}=require('pngjs');
 const {test,expect,project,loadProject,ui,download}=require('./helpers.cjs');
 const {glyphRows}=require('./glyph-reference.cjs'),{decodeVideo,nearPixel}=require('./video-utils.cjs');
-const effects=['space-warp','perspective-floor','curved-road','tunnel-flight'];
+const effects=['space-warp','perspective-floor','curved-road','tunnel-flight','rotating-cube','spinning-globe','rolling-drum'];
 const rgb=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'].map(c=>[0,2,4].map(n=>parseInt(c.slice(n,n+2),16)));
 const ramp=[0,11,12,15,1,7,13,5,3,14,6,4,2,10,8,9];
 async function pictures(page,p,count){
@@ -10,10 +10,11 @@ async function pictures(page,p,count){
  // Use the browser's ES-module loader for the same .js modules shipped by Pages.
  // Playwright's Node loader treats these files as CommonJS in this package.
  const frames=await page.evaluate(async({p,count})=>{
+  const {solidMotionFrame,SOLID_EFFECTS}=await import('./solid-motion.js');
   const {spaceWarpFrame}=await import('./space-warp.js'),{depthSurfaceFrame}=await import('./depth-surfaces.js');
   return Array.from({length:count},(_,f)=>{
    const phase=(f%(count/p.animation.motionCycles))/(count/p.animation.motionCycles),s={W:p.columns,H:p.rows,grid:p.grid,inks:p.cellColors,effect:p.animation.effect,depthTravel:p.animation.depthTravel};
-   return (s.effect==='space-warp'?spaceWarpFrame:depthSurfaceFrame)(phase,s);
+   return (SOLID_EFFECTS.includes(s.effect)?solidMotionFrame:s.effect==='space-warp'?spaceWarpFrame:depthSurfaceFrame)(phase,s);
   });
  },{p,count});
  return frames.map((frame,f)=>{
@@ -26,7 +27,7 @@ function art(effect,video=false){return project(Array.from({length:24},(_,i)=>i%
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 for(const effect of effects)test(effect+' preserves mixed glyphs and independent colors in GIF, ZIP and native bytes',async({page})=>{
  test.setTimeout(60000);const p=art(effect);await loadProject(page,p);const before=await download(page,'#saveProject'),frames=await pictures(page,p,96),gif=new GifReader(await download(page,'#exportGif')),zip=new AdmZip(await download(page,'#exportFrames')),timing=JSON.parse(zip.readAsText('timing.json'));
- expect(gif.numFrames()).toBe(96);expect(timing).toMatchObject({effect,depthTravel:'away',motionCycles:2,colorCycles:4,durationMs:4000});
+ expect(gif.numFrames()).toBe(96);expect(timing).toMatchObject({effect,...(['rotating-cube','spinning-globe','rolling-drum'].includes(effect)?{}:{depthTravel:'away'}),motionCycles:2,colorCycles:4,durationMs:4000});
  for(let f=0;f<96;f++){const b=Buffer.alloc(48*32*4);gif.decodeAndBlitFrameRGBA(f,b);expect(b).toEqual(raster(p,frames[f]));expect(PNG.sync.read(zip.readFile(timing.frames[f].file)).data).toEqual(b)}
  const expected=await page.evaluate(async({frames,glyphBits})=>{const {createC64AdaptiveProgram,createD64Disk}=await import('./c64-export.js');const {bytes}=createC64AdaptiveProgram({columns:6,rows:4,background:6,ink:14,frames,glyphBits:Uint8Array.from(glyphBits),repetitions:0});return {prg:[...bytes],d64:[...createD64Disk(bytes,'ANIMATION')]}},{frames:frames.map((f,i)=>({...f,durationMs:timing.frames[i].durationMs})),glyphBits:Array.from({length:512},(_,g)=>glyphRows(g)).flat()});
  await ui(page,'#c64Mode','selectOption','animation');expect([...await download(page,'#exportC64')]).toEqual(expected.prg);await ui(page,'#c64Format','selectOption','d64');expect([...await download(page,'#exportC64')]).toEqual(expected.d64);expect(await download(page,'#saveProject')).toEqual(before);
