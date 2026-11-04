@@ -1,0 +1,19 @@
+const {test,expect,project,loadProject,download,ui,waitForPreviewAdvance,previewSample,waitForProjectAutosave}=require('./helpers.cjs');
+const {GifReader}=require('omggif');
+for(const effect of ['rotating-cube','spinning-globe','rolling-drum'])test(effect+' preview matches export, persists and leaves drawing intact',async({page},info)=>{
+ test.setTimeout(60000);
+ await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
+ const W=32,H=24,p=project(Array.from({length:W*H},(_,i)=>i%11===0?'':160),W,H,{cellColors:Array.from({length:W*H},(_,i)=>(Math.floor(i/W)+Math.floor(i%W/4))%16),animation:{effect:'none',seconds:4,scale:1,background:'dark'}});
+ await loadProject(page,p);await ui(page,'#animationEffect','selectOption',effect);
+ await expect(page.locator('#depthOptions')).toBeHidden();await expect(page.locator('#waveOptions')).toBeHidden();
+ await ui(page,'#animationColor','selectOption','color-cycle');
+ const before=JSON.parse(await download(page,'#saveProject')),gif=new GifReader(await download(page,'#exportGif'));
+ await ui(page,'#animationPlay');await waitForPreviewAdvance(page);await ui(page,'#animationPlay');
+ const sample=await previewSample(page,W,H),pixels=Buffer.alloc(W*H*64*4);gif.decodeAndBlitFrameRGBA(sample.f,pixels);
+ sample.pixels.forEach((rgb,i)=>{const offset=((Math.floor(i/W)*8+4)*W*8+(i%W)*8+4)*4;expect(rgb).toEqual([...pixels.subarray(offset,offset+3)])});
+ await info.attach(effect+'-preview',{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
+ await ui(page,'#animationStop');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ expect(before.grid).toEqual(p.grid);expect(before.cellColors).toEqual(p.cellColors);
+ await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ await ui(page,'#animationSeconds','selectOption','0.5');await ui(page,'#animationCycles','selectOption','16');await expect(page.locator('#animationWarning')).toBeVisible();await expect(page.locator('#animationPlay')).toBeDisabled();
+});
