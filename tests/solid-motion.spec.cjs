@@ -12,10 +12,10 @@ for(const effect of ['rotating-cube','spinning-globe','rolling-drum'])test(effec
  await ui(page,'#cameraOrbit','selectOption','90');
  await ui(page,'#cameraElevation','selectOption','30');
  await expect(page.locator('#cameraMotion')).toHaveValue('0');
- await ui(page,'#cameraMotion','selectOption','1');
+ await ui(page,'#cameraMotion','selectOption','3');
  await ui(page,'#animationColor','selectOption','color-cycle');
  const before=JSON.parse(await download(page,'#saveProject')),gif=new GifReader(await download(page,'#exportGif'));
- expect(before.animation).toMatchObject({cameraDistance:3.25,cameraOrbit:90,cameraElevation:30,cameraMotion:1});
+ expect(before.animation).toMatchObject({cameraDistance:3.25,cameraOrbit:90,cameraElevation:30,cameraMotion:3});
  await ui(page,'#animationPlay');await waitForPreviewAdvance(page);await ui(page,'#animationPlay');
  const sample=await previewSample(page,W,H),pixels=Buffer.alloc(W*H*64*4);gif.decodeAndBlitFrameRGBA(sample.f,pixels);
  sample.pixels.forEach((rgb,i)=>{const offset=((Math.floor(i/W)*8+4)*W*8+(i%W)*8+4)*4;expect(rgb).toEqual([...pixels.subarray(offset,offset+3)])});
