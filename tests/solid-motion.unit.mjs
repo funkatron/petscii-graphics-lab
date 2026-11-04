@@ -37,3 +37,15 @@ test('camera distance enlarges the globe and orbit changes the sampled texture',
  assert.notDeepEqual(rotated.cells,close.cells);
  assert.deepEqual(solidMotionFrame(1,orbit),rotated);
 });
+
+test('animated camera orbits from the chosen angle and closes with object motion',()=>{
+ for(const effect of SOLID_EFFECTS){
+  const W=31,H=25;
+  const s={effect,W,H,cameraOrbit:90,cameraElevation:30,grid:Array.from({length:W*H},(_,i)=>i%512),inks:Array(W*H).fill(7)};
+  const orbit={...s,cameraMotion:1};
+  assert.deepEqual(solidMotionFrame(0,orbit),solidMotionFrame(0,s));
+  assert.deepEqual(solidMotionFrame(.25,orbit),solidMotionFrame(.25,{...s,cameraOrbit:0}));
+  assert.notDeepEqual(solidMotionFrame(.25,orbit),solidMotionFrame(.25,s));
+  assert.deepEqual(solidMotionFrame(1,orbit),solidMotionFrame(0,orbit));
+ }
+});
