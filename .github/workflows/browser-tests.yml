@@ -11,14 +11,16 @@ concurrency:
   group: browser-tests-${{ github.ref }}
   cancel-in-progress: true
 env:
-  MOTION_ONLY: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: motion only') }}
+  MOTION_ONLY: >-
+    ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: motion only') }}
 jobs:
   playwright:
     strategy:
       fail-fast: false
       matrix:
         project: [chromium, ipad-touch, ipad-portrait]
-        shard: ${{ fromJSON((github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: motion only')) && '[1]' || '[1,2,3]') }}
+        shard: >-
+          ${{ fromJSON((github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: motion only')) && '[1]' || '[1,2,3]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # Match @playwright/test in package-lock.json. Browsers and OS dependencies are included.
