@@ -211,6 +211,8 @@ For **Starfield**, scatter small glyphs across the canvas. The effect uses those
 
 Choose **Rotating cube**, **Spinning globe**, or **Rolling drum** under **Movement / reveal**. Start with a colorful pattern or a picture with a border, preferably on a 40 × 25 canvas. Small canvases show only a coarse silhouette.
 
+Use **Camera distance** to move closer or farther away, **Camera orbit** to circle the object, and **Camera elevation** to look from above or below. Very close views can crop the object at the canvas edges. The camera stays at the chosen viewpoint as the object spins, and exports use the same view.
+
 The drawing becomes the surface texture; glyphs remain whole and keep their inks. The nearest surface hides the back, even where the texture is empty. Empty texture cells show the background. Fine details may disappear as the surface turns. No shading changes your chosen colors.
 
 Use **Loop duration** and **Movement cycles per loop** to set speed, and combine with any **Color animation**. Each movement cycle returns to its starting orientation. These effects share the preview and animation download frames, including C64 output subject to its existing memory and timing limits. **Return to drawing** restores your original artwork.
