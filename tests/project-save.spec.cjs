@@ -14,7 +14,13 @@ for(const native of [false,true]){
    await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
   });
   async function save(page){
-   if(native){await ui(page,action);await expect(page.locator('#status')).toContainText('handed to the share sheet');return page.evaluate(()=>window.savedFiles.at(-1))}
+   if(native){
+    const nextIndex=await page.evaluate(()=>window.savedFiles.length);
+    await ui(page,action);
+    await expect.poll(()=>page.evaluate(()=>window.savedFiles.length)).toBe(nextIndex+1);
+    await expect(page.locator('#status')).toContainText('handed to the share sheet');
+    return page.evaluate(index=>window.savedFiles[index],nextIndex);
+   }
    const waiting=page.waitForEvent('download');await ui(page,action);const file=await waiting;return {name:file.suggestedFilename(),text:(await contents(file)).toString()};
   }
   test('one save action, fixed JSON suffix and editable memorable name',async({page})=>{
