@@ -6,8 +6,14 @@ for(const effect of ['rotating-cube','spinning-globe','rolling-drum'])test(effec
  const W=32,H=24,p=project(Array.from({length:W*H},(_,i)=>i%11===0?'':160),W,H,{cellColors:Array.from({length:W*H},(_,i)=>(Math.floor(i/W)+Math.floor(i%W/4))%16),animation:{effect:'none',seconds:4,scale:1,background:'dark'}});
  await loadProject(page,p);await ui(page,'#animationEffect','selectOption',effect);
  await expect(page.locator('#depthOptions')).toBeHidden();await expect(page.locator('#waveOptions')).toBeHidden();
+ await expect(page.locator('#solidCameraOptions')).toBeVisible();
+ await expect(page.locator('#cameraDistance')).toHaveValue('4');
+ await ui(page,'#cameraDistance','selectOption','3.25');
+ await ui(page,'#cameraOrbit','selectOption','90');
+ await ui(page,'#cameraElevation','selectOption','30');
  await ui(page,'#animationColor','selectOption','color-cycle');
  const before=JSON.parse(await download(page,'#saveProject')),gif=new GifReader(await download(page,'#exportGif'));
+ expect(before.animation).toMatchObject({cameraDistance:3.25,cameraOrbit:90,cameraElevation:30});
  await ui(page,'#animationPlay');await waitForPreviewAdvance(page);await ui(page,'#animationPlay');
  const sample=await previewSample(page,W,H),pixels=Buffer.alloc(W*H*64*4);gif.decodeAndBlitFrameRGBA(sample.f,pixels);
  sample.pixels.forEach((rgb,i)=>{const offset=((Math.floor(i/W)*8+4)*W*8+(i%W)*8+4)*4;expect(rgb).toEqual([...pixels.subarray(offset,offset+3)])});

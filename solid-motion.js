@@ -8,11 +8,18 @@ export function solidMotionFrame(phase,s){
  const cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(tilt),sx=Math.sin(tilt);
  // Inverse of world Y rotation followed by X rotation.
  const local=([x,y,z])=>{const yy=cx*y+sx*z,zz=-sx*y+cx*z;return [cy*x-sy*zz,yy,sy*x+cy*zz]};
- const origin=local([0,0,-4]),size=Math.max(1,Math.min(s.W,s.H));
+ const orbit=(s.cameraOrbit??0)*Math.PI/180,elevation=(s.cameraElevation??0)*Math.PI/180;
+ const cosOrbit=Math.cos(orbit),sinOrbit=Math.sin(orbit),cosElevation=Math.cos(elevation),sinElevation=Math.sin(elevation);
+ // Move both the ray origin and direction with the camera to keep the object centered.
+ const cameraLocal=(x,y,z)=>{
+  const forward=y*sinElevation+z*cosElevation;
+  return local([x*cosOrbit+forward*sinOrbit,y*cosElevation-z*sinElevation,forward*cosOrbit-x*sinOrbit]);
+ };
+ const origin=cameraLocal(0,0,-(s.cameraDistance??4)),size=Math.max(1,Math.min(s.W,s.H));
  const cells=Array(s.W*s.H).fill(''),inks=s.inks.slice();
  const wrap=v=>((v%1)+1)%1;
  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
-  const d=local([(2*x+1-s.W)/size*.55,(2*y+1-s.H)/size*.55,1]);
+  const d=cameraLocal((2*x+1-s.W)/size*.55,(2*y+1-s.H)/size*.55,1);
   let t=Infinity,axis=-1;
   if(s.effect==='rotating-cube'){
    let near=-Infinity,far=Infinity;

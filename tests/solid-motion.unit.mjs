@@ -23,3 +23,17 @@ test('tilted globe center samples the expected latitude and preserves ink',()=>{
  const s={effect:'spinning-globe',W:9,H:9,grid:Array.from({length:81},(_,i)=>i),inks:Array.from({length:81},(_,i)=>i%16)};
  const f=solidMotionFrame(0,s);assert.equal(f.cells[40],31);assert.equal(f.inks[40],15);
 });
+
+test('camera distance enlarges the globe and orbit changes the sampled texture',()=>{
+ const W=40,H=25;
+ const s={effect:'spinning-globe',W,H,grid:Array.from({length:W*H},(_,i)=>i%512),inks:Array.from({length:W*H},(_,i)=>i%16)};
+ const standard=solidMotionFrame(0,s);
+ const close=solidMotionFrame(0,{...s,cameraDistance:2.5});
+ const orbit={...s,cameraDistance:2.5,cameraOrbit:90,cameraElevation:30};
+ const rotated=solidMotionFrame(0,orbit);
+ const coverage=frame=>frame.cells.map(g=>g!=='');
+ assert.ok(coverage(close).filter(Boolean).length>coverage(standard).filter(Boolean).length);
+ assert.deepEqual(coverage(rotated),coverage(close));
+ assert.notDeepEqual(rotated.cells,close.cells);
+ assert.deepEqual(solidMotionFrame(1,orbit),rotated);
+});
