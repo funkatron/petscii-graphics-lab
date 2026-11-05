@@ -14,7 +14,9 @@ function reference(effect,f,a=settings,source=grid){
   for(let y=0;y<height;y++)for(let x=0;x<width;x++)put((top+y)*W+left+x,(1+Math.floor((y+.5)*4/height))*W+1+Math.floor((x+.5)*6/width));
  }else if(effect==='starfield'){
   const horizontal=['left','right'].includes(a.scrollDirection),length=horizontal?W:H,sign=['left','up'].includes(a.scrollDirection)?-1:1,particles=source.flatMap((g,i)=>g===''?[]:[{i,x:i%W,y:Math.floor(i/W),depth:1+(i%W*17+Math.floor(i/W)*31)%3}]).sort((a,b)=>a.depth-b.depth||a.i-b.i);
-  for(const {i,x,y,depth}of particles){const travel=sign*Math.floor(p*length*depth),wrap=n=>(n%length+length)%length;put(horizontal?y*W+wrap(x+travel):wrap(y+travel)*W+x,i)}
+  for(const {i,x,y,depth}of particles){const travel=sign*Math.floor(p*length*depth),wrap=n=>(n%length+length)%length;const diagonal=a.scrollDirection.includes('-'),dx=(a.scrollDirection.endsWith('left')?-1:1)*Math.floor(p*W*depth),dy=(a.scrollDirection.startsWith('up')?-1:1)*Math.floor(p*H*depth);
+   const xx=((x+dx)%W+W)%W,yy=((y+dy)%H+H)%H;
+   put(diagonal?yy*W+xx:horizontal?y*W+wrap(x+travel):wrap(y+travel)*W+x,i)}
  }else{
   const visible=p<.35?p/.35:p>.65?(1-p)/.35:1,horizontal=['left','right'].includes(a.scrollDirection),reverse=['left','up'].includes(a.scrollDirection);
   for(let i=0;i<W*H;i++){const x=i%W,y=Math.floor(i/W),pos=horizontal?x:y,len=horizontal?W:H,u=reverse?1-(pos+.5)/len:(pos+.5)/len,v=horizontal?(y+.5)/H:(x+.5)/W,stripe=(pos%4+.5)/4;
@@ -33,7 +35,7 @@ for(const effect of effects)test(effect+' exports exact glyph/ink pixels in GIF 
 });
 test('starfield directions and wipe patterns move or mask original glyphs deterministically',async({page})=>{
  test.setTimeout(120000);
- for(const scrollDirection of ['left','right','up','down'])for(const effect of ['starfield','wipe']){
+ for(const scrollDirection of ['left','right','up','down','up-left','up-right','down-left','down-right'])for(const effect of (scrollDirection.includes('-')?['starfield']:['starfield','wipe'])){
   for(const wipePattern of effect==='wipe'?['diagonal','checkerboard','blinds']:['diagonal']){const a=await art(page,effect,{scrollDirection,wipePattern}),gif=new GifReader(await download(page,'#exportGif'));expect(gif.numFrames()).toBe(24);for(const f of [0,3,6,12,21,23]){const pixels=Buffer.alloc(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(f,pixels);expect(pixels,JSON.stringify({effect,scrollDirection,wipePattern,f})).toEqual(raster(reference(effect,f,a)))}}
  }
 });
@@ -42,7 +44,7 @@ test('logo amount controls affect travel and squeeze independently of timing',as
  for(const effect of ['logo-bounce','logo-stretch'])for(const waveAmplitude of [10,25,50,75]){const a=await art(page,effect,{waveAmplitude}),gif=new GifReader(await download(page,'#exportGif'));expect(gif.numFrames()).toBe(24);for(const f of [0,6,9,12]){const pixels=Buffer.alloc(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(f,pixels);expect(pixels,effect+' '+waveAmplitude+' '+f).toEqual(raster(reference(effect,f,a)))}}
 });
 for(const effect of effects)test(effect+' combines with color and exports exact C64 program/disk bytes',async({page})=>{
- const a=await art(page,effect,{colorEffect:'raster-bars',colorWaveDirection:'up',colorWaveShape:'sawtooth'}),zip=new AdmZip(await download(page,'#exportFrames')),timing=JSON.parse(zip.readAsText('timing.json')),frames=timing.frames.map((f,n)=>({...reference(effect,n,a),durationMs:f.durationMs}));for(let f=0;f<24;f++)expect(PNG.sync.read(zip.readFile(timing.frames[f].file)).data).toEqual(raster(frames[f]));
+ const a=await art(page,effect,{...(effect==='starfield'?{scrollDirection:'down-right'}:{}),colorEffect:'raster-bars',colorWaveDirection:'up',colorWaveShape:'sawtooth'}),zip=new AdmZip(await download(page,'#exportFrames')),timing=JSON.parse(zip.readAsText('timing.json')),frames=timing.frames.map((f,n)=>({...reference(effect,n,a),durationMs:f.durationMs}));for(let f=0;f<24;f++)expect(PNG.sync.read(zip.readFile(timing.frames[f].file)).data).toEqual(raster(frames[f]));
  const bits=Array.from({length:512},(_,i)=>glyphRows(i)).flat();const wanted=await page.evaluate(async({frames,bits})=>{const {createC64AdaptiveProgram,createD64Disk}=await import('./c64-export.js');const {bytes}=createC64AdaptiveProgram({columns:8,rows:6,background:6,ink:14,repetitions:0,glyphBits:Uint8Array.from(bits),frames});return {prg:[...bytes],d64:[...createD64Disk(bytes,'ANIMATION')]}},{frames,bits});await ui(page,'#c64Mode','selectOption','animation');expect([...await download(page,'#exportC64')]).toEqual(wanted.prg);await ui(page,'#c64Format','selectOption','d64');expect([...await download(page,'#exportC64')]).toEqual(wanted.d64);
 });
 test('new motion controls preserve effect selections, source, read-only preview, history and autosave',async({page})=>{

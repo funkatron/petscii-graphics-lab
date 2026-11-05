@@ -23,8 +23,8 @@ test('diagonal controls, preview, history and saved projects preserve direction 
  await loadProject(page,project([160],1,1));await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
  await ui(page,'#quickPlay');await waitForPreviewAdvance(page);await ui(page,'#quickPlay');const {f,pixels:actual}=await previewSample(page,5,3),picture=frame(p,'down-right',f,5);expect(actual).toEqual(picture.cells.map((g,i)=>rgb[g===''?6:picture.inks[i]]));
  expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);await ui(page,'#returnDrawing');await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
- for(const effect of ['starfield','sine-scroll','wipe','scroll-x']){await loadProject(page,{...before,animation:{...before.animation,effect}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
- await ui(page,'#animationEffect','selectOption','starfield');await expect(page.locator('#scrollDirection')).toHaveValue('left');await ui(page,'#animationEffect','selectOption','scroll');await expect(page.locator('#scrollDirection')).toHaveValue('left');
+ for(const effect of ['sine-scroll','wipe','scroll-x']){await loadProject(page,{...before,animation:{...before.animation,effect}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
+ await ui(page,'#animationEffect','selectOption','sine-scroll');await expect(page.locator('#scrollDirection')).toHaveValue('left');await ui(page,'#animationEffect','selectOption','scroll');await expect(page.locator('#scrollDirection')).toHaveValue('left');
 });
 test('independent color cycles share diagonal frames with native PRG and D64 exports',async({page})=>{
  const p=art(5,3,'down-left');p.animation={...p.animation,seconds:4,colorEffect:'color-cycle',motionCycles:2,colorCycles:4};await loadProject(page,p);
@@ -54,7 +54,7 @@ test('one Scroll choice exposes eight directions and restores existing scroll pr
 
 test('cardinal-only effects remove unsupported native picker entries',async({page})=>{
  await loadProject(page,art(5,3,'down-right'));
- for(const effect of ['sine-scroll','starfield','wipe']){
+ for(const effect of ['sine-scroll','wipe']){
   await ui(page,'#animationEffect','selectOption',effect);expect(await page.locator('#scrollDirection option').evaluateAll(options=>options.map(o=>o.value))).toEqual(['left','right','up','down']);
   await ui(page,'#scrollDirection','selectOption','right');expect(JSON.parse(await download(page,'#saveProject')).animation.scrollDirection).toBe('right');
   await ui(page,'#animationEffect','selectOption','scroll');await ui(page,'#scrollDirection','selectOption','down-right');await expect(page.locator('#scrollDirection')).toHaveValue('down-right');
@@ -66,4 +66,20 @@ test('choosing diagonal Scroll directions through the UI changes exported pixels
   await ui(page,'#scrollDirection','selectOption',d);await expect(page.locator('#scrollDirection')).toHaveValue(d);const gif=new GifReader(await download(page,'#exportGif'));
   for(let f=0;f<5;f++){const actual=Buffer.alloc(40*24*4);gif.decodeAndBlitFrameRGBA(f,actual);expect(actual).toEqual(pixels(p,frame(p,d,f,5)))}
  }
+});
+
+test('Starfield keeps all eight directions through UI changes and project reload',async({page})=>{
+ const p=art(5,3,'up-left');p.animation.effect='starfield';
+ await loadProject(page,p);
+ for(const direction of directions){
+  await ui(page,'#scrollDirection','selectOption',direction);
+  await expect(page.locator('#animationEffect')).toHaveValue('starfield');
+  const saved=JSON.parse(await download(page,'#saveProject'));
+  expect(saved.animation).toMatchObject({effect:'starfield',scrollDirection:direction});
+  await waitForProjectAutosave(page,saved);
+  await page.reload();await page.locator('.app[data-ready=true]').waitFor();
+  expect(JSON.parse(await download(page,'#saveProject'))).toEqual(saved);
+ }
+ await ui(page,'#animationEffect','selectOption','wipe');
+ await expect(page.locator('#scrollDirection')).toHaveValue('left');
 });

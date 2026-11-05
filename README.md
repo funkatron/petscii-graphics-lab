@@ -182,7 +182,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Spinning globe** | Wrap the drawing around a tilted rotating sphere. |
 | **Rolling drum** | Roll the drawing around a cylinder with textured end caps. |
 | **Space warp** | Sparse glyphs approach or recede through depth. Choose **Depth travel**; near glyphs cover distant ones. Glyphs stay whole. Objects can pop as their depth wraps. |
-| **Starfield** | Move the drawing’s glyphs at three speeds, like stars at different distances. Use sparse artwork and choose Scroll direction. Nearer glyphs cover farther ones when they meet. |
+| **Starfield** | Move the drawing’s glyphs at three speeds, like stars at different distances. Use sparse artwork and choose Scroll direction. Nearer glyphs cover farther ones when they meet.  Choose any of eight directions. Diagonal travel follows the canvas diagonal. |
 | **Patterned wipe** | Reveal, hold, then hide the drawing. Choose Wipe direction and a Diagonal, Checkerboard or Blinds pattern. |
 | **Plasma field** | Intersecting color waves flow across occupied cells. Color → Direction, Waveform, Height and Cycles / loop shape the field; Sine is the starting waveform. Glyphs and the shared background stay unchanged. |
 | **Raster-style bars** | Blue/cyan/white bands move across occupied cells. Color → Direction, Waveform and Height shape the bands. Empty cells and the shared background stay unchanged. |
