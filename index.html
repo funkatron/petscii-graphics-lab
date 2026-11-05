@@ -519,7 +519,7 @@ function recordCell(i){if(replayEvents.length>=20000){resetReplay();return}repla
 function resetReplay(){replayBase=Array(W*H).fill('');replayBaseColors=cellColors.slice();replayEvents=[];replayEventColors=[];for(let i=0;i<grid.length;i++)if(grid[i]!=='')recordCell(i)}
 // Remove unsupported native picker entries instead of relying on option[hidden].
 function syncScrollDirections(effect,direction=$('scrollDirection').value){
- const allowed=['scroll','starfield'].includes(effect)?[...WAVE_DIRECTIONS,...DIAGONAL_DIRECTIONS]:WAVE_DIRECTIONS,select=$('scrollDirection');
+ const allowed=['scroll','starfield','sine-scroll'].includes(effect)?[...WAVE_DIRECTIONS,...DIAGONAL_DIRECTIONS]:WAVE_DIRECTIONS,select=$('scrollDirection');
  if([...select.options].map(o=>o.value).join(',')!==allowed.join(','))select.replaceChildren(...allowed.map(value=>new Option(value.replace('-', ' ').replace(/^./,c=>c.toUpperCase()),value)));
  select.value=allowed.includes(direction)?direction:'left';
 }

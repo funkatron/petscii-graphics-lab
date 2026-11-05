@@ -3,7 +3,7 @@
 const path = require('node:path');
 function select(files, {full=false, motionOnly=false}={}) {
   if (full) return {mode:'full', specs:[]};
-  if (motionOnly) return {mode:'focused', specs:['tests/solid-motion.spec.cjs','tests/space-warp.spec.cjs','tests/depth-exports.spec.cjs']};
+  if (motionOnly) return {mode:'focused', specs:['tests/sine-scroll.spec.cjs','tests/diagonal-scroll.spec.cjs','tests/demoscene.spec.cjs','tests/wavelength.spec.cjs','tests/solid-motion.spec.cjs','tests/space-warp.spec.cjs','tests/depth-exports.spec.cjs']};
   if (!files.length || files.every(file => file.startsWith('docs/') || file.endsWith('.md')))
     return {mode:'none',specs:[]};
   const set = new Set();

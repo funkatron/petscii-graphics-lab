@@ -22,7 +22,10 @@ test('full validation overrides all other selections',()=>{
   assert.deepEqual(select(['README.md'],{full:true}),{mode:'full',specs:[]});
 });
 test('legacy motion-only label remains supported',()=>{
-  assert.ok(select(['README.md'],{motionOnly:true}).specs.includes('tests/solid-motion.spec.cjs'));
+  const specs = select(['README.md'],{motionOnly:true}).specs;
+  assert.ok(specs.includes('tests/solid-motion.spec.cjs'));
+  assert.ok(specs.includes('tests/sine-scroll.spec.cjs'));
+  assert.ok(specs.includes('tests/diagonal-scroll.spec.cjs'));
 });
 
 test('extracted shared modules select affected browser workflows',()=>{
