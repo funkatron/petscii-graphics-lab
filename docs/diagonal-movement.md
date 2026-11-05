@@ -2,15 +2,15 @@
 
 ## Finding
 
-Diagonal scrolling is feasible in the existing derived-frame pipeline. It requires coordinated changes to direction validation, control state, frame planning and sampling; adding select options alone would produce incorrect movement. This is a source review and implementation proposal, not a tested feature.
+Diagonal scrolling is feasible in the existing derived-frame pipeline. It requires coordinated changes to direction validation, control state, frame planning and sampling; adding select options alone would produce incorrect movement. Ordinary Scroll and Starfield are released. Sine scroller is implemented with browser validation pending; Wave and Patterned wipe remain proposals. The original scroll design below records the shared travel rule.
 
 ## Effect scope
 
 | Effect | Proposed treatment | Reason |
 | --- | --- | --- |
 | Horizontal/vertical scroll | First implementation: add four diagonal choices | Both source coordinates can wrap independently while glyphs and inks move together. |
-| Starfield | Follow-up after scroll | Each depth can use the same two-axis travel rule; retain collision order. |
-| Sine scroller | Separate design | The current bend is perpendicular to one travel axis. A diagonal path needs a defined bend axis and amplitude. |
+| Starfield | Released in PR #62 | Each depth uses two-axis travel with preserved collision order. |
+| Sine scroller | Implemented; browser validation pending | Travel across width and height; bend perpendicular to the canvas diagonal. See the [renderer contract](maintainer-reference.md#diagonal-sine-scroller). |
 | Patterned wipe | Separate design | Direction controls reveal ranking rather than translation; diagonal reveal needs explicit pattern rules. |
 | Wave | Separate design | Current direction chooses row or column displacement. Diagonal propagation and diagonal displacement are different effects. |
 | Ripple, logos, replay, inverse | Keep existing controls | Ripple is radial; logos have their own paths; the other effects do not translate by direction. |

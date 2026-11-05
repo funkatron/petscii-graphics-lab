@@ -51,7 +51,7 @@ jobs:
       - name: Run focused motion and export checks
         if: env.MOTION_ONLY == 'true'
         run: >-
-          npm test -- 'tests/(solid-motion|depth-exports|depth-surfaces|depth-waveform|space-warp|composite|cycles|independent-rates)\.spec\.cjs$'
+          npm test -- 'tests/(sine-scroll|diagonal-scroll|demoscene|wavelength|solid-motion|depth-exports|depth-surfaces|depth-waveform|space-warp|composite|cycles|independent-rates)\.spec\.cjs$'
           --project=${{ matrix.project }} --workers=1 --global-timeout=900000
       - name: Run browser and export checks
         if: env.MOTION_ONLY != 'true'
