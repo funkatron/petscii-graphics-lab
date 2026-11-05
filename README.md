@@ -172,7 +172,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Scroll** | The drawing wraps around in any of eight directions. Choose **Scroll direction**. Diagonal movement crosses one canvas width and height per cycle, following the canvas diagonal. |
 | **Wave rows / columns** | Rows or columns shift in a repeating wave. Choose its travel direction and waveform. |
 | **Ripple** | Waves radiate from the canvas center, shifting glyphs and their inks. Choose waveform, wavelength and height in Movement. The center stays fixed; edges can move out of view. |
-| **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Scroll direction chooses travel; Movement → Height controls the bend. Glyphs and their inks move together. |
+| **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Choose any of eight directions. Diagonal travel crosses one canvas width and height per cycle, bending perpendicular to that path. Movement → Height controls the bend; Wavelength controls its spacing. Glyphs and their inks move together. |
 | **Bouncing logo** | Move the occupied part of the drawing around the canvas. Leave empty margins for travel. Movement → Travel sets how far it moves. |
 | **Stretching logo** | Squeeze and release the occupied area horizontally and vertically. Movement → Squeeze sets the amount. Whole C64 glyphs stay intact; shrinking can skip cells. |
 | **Perspective floor** | Repeat the drawing from the top edge and move it through depth. |
