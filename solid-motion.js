@@ -9,14 +9,20 @@ export function solidMotionFrame(phase,s){
  // Inverse of world Y rotation followed by X rotation.
  const local=([x,y,z])=>{const yy=cx*y+sx*z,zz=-sx*y+cx*z;return [cy*x-sy*zz,yy,sy*x+cy*zz]};
  // Orbit opposite the globe's spin so the camera keeps revealing new texture.
- const orbit=(s.cameraOrbit??0)*Math.PI/180-(s.cameraMotion===1?a:0),elevation=(s.cameraElevation??0)*Math.PI/180;
+ const orbits=s.cameraMotion===1||s.cameraMotion===3;
+ const movesInAndOut=s.cameraMotion===2||s.cameraMotion===3;
+ const orbit=(s.cameraOrbit??0)*Math.PI/180-(orbits?a:0),elevation=(s.cameraElevation??0)*Math.PI/180;
  const cosOrbit=Math.cos(orbit),sinOrbit=Math.sin(orbit),cosElevation=Math.cos(elevation),sinElevation=Math.sin(elevation);
  // Move both the ray origin and direction with the camera to keep the object centered.
  const cameraLocal=(x,y,z)=>{
   const forward=y*sinElevation+z*cosElevation;
   return local([x*cosOrbit+forward*sinOrbit,y*cosElevation-z*sinElevation,forward*cosOrbit-x*sinOrbit]);
  };
- const origin=cameraLocal(0,0,-(s.cameraDistance??4)),size=Math.max(1,Math.min(s.W,s.H));
+ const startDistance=s.cameraDistance??4;
+ // At the closest preset, pull back first so the move still changes the view.
+ const turnaroundDistance=startDistance===2.5?4:2.5;
+ const distance=movesInAndOut?startDistance+(turnaroundDistance-startDistance)*(1-Math.cos(a))/2:startDistance;
+ const origin=cameraLocal(0,0,-distance),size=Math.max(1,Math.min(s.W,s.H));
  const cells=Array(s.W*s.H).fill(''),inks=s.inks.slice();
  const wrap=v=>((v%1)+1)%1;
  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){

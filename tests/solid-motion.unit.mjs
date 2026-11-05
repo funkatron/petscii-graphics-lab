@@ -49,3 +49,20 @@ test('animated camera orbits from the chosen angle and closes with object motion
   assert.deepEqual(solidMotionFrame(1,orbit),solidMotionFrame(0,orbit));
  }
 });
+
+test('camera travel returns to the starting distance and can combine with orbit',()=>{
+ for(const effect of SOLID_EFFECTS){
+  const W=32,H=24;
+  const s={effect,W,H,grid:Array.from({length:W*H},(_,i)=>i%512),inks:Array(W*H).fill(7)};
+  for(const [start,end] of [[4,2.5],[2.5,4]]){
+   for(const [motion,midpointMotion] of [[2,0],[3,1]]){
+    const camera={...s,cameraDistance:start,cameraMotion:motion};
+    const first=solidMotionFrame(0,camera);
+    assert.deepEqual(first,solidMotionFrame(0,{...s,cameraDistance:start}));
+    assert.deepEqual(solidMotionFrame(1,camera),first);
+    assert.deepEqual(solidMotionFrame(.5,camera),solidMotionFrame(.5,{...s,cameraDistance:end,cameraMotion:midpointMotion}));
+    assert.notDeepEqual(solidMotionFrame(.5,camera),solidMotionFrame(.5,{...s,cameraDistance:start,cameraMotion:midpointMotion}));
+   }
+  }
+ }
+});
