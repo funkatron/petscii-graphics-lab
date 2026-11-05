@@ -32,3 +32,16 @@ Across these workloads, pure projection p95 stays below 0.7 ms on this host. Ind
 `tests/depth-preview-pacing.spec.cjs` exercises all four depth effects in Chromium and both iPad WebKit configurations using dense 40 × 25 mixed-bank, mixed-color artwork, a Rainbow wave, and 100% height/wavelength. It samples 99 `requestAnimationFrame` intervals during live preview, records median/p95/maximum cadence and distinct preview frame markers, and attaches screenshots and JSON to the test report. It also checks that returning to drawing does not change saved artwork, inks or animation settings.
 
 The diagnostic uses no wall-clock performance pass/fail threshold. `requestAnimationFrame` cadence is influenced by browser scheduling, headless execution and the CI host; it is not an isolated cost for the color pass, glyph rasterization, layout, or compositor. Screenshots permit later visual review but do not themselves prove visual quality. Profile full rendering and inspect output on physical phone/iPad hardware before making performance or sampling-limit claims.
+
+### Recorded browser result
+
+All 12 cases passed their preview advancement and artwork preservation checks in [Browser tests run 196](https://github.com/funkatron/petscii-graphics-lab/actions/runs/41885824602) on PR #57 head `466462d`. These are the p95 callback intervals from the shard 2 Playwright reports, in milliseconds.
+
+| Effect | Chromium | iPad landscape WebKit | iPad portrait WebKit |
+| --- | ---: | ---: | ---: |
+| Space warp | 16.7 | 53 | 46 |
+| Perspective floor | 16.7 | 79 | 46 |
+| Curved road | 16.7 | 54 | 49 |
+| Tunnel flight | 16.7 | 75 | 53 |
+
+Medians were 16.7 ms in Chromium and 15–16 ms in WebKit. The longest interval was 92 ms for Perspective floor in landscape WebKit. This is one run on shared CI runners. Repeat the measurements and profile frame rendering on a physical iPad before attributing the longer gaps to any specific effect or changing sampling limits. The cube, globe and drum were outside this diagnostic.
