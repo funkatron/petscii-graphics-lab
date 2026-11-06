@@ -68,7 +68,7 @@ Start from ordinary C64 BASIC. The first player does not target cartridge enviro
 
 The editor uses authentic numeric C64 glyphs throughout. Animation cycle counts, directions, and waveform settings use the same sampled frames as modern outputs.
 
-The exporter first tries its compact general player and then compiled row routines. If neither passes both limits, ROM-backed animations can use a player that writes glyphs and colors together. It stores up to 256 distinct glyph-and-ink pairs as one-byte indexes and writes both planes in one pass. The paired player is selected only when it fits both limits. Readiness, PRG and D64 use the same checks and preserve frame count and loop duration. The two-second reference animation was manually checked in Poke on iPad, including RUN/STOP. Broader PAL/NTSC and physical-machine checks remain open.
+For ROM-backed animations, the exporter prefers a player that writes glyphs and colors together. It stores up to 256 distinct glyph-and-ink pairs as one-byte indexes and writes both planes in one pass. When the paired player is unavailable or exceeds either limit, the exporter tries its compact general player and compiled row routines. Stills use the general player. Readiness, PRG and D64 use the same checks and preserve frame count and loop duration. The two-second reference animation was manually checked in Poke on iPad, including RUN/STOP. Broader PAL/NTSC and physical-machine checks remain open.
 
 The player stores the same **sampled frames** used by GIF, video, and frame ZIP, as character/color changes. It does not run a native mathematical implementation of each effect. Long replays may skip recorded steps, just as the other animation downloads do.
 
