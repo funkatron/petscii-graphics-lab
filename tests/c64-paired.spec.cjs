@@ -2,7 +2,7 @@ const {spawnSync}=require('node:child_process');
 const {test,expect,loadProject,project,ui,download}=require('./helpers.cjs');
 const {capacityPage}=require('./c64-capacity-fixtures.cjs');
 
-test('paired fallback exports the exact dense cube and keeps its loop deadlines',async({page})=>{
+test('paired player exports the exact dense cube and keeps its loop deadlines',async({page})=>{
  test.setTimeout(90000);
  await capacityPage(page);
  let seed=1;
