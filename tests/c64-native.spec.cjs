@@ -38,7 +38,7 @@ test('native rows preserve all 96 full-screen wave/color samples at two seconds 
  }
  await testInfo.attach('native-row-cpu.json',{body:JSON.stringify(reports,null,2),contentType:'application/json'});
 });
-test('adaptive selection preserves accepted generic bytes and original blockers when no native candidate fits',async({page})=>{
+test('adaptive selection prefers paired animation and retains generic fallbacks and blockers',async({page})=>{
  await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
  const results=await page.evaluate(async()=>{
   const {createC64Program,createC64AdaptiveProgram,createC64RowProgram}=await import('./c64-export.js');
@@ -49,10 +49,12 @@ test('adaptive selection preserves accepted generic bytes and original blockers 
    try{createC64Program(input)}catch(e){genericError=e.message}
    try{createC64AdaptiveProgram(input)}catch(e){adaptiveError=e.message}
    if(input.frames.length>=2&&input.frames.length<=256)nativeSize=createC64RowProgram({...input,analyze:true}).diagnostics.programBytes;
-   return {same:generic.bytes.length===adaptive.bytes.length&&generic.bytes.every((v,i)=>v===adaptive.bytes[i]),genericError,adaptiveError,unchanged:before===JSON.stringify(input),nativeSize,limit:adaptive.diagnostics.memoryLimit};
+   return {renderer:adaptive.diagnostics.renderer,same:generic.bytes.length===adaptive.bytes.length&&generic.bytes.every((v,i)=>v===adaptive.bytes[i]),genericError,adaptiveError,unchanged:before===JSON.stringify(input),nativeSize,limit:adaptive.diagnostics.memoryLimit};
   });
  });
- for(const r of results){expect(r.same).toBe(true);expect(r.unchanged).toBe(true);expect(r.adaptiveError).toBe(r.genericError)}
+ expect(results[0].renderer).toBe('paired');
+ expect(results[0].same).toBe(false);
+ for(const r of results.slice(1)){expect(r.same).toBe(true);expect(r.unchanged).toBe(true);expect(r.adaptiveError).toBe(r.genericError)}
  expect(results[0].genericError).toBe('');expect(results[1].genericError).toBe('');
  expect(results[2].nativeSize).toBeGreaterThan(results[2].limit);expect(results[3].genericError).toContain('playback speed');
 });
