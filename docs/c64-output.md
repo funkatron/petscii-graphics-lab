@@ -76,7 +76,7 @@ The player stores the same **sampled frames** used by GIF, video, and frame ZIP,
 
 The program uses the standard KERNAL clock, which counts **60 ticks per second**. Frame boundaries are rounded cumulatively to those ticks, keeping the loop duration balanced. Commodore documents the clock interval in its [TIME description](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_2/page_089.html).
 
-The first picture is loaded before the loop clock starts. Later updates use changed runs or compiled row routines, depending on the selected renderer.
+The first picture loads before the loop clock starts. Later updates use paired glyph-and-color writes, general changed runs, or compiled row routines. A glyph used in three colors needs three dictionary entries. An animation that exceeds 256 pairs can still export if another player fits.
 
 The readiness percentage asks: **can the player finish this screen update before the next frame is due?** It is independent of the memory check. A small program can still require too much processing per frame.
 
