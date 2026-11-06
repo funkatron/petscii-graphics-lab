@@ -82,24 +82,21 @@ export function createC64Program(input){
  }
  return result;
 }
-// Preserve accepted generic bytes; promote only a native candidate that fits
-// both limits. Analysis and downloads must select the identical program.
+// Prefer the paired player for eligible animations within both budgets.
 export function createC64AdaptiveProgram(input){
  let result=createC64Program({...input,analyze:true});
  const memoryFits=p=>p.diagnostics.programBytes<=p.diagnostics.memoryLimit;
  const fits=p=>p.diagnostics.worstUpdateRatio<=1&&memoryFits(p);
- if(!fits(result)&&input.frames.length>=2&&input.frames.length<=256){
-  const native=createC64RowProgram({...input,analyze:true});
-  if(fits(native)||(input.allowTimingOverrun&&memoryFits(native)&&(!memoryFits(result)||native.diagnostics.worstUpdateRatio<result.diagnostics.worstUpdateRatio)))result=native;
- }
- // Keep the existing selections first. Paired updates only apply to ROM-backed
- // pictures and must pass both budgets without a timing override.
- if(!fits(result)&&input.frames.length>=2&&input.glyphBits===undefined){
+ if(input.frames.length>=2&&input.glyphBits===undefined){
   const dictionary=buildPairDictionary(input.frames,input.ink);
   if(dictionary){
    const paired=compileC64Program(input,true,false,dictionary);
-   if(fits(paired))result=paired;
+   if(fits(paired))return paired;
   }
+ }
+ if(!fits(result)&&input.frames.length>=2&&input.frames.length<=256){
+  const native=createC64RowProgram({...input,analyze:true});
+  if(fits(native)||(input.allowTimingOverrun&&memoryFits(native)&&(!memoryFits(result)||native.diagnostics.worstUpdateRatio<result.diagnostics.worstUpdateRatio)))result=native;
  }
  if(!input.analyze&&!fits(result)&&!(input.allowTimingOverrun&&memoryFits(result)))return createC64Program(input);
  return result;
