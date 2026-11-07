@@ -142,7 +142,8 @@ The work below explores **40-column × 24-row** movement waves combined with col
 - [x] Use indexed literal copies and inline packed colors; combined full-screen updates need 47.8% fewer measured CPU cycles in the deterministic CPU fixture.
 - [x] Prototype native row routines and frame lookup tables: the private 96-frame full-screen reference meets its two-second timeline in CPU tests. See [native row prototype](c64-native-rows.md).
 - [x] Manually test the reference D64 in Poke on iPad: owner confirmed correct playback and RUN/STOP return to BASIC.
-- [x] Select native rows when the generic export fails its limits and native passes; share selection across readiness and PRG/D64 downloads. Preserve accepted generic output.
+- [x] Select native rows when the generic export fails its limits and native passes; share selection across readiness and PRG/D64 downloads.
+- [ ] Complete PR #64. Prefer paired glyph-and-color playback for ROM-backed animations that fit its 256-pair dictionary and both budgets. Keep generic/native players available for other workloads. The four-second private cube uses 21,882 bytes at 93.1% estimated timing use; its prototype played successfully in Poke. Browser CI passed before the additional boundary tests; full VICE validation remains open.
 - [x] Reuse lookup entries for identical complete pictures without changing frame durations or loop timing.
 - [x] Add Play/Stop preview controls to Animation and C64 animation downloads.
 - [x] Allow explicit download despite timing warnings while retaining memory and artwork limits.
