@@ -22,14 +22,15 @@ async function reveal(page,selector){
  if(location.format)await page.locator('#animationFormat').selectOption(location.format);
 }
 async function ui(page,selector,method='click',...args){await reveal(page,selector);const result=await page.locator(selector).first()[method](...args);if(method==='selectOption'&&['#columns','#rows'].includes(selector))await page.locator('#applyResize').click();return result}
-async function clickDownloadTrigger(page,selector){
- // iPad WebKit shows Share / Save project and hides Download editable project; Playwright
- // actionability waits would time out even though the hidden control still performs downloadProject().
- if(selector==='#saveProject'){
-  await page.evaluate(()=>document.getElementById('saveProject').click());
-  return;
- }
- await page.locator(selector).first().click();
+const SAVE_PROJECT_SELECTOR = '#saveProject';
+
+async function clickDownloadTrigger(page, selector) {
+  // On iPad, Share replaces the visible download button; the hidden control still downloads.
+  if (selector === SAVE_PROJECT_SELECTOR) {
+    await page.evaluate(() => document.getElementById('saveProject').click());
+    return;
+  }
+  await page.locator(selector).first().click();
 }
 async function download(page,selector){
  try{

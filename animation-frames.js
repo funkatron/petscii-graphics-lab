@@ -1,149 +1,535 @@
-import {bonfireFrame,bonfireHeat,BONFIRE_COLORS} from './bonfire.js';
+import {bonfireFrame, bonfireHeat, BONFIRE_COLORS} from './bonfire.js';
 import {spaceWarpFrame} from './space-warp.js';
 import {depthSurfaceFrame} from './depth-surfaces.js';
-import {solidMotionFrame,SOLID_EFFECTS} from './solid-motion.js';
-import {DEPTH_EFFECTS,INTRO_MOTIONS,DIAGONAL_DIRECTIONS} from './project-validation.js';
+import {solidMotionFrame, SOLID_EFFECTS} from './solid-motion.js';
+import {DEPTH_EFFECTS, INTRO_MOTIONS, DIAGONAL_DIRECTIONS} from './project-validation.js';
 
-const COLOR_CYCLES={
- bonfire:BONFIRE_COLORS,
- 'raster-bars':[0,6,14,3,1,3,14,6],
- plasma:[6,4,2,8,7,13,3,14],
- 'color-cycle':[0,11,12,15,1,7,13,5,3,14,6,4,2,10,8,9],
- 'color-wave':[2,8,7,13,3,14,6,4],
- 'color-glow':[9,8,2,10,7,1,7,10,2,8]
+const COLOR_CYCLES = {
+  bonfire: BONFIRE_COLORS,
+  'raster-bars': [0, 6, 14, 3, 1, 3, 14, 6],
+  plasma: [6, 4, 2, 8, 7, 13, 3, 14],
+  'color-cycle': [0, 11, 12, 15, 1, 7, 13, 5, 3, 14, 6, 4, 2, 10, 8, 9],
+  'color-wave': [2, 8, 7, 13, 3, 14, 6, 4],
+  'color-glow': [9, 8, 2, 10, 7, 1, 7, 10, 2, 8],
 };
 
-export function waveValue(shape,phase){
- const t=((phase%1)+1)%1;
- if(shape==='triangle')return 1-4*Math.abs(((t+.25)%1)-.5);
- if(shape==='square')return t<.5?1:-1;
- if(shape==='sawtooth')return 2*t-1;
- if(shape==='reverse-sawtooth')return 1-2*t;
- return Math.sin(t*Math.PI*2);
+const FRAME_BUDGET_MS = 20;
+
+function wrapIndex(value, size) {
+  return (value % size + size) % size;
 }
 
-export function scrollDirection(s){return s.scrollDirection??(s.effect==='scroll-diagonal'?'up-left':s.effect==='scroll-y'?'up':'left')}
-
-export function effectCycles(s){return {motion:s.effect==='none'?1:(s.motionCycles??1),color:s.colorEffect==='none'?1:(s.colorCycles??1)}}
-
-export function animationPlan(s){
- const colorSteps=s.colorEffect==='bonfire'?48:s.colorEffect==='plasma'?24:COLOR_CYCLES[s.colorEffect]?.length??1,{motion,color}=effectCycles(s),budget=Math.floor(s.seconds*1000/20);
- if(s.effect==='replay'&&colorSteps===1&&motion===1)return {count:Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1)),warning:''};
- const steps=s.effect==='bonfire'?48:(DEPTH_EFFECTS.includes(s.effect)||SOLID_EFFECTS.includes(s.effect))?48:s.effect==='starfield'?Math.max(24,(DIAGONAL_DIRECTIONS.includes(scrollDirection(s))?Math.max(s.W,s.H):['left','right'].includes(scrollDirection(s))?s.W:s.H)*3):INTRO_MOTIONS.includes(s.effect)?24:s.effect==='scroll-diagonal'?Math.max(s.W,s.H):['scroll-x','scroll-y'].includes(s.effect)?(['left','right'].includes(scrollDirection(s))?s.W:s.H):s.effect==='inverse'?2:s.effect==='sine-scroll'?Math.max(24,['left','right'].includes(scrollDirection(s))?s.W:s.H):['wave','ripple'].includes(s.effect)?24:s.effect==='replay'?Math.max(4,Math.min(48,Math.ceil(s.events.length/.75)+1)):1;
- if(motion===1&&color===1)return {count:Math.max(1,Math.min(s.effect==='replay'?48:Infinity,Math.max(steps,colorSteps),budget)),warning:''};
- const subdivision=Math.max(motion,color),wanted=Math.max(steps*motion,colorSteps*color);
- const minimum=Math.max(s.effect==='none'?1:motion*((s.effect==='bonfire'||s.effect==='starfield'||DEPTH_EFFECTS.includes(s.effect)||SOLID_EFFECTS.includes(s.effect))?12:INTRO_MOTIONS.includes(s.effect)?8:['wave','ripple','replay','sine-scroll'].includes(s.effect)?4:2),colorSteps===1?1:color*(['plasma','bonfire'].includes(s.colorEffect)?4:2));
- const count=Math.max(subdivision,Math.floor(Math.min(wanted,budget)/subdivision)*subdivision);
- const warning=count<minimum?'Too many cycles for this loop duration. Increase Loop duration or reduce cycles per loop.':'';
- return {count:Math.max(count,minimum),warning};
+export function waveValue(shape, phase) {
+  const t = ((phase % 1) + 1) % 1;
+  if (shape === 'triangle') {
+    return 1 - 4 * Math.abs(((t + 0.25) % 1) - 0.5);
+  }
+  if (shape === 'square') {
+    return t < 0.5 ? 1 : -1;
+  }
+  if (shape === 'sawtooth') {
+    return 2 * t - 1;
+  }
+  if (shape === 'reverse-sawtooth') {
+    return 1 - 2 * t;
+  }
+  return Math.sin(t * Math.PI * 2);
 }
 
-export function animationCount(s){return animationPlan(s).count}
-export function animationDelay(i,s){const n=animationCount(s);return s.effect==='replay'&&s.colorEffect==='none'&&(s.motionCycles??1)===1?(i===n-1?s.seconds*250:s.seconds*750/(n-1)):s.seconds*1000/n}
-export function cyclePhase(frame,count,cycles){const samples=count/cycles;return (frame%samples)/samples}
-
-export function introMotionFrame(phase,s){
- const cells=Array(s.W*s.H).fill(''),inks=s.inks.slice(),put=(destination,source)=>{cells[destination]=s.grid[source];inks[destination]=s.inks[source]};
- if(s.effect==='starfield'){
-  const direction=scrollDirection(s),horizontal=['left','right'].includes(direction),size=horizontal?s.W:s.H,sign=['left','up'].includes(direction)?-1:1;
-  for(let depth=1;depth<=3;depth++)for(let i=0;i<s.grid.length;i++)if(s.grid[i]!==''&&1+(i%s.W*17+Math.floor(i/s.W)*31)%3===depth){
-   const x=i%s.W,y=Math.floor(i/s.W),travel=Math.floor(phase*size*depth)*sign,wrap=v=>(v%size+size)%size;
-   if(DIAGONAL_DIRECTIONS.includes(direction)){
-    const dx=Math.floor(phase*s.W*depth)*(direction.endsWith('left')?-1:1);
-    const dy=Math.floor(phase*s.H*depth)*(direction.startsWith('up')?-1:1);
-    put(((y+dy)%s.H+s.H)%s.H*s.W+((x+dx)%s.W+s.W)%s.W,i);
-   }else put(horizontal?y*s.W+wrap(x+travel):wrap(y+travel)*s.W+x,i);
+export function scrollDirection(source) {
+  if (source.scrollDirection !== undefined) {
+    return source.scrollDirection;
   }
- }else if(s.effect==='wipe'){
-  const d=scrollDirection(s),horizontal=['left','right'].includes(d),size=horizontal?s.W:s.H,reverse=['left','up'].includes(d),progress=Math.min(1,phase/.35,(1-phase)/.35),pattern=s.wipePattern??'diagonal';
-  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
-   const axis=horizontal?x:y,along=(axis+.5)/size,u=reverse?1-along:along,v=horizontal?(y+.5)/s.H:(x+.5)/s.W,stripe=Math.min(4,size),blind=(axis%stripe+.5)/stripe;
-   const rank=pattern==='checkerboard'?((x+y)%2+u)/2:pattern==='blinds'?(reverse?1-blind:blind):(u+v)/2;
-   if(rank<=progress)put(y*s.W+x,y*s.W+x);
+  if (source.effect === 'scroll-diagonal') {
+    return 'up-left';
   }
- }else{
-  let left=s.W,top=s.H,right=-1,bottom=-1;
-  for(let i=0;i<s.grid.length;i++)if(s.grid[i]!==''){left=Math.min(left,i%s.W);right=Math.max(right,i%s.W);top=Math.min(top,Math.floor(i/s.W));bottom=Math.max(bottom,Math.floor(i/s.W))}
-  if(right<0)return {cells,inks};
-  const width=right-left+1,height=bottom-top+1,amount=(s.waveAmplitude??100)/100;
-  if(s.effect==='logo-bounce'){
-   const dx=Math.round((s.W-width)/2*(1-Math.sin(phase*Math.PI*2)*amount))-left,dy=Math.round((s.H-height)/2*(1-Math.cos(phase*Math.PI*4)*amount))-top;
-   for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++)put((y+dy)*s.W+x+dx,y*s.W+x);
-  }else{
-   const w=Math.max(1,Math.round(width*(1-amount*.25*(1-Math.cos(phase*Math.PI*2))))),h=Math.max(1,Math.round(height*(1-amount*.25*(1-Math.cos(phase*Math.PI*4))))),dx=left+Math.floor((width-w)/2),dy=top+Math.floor((height-h)/2);
-   for(let y=0;y<h;y++)for(let x=0;x<w;x++)put((dy+y)*s.W+dx+x,(top+Math.min(height-1,Math.floor((y+.5)*height/h)))*s.W+left+Math.min(width-1,Math.floor((x+.5)*width/w)));
+  if (source.effect === 'scroll-y') {
+    return 'up';
   }
- }
- return {cells,inks};
+  return 'left';
 }
 
-export function animationCells(frame,s){
- const n=animationCount(s),cycles=effectCycles(s),phase=cyclePhase(frame,n,cycles.motion),colorPhase=cyclePhase(frame,n,cycles.color),cells=s.effect==='replay'?s.base.slice():Array(s.W*s.H).fill(''),inks=s.effect==='replay'?s.baseColors.slice():s.inks.slice();
- if(s.effect==='replay'){
-  const progress=s.colorEffect==='none'&&cycles.motion===1?frame/(n-1):Math.min(1,phase/.75),end=Math.floor(progress*s.events.length);
-  for(let j=0;j<end;j++){const [i,g]=s.events[j];cells[i]=g;inks[i]=s.eventColors[j]}
- }else if(s.effect==='bonfire'){
-  const picture=bonfireFrame(phase,s);cells.splice(0,cells.length,...picture.cells);inks.splice(0,inks.length,...picture.inks);
- }else if(SOLID_EFFECTS.includes(s.effect)){
-  const picture=solidMotionFrame(phase,s);cells.splice(0,cells.length,...picture.cells);inks.splice(0,inks.length,...picture.inks);
- }else if(DEPTH_EFFECTS.includes(s.effect)){
-  const picture=s.effect==='space-warp'?spaceWarpFrame(phase,s):depthSurfaceFrame(phase,s);cells.splice(0,cells.length,...picture.cells);inks.splice(0,inks.length,...picture.inks);
- }else if(INTRO_MOTIONS.includes(s.effect)){
-  const picture=introMotionFrame(phase,s);cells.splice(0,cells.length,...picture.cells);inks.splice(0,inks.length,...picture.inks);
- }else{
-  const wrap=(x,size)=>(x%size+size)%size;
-  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
-   let xx=x,yy=y;
-   if(s.effect==='scroll-diagonal'){
-    const d=scrollDirection(s);xx=wrap(x+Math.floor(phase*s.W)*(d.endsWith('right')?-1:1),s.W);yy=wrap(y+Math.floor(phase*s.H)*(d.startsWith('down')?-1:1),s.H);
-   }
-   if(['scroll-x','scroll-y'].includes(s.effect)){
-    const d=scrollDirection(s),horizontal=['left','right'].includes(d),step=Math.floor(phase*(horizontal?s.W:s.H))*(d==='right'||d==='down'?-1:1);
-    if(horizontal)xx=wrap(x+step,s.W);else yy=wrap(y+step,s.H);
-   }
-   if(s.effect==='sine-scroll'){
-    const direction=scrollDirection(s),horizontal=['left','right'].includes(direction),sign=['right','down'].includes(direction)?-1:1;
-    const travel=Math.floor(phase*(horizontal?s.W:s.H))*sign,position=(horizontal?x/s.W:y/s.H)*(50/(s.waveLength??50)),size=horizontal?s.H:s.W;
-    const bend=Math.round(Math.sin(position*Math.PI*2)*Math.min(3,Math.max(1,size/4))*2*((s.waveAmplitude??100)/100));
-    if(horizontal){xx=wrap(x+travel,s.W);yy=wrap(y+bend,s.H)}else{yy=wrap(y+travel,s.H);xx=wrap(x+bend,s.W)}
-   }
-   if(s.effect==='ripple'){
-    const dx=x-(s.W-1)/2,dy=y-(s.H-1)/2,radius=Math.hypot(dx,dy),reach=Math.max(1,Math.hypot((s.W-1)/2,(s.H-1)/2));
-    if(radius>0){
-     const value=waveValue(s.waveShape??'sine',radius/reach*(50/(s.waveLength??50))-phase),shift=value*Math.min(3,Math.max(1,Math.min(s.W,s.H)/4))*2*((s.waveAmplitude??100)/100);
-     xx=Math.round(x+dx/radius*shift);yy=Math.round(y+dy/radius*shift);
+export function effectCycles(source) {
+  const motion = source.effect === 'none' ? 1 : (source.motionCycles ?? 1);
+  const color = source.colorEffect === 'none' ? 1 : (source.colorCycles ?? 1);
+  return {motion, color};
+}
+
+function colorStepsFor(source) {
+  if (source.colorEffect === 'bonfire') {
+    return 48;
+  }
+  if (source.colorEffect === 'plasma') {
+    return 24;
+  }
+  const ramp = COLOR_CYCLES[source.colorEffect];
+  return ramp ? ramp.length : 1;
+}
+
+function samplesPerMotionCycle(source) {
+  const direction = scrollDirection(source);
+  const horizontal = direction === 'left' || direction === 'right';
+
+  if (source.effect === 'bonfire') {
+    return 48;
+  }
+  if (DEPTH_EFFECTS.includes(source.effect) || SOLID_EFFECTS.includes(source.effect)) {
+    return 48;
+  }
+  if (source.effect === 'starfield') {
+    const axis = DIAGONAL_DIRECTIONS.includes(direction)
+      ? Math.max(source.W, source.H)
+      : (horizontal ? source.W : source.H);
+    return Math.max(24, axis * 3);
+  }
+  if (INTRO_MOTIONS.includes(source.effect)) {
+    return 24;
+  }
+  if (source.effect === 'scroll-diagonal') {
+    return Math.max(source.W, source.H);
+  }
+  if (source.effect === 'scroll-x' || source.effect === 'scroll-y') {
+    return horizontal ? source.W : source.H;
+  }
+  if (source.effect === 'inverse') {
+    return 2;
+  }
+  if (source.effect === 'sine-scroll') {
+    return Math.max(24, horizontal ? source.W : source.H);
+  }
+  if (source.effect === 'wave' || source.effect === 'ripple') {
+    return 24;
+  }
+  if (source.effect === 'replay') {
+    return Math.max(4, Math.min(48, Math.ceil(source.events.length / 0.75) + 1));
+  }
+  return 1;
+}
+
+function minimumFrameCount(source, motionCycles, colorSteps, colorCycles) {
+  let motionMinimum = 1;
+  if (source.effect !== 'none') {
+    const needsManySamples =
+      source.effect === 'bonfire'
+      || source.effect === 'starfield'
+      || DEPTH_EFFECTS.includes(source.effect)
+      || SOLID_EFFECTS.includes(source.effect);
+    const intro = INTRO_MOTIONS.includes(source.effect);
+    const waveLike = ['wave', 'ripple', 'replay', 'sine-scroll'].includes(source.effect);
+    if (needsManySamples) {
+      motionMinimum = 12;
+    } else if (intro) {
+      motionMinimum = 8;
+    } else if (waveLike) {
+      motionMinimum = 4;
+    } else {
+      motionMinimum = 2;
     }
-    if(xx<0||xx>=s.W||yy<0||yy>=s.H)continue;
-   }
-   if(s.effect==='wave'){
-    const d=s.waveDirection??'up',rows=d==='up'||d==='down',position=(rows?y/Math.max(1,s.H):x/Math.max(1,s.W))*(50/(s.waveLength??50)),size=rows?s.W:s.H;
-    const sign=d==='down'||d==='right'?-1:1,value=(s.waveShape??'sine')==='sine'?Math.sin(phase*Math.PI*2*sign+position*Math.PI*2):waveValue(s.waveShape,position+phase*sign);
-    const shift=Math.round(value*Math.min(3,Math.max(1,size/4))*2*((s.waveAmplitude??100)/100));
-    if(rows)xx=wrap(x+shift,s.W);else yy=wrap(y+shift,s.H);
-   }
-   let g=s.grid[yy*s.W+xx];if(s.effect==='inverse'&&Math.floor(phase*2)&&g!=='')g=g^128;
-   cells[y*s.W+x]=g;inks[y*s.W+x]=s.inks[yy*s.W+xx];
+    motionMinimum *= motionCycles;
   }
- }
- const cycle=COLOR_CYCLES[s.colorEffect];
- if(cycle)for(let i=0;i<cells.length;i++)if(cells[i]!==''){
-  const start=['raster-bars','plasma'].includes(s.colorEffect)?0:Math.max(0,cycle.indexOf(inks[i]));let step=Math.floor(colorPhase*cycle.length);
-  if(['color-wave','raster-bars'].includes(s.colorEffect)){
-   const d=s.colorWaveDirection??(s.colorEffect==='raster-bars'?'up':'up-left'),x=i%s.W,y=Math.floor(i/s.W),offset=((d.includes('left')?x:d.includes('right')?-x:0)+(d.includes('up')?y:d.includes('down')?-y:0))*(50/(s.colorWaveLength??50));
-   const t=colorPhase+offset/cycle.length,shape=s.colorWaveShape??'sawtooth';
-   step=shape==='sawtooth'?Math.floor(offset+Math.floor(colorPhase*cycle.length)):Math.min(cycle.length-1,Math.floor((waveValue(shape,t)+1)/2*cycle.length));
-   step=Math.floor(((step%cycle.length+cycle.length)%cycle.length)*((s.colorWaveAmplitude??100)/100));
+
+  let colorMinimum = 1;
+  if (colorSteps > 1) {
+    const perCycle = (source.colorEffect === 'plasma' || source.colorEffect === 'bonfire') ? 4 : 2;
+    colorMinimum = colorCycles * perCycle;
   }
-  if(s.colorEffect==='plasma'){
-   const d=s.colorWaveDirection??'up-left',dx=d.includes('left')?1:d.includes('right')?-1:0,dy=d.includes('up')?1:d.includes('down')?-1:0;
-   const spatial=50/(s.colorWaveLength??50),x=(i%s.W)/s.W*spatial,y=Math.floor(i/s.W)/s.H*spatial,shape=s.colorWaveShape??'sine';
-   const value=(waveValue(shape,x+dx*colorPhase)+waveValue(shape,y+dy*colorPhase)+waveValue(shape,x+y+(dx+dy)*colorPhase))/3;
-   step=Math.min(cycle.length-1,Math.floor(Math.max(0,Math.min(1,(value+1)/2))*((s.colorWaveAmplitude??100)/100)*cycle.length+1e-10));
+  return Math.max(motionMinimum, colorMinimum);
+}
+
+export function animationPlan(source) {
+  const colorSteps = colorStepsFor(source);
+  const {motion, color} = effectCycles(source);
+  const frameBudget = Math.floor(source.seconds * 1000 / FRAME_BUDGET_MS);
+
+  if (source.effect === 'replay' && colorSteps === 1 && motion === 1) {
+    const fromDuration = Math.floor(source.seconds * 750 / FRAME_BUDGET_MS) + 1;
+    const count = Math.max(2, Math.min(48, fromDuration, source.events.length + 1));
+    return {count, warning: ''};
   }
-  if(s.colorEffect==='bonfire'){
-   const heat=bonfireHeat(i%s.W,Math.floor(i/s.W),s.W,s.H,colorPhase);
-   inks[i]=BONFIRE_COLORS[Math.min(BONFIRE_COLORS.length-1,Math.floor(heat*BONFIRE_COLORS.length))];
-  }else inks[i]=cycle[((start+step)%cycle.length+cycle.length)%cycle.length];
- }
- return {cells,inks};
+
+  const stepsPerCycle = samplesPerMotionCycle(source);
+  if (motion === 1 && color === 1) {
+    const replayCap = source.effect === 'replay' ? 48 : Infinity;
+    const count = Math.max(1, Math.min(replayCap, Math.max(stepsPerCycle, colorSteps), frameBudget));
+    return {count, warning: ''};
+  }
+
+  const subdivision = Math.max(motion, color);
+  const wanted = Math.max(stepsPerCycle * motion, colorSteps * color);
+  const minimum = minimumFrameCount(source, motion, colorSteps, color);
+  const divisible = Math.floor(Math.min(wanted, frameBudget) / subdivision) * subdivision;
+  const count = Math.max(subdivision, divisible);
+  const warning = count < minimum
+    ? 'Too many cycles for this loop duration. Increase Loop duration or reduce cycles per loop.'
+    : '';
+  return {count: Math.max(count, minimum), warning};
+}
+
+export function animationCount(source) {
+  return animationPlan(source).count;
+}
+
+export function animationDelay(frameIndex, source) {
+  const frameCount = animationCount(source);
+  const motionOnlyReplay =
+    source.effect === 'replay'
+    && source.colorEffect === 'none'
+    && (source.motionCycles ?? 1) === 1;
+  if (motionOnlyReplay) {
+    if (frameIndex === frameCount - 1) {
+      return source.seconds * 250;
+    }
+    return source.seconds * 750 / (frameCount - 1);
+  }
+  return source.seconds * 1000 / frameCount;
+}
+
+export function cyclePhase(frame, frameCount, cycles) {
+  const samplesPerCycle = frameCount / cycles;
+  return (frame % samplesPerCycle) / samplesPerCycle;
+}
+
+export function introMotionFrame(phase, source) {
+  const cells = Array(source.W * source.H).fill('');
+  const inks = source.inks.slice();
+
+  function copyCell(destination, sourceIndex) {
+    cells[destination] = source.grid[sourceIndex];
+    inks[destination] = source.inks[sourceIndex];
+  }
+
+  if (source.effect === 'starfield') {
+    const direction = scrollDirection(source);
+    const horizontal = direction === 'left' || direction === 'right';
+    const size = horizontal ? source.W : source.H;
+    const sign = (direction === 'left' || direction === 'up') ? -1 : 1;
+
+    for (let depth = 1; depth <= 3; depth++) {
+      for (let index = 0; index < source.grid.length; index++) {
+        if (source.grid[index] === '') {
+          continue;
+        }
+        const layer = 1 + ((index % source.W) * 17 + Math.floor(index / source.W) * 31) % 3;
+        if (layer !== depth) {
+          continue;
+        }
+        const x = index % source.W;
+        const y = Math.floor(index / source.W);
+        const travel = Math.floor(phase * size * depth) * sign;
+
+        if (DIAGONAL_DIRECTIONS.includes(direction)) {
+          const dx = Math.floor(phase * source.W * depth) * (direction.endsWith('left') ? -1 : 1);
+          const dy = Math.floor(phase * source.H * depth) * (direction.startsWith('up') ? -1 : 1);
+          const destY = ((y + dy) % source.H + source.H) % source.H;
+          const destX = ((x + dx) % source.W + source.W) % source.W;
+          copyCell(destY * source.W + destX, index);
+        } else if (horizontal) {
+          const destX = wrapIndex(x + travel, source.W);
+          copyCell(y * source.W + destX, index);
+        } else {
+          const destY = wrapIndex(y + travel, source.H);
+          copyCell(destY * source.W + x, index);
+        }
+      }
+    }
+    return {cells, inks};
+  }
+
+  if (source.effect === 'wipe') {
+    const direction = scrollDirection(source);
+    const horizontal = direction === 'left' || direction === 'right';
+    const size = horizontal ? source.W : source.H;
+    const reverse = direction === 'left' || direction === 'up';
+    const progress = Math.min(1, phase / 0.35, (1 - phase) / 0.35);
+    const pattern = source.wipePattern ?? 'diagonal';
+
+    for (let y = 0; y < source.H; y++) {
+      for (let x = 0; x < source.W; x++) {
+        const axis = horizontal ? x : y;
+        const along = (axis + 0.5) / size;
+        const u = reverse ? 1 - along : along;
+        const v = horizontal ? (y + 0.5) / source.H : (x + 0.5) / source.W;
+        const stripe = Math.min(4, size);
+        const blind = (axis % stripe + 0.5) / stripe;
+        let rank;
+        if (pattern === 'checkerboard') {
+          rank = ((x + y) % 2 + u) / 2;
+        } else if (pattern === 'blinds') {
+          rank = reverse ? 1 - blind : blind;
+        } else {
+          rank = (u + v) / 2;
+        }
+        if (rank <= progress) {
+          copyCell(y * source.W + x, y * source.W + x);
+        }
+      }
+    }
+    return {cells, inks};
+  }
+
+  let left = source.W;
+  let top = source.H;
+  let right = -1;
+  let bottom = -1;
+  for (let index = 0; index < source.grid.length; index++) {
+    if (source.grid[index] === '') {
+      continue;
+    }
+    const x = index % source.W;
+    const y = Math.floor(index / source.W);
+    left = Math.min(left, x);
+    right = Math.max(right, x);
+    top = Math.min(top, y);
+    bottom = Math.max(bottom, y);
+  }
+  if (right < 0) {
+    return {cells, inks};
+  }
+
+  const width = right - left + 1;
+  const height = bottom - top + 1;
+  const amount = (source.waveAmplitude ?? 100) / 100;
+
+  if (source.effect === 'logo-bounce') {
+    const dx = Math.round((source.W - width) / 2 * (1 - Math.sin(phase * Math.PI * 2) * amount)) - left;
+    const dy = Math.round((source.H - height) / 2 * (1 - Math.cos(phase * Math.PI * 4) * amount)) - top;
+    for (let y = top; y <= bottom; y++) {
+      for (let x = left; x <= right; x++) {
+        copyCell((y + dy) * source.W + x + dx, y * source.W + x);
+      }
+    }
+    return {cells, inks};
+  }
+
+  const w = Math.max(1, Math.round(width * (1 - amount * 0.25 * (1 - Math.cos(phase * Math.PI * 2)))));
+  const h = Math.max(1, Math.round(height * (1 - amount * 0.25 * (1 - Math.cos(phase * Math.PI * 4)))));
+  const dx = left + Math.floor((width - w) / 2);
+  const dy = top + Math.floor((height - h) / 2);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const sourceY = top + Math.min(height - 1, Math.floor((y + 0.5) * height / h));
+      const sourceX = left + Math.min(width - 1, Math.floor((x + 0.5) * width / w));
+      copyCell((dy + y) * source.W + dx + x, sourceY * source.W + sourceX);
+    }
+  }
+  return {cells, inks};
+}
+
+function applyGridMotion(frame, phase, source, cells, inks) {
+  const wrap = wrapIndex;
+  for (let y = 0; y < source.H; y++) {
+    for (let x = 0; x < source.W; x++) {
+      let sampleX = x;
+      let sampleY = y;
+
+      if (source.effect === 'scroll-diagonal') {
+        const direction = scrollDirection(source);
+        sampleX = wrap(x + Math.floor(phase * source.W) * (direction.endsWith('right') ? -1 : 1), source.W);
+        sampleY = wrap(y + Math.floor(phase * source.H) * (direction.startsWith('down') ? -1 : 1), source.H);
+      }
+
+      if (source.effect === 'scroll-x' || source.effect === 'scroll-y') {
+        const direction = scrollDirection(source);
+        const horizontal = direction === 'left' || direction === 'right';
+        const step = Math.floor(phase * (horizontal ? source.W : source.H))
+          * ((direction === 'right' || direction === 'down') ? -1 : 1);
+        if (horizontal) {
+          sampleX = wrap(x + step, source.W);
+        } else {
+          sampleY = wrap(y + step, source.H);
+        }
+      }
+
+      if (source.effect === 'sine-scroll') {
+        const direction = scrollDirection(source);
+        const horizontal = direction === 'left' || direction === 'right';
+        const sign = (direction === 'right' || direction === 'down') ? -1 : 1;
+        const travel = Math.floor(phase * (horizontal ? source.W : source.H)) * sign;
+        const position = (horizontal ? x / source.W : y / source.H) * (50 / (source.waveLength ?? 50));
+        const crossAxis = horizontal ? source.H : source.W;
+        const bend = Math.round(
+          Math.sin(position * Math.PI * 2)
+          * Math.min(3, Math.max(1, crossAxis / 4)) * 2
+          * ((source.waveAmplitude ?? 100) / 100),
+        );
+        if (horizontal) {
+          sampleX = wrap(x + travel, source.W);
+          sampleY = wrap(y + bend, source.H);
+        } else {
+          sampleY = wrap(y + travel, source.H);
+          sampleX = wrap(x + bend, source.W);
+        }
+      }
+
+      if (source.effect === 'ripple') {
+        const dx = x - (source.W - 1) / 2;
+        const dy = y - (source.H - 1) / 2;
+        const radius = Math.hypot(dx, dy);
+        const reach = Math.max(1, Math.hypot((source.W - 1) / 2, (source.H - 1) / 2));
+        if (radius > 0) {
+          const value = waveValue(
+            source.waveShape ?? 'sine',
+            radius / reach * (50 / (source.waveLength ?? 50)) - phase,
+          );
+          const shift = value
+            * Math.min(3, Math.max(1, Math.min(source.W, source.H) / 4)) * 2
+            * ((source.waveAmplitude ?? 100) / 100);
+          sampleX = Math.round(x + dx / radius * shift);
+          sampleY = Math.round(y + dy / radius * shift);
+        }
+        if (sampleX < 0 || sampleX >= source.W || sampleY < 0 || sampleY >= source.H) {
+          continue;
+        }
+      }
+
+      if (source.effect === 'wave') {
+        const direction = source.waveDirection ?? 'up';
+        const rowWave = direction === 'up' || direction === 'down';
+        const position = (rowWave ? y / Math.max(1, source.H) : x / Math.max(1, source.W))
+          * (50 / (source.waveLength ?? 50));
+        const crossSize = rowWave ? source.W : source.H;
+        const sign = (direction === 'down' || direction === 'right') ? -1 : 1;
+        let value;
+        if ((source.waveShape ?? 'sine') === 'sine') {
+          value = Math.sin(phase * Math.PI * 2 * sign + position * Math.PI * 2);
+        } else {
+          value = waveValue(source.waveShape, position + phase * sign);
+        }
+        const shift = Math.round(
+          value * Math.min(3, Math.max(1, crossSize / 4)) * 2 * ((source.waveAmplitude ?? 100) / 100),
+        );
+        if (rowWave) {
+          sampleX = wrap(x + shift, source.W);
+        } else {
+          sampleY = wrap(y + shift, source.H);
+        }
+      }
+
+      let glyph = source.grid[sampleY * source.W + sampleX];
+      if (source.effect === 'inverse' && Math.floor(phase * 2) && glyph !== '') {
+        glyph = glyph ^ 128;
+      }
+      const destination = y * source.W + x;
+      cells[destination] = glyph;
+      inks[destination] = source.inks[sampleY * source.W + sampleX];
+    }
+  }
+}
+
+function applyColorPass(colorPhase, source, cells, inks) {
+  const ramp = COLOR_CYCLES[source.colorEffect];
+  if (!ramp) {
+    return;
+  }
+
+  for (let index = 0; index < cells.length; index++) {
+    if (cells[index] === '') {
+      continue;
+    }
+    const fixedRamp = source.colorEffect === 'raster-bars' || source.colorEffect === 'plasma';
+    const start = fixedRamp ? 0 : Math.max(0, ramp.indexOf(inks[index]));
+    let step = Math.floor(colorPhase * ramp.length);
+
+    if (source.colorEffect === 'color-wave' || source.colorEffect === 'raster-bars') {
+      const direction = source.colorWaveDirection
+        ?? (source.colorEffect === 'raster-bars' ? 'up' : 'up-left');
+      const x = index % source.W;
+      const y = Math.floor(index / source.W);
+      const offset = (
+        (direction.includes('left') ? x : direction.includes('right') ? -x : 0)
+        + (direction.includes('up') ? y : direction.includes('down') ? -y : 0)
+      ) * (50 / (source.colorWaveLength ?? 50));
+      const t = colorPhase + offset / ramp.length;
+      const shape = source.colorWaveShape ?? 'sawtooth';
+      if (shape === 'sawtooth') {
+        step = Math.floor(offset + Math.floor(colorPhase * ramp.length));
+      } else {
+        step = Math.min(ramp.length - 1, Math.floor((waveValue(shape, t) + 1) / 2 * ramp.length));
+      }
+      step = Math.floor(
+        ((step % ramp.length) + ramp.length) % ramp.length * ((source.colorWaveAmplitude ?? 100) / 100),
+      );
+    }
+
+    if (source.colorEffect === 'plasma') {
+      const direction = source.colorWaveDirection ?? 'up-left';
+      const dx = direction.includes('left') ? 1 : direction.includes('right') ? -1 : 0;
+      const dy = direction.includes('up') ? 1 : direction.includes('down') ? -1 : 0;
+      const spatial = 50 / (source.colorWaveLength ?? 50);
+      const nx = (index % source.W) / source.W * spatial;
+      const ny = Math.floor(index / source.W) / source.H * spatial;
+      const shape = source.colorWaveShape ?? 'sine';
+      const value = (
+        waveValue(shape, nx + dx * colorPhase)
+        + waveValue(shape, ny + dy * colorPhase)
+        + waveValue(shape, nx + ny + (dx + dy) * colorPhase)
+      ) / 3;
+      step = Math.min(
+        ramp.length - 1,
+        Math.floor(
+          Math.max(0, Math.min(1, (value + 1) / 2))
+          * ((source.colorWaveAmplitude ?? 100) / 100)
+          * ramp.length
+          + 1e-10,
+        ),
+      );
+    }
+
+    if (source.colorEffect === 'bonfire') {
+      const heat = bonfireHeat(index % source.W, Math.floor(index / source.W), source.W, source.H, colorPhase);
+      inks[index] = BONFIRE_COLORS[
+        Math.min(BONFIRE_COLORS.length - 1, Math.floor(heat * BONFIRE_COLORS.length))
+      ];
+    } else {
+      inks[index] = ramp[((start + step) % ramp.length + ramp.length) % ramp.length];
+    }
+  }
+}
+
+export function animationCells(frame, source) {
+  const frameCount = animationCount(source);
+  const cycles = effectCycles(source);
+  const phase = cyclePhase(frame, frameCount, cycles.motion);
+  const colorPhase = cyclePhase(frame, frameCount, cycles.color);
+
+  const cells = source.effect === 'replay'
+    ? source.base.slice()
+    : Array(source.W * source.H).fill('');
+  const inks = source.effect === 'replay'
+    ? source.baseColors.slice()
+    : source.inks.slice();
+
+  if (source.effect === 'replay') {
+    const motionOnly = source.colorEffect === 'none' && cycles.motion === 1;
+    const progress = motionOnly ? frame / (frameCount - 1) : Math.min(1, phase / 0.75);
+    const eventsToShow = Math.floor(progress * source.events.length);
+    for (let j = 0; j < eventsToShow; j++) {
+      const [cellIndex, glyph] = source.events[j];
+      cells[cellIndex] = glyph;
+      inks[cellIndex] = source.eventColors[j];
+    }
+  } else if (source.effect === 'bonfire') {
+    const picture = bonfireFrame(phase, source);
+    cells.splice(0, cells.length, ...picture.cells);
+    inks.splice(0, inks.length, ...picture.inks);
+  } else if (SOLID_EFFECTS.includes(source.effect)) {
+    const picture = solidMotionFrame(phase, source);
+    cells.splice(0, cells.length, ...picture.cells);
+    inks.splice(0, inks.length, ...picture.inks);
+  } else if (DEPTH_EFFECTS.includes(source.effect)) {
+    const picture = source.effect === 'space-warp'
+      ? spaceWarpFrame(phase, source)
+      : depthSurfaceFrame(phase, source);
+    cells.splice(0, cells.length, ...picture.cells);
+    inks.splice(0, inks.length, ...picture.inks);
+  } else if (INTRO_MOTIONS.includes(source.effect)) {
+    const picture = introMotionFrame(phase, source);
+    cells.splice(0, cells.length, ...picture.cells);
+    inks.splice(0, inks.length, ...picture.inks);
+  } else {
+    applyGridMotion(frame, phase, source, cells, inks);
+  }
+
+  applyColorPass(colorPhase, source, cells, inks);
+  return {cells, inks};
 }

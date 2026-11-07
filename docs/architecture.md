@@ -73,3 +73,5 @@ Playwright drives Chromium and two iPad WebKit profiles. Unit tests (`*.unit.mjs
 ## Incremental modularization
 
 Recent extractions (`project-validation.js`, `animation-frames.js`, `pointer-stroke.js`) keep `index.html` as the integration shell while moving testable logic into imports. Further splits should preserve static hosting (no bundler required for the main app).
+
+**Style:** code in new modules is written in expanded, idiomatic JavaScript (named helpers, early returns, ordinary spacing). The large inline script in `index.html` is still compact for historical reasons; prefer readable formatting when touching extracted modules or adding new ones.
