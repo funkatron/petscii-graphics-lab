@@ -51,6 +51,7 @@ flowchart TB
 | `c64-colors.js` | Shared Pepto palette metadata |
 | `typed-text.js` | Text-tool glyph mapping and layout |
 | `glyph-families.js` | Palette browsing families and catalog |
+| `text-grid.js` | PETSCII-GLYPHS text import and export |
 | `c64-export.js` | PRG/D64 generation, timing diagnostics, adaptive program sizing |
 | `bonfire.js`, `space-warp.js`, `depth-surfaces.js`, `solid-motion.js` | Individual movement effect math |
 | `video-export.js` | WebCodecs video packaging via mediabunny |

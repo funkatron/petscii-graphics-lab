@@ -14,6 +14,7 @@
 | `c64-colors.js` | Pepto palette table and RGB helper |
 | `typed-text.js` | Text tool placement |
 | `glyph-families.js` | Palette families and catalog building |
+| `text-grid.js` | PETSCII-GLYPHS parse/format (slice A) |
 | Effect modules | `bonfire.js`, `space-warp.js`, `depth-surfaces.js`, `depth-phase.js`, `solid-motion.js` reformatted |
 
 `index.html` remains the integration shell: DOM, event handlers, global grid state, and glue that needs `$('…')`.
@@ -28,7 +29,7 @@ Phase 2 is **three slices** (ideally one PR each): move pure or mostly pure logi
 - No user-visible control renames; v3 JSON on disk and export bytes unchanged.
 - CI: new `*.unit.mjs` where logic is pure; existing Playwright suites green on all three browser projects.
 
-### Slice A — Text grid I/O (`text-grid.js`) — start here
+### Slice A — Text grid I/O (`text-grid.js`) — done
 
 **Why first:** `importTextGrid` and `textGrid()` match documented `PETSCII-GLYPHS` v1/v2 rules; Playwright already covers imports (`text-file.spec.cjs`, `c64-only`, `color-text`).
 

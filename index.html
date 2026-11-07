@@ -264,6 +264,7 @@ const {canvasCell,createPainter}=await import('./pointer-stroke.js');
 const {C64_COLORS,colorRGB}=await import('./c64-colors.js');
 const {planTypedText}=await import('./typed-text.js');
 const {graphicsCode,buildGlyphCatalog,familyGlyphCodes}=await import('./glyph-families.js');
+const {formatTextGrid,parseTextGrid,TEXT_GRID_MAX_BYTES}=await import('./text-grid.js');
 const {BONFIRE_COLORS}=await import('./bonfire.js');
 const {SOLID_EFFECTS}=await import('./solid-motion.js');
 'use strict';
@@ -448,8 +449,7 @@ function fit(){
  redraw();
 }
 function textGrid(){
- const withColors=$('textColors').checked,hex=n=>n.toString(16).toUpperCase();
- return '# PETSCII-GLYPHS '+(withColors?'2 ':'1 ')+W+' '+H+(withColors?' '+hex(colors.background):'')+'\n'+Array.from({length:H},(_,y)=>grid.slice(y*W,(y+1)*W).map((g,x)=>(g===''?'--':hex(g).padStart(3,'0'))+(withColors?':'+hex(cellColors[y*W+x]):'')).join(' ')).join('\n');
+ return formatTextGrid({columns:W,rows:H,grid,cellColors,colors,includeColors:$('textColors').checked});
 }
 // Draw in backing-store pixels to avoid stale HiDPI transforms after WebKit canvas resizing.
 function renderGrid(cells,inks=cellColors){
@@ -847,29 +847,16 @@ $('screenCodes').onclick=()=>{
 $('textColors').onchange=()=>{out.value=textGrid()};
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(textGrid());setStatus('Text copied')}catch{setStatus('Select text to copy')}};
 function importTextGrid(text){
-  const lines=text.replace(/\r/g,'').trimEnd().split('\n'),header=lines.shift().match(/^# PETSCII-GLYPHS ([12]) (\d+) (\d+)(?: ([0-9a-f]))?$/i);
-  if(!header||(header[1]==='2')!==!!header[4])throw Error('Use PETSCII-GLYPHS 1, or version 2 with a background ink');
-  const colored=header[1]==='2',nw=Number(header[2]),nh=Number(header[3]),next=[],inks=[];
-  if(nw<1||nw>40||nh<1||nh>40)throw Error('Dimensions must be 1–40');
-  if(lines.length!==nh)throw Error('Incorrect row count');
-  for(const line of lines){
-   const tokens=line.split(' ');if(tokens.length!==nw)throw Error('Incorrect column count');
-   for(const token of tokens){
-    const t=token.match(colored?/^(--|[0-9a-f]{3}):([0-9a-f])$/i:/^(--|[0-9a-f]{3})$/i);
-    if(!t)throw Error(colored?'Use glyph:ink tokens, such as 0A0:F or --:0':'Invalid glyph ID');
-    next.push(t[1]==='--'?'':parseInt(t[1],16));inks.push(colored?parseInt(t[2],16):colors.ink);
-   }
-  }
-  const nextColors={...colors,background:colored?parseInt(header[4],16):colors.background};
-  validateProject({format:'petscii-stencil-lab',version:3,columns:nw,rows:nh,grid:next,cellColors:inks,colors:nextColors});
-  remember();W=nw;H=nh;grid=next;cellColors=inks;setColors(nextColors);resetReplay();$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
+  const parsed=parseTextGrid(text,colors);
+  validateProject({format:'petscii-stencil-lab',version:3,columns:parsed.columns,rows:parsed.rows,grid:parsed.grid,cellColors:parsed.cellColors,colors:parsed.colors});
+  remember();W=parsed.columns;H=parsed.rows;grid=parsed.grid;cellColors=parsed.cellColors;setColors(parsed.colors);resetReplay();$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
 }
 $('import').onclick=()=>{try{importTextGrid(out.value)}catch(e){setStatus('Import failed: '+e.message)}};
 $('openTextGrid').onclick=()=>{$('projectMenu').open=false;$('textGridFile').click()};
 $('textGridFile').onchange=async e=>{
  const input=e.target,file=input.files?.[0];if(!file)return;
  try{
-  if(file.size>65536)throw Error('Text grids must be 64 KiB or smaller');
+  if(file.size>TEXT_GRID_MAX_BYTES)throw Error('Text grids must be 64 KiB or smaller');
   importTextGrid(await file.text());setStatus('Imported text file');
  }catch(err){setStatus('Import failed: '+err.message)}
  finally{input.value=''}
