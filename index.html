@@ -938,7 +938,7 @@ $('toggle').onclick=()=>{
  $('toggle').textContent=closed?'☰':'✕';
  requestAnimationFrame(()=>setTimeout(fit,230));
 };
-function download(suffix,txt,type){let name;try{name=projectStem()+suffix}catch(e){setStatus(e.message);return}const url=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+function download(suffix,txt,type){let name;try{name=projectStem()+suffix}catch(e){setStatus(e.message);return}const url=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);return true}
 $('text').onclick=()=>download('.txt',textGrid(),'text/plain;charset=utf-8');
 function makeSvg(foreground=colorHex('ink'),background=colorHex('background')){
  if(!rom&&grid.some(g=>typeof g==='number'))throw Error('Glyph data unavailable; reload C64 glyphs before exporting artwork');
@@ -1005,11 +1005,10 @@ $('exportC64').onclick=async()=>{
  }catch(e){setStatus('C64 export failed: '+e.message)}
  finally{animationExportTask=null;for(const id of Object.values(animationDownloadButtons))$(id).disabled=false;$('exportC64').textContent=animationDownloadLabels.c64;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false;$('cancelSheetDownload').hidden=true}
 };
-$('colorRam').onclick=()=>{download('-c64-colors-'+W+'x'+H+'.bin',Uint8Array.from(cellColors),'application/octet-stream');setStatus('Downloaded color RAM (one palette index per cell, row-major)')};
+$('colorRam').onclick=()=>{if(download('-c64-colors-'+W+'x'+H+'.bin',Uint8Array.from(cellColors),'application/octet-stream'))setStatus('Downloaded color RAM (one palette index per cell, row-major)')};
 $('screenCodes').onclick=()=>{
  const bytes=new Uint8Array(grid.length*2),view=new DataView(bytes.buffer);grid.forEach((g,i)=>view.setUint16(i*2,g===''?65535:g,true));
- download('-c64-glyph-ids-'+W+'x'+H+'.bin',bytes,'application/octet-stream');
- setStatus('Downloaded glyph IDs (16-bit little-endian; FFFF = empty)');
+ if(download('-c64-glyph-ids-'+W+'x'+H+'.bin',bytes,'application/octet-stream'))setStatus('Downloaded glyph IDs (16-bit little-endian; FFFF = empty)');
 };
 $('textColors').onchange=()=>{out.value=textGrid()};
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(textGrid());setStatus('Text copied')}catch{setStatus('Select text to copy')}};
@@ -1082,7 +1081,7 @@ $('regenerateProjectName').onclick=()=>{regenerateProjectName();setStatus('New p
 $('projectFilename').oninput=()=>{$('projectFilename').removeAttribute('aria-invalid')};
 function projectStem(){
  const name=$('projectFilename').value.trim().replace(/(?:\.json)+$/i,'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').replace(/[. ]+$/g,'');
- if(!name||/^\.+$/.test(name)){$('projectMenu').open=true;$('projectFilename').setAttribute('aria-invalid','true');$('projectFilename').focus();throw Error('Enter a project file name')}
+ if(!name||/^\.+$/.test(name)){if($('downloadDialog').open)$('downloadDialog').close();$('projectMenu').open=true;$('projectFilename').setAttribute('aria-invalid','true');$('projectFilename').focus();throw Error('Enter a project file name')}
  $('projectFilename').removeAttribute('aria-invalid');return name;
 }
 function projectFilename(){return projectStem()+'.json'}
