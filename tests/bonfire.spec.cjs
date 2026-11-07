@@ -24,7 +24,9 @@ test('Bonfire selectors, independent rates, empty input and undo preserve source
  await ui(page,'#animationCycles','selectOption','2');await ui(page,'#animationColorCycles','selectOption','4');
  const saved=JSON.parse(await download(page,'#saveProject'));expect(saved.animation).toMatchObject({effect:'bonfire',colorEffect:'bonfire',motionCycles:2,colorCycles:4});
  const zip=new AdmZip(await download(page,'#exportFrames')),timing=JSON.parse(zip.readAsText('timing.json'));expect(timing.frames).toHaveLength(192);expect(timing).toMatchObject({motionCycles:2,colorCycles:4});
- await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).animation.colorCycles).toBe(1);
+ await loadProject(page,{...saved,grid:saved.grid.map(g=>g===''?'':81),drawingReplay:undefined});
+ await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(saved);
  await loadProject(page,project(Array(35).fill(''),7,5,{colors:{ink:7,background:6},animation:{effect:'bonfire',colorEffect:'bonfire',seconds:4,scale:1,background:'dark'}}));
- const gif=new GifReader(await download(page,'#exportGif'));const b=Buffer.alloc(56*40*4);gif.decodeAndBlitFrameRGBA(0,b);expect(b).toEqual(raster({cells:Array(35).fill(''),inks:Array(35).fill(7)}));
+ await ui(page,'#quickPlay');await expect(page.locator('#status')).toContainText('Draw something first');
+ await ui(page,'#exportGif');await expect(page.locator('#downloadStatus')).toContainText('Draw something first');
 });
