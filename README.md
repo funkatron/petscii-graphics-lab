@@ -193,6 +193,8 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Inverse pulse** | C64 glyphs alternate with their inverse slots. |
 | **Color cycle** | Each cell cycles through all 16 inks, starting with its original color. |
 | **Rainbow wave** | Bands of eight C64 colors change the ink. Choose a cardinal or diagonal direction and a waveform. Glyphs remain stationary with **Still drawing**. |
+| **Bonfire** | Build rising, tapering flames using the drawing’s glyphs and inks as texture. Even one painted cell supplies the texture; empty drawings stay empty. Pair with Bonfire colors for a fire palette. |
+| **Bonfire colors** | Apply flickering brown/red/orange tips and yellow-white cores to occupied cells. Works independently of movement; the shared background stays fixed. |
 | **Warm glow** | Ink moves through brown, orange, red, light red, yellow, and white, then back. |
 
 Movement carries each cell’s ink with its glyph. Color animation then changes the resulting ink; Rainbow wave uses the cell’s new position. Both choices share one loop duration. The shared background stays fixed. Still-image downloads use the original drawing, even when an animation is paused.
