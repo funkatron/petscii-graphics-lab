@@ -54,6 +54,15 @@ A shader is a visual effect applied over the rendered canvas. Explore quick ways
 
 ## Additional animations — in progress
 
+### Bonfire — implementation, validation pending
+
+- [x] Add Bonfire movement: rising, tapering flames made from source glyph/ink texture without altering artwork.
+- [x] Add independent Bonfire colors with warm tips and yellow-white cores; preserve background and empty cells.
+- [x] Add deterministic unit checks and browser preview/GIF/ZIP, persistence and rate coverage.
+- [ ] Pass GitHub Actions and review Copilot feedback before merge.
+- [ ] Review visual quality on iPad; evaluate native C64 capacity using representative artwork.
+
+
 ### Rotating 3-D objects — released, device review pending
 
 - [x] Add Rotating cube, Spinning globe and Rolling drum using artwork as whole-cell surface textures.
