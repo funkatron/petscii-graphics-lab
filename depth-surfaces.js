@@ -1,28 +1,70 @@
 import {depthPhase} from './depth-phase.js';
-// Repeating whole-cell textures; no source artwork or glyph bitmap mutation.
-export function depthSurfaceFrame(phase,s){
- const p=depthPhase(phase,s.depthWaveShape),travel=(s.depthTravel==='away'?-1:1)*p;
- const height=(s.waveAmplitude??100)/100,spacing=50/(s.waveLength??50),strength=d=>height===1?d:1+(d-1)*height;
- const cells=Array(s.W*s.H).fill(''),inks=s.inks.slice(),wrap=(n,size)=>(n%size+size)%size;
- for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
-  const u=(x+.5)/s.W,v=(y+.5)/s.H;let tx,ty;
-  if(s.effect==='tunnel-flight'){
-   const nx=(2*x+1-s.W)/s.W,ny=(2*y+1-s.H)/s.H,radius=Math.hypot(nx,ny);
-   if(radius<.12)continue;
-   tx=(Math.atan2(ny,nx)/(2*Math.PI)+.5)*s.W*spacing;
-   ty=(strength(Math.min(8,.7/radius))*spacing+travel)*s.H;
-  }else{
-   const distance=v,depth=strength(Math.min(8,.6/v));
-   let lateral=u-.5;
-   if(s.effect==='curved-road'){
-    const center=.18*height*Math.sin(travel*2*Math.PI+depth*spacing*.7)*(1-distance),halfWidth=Math.max(.5/s.W,.12+.32*distance);
-    lateral-=center;if(Math.abs(lateral)>halfWidth)continue;
-    lateral=lateral/(2*halfWidth);
-   }
-   tx=(.5+lateral*depth*spacing)*s.W;ty=(depth*spacing+travel)*s.H;
+
+function wrapIndex(n, size) {
+  return (n % size + size) % size;
+}
+
+function perspectiveStrength(distance, heightPercent) {
+  if (heightPercent === 1) {
+    return distance;
   }
-  const source=wrap(Math.floor(ty),s.H)*s.W+wrap(Math.floor(tx),s.W),destination=y*s.W+x;
-  cells[destination]=s.grid[source];inks[destination]=s.inks[source];
- }
- return {cells,inks};
+  return 1 + (distance - 1) * heightPercent;
+}
+
+/** Repeating whole-cell depth textures (floor, road, tunnel); glyphs stay unscaled. */
+export function depthSurfaceFrame(phase, source) {
+  const travel = depthPhase(phase, source.depthWaveShape);
+  const alongDepth = (source.depthTravel === 'away' ? -1 : 1) * travel;
+  const heightPercent = (source.waveAmplitude ?? 100) / 100;
+  const spacing = 50 / (source.waveLength ?? 50);
+  const cells = Array(source.W * source.H).fill('');
+  const inks = source.inks.slice();
+
+  for (let y = 0; y < source.H; y++) {
+    for (let x = 0; x < source.W; x++) {
+      const u = (x + 0.5) / source.W;
+      const v = (y + 0.5) / source.H;
+      let textureX;
+      let textureY;
+
+      if (source.effect === 'tunnel-flight') {
+        const nx = (2 * x + 1 - source.W) / source.W;
+        const ny = (2 * y + 1 - source.H) / source.H;
+        const radius = Math.hypot(nx, ny);
+        if (radius < 0.12) {
+          continue;
+        }
+        textureX = (Math.atan2(ny, nx) / (2 * Math.PI) + 0.5) * source.W * spacing;
+        textureY = (
+          perspectiveStrength(Math.min(8, 0.7 / radius), heightPercent) * spacing + alongDepth
+        ) * source.H;
+      } else {
+        const distance = v;
+        const depth = perspectiveStrength(Math.min(8, 0.6 / v), heightPercent);
+        let lateral = u - 0.5;
+
+        if (source.effect === 'curved-road') {
+          const bend = 0.18 * heightPercent
+            * Math.sin(alongDepth * 2 * Math.PI + depth * spacing * 0.7)
+            * (1 - distance);
+          const halfWidth = Math.max(0.5 / source.W, 0.12 + 0.32 * distance);
+          lateral -= bend;
+          if (Math.abs(lateral) > halfWidth) {
+            continue;
+          }
+          lateral = lateral / (2 * halfWidth);
+        }
+
+        textureX = (0.5 + lateral * depth * spacing) * source.W;
+        textureY = (depth * spacing + alongDepth) * source.H;
+      }
+
+      const sourceIndex = wrapIndex(Math.floor(textureY), source.H) * source.W
+        + wrapIndex(Math.floor(textureX), source.W);
+      const destination = y * source.W + x;
+      cells[destination] = source.grid[sourceIndex];
+      inks[destination] = source.inks[sourceIndex];
+    }
+  }
+  return {cells, inks};
 }

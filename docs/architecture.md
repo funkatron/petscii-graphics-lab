@@ -48,6 +48,9 @@ flowchart TB
 | `project-validation.js` | v3 JSON validation and shared animation enumerations |
 | `animation-frames.js` | Frame plan, sampling budget, and per-frame cell/ink computation |
 | `pointer-stroke.js` | Cell picking from pointer events and symmetric brush strokes |
+| `c64-colors.js` | Shared Pepto palette metadata |
+| `typed-text.js` | Text-tool glyph mapping and layout |
+| `glyph-families.js` | Palette browsing families and catalog |
 | `c64-export.js` | PRG/D64 generation, timing diagnostics, adaptive program sizing |
 | `bonfire.js`, `space-warp.js`, `depth-surfaces.js`, `solid-motion.js` | Individual movement effect math |
 | `video-export.js` | WebCodecs video packaging via mediabunny |
