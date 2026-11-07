@@ -68,7 +68,7 @@ Start from ordinary C64 BASIC. The first player does not target cartridge enviro
 
 The editor uses authentic numeric C64 glyphs throughout. Animation cycle counts, directions, and waveform settings use the same sampled frames as modern outputs.
 
-The exporter first tries its compact general player. If that exceeds estimated timing or memory limits, it tries compiled row routines and uses them only when both limits pass. Readiness and downloads make the same choice; frame count and loop duration are preserved. The two-second reference animation was manually checked in Poke on iPad, including RUN/STOP. Broader PAL/NTSC and physical-machine checks remain open.
+For ROM-backed animations, the exporter prefers a player that writes glyphs and colors together. It stores up to 256 distinct glyph-and-ink pairs as one-byte indexes and writes both planes in one pass. When the paired player is unavailable or exceeds either limit, the exporter tries its compact general player and compiled row routines. Stills use the general player. Readiness, PRG and D64 use the same checks and preserve frame count and loop duration. The two-second reference animation was manually checked in Poke on iPad, including RUN/STOP. Broader PAL/NTSC and physical-machine checks remain open.
 
 The player stores the same **sampled frames** used by GIF, video, and frame ZIP, as character/color changes. It does not run a native mathematical implementation of each effect. Long replays may skip recorded steps, just as the other animation downloads do.
 
@@ -76,7 +76,7 @@ The player stores the same **sampled frames** used by GIF, video, and frame ZIP,
 
 The program uses the standard KERNAL clock, which counts **60 ticks per second**. Frame boundaries are rounded cumulatively to those ticks, keeping the loop duration balanced. Commodore documents the clock interval in its [TIME description](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_2/page_089.html).
 
-The first picture is loaded before the loop clock starts. Later updates use changed runs or compiled row routines, depending on the selected renderer.
+The first picture loads before the loop clock starts. Later updates use paired glyph-and-color writes, general changed runs, or compiled row routines. A glyph used in three colors needs three dictionary entries. An animation that exceeds 256 pairs can still export if another player fits.
 
 The readiness percentage asks: **can the player finish this screen update before the next frame is due?** It is independent of the memory check. A small program can still require too much processing per frame.
 
