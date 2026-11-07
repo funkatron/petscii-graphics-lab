@@ -57,7 +57,7 @@ test('parseTextGrid rejects malformed headers and grids', () => {
     /row count/i,
   );
   assert.throws(
-    () => parseTextGrid('# PETSCII-GLYPHS 1 2 2\n000', defaults),
+    () => parseTextGrid('# PETSCII-GLYPHS 1 2 1\n000', defaults),
     /column count/i,
   );
   assert.throws(
