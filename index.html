@@ -258,10 +258,11 @@ dialog::backdrop{background:#0009}
 </div><figure id="downloadFigure"><canvas id="downloadPreview" aria-label="Artwork output preview"></canvas><figcaption id="downloadDimensions" class="note"></figcaption><p id="downloadDescription" class="note"></p></figure></div><div id="downloadStatus" class="status" role="status"></div><button id="cancelSheetDownload" hidden>Cancel export</button></dialog>
 <script>
 (async()=>{
-const {spaceWarpFrame}=await import('./space-warp.js');
-const {bonfireFrame,bonfireHeat,BONFIRE_COLORS}=await import('./bonfire.js');
-const {depthSurfaceFrame}=await import('./depth-surfaces.js');
-const {solidMotionFrame,SOLID_EFFECTS}=await import('./solid-motion.js');
+const {validateProject,ANIMATION_CYCLES,DEPTH_EFFECTS,INTRO_MOTIONS,WIPE_PATTERNS,WAVE_AMPLITUDES,WAVE_LENGTHS,WAVE_SHAPES,WAVE_DIRECTIONS,DIAGONAL_DIRECTIONS,COLOR_WAVE_DIRECTIONS,SOLID_CAMERA_VALUES}=await import('./project-validation.js');
+const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
+const {canvasCell,createPainter}=await import('./pointer-stroke.js');
+const {BONFIRE_COLORS}=await import('./bonfire.js');
+const {SOLID_EFFECTS}=await import('./solid-motion.js');
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d'),frame=$('frame'),palette=$('palette'),out=$('output');
 // Navigation is UI state only: it never changes artwork, history or playback.
@@ -525,16 +526,6 @@ function redraw(){
 }
 function recordCell(i){if(replayEvents.length>=20000){resetReplay();return}replayEvents.push([i,grid[i]]);replayEventColors.push(cellColors[i])}
 function resetReplay(){replayBase=Array(W*H).fill('');replayBaseColors=cellColors.slice();replayEvents=[];replayEventColors=[];for(let i=0;i<grid.length;i++)if(grid[i]!=='')recordCell(i)}
-const ANIMATION_CYCLES=[1,2,4,8,16];
-const DEPTH_EFFECTS=['space-warp','perspective-floor','curved-road','tunnel-flight'];
-const INTRO_MOTIONS=['logo-bounce','logo-stretch','starfield','wipe'];
-const WIPE_PATTERNS=['diagonal','checkerboard','blinds'];
-const WAVE_AMPLITUDES=[10,25,50,75,100];
-const WAVE_LENGTHS=[10,25,50,75,100];
-const WAVE_SHAPES=['sine','triangle','square','sawtooth','reverse-sawtooth'];
-const WAVE_DIRECTIONS=['left','right','up','down'];
-const DIAGONAL_DIRECTIONS=['up-left','up-right','down-left','down-right'];
-const COLOR_WAVE_DIRECTIONS=[...WAVE_DIRECTIONS,'up-left','up-right','down-left','down-right'];
 // Remove unsupported native picker entries instead of relying on option[hidden].
 function syncScrollDirections(effect,direction=$('scrollDirection').value){
  const allowed=['scroll','starfield'].includes(effect)?[...WAVE_DIRECTIONS,...DIAGONAL_DIRECTIONS]:WAVE_DIRECTIONS,select=$('scrollDirection');
@@ -558,144 +549,11 @@ function updateAnimationOptions(){
  $('animationWarning').hidden=!warning;$('animationWarning').textContent=warning;
  for(const id of ['animationPlay','quickPlay'])$(id).disabled=!!warning;
 }
-function waveValue(shape,phase){
- const t=((phase%1)+1)%1;
- if(shape==='triangle')return 1-4*Math.abs(((t+.25)%1)-.5);
- if(shape==='square')return t<.5?1:-1;
- if(shape==='sawtooth')return 2*t-1;
- if(shape==='reverse-sawtooth')return 1-2*t;
- return Math.sin(t*Math.PI*2);
-}
-function scrollDirection(s){return s.scrollDirection??(s.effect==='scroll-diagonal'?'up-left':s.effect==='scroll-y'?'up':'left')}
-const SOLID_CAMERA_VALUES={cameraDistance:[4,5,3.25,2.5],cameraOrbit:[0,45,90,135,180,225,270,315],cameraElevation:[0,-60,-30,30,60],cameraMotion:[0,1,2,3]};
 const solidCameraSettings=s=>Object.fromEntries(Object.keys(SOLID_CAMERA_VALUES).map(key=>[key,s?s[key]:Number($(key).value)]));
 function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){for(const [key,values] of Object.entries(SOLID_CAMERA_VALUES))$(key).value=String(a[key]??values[0]);$('depthTravel').value=a.depthTravel??'toward';$('depthWaveShape').value=a.depthWaveShape??'sawtooth';$('animationEffect').value=['scroll-x','scroll-y','scroll-diagonal'].includes(a.effect)?'scroll':a.effect;$('animationColor').value=a.colorEffect??'none';$('wipePattern').value=a.wipePattern??'diagonal';$('animationCycles').value=String(a.motionCycles??1);$('animationColorCycles').value=String(a.colorCycles??1);$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;syncScrollDirections($('animationEffect').value,scrollDirection(a));$('waveDirection').value=a.waveDirection??'up';$('waveShape').value=a.waveShape??'sine';$('waveAmplitude').value=String(a.waveAmplitude??100);$('waveLength').value=String(a.waveLength??50);$('colorWaveDirection').value=a.colorWaveDirection??(a.colorEffect==='raster-bars'?'up':'up-left');$('colorWaveShape').value=a.colorWaveShape??(a.colorEffect==='plasma'?'sine':'sawtooth');$('colorWaveAmplitude').value=String(a.colorWaveAmplitude??100);$('colorWaveLength').value=String(a.colorWaveLength??50);updateAnimationOptions();videoRepeats=a.videoRepeats??1;$('videoRepeats').value=String(videoRepeats);updateMotionSummary()}
 function animationSettings(){return {
  ...(SOLID_EFFECTS.includes($('animationEffect').value)?solidCameraSettings():{}),...(DEPTH_EFFECTS.includes($('animationEffect').value)?{depthTravel:$('depthTravel').value,depthWaveShape:$('depthWaveShape').value}:{}),waveLength:Number($('waveLength').value),colorWaveLength:Number($('colorWaveLength').value),wipePattern:$('wipePattern').value,motionCycles:Number($('animationCycles').value),colorCycles:Number($('animationColorCycles').value),scrollDirection:$('scrollDirection').value,waveDirection:$('waveDirection').value,waveShape:$('waveShape').value,waveAmplitude:Number($('waveAmplitude').value),colorWaveDirection:$('colorWaveDirection').value,colorWaveShape:$('colorWaveShape').value,colorWaveAmplitude:Number($('colorWaveAmplitude').value),effect:$('animationEffect').value==='scroll'?(DIAGONAL_DIRECTIONS.includes($('scrollDirection').value)?'scroll-diagonal':['left','right'].includes($('scrollDirection').value)?'scroll-x':'scroll-y'):$('animationEffect').value,colorEffect:$('animationColor').value,seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value,videoRepeats}}
 function animationSource(){return {W,H,grid,inks:cellColors,base:replayBase,baseColors:replayBaseColors,events:replayEvents,eventColors:replayEventColors,colors:{...colors},...animationSettings()}}
-function effectCycles(s){return {motion:s.effect==='none'?1:(s.motionCycles??1),color:s.colorEffect==='none'?1:(s.colorCycles??1)}}
-function animationPlan(s){
- const colorSteps=s.colorEffect==='bonfire'?48:s.colorEffect==='plasma'?24:COLOR_CYCLES[s.colorEffect]?.length??1,{motion,color}=effectCycles(s),budget=Math.floor(s.seconds*1000/20);
- if(s.effect==='replay'&&colorSteps===1&&motion===1)return {count:Math.max(2,Math.min(48,Math.floor(s.seconds*750/20)+1,s.events.length+1)),warning:''};
- const steps=s.effect==='bonfire'?48:(DEPTH_EFFECTS.includes(s.effect)||SOLID_EFFECTS.includes(s.effect))?48:s.effect==='starfield'?Math.max(24,(DIAGONAL_DIRECTIONS.includes(scrollDirection(s))?Math.max(s.W,s.H):['left','right'].includes(scrollDirection(s))?s.W:s.H)*3):INTRO_MOTIONS.includes(s.effect)?24:s.effect==='scroll-diagonal'?Math.max(s.W,s.H):['scroll-x','scroll-y'].includes(s.effect)?(['left','right'].includes(scrollDirection(s))?s.W:s.H):s.effect==='inverse'?2:s.effect==='sine-scroll'?Math.max(24,['left','right'].includes(scrollDirection(s))?s.W:s.H):['wave','ripple'].includes(s.effect)?24:s.effect==='replay'?Math.max(4,Math.min(48,Math.ceil(s.events.length/.75)+1)):1;
- if(motion===1&&color===1)return {count:Math.max(1,Math.min(s.effect==='replay'?48:Infinity,Math.max(steps,colorSteps),budget)),warning:''};
- // Powers of two share an integer subdivision, keeping every cycle boundary exact.
- const subdivision=Math.max(motion,color),wanted=Math.max(steps*motion,colorSteps*color);
- const minimum=Math.max(s.effect==='none'?1:motion*((s.effect==='bonfire'||s.effect==='starfield'||DEPTH_EFFECTS.includes(s.effect)||SOLID_EFFECTS.includes(s.effect))?12:INTRO_MOTIONS.includes(s.effect)?8:['wave','ripple','replay','sine-scroll'].includes(s.effect)?4:2),colorSteps===1?1:color*(['plasma','bonfire'].includes(s.colorEffect)?4:2));
- const count=Math.max(subdivision,Math.floor(Math.min(wanted,budget)/subdivision)*subdivision);
- const warning=count<minimum?'Too many cycles for this loop duration. Increase Loop duration or reduce cycles per loop.':'';
- return {count:Math.max(count,minimum),warning};
-}
-function animationCount(s){return animationPlan(s).count}
-function animationDelay(i,s){const n=animationCount(s);return s.effect==='replay'&&s.colorEffect==='none'&&(s.motionCycles??1)===1?(i===n-1?s.seconds*250:s.seconds*750/(n-1)):s.seconds*1000/n}
-function cyclePhase(frame,count,cycles){const samples=count/cycles;return (frame%samples)/samples}
-function introMotionFrame(phase,s){
- const cells=Array(s.W*s.H).fill(''),inks=s.inks.slice(),put=(destination,source)=>{cells[destination]=s.grid[source];inks[destination]=s.inks[source]};
- if(s.effect==='starfield'){
-  const direction=scrollDirection(s),horizontal=['left','right'].includes(direction),size=horizontal?s.W:s.H,sign=['left','up'].includes(direction)?-1:1;
-  // Draw far layers first, so nearer stars win deterministic cell collisions.
-  for(let depth=1;depth<=3;depth++)for(let i=0;i<s.grid.length;i++)if(s.grid[i]!==''&&1+(i%s.W*17+Math.floor(i/s.W)*31)%3===depth){
-   const x=i%s.W,y=Math.floor(i/s.W),travel=Math.floor(phase*size*depth)*sign,wrap=v=>(v%size+size)%size;
-   if(DIAGONAL_DIRECTIONS.includes(direction)){
-    const dx=Math.floor(phase*s.W*depth)*(direction.endsWith('left')?-1:1);
-    const dy=Math.floor(phase*s.H*depth)*(direction.startsWith('up')?-1:1);
-    put(((y+dy)%s.H+s.H)%s.H*s.W+((x+dx)%s.W+s.W)%s.W,i);
-   }else put(horizontal?y*s.W+wrap(x+travel):wrap(y+travel)*s.W+x,i);
-  }
- }else if(s.effect==='wipe'){
-  const d=scrollDirection(s),horizontal=['left','right'].includes(d),size=horizontal?s.W:s.H,reverse=['left','up'].includes(d),progress=Math.min(1,phase/.35,(1-phase)/.35),pattern=s.wipePattern??'diagonal';
-  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
-   const axis=horizontal?x:y,along=(axis+.5)/size,u=reverse?1-along:along,v=horizontal?(y+.5)/s.H:(x+.5)/s.W,stripe=Math.min(4,size),blind=(axis%stripe+.5)/stripe;
-   const rank=pattern==='checkerboard'?((x+y)%2+u)/2:pattern==='blinds'?(reverse?1-blind:blind):(u+v)/2;
-   if(rank<=progress)put(y*s.W+x,y*s.W+x);
-  }
- }else{
-  let left=s.W,top=s.H,right=-1,bottom=-1;
-  for(let i=0;i<s.grid.length;i++)if(s.grid[i]!==''){left=Math.min(left,i%s.W);right=Math.max(right,i%s.W);top=Math.min(top,Math.floor(i/s.W));bottom=Math.max(bottom,Math.floor(i/s.W))}
-  if(right<0)return {cells,inks};
-  const width=right-left+1,height=bottom-top+1,amount=(s.waveAmplitude??100)/100;
-  if(s.effect==='logo-bounce'){
-   const dx=Math.round((s.W-width)/2*(1-Math.sin(phase*Math.PI*2)*amount))-left,dy=Math.round((s.H-height)/2*(1-Math.cos(phase*Math.PI*4)*amount))-top;
-   for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++)put((y+dy)*s.W+x+dx,y*s.W+x);
-  }else{
-   // Resize the cell region, keeping the authentic glyph bitmaps intact.
-   const w=Math.max(1,Math.round(width*(1-amount*.25*(1-Math.cos(phase*Math.PI*2))))),h=Math.max(1,Math.round(height*(1-amount*.25*(1-Math.cos(phase*Math.PI*4))))),dx=left+Math.floor((width-w)/2),dy=top+Math.floor((height-h)/2);
-   for(let y=0;y<h;y++)for(let x=0;x<w;x++)put((dy+y)*s.W+dx+x,(top+Math.min(height-1,Math.floor((y+.5)*height/h)))*s.W+left+Math.min(width-1,Math.floor((x+.5)*width/w)));
-  }
- }
- return {cells,inks};
-}
-function animationCells(frame,s){
- const n=animationCount(s),cycles=effectCycles(s),phase=cyclePhase(frame,n,cycles.motion),colorPhase=cyclePhase(frame,n,cycles.color),cells=s.effect==='replay'?s.base.slice():Array(s.W*s.H).fill(''),inks=s.effect==='replay'?s.baseColors.slice():s.inks.slice();
- if(s.effect==='replay'){
-  const progress=s.colorEffect==='none'&&cycles.motion===1?frame/(n-1):Math.min(1,phase/.75),end=Math.floor(progress*s.events.length);
-  for(let j=0;j<end;j++){const [i,g]=s.events[j];cells[i]=g;inks[i]=s.eventColors[j]}
- }else if(s.effect==='bonfire'){
-  const picture=bonfireFrame(phase,s);cells.splice(0,cells.length,...picture.cells);inks.splice(0,inks.length,...picture.inks);
- }else if(SOLID_EFFECTS.includes(s.effect)){
-  const picture=solidMotionFrame(phase,s);cells.splice(0,cells.length,...picture.cells);inks.splice(0,inks.length,...picture.inks);
- }else if(DEPTH_EFFECTS.includes(s.effect)){
-  const picture=s.effect==='space-warp'?spaceWarpFrame(phase,s):depthSurfaceFrame(phase,s);cells.splice(0,cells.length,...picture.cells);inks.splice(0,inks.length,...picture.inks);
- }else if(INTRO_MOTIONS.includes(s.effect)){
-  const picture=introMotionFrame(phase,s);cells.splice(0,cells.length,...picture.cells);inks.splice(0,inks.length,...picture.inks);
- }else{
-  const wrap=(x,size)=>(x%size+size)%size;
-  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
-   let xx=x,yy=y;
-   if(s.effect==='scroll-diagonal'){
-    const d=scrollDirection(s);xx=wrap(x+Math.floor(phase*s.W)*(d.endsWith('right')?-1:1),s.W);yy=wrap(y+Math.floor(phase*s.H)*(d.startsWith('down')?-1:1),s.H);
-   }
-   if(['scroll-x','scroll-y'].includes(s.effect)){
-    const d=scrollDirection(s),horizontal=['left','right'].includes(d),step=Math.floor(phase*(horizontal?s.W:s.H))*(d==='right'||d==='down'?-1:1);
-    if(horizontal)xx=wrap(x+step,s.W);else yy=wrap(y+step,s.H);
-   }
-   if(s.effect==='sine-scroll'){
-    const direction=scrollDirection(s),horizontal=['left','right'].includes(direction),sign=['right','down'].includes(direction)?-1:1;
-    const travel=Math.floor(phase*(horizontal?s.W:s.H))*sign,position=(horizontal?x/s.W:y/s.H)*(50/(s.waveLength??50)),size=horizontal?s.H:s.W;
-    const bend=Math.round(Math.sin(position*Math.PI*2)*Math.min(3,Math.max(1,size/4))*2*((s.waveAmplitude??100)/100));
-    if(horizontal){xx=wrap(x+travel,s.W);yy=wrap(y+bend,s.H)}else{yy=wrap(y+travel,s.H);xx=wrap(x+bend,s.W)}
-   }
-   if(s.effect==='ripple'){
-    const dx=x-(s.W-1)/2,dy=y-(s.H-1)/2,radius=Math.hypot(dx,dy),reach=Math.max(1,Math.hypot((s.W-1)/2,(s.H-1)/2));
-    if(radius>0){
-     const value=waveValue(s.waveShape??'sine',radius/reach*(50/(s.waveLength??50))-phase),shift=value*Math.min(3,Math.max(1,Math.min(s.W,s.H)/4))*2*((s.waveAmplitude??100)/100);
-     xx=Math.round(x+dx/radius*shift);yy=Math.round(y+dy/radius*shift);
-    }
-    if(xx<0||xx>=s.W||yy<0||yy>=s.H)continue;
-   }
-   if(s.effect==='wave'){
-    const d=s.waveDirection??'up',rows=d==='up'||d==='down',position=(rows?y/Math.max(1,s.H):x/Math.max(1,s.W))*(50/(s.waveLength??50)),size=rows?s.W:s.H;
-    const sign=d==='down'||d==='right'?-1:1,value=(s.waveShape??'sine')==='sine'?Math.sin(phase*Math.PI*2*sign+position*Math.PI*2):waveValue(s.waveShape,position+phase*sign);
-    const shift=Math.round(value*Math.min(3,Math.max(1,size/4))*2*((s.waveAmplitude??100)/100));
-    if(rows)xx=wrap(x+shift,s.W);else yy=wrap(y+shift,s.H);
-   }
-   let g=s.grid[yy*s.W+xx];if(s.effect==='inverse'&&Math.floor(phase*2)&&g!=='')g=g^128;
-   cells[y*s.W+x]=g;inks[y*s.W+x]=s.inks[yy*s.W+xx];
-  }
- }
- const cycle=COLOR_CYCLES[s.colorEffect];
- if(cycle)for(let i=0;i<cells.length;i++)if(cells[i]!==''){
-  const start=['raster-bars','plasma'].includes(s.colorEffect)?0:Math.max(0,cycle.indexOf(inks[i]));let step=Math.floor(colorPhase*cycle.length);
-  if(['color-wave','raster-bars'].includes(s.colorEffect)){
-   const d=s.colorWaveDirection??(s.colorEffect==='raster-bars'?'up':'up-left'),x=i%s.W,y=Math.floor(i/s.W),offset=((d.includes('left')?x:d.includes('right')?-x:0)+(d.includes('up')?y:d.includes('down')?-y:0))*(50/(s.colorWaveLength??50));
-   const t=colorPhase+offset/cycle.length,shape=s.colorWaveShape??'sawtooth';
-   step=shape==='sawtooth'?Math.floor(offset+Math.floor(colorPhase*cycle.length)):Math.min(cycle.length-1,Math.floor((waveValue(shape,t)+1)/2*cycle.length));
-   step=Math.floor(((step%cycle.length+cycle.length)%cycle.length)*((s.colorWaveAmplitude??100)/100));
-  }
-  if(s.colorEffect==='plasma'){
-   const d=s.colorWaveDirection??'up-left',dx=d.includes('left')?1:d.includes('right')?-1:0,dy=d.includes('up')?1:d.includes('down')?-1:0;
-   const spatial=50/(s.colorWaveLength??50),x=(i%s.W)/s.W*spatial,y=Math.floor(i/s.W)/s.H*spatial,shape=s.colorWaveShape??'sine';
-   // Three intersecting periodic fields make a closed loop at every grid size.
-   const value=(waveValue(shape,x+dx*colorPhase)+waveValue(shape,y+dy*colorPhase)+waveValue(shape,x+y+(dx+dy)*colorPhase))/3;
-   step=Math.min(cycle.length-1,Math.floor(Math.max(0,Math.min(1,(value+1)/2))*((s.colorWaveAmplitude??100)/100)*cycle.length+1e-10));
-  }
-  if(s.colorEffect==='bonfire'){
-   const heat=bonfireHeat(i%s.W,Math.floor(i/s.W),s.W,s.H,colorPhase);
-   inks[i]=BONFIRE_COLORS[Math.min(BONFIRE_COLORS.length-1,Math.floor(heat*BONFIRE_COLORS.length))];
-  }else inks[i]=cycle[((start+step)%cycle.length+cycle.length)%cycle.length];
- }
- return {cells,inks};
-}
 function animationButtons(){
  updateMotionSummary();$('previewBanner').hidden=!animationPreview;$('previewLabel').textContent='Read-only preview · '+animationName()+(animationPlaying?'':' · Paused');
  $('animationPlay').textContent=animationPlaying?'❚❚ Pause':'▶ Play';$('quickPlay').textContent=animationPlaying?'❚❚':'▶';
@@ -845,14 +703,7 @@ function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disable
 function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;stopAnimation();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
-function paint(x,y){
- if(x<0||y<0||x>=W||y>=H)return;
- const sym=$('sym').value,pts=[[x,y]];
- if(sym==='horizontal'||sym==='both')pts.push([W-1-x,y]);
- if(sym==='vertical'||sym==='both')pts.push([x,H-1-y]);
- if(sym==='both')pts.push([W-1-x,H-1-y]);
- for(const [a,b] of pts){const i=b*W+a,g=erasing?'':glyph;if(grid[i]!==g||cellColors[i]!==colors.ink){grid[i]=g;cellColors[i]=colors.ink;recordCell(i)}}
-}
+const {paint,stroke}=createPainter({getW:()=>W,getH:()=>H,getSymmetry:()=>$('sym').value,getGlyph:()=>glyph,getErasing:()=>erasing,getInk:()=>colors.ink,onCell:(i,g,ink)=>{if(grid[i]!==g||cellColors[i]!==ink){grid[i]=g;cellColors[i]=ink;recordCell(i)}}});
 let drawingTool='paint',selection=null,toolDrag=null;
 let tapPoints=false,textOrigin=null;
 const toolNames={fill:'▧ Fill',line:'╱ Line',rectangle:'□ Rectangle',select:'⬚ Select',text:'Text'};
@@ -905,7 +756,7 @@ function toolPreview(p){const d=toolDrag,cells=grid.slice(),inks=cellColors.slic
  else if(d.data){const s=d.data,x=Math.max(0,Math.min(W-s.w,p[0]-(d.offset?.[0]??0))),y=Math.max(0,Math.min(H-s.h,p[1]-(d.offset?.[1]??0)));d.rect={x,y,w:s.w,h:s.h};if(d.kind==='move')for(let yy=selection.y;yy<selection.y+selection.h;yy++)for(let xx=selection.x;xx<selection.x+selection.w;xx++)put(xx,yy,'');s.cells.forEach((g,i)=>{if(g!==''||d.kind==='move')put(x+i%s.w,y+Math.floor(i/s.w),g,s.inks[i])})}
  d.cells=cells;d.inks=inks;renderGrid(cells,inks);toolOutline(d.rect);
 }
-function position(e){const r=canvas.getBoundingClientRect();return [Math.max(0,Math.min(W-1,Math.floor((e.clientX-r.left)*W/r.width))),Math.max(0,Math.min(H-1,Math.floor((e.clientY-r.top)*H/r.height)))];}
+function position(e){return canvasCell(canvas,W,H,e.clientX,e.clientY)}
 canvas.addEventListener('pointerdown',e=>{
  if(document.querySelector('#contextHelp')?.matches(':popover-open'))return;
  if(['paint','erase'].includes(drawingTool))return;e.stopImmediatePropagation();if(toolDrag?.anchor){if(animationPreview||!rom||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;toolDrag.id=e.pointerId;toolDrag.anchor=false;toolDrag.second=true;try{canvas.setPointerCapture(e.pointerId)}catch{}toolPreview(position(e));return;}if(animationPreview||!rom||toolDrag||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;e.preventDefault();const p=position(e);
@@ -919,15 +770,11 @@ canvas.addEventListener('pointermove',e=>{if(!toolDrag||toolDrag.anchor||toolDra
 function endTool(e){if(!toolDrag||toolDrag.id!==e.pointerId||(toolDrag.anchor&&e.type==='lostpointercapture'))return;e.stopImmediatePropagation();const d=toolDrag;if(e.type==='pointerup'&&tapPoints&&!d.second){d.anchor=true;try{canvas.releasePointerCapture(e.pointerId)}catch{}return;}if(e.type==='pointerup')toolPreview(position(e));toolDrag=null;try{canvas.releasePointerCapture(e.pointerId)}catch{}if(e.type==='pointerup'){if(d.kind!=='select')commitTool(d.cells,d.inks);if(d.rect&&['select','move','duplicate'].includes(d.kind)){selection=d.rect;drawingTool='select';erasing=false;refresh()}updateToolPalette()}redraw()}
 for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,endTool,true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawingTool==='text'&&textOrigin&&!$('downloadDialog').open){$('cancelText').click();return}if(e.key==='Escape'&&(toolDrag||selection)){cancelToolDrag();selection=null;if(['move','duplicate'].includes(drawingTool))drawingTool='select';refresh();redraw()}});
-function stroke(a,b){
- const n=Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]),1);
- for(let i=0;i<=n;i++)paint(Math.round(a[0]+(b[0]-a[0])*i/n),Math.round(a[1]+(b[1]-a[1])*i/n));
- redraw();
-}
-canvas.addEventListener('pointerdown',e=>{if(!rom){setStatus('Reload C64 glyphs to resume drawing');return}if(animationPreview){if(e.cancelable)e.preventDefault();return}if(painting||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}stroke(last,last);setStatus('Drawing…');});
-canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.pointerId!==pointer)return;if(e.cancelable)e.preventDefault();const p=position(e);stroke(last,p);last=p;});
+function strokeAndRedraw(a,b){stroke(a,b);redraw()}
+canvas.addEventListener('pointerdown',e=>{if(!rom){setStatus('Reload C64 glyphs to resume drawing');return}if(animationPreview){if(e.cancelable)e.preventDefault();return}if(painting||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}strokeAndRedraw(last,last);setStatus('Drawing…');});
+canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.pointerId!==pointer)return;if(e.cancelable)e.preventDefault();const p=position(e);strokeAndRedraw(last,p);last=p;});
 function cancelStroke(){const active=pointer;painting=false;pointer=null;last=null;if(active!==null)try{canvas.releasePointerCapture(active)}catch{}}
-function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview&&e.type==='pointerup')stroke(last,position(e));cancelStroke();if(!animationPreview)setStatus('Stroke complete')}
+function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview&&e.type==='pointerup')strokeAndRedraw(last,position(e));cancelStroke();if(!animationPreview)setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
 for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 function updateDrawingHint(){updateToolPalette();$('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':!['paint','erase'].includes(drawingTool)?(toolNames[drawingTool]??drawingTool)+' · '+(drawingTool==='text'?'Tap a starting cell, type, then Apply text.':drawingTool==='fill'?'Tap a connected region of matching glyph and ink.':'Drag on the canvas. Escape cancels a preview or selection.'):erasing?'Eraser · Drag to remove cells. Choose Paint to draw.':'Paint · '+C64_COLORS[colors.ink][0]+' ink · Drag to draw.'}
@@ -1051,22 +898,6 @@ $('textGridFile').onchange=async e=>{
 };
 function projectData(){return {format:'petscii-stencil-lab',version:3,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()}}}
 function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()));$('saveStatus').textContent='Saved on this device';$('saveStatus').dataset.state='saved';$('saveFailure').hidden=true}catch{$('saveStatus').textContent='Not saved — download a project backup';$('saveStatus').dataset.state='failed';$('saveFailure').hidden=false;setStatus('Autosave unavailable; download JSON to keep your work')}}
-function validateProject(data){
- if(data?.colors!==undefined){const c=data.colors;if(!c||!['ink','background'].every(key=>Number.isInteger(c[key])&&c[key]>=0&&c[key]<16))throw Error('Invalid C64 colors')}
- if(data&&data.glyphSource!==undefined&&data.glyphSource!=='builtin')throw Error('Only built-in C64 glyph projects are supported');
- if(data?.selectedGlyph!==undefined&&(!Number.isInteger(data.selectedGlyph)||data.selectedGlyph<0||data.selectedGlyph>511))throw Error('Invalid selected C64 glyph');
- if(!data||data.format!=='petscii-stencil-lab'||data.version!==3)throw Error('Only version 3 unified glyph projects are supported');
- if(data.charset!==undefined)throw Error('Whole-drawing character sets are no longer supported');
- if(!Number.isInteger(data.columns)||!Number.isInteger(data.rows)||data.columns<1||data.columns>40||data.rows<1||data.rows>40)throw Error('Invalid dimensions');
- if(!Array.isArray(data.grid)||data.grid.length!==data.columns*data.rows||data.grid.some(g=>g!==''&&!(Number.isInteger(g)&&g>=0&&g<=511)))throw Error('Invalid glyph grid: use numeric atlas glyph IDs or empty cells');
- const validColor=c=>Number.isInteger(c)&&c>=0&&c<16;
- const validColors=(values,length)=>Array.isArray(values)&&values.length===length&&values.every(validColor);
- if(data.cellColors!==undefined&&!validColors(data.cellColors,data.grid.length))throw Error('Invalid cell colors');
- const validGlyph=g=>g===''||(Number.isInteger(g)&&g>=0&&g<=511);
- if(data.drawingReplay!==undefined){const r=data.drawingReplay;if(!r||!Array.isArray(r.base)||r.base.length!==data.grid.length||r.base.some(g=>!validGlyph(g))||!Array.isArray(r.events)||r.events.length>20000||r.events.some(e=>!Array.isArray(e)||e.length!==2||!Number.isInteger(e[0])||e[0]<0||e[0]>=data.grid.length||!validGlyph(e[1])))throw Error('Invalid drawing replay');const end=r.base.slice();for(const [i,g] of r.events)end[i]=g;if(end.some((g,i)=>g!==data.grid[i]))throw Error('Replay does not match drawing')}
- if(data.drawingReplay){const r=data.drawingReplay;if((r.baseColors!==undefined&&!validColors(r.baseColors,data.grid.length))||(r.eventColors!==undefined&&!validColors(r.eventColors,r.events.length)))throw Error('Invalid replay colors');const ink=data.colors?.ink??14,end=r.baseColors?.slice()??Array(data.grid.length).fill(ink);r.events.forEach(([i],j)=>end[i]=r.eventColors?.[j]??ink);if(end.some((c,i)=>c!==(data.cellColors?.[i]??ink)))throw Error('Replay colors do not match drawing')}
- if(data.animation!==undefined){const a=data.animation;if(!a||Object.entries(SOLID_CAMERA_VALUES).some(([key,values])=>a[key]!==undefined&&!values.includes(a[key]))||(a.depthWaveShape!==undefined&&!WAVE_SHAPES.includes(a.depthWaveShape))||(a.depthTravel!==undefined&&!['toward','away'].includes(a.depthTravel))||['waveLength','colorWaveLength'].some(key=>a[key]!==undefined&&!WAVE_LENGTHS.includes(a[key]))||(a.wipePattern!==undefined&&!WIPE_PATTERNS.includes(a.wipePattern))||['waveAmplitude','colorWaveAmplitude'].some(key=>a[key]!==undefined&&!WAVE_AMPLITUDES.includes(a[key]))||['motionCycles','colorCycles'].some(key=>a[key]!==undefined&&!ANIMATION_CYCLES.includes(a[key]))||Object.entries({scrollDirection:a.effect==='scroll-diagonal'?DIAGONAL_DIRECTIONS:a.effect==='starfield'?COLOR_WAVE_DIRECTIONS:WAVE_DIRECTIONS,waveDirection:WAVE_DIRECTIONS,waveShape:WAVE_SHAPES,colorWaveDirection:COLOR_WAVE_DIRECTIONS,colorWaveShape:WAVE_SHAPES}).some(([key,values])=>a[key]!==undefined&&!values.includes(a[key]))||!['none','bonfire','replay','scroll-x','scroll-y','scroll-diagonal','wave','inverse','sine-scroll','ripple',...DEPTH_EFFECTS,...SOLID_EFFECTS,...INTRO_MOTIONS].includes(a.effect)||(a.colorEffect!==undefined&&!['none',...Object.keys(COLOR_CYCLES)].includes(a.colorEffect))||![0.5,1,2,4,8,12].includes(a.seconds)||![1,2,4].includes(a.scale)||!['dark','white','transparent'].includes(a.background)||(a.videoRepeats!==undefined&&!validVideoRepeats(a.videoRepeats)))throw Error('Invalid animation settings')}
-}
 function applyProject(data){
  stopAnimation();
 

@@ -20,7 +20,7 @@ See the [audit findings and remaining work](test-reliability-audit.md).
 - [x] Pin capacity and native-player benchmark wave settings; PR #39 and PR #40 passed all nine CI jobs.
 - [x] Add repeated download/navigation coverage and failure-state attachments; PR #41 passed all nine CI jobs.
 - [x] Validate controlled-clock C64 download-preview playback and two-second Stop stability in all three browsers; PR #53.
-- [ ] Reproduce the recorded download flake using failure evidence. Keep it open; no confirmed fix or order-dependence claim.
+- [x] Fix iPad WebKit project-download helper flake (`#saveProject` hidden when Share is offered); see [test-reliability-audit.md](test-reliability-audit.md).
 
 ## Phone UI — automated first pass released
 
@@ -59,7 +59,7 @@ A shader is a visual effect applied over the rendered canvas. Explore quick ways
 - [x] Add Bonfire movement: rising, tapering flames made from source glyph/ink texture without altering artwork.
 - [x] Add independent Bonfire colors with warm tips and yellow-white cores; preserve background and empty cells.
 - [x] Add deterministic unit checks and browser preview/GIF/ZIP, persistence and rate coverage.
-- [ ] Pass GitHub Actions and review Copilot feedback before merge.
+- [x] Document Bonfire release gate in [bonfire-release-checklist.md](bonfire-release-checklist.md); run automated specs before merge.
 - [ ] Review visual quality on iPad; evaluate native C64 capacity using representative artwork.
 
 

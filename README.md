@@ -411,6 +411,8 @@ Playwright tests desktop Chromium and iPad WebKit in landscape and portrait. Tes
 
 - [C64 output guide](docs/c64-output.md): raw binary files and runnable still/animation programs.
 - [Maintainer reference](docs/maintainer-reference.md): implementation contracts and source references.
+- [Architecture overview](docs/architecture.md): module map and data flow.
+- [Physical device checklist](docs/physical-device-checklist.md): manual phone/iPad verification steps.
 - [UI review](docs/ui-review.md): layout decisions, implemented changes, and follow-ups.
 - [Audit history](AUDIT.md): earlier findings and results from each development stage.
 - [Bundled dependencies](vendor/README.md): versions, build fingerprints, and licenses.

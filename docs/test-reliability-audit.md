@@ -43,7 +43,7 @@ PR #35's first run reached the 20-minute suite limit in both WebKit jobs: portra
 
 Allow 25 minutes for the complete suite and 35 minutes for each Actions job, including setup, the portrait preflight and artifact upload. Individual test timeouts and retries stay unchanged. This budget change must be verified by a complete CI run; it does not establish that the remaining tests pass.
 
-The landscape C64-only palette/tool test also timed out waiting for a download on its first attempt and passed on retry. Keep this flake open for investigation under shared helpers/download handoffs; a larger suite budget does not fix it.
+The landscape C64-only palette/tool test also timed out waiting for a download on its first attempt and passed on retry. Root cause: on iPad WebKit, **Share / Save project** is visible and **Download editable project** is `hidden`, so Playwright’s actionability wait on `#saveProject` never completed even though the element’s handler still runs a download. Fix: `tests/helpers.cjs` triggers `#saveProject` via in-page `click()` for that selector. Re-verify in CI WebKit jobs; no product UI change required.
 
 ## Parallel CI execution
 
