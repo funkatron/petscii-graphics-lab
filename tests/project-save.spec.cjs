@@ -24,11 +24,11 @@ for(const native of [false,true]){
    const waiting=page.waitForEvent('download');await ui(page,action);const file=await waiting;return {name:file.suggestedFilename(),text:(await contents(file)).toString()};
   }
   test('one save action, fixed JSON suffix and editable memorable name',async({page})=>{
-   await ui(page,'#projectFilename','focus');await expect(page.locator('#projectFilename')).toHaveValue('amber-lunar-otter');
+   await ui(page,'#projectFilename','focus');await expect(page.locator('#projectFilename')).toHaveValue('amber-otter');
    await expect(page.locator(native?'#saveProject':'#shareProject')).toBeHidden();
    await expect(page.locator('#projectExtension')).toHaveText('.json');
-   const first=await save(page);expect(first.name).toBe('amber-lunar-otter.json');
-   await expect(page.locator('#projectFilename')).toHaveValue('amber-lunar-otter');
+   const first=await save(page);expect(first.name).toBe('amber-otter.json');
+   await expect(page.locator('#projectFilename')).toHaveValue('amber-otter');
    for(const [input,wanted]of [['  Evening waves  ','Evening waves.json'],['art/work.JSON','art_work.json'],['art.json.json','art.json'],['art.txt','art.txt.json']]){
     await ui(page,'#projectFilename','fill',input);expect((await save(page)).name).toBe(wanted);
    }
@@ -51,7 +51,7 @@ for(const native of [false,true]){
   test('save controls remain reachable at 200% text in both iPad layouts',async({page})=>{
    for(const [width,height] of [[810,1080],[1080,810]]){
     await page.setViewportSize({width,height});await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();await page.addStyleTag({content:'html{font-size:200%}'});await ui(page,'#projectFilename','fill','Evening artwork');
-    await expect(page.locator('#projectSaveGroup')).toHaveAccessibleName('Save editable project');await expect(page.locator('#projectSaveGroup button:visible')).toHaveCount(1);
+    await expect(page.locator('#projectSaveGroup')).toHaveAccessibleName('Save editable project');await expect(page.locator('#projectSaveGroup button:visible:not(#regenerateProjectName)')).toHaveCount(1);
     const menu=page.locator('.project-menu'),box=await menu.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);expect(box.y+box.height).toBeLessThanOrEqual(height);expect(await menu.evaluate(e=>e.scrollWidth-e.clientWidth)).toBeLessThanOrEqual(1);
     for(const id of ['#projectFilename',action,'#loadProject','#openTextGrid']){await page.locator(id).scrollIntoViewIfNeeded();await expect(page.locator(id)).toBeInViewport()}
    }
@@ -59,7 +59,7 @@ for(const native of [false,true]){
   if(native)test('cancel and error restore the sole save action for retry',async({page})=>{
    for(const error of ['AbortError','NotAllowedError']){
     await page.evaluate(error=>window.shareError=error,error);await ui(page,action);await expect(page.locator(action)).toBeEnabled();await expect(page.locator('#status')).toContainText(error==='AbortError'?'canceled':'sharing failed');
-    await page.evaluate(()=>window.shareError=null);expect((await save(page)).name).toBe('amber-lunar-otter.json');
+    await page.evaluate(()=>window.shareError=null);expect((await save(page)).name).toBe('amber-otter.json');
    }
   });
  });
