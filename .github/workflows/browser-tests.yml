@@ -37,6 +37,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [[ "$FULL_REQUEST" == true ]]; then
+            node scripts/ci-select-tests.cjs </dev/null
+            exit 0
+          fi
           if [[ "$EVENT" == workflow_dispatch ]]; then
             # Manual focused runs use a representative smoke test.
             printf 'tests/layout.spec.cjs\n' | node scripts/ci-select-tests.cjs
