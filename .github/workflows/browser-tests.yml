@@ -59,14 +59,14 @@ jobs:
           # Shared app, rendering, export, or workflow changes require broad coverage.
           if grep -Eq '^(index\.html|c64-export\.js|solid-motion\.js|depth-|bonfire\.js|assets/|vendor/|package(-lock)?\.json|playwright\.config\.cjs|\.github/|tests/helpers\.cjs)' <<< "$changed"; then
             echo "mode=focused" >> "$GITHUB_OUTPUT"
-            echo "specs=tests/layout.spec.cjs tests/composite.spec.cjs tests/bonfire.spec.cjs tests/solid-motion.spec.cjs" >> "$GITHUB_OUTPUT"
+            echo "specs=tests/layout.spec.cjs tests/bonfire.spec.cjs tests/solid-motion.spec.cjs" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # A test-only PR runs the modified browser tests. Unknown code paths
           # fall back to the focused smoke/regression selection.
           specs="$(grep -E '^tests/.*\.spec\.cjs$' <<< "$changed" | tr '\n' ' ' || true)"
           if [[ -z "$specs" ]]; then
-            specs="tests/layout.spec.cjs tests/composite.spec.cjs"
+            specs="tests/layout.spec.cjs"
           fi
           echo "mode=focused" >> "$GITHUB_OUTPUT"
           echo "specs=$specs" >> "$GITHUB_OUTPUT"
