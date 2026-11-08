@@ -22,6 +22,7 @@ jobs:
     outputs:
       mode: ${{ steps.choose.outputs.mode }}
       specs: ${{ steps.choose.outputs.specs }}
+      full: ${{ steps.choose.outputs.full }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,6 +31,7 @@ jobs:
         env:
           EVENT: ${{ github.event_name }}
           FULL_REQUEST: ${{ inputs.suite == 'full' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: full')) }}
+          MOTION_ONLY: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: motion only') }}
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.sha }}
         shell: bash
@@ -38,6 +40,11 @@ jobs:
           if [[ "$FULL_REQUEST" == true ]]; then
             echo "mode=full" >> "$GITHUB_OUTPUT"
             echo "specs=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$MOTION_ONLY" == true ]]; then
+            echo "mode=focused" >> "$GITHUB_OUTPUT"
+            echo "specs=tests/solid-motion.spec.cjs tests/space-warp.spec.cjs tests/depth-exports.spec.cjs" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [[ "$EVENT" == workflow_dispatch ]]; then
@@ -56,10 +63,177 @@ jobs:
             echo "specs=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # Shared app, rendering, export, or workflow changes require broad coverage.
+          # Shared changes receive a lightweight smoke suite, not unrelated exports.
           if grep -Eq '^(index\.html|c64-export\.js|solid-motion\.js|depth-|bonfire\.js|assets/|vendor/|package(-lock)?\.json|playwright\.config\.cjs|\.github/|tests/helpers\.cjs)' <<< "$changed"; then
             echo "mode=focused" >> "$GITHUB_OUTPUT"
-            echo "specs=tests/layout.spec.cjs tests/bonfire.spec.cjs tests/solid-motion.spec.cjs" >> "$GITHUB_OUTPUT"
+            echo "specs=tests/layout.spec.cjs" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Feature changes run their corresponding focused browser checks.
+          if grep -Eq '^(bonfire\\.js|solid-motion\\.js|depth-|space-warp\\.js)' <<< "$changed"; then
+            specs=""
+            if grep -q '^bonfire\\.js
+          # fall back to the focused smoke/regression selection.
+          specs="$(grep -E '^tests/.*\.spec\.cjs$' <<< "$changed" | tr '\n' ' ' || true)"
+          if [[ -z "$specs" ]]; then
+            specs="tests/layout.spec.cjs"
+          fi
+          echo "mode=focused" >> "$GITHUB_OUTPUT"
+          echo "specs=$specs" >> "$GITHUB_OUTPUT"
+  unit:
+    needs: select
+    if: needs.select.outputs.mode != 'none'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/*.unit.mjs
+  playwright:
+    needs: select
+    if: needs.select.outputs.mode != 'none'
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, ipad-touch, ipad-portrait]
+        shard: ${{ fromJSON(needs.select.outputs.mode == 'full' && '[1,2,3]' || '[1]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --init --shm-size=1gb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Install export validation tools for full or export-focused checks
+        if: needs.select.outputs.mode == 'full' || contains(needs.select.outputs.specs, 'exports.spec.cjs') || contains(needs.select.outputs.specs, 'c64')
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ffmpeg python3 python3-venv
+          python3 -m venv /tmp/petscii-test-venv
+          /tmp/petscii-test-venv/bin/python -m pip install py65==1.2.0
+          echo "/tmp/petscii-test-venv/bin" >> "$GITHUB_PATH"
+      - name: Focused browser checks
+        if: needs.select.outputs.mode == 'focused'
+        env:
+          SPECS: ${{ needs.select.outputs.specs }}
+        run: |
+          read -r -a files <<< "$SPECS"
+          npm test -- "${files[@]}" --project=${{ matrix.project }} --workers=1 --global-timeout=600000
+      - name: Full browser and export suite
+        if: needs.select.outputs.mode == 'full'
+        run: npm test -- --project=${{ matrix.project }} --workers=1 --shard=${{ matrix.shard }}/3 --global-timeout=1200000
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.project }}-${{ matrix.shard }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+  validation:
+    name: Validation gate
+    if: always()
+    needs: [select, unit, playwright]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require selected checks to pass
+        env:
+          SELECTION: ${{ needs.select.result }}
+          MODE: ${{ needs.select.outputs.mode }}
+          UNIT: ${{ needs.unit.result }}
+          BROWSER: ${{ needs.playwright.result }}
+        run: |
+          [[ "$SELECTION" == success ]] || exit 1
+          if [[ "$MODE" == none ]]; then exit 0; fi
+          [[ "$UNIT" == success && "$BROWSER" == success ]]
+ <<< "$changed"; then specs="$specs tests/bonfire.spec.cjs"; fi
+            if grep -Eq '^(solid-motion\\.js|depth-)' <<< "$changed"; then specs="$specs tests/solid-motion.spec.cjs"; fi
+            if grep -q '^space-warp\\.js
+          # fall back to the focused smoke/regression selection.
+          specs="$(grep -E '^tests/.*\.spec\.cjs$' <<< "$changed" | tr '\n' ' ' || true)"
+          if [[ -z "$specs" ]]; then
+            specs="tests/layout.spec.cjs"
+          fi
+          echo "mode=focused" >> "$GITHUB_OUTPUT"
+          echo "specs=$specs" >> "$GITHUB_OUTPUT"
+  unit:
+    needs: select
+    if: needs.select.outputs.mode != 'none'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/*.unit.mjs
+  playwright:
+    needs: select
+    if: needs.select.outputs.mode != 'none'
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, ipad-touch, ipad-portrait]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --init --shm-size=1gb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Install full-suite export validation tools
+        if: needs.select.outputs.mode == 'full'
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ffmpeg python3 python3-venv
+          python3 -m venv /tmp/petscii-test-venv
+          /tmp/petscii-test-venv/bin/python -m pip install py65==1.2.0
+          echo "/tmp/petscii-test-venv/bin" >> "$GITHUB_PATH"
+      - name: Focused browser checks
+        if: needs.select.outputs.mode == 'focused'
+        env:
+          SPECS: ${{ needs.select.outputs.specs }}
+        run: |
+          read -r -a files <<< "$SPECS"
+          npm test -- "${files[@]}" --project=${{ matrix.project }} --workers=1 --global-timeout=600000
+      - name: Full browser and export suite
+        if: needs.select.outputs.mode == 'full'
+        run: npm test -- --project=${{ matrix.project }} --workers=1 --global-timeout=1200000
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+  validation:
+    name: Validation gate
+    if: always()
+    needs: [select, unit, playwright]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require selected checks to pass
+        env:
+          SELECTION: ${{ needs.select.result }}
+          MODE: ${{ needs.select.outputs.mode }}
+          UNIT: ${{ needs.unit.result }}
+          BROWSER: ${{ needs.playwright.result }}
+        run: |
+          [[ "$SELECTION" == success ]] || exit 1
+          if [[ "$MODE" == none ]]; then exit 0; fi
+          [[ "$UNIT" == success && "$BROWSER" == success ]]
+ <<< "$changed"; then specs="$specs tests/space-warp.spec.cjs"; fi
+            echo "mode=focused" >> "$GITHUB_OUTPUT"
+            echo "specs=${specs# }" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # A test-only PR runs the modified browser tests. Unknown code paths
