@@ -37,49 +37,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$FULL_REQUEST" == true ]]; then
-            echo "mode=full" >> "$GITHUB_OUTPUT"
-            echo "specs=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          if [[ "$MOTION_ONLY" == true ]]; then
-            echo "mode=focused" >> "$GITHUB_OUTPUT"
-            echo "specs=tests/solid-motion.spec.cjs tests/space-warp.spec.cjs tests/depth-exports.spec.cjs" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
           if [[ "$EVENT" == workflow_dispatch ]]; then
-            echo "mode=focused" >> "$GITHUB_OUTPUT"
-            echo "specs=tests/layout.spec.cjs tests/bonfire.spec.cjs" >> "$GITHUB_OUTPUT"
+            # Manual focused runs use a representative smoke test.
+            printf 'tests/layout.spec.cjs\n' | node scripts/ci-select-tests.cjs
             exit 0
           fi
           if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-            echo "mode=full" >> "$GITHUB_OUTPUT"
-            echo "specs=" >> "$GITHUB_OUTPUT"
+            # A missing base must not silently bypass validation.
+            FULL_REQUEST=true node scripts/ci-select-tests.cjs </dev/null
             exit 0
           fi
-          changed="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")"
-          if [[ -z "$changed" ]] || ! grep -Eqv '^(docs/|.*\.md$)' <<< "$changed"; then
-            echo "mode=none" >> "$GITHUB_OUTPUT"
-            echo "specs=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # Shared changes receive a lightweight smoke suite, not unrelated exports.
-          if grep -Eq '^(index\.html|c64-export\.js|solid-motion\.js|depth-|bonfire\.js|assets/|vendor/|package(-lock)?\.json|playwright\.config\.cjs|\.github/|tests/helpers\.cjs)' <<< "$changed"; then
-            echo "mode=focused" >> "$GITHUB_OUTPUT"
-            echo "specs=tests/layout.spec.cjs" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # Feature changes run their corresponding focused browser checks.
-          if grep -Eq '^(bonfire\\.js|solid-motion\\.js|depth-|space-warp\\.js)' <<< "$changed"; then
-            specs=""
-            if grep -q '^bonfire\\.js
-          # fall back to the focused smoke/regression selection.
-          specs="$(grep -E '^tests/.*\.spec\.cjs$' <<< "$changed" | tr '\n' ' ' || true)"
-          if [[ -z "$specs" ]]; then
-            specs="tests/layout.spec.cjs"
-          fi
-          echo "mode=focused" >> "$GITHUB_OUTPUT"
-          echo "specs=$specs" >> "$GITHUB_OUTPUT"
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" | node scripts/ci-select-tests.cjs
   unit:
     needs: select
     if: needs.select.outputs.mode != 'none'
