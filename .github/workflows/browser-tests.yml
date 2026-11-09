@@ -30,8 +30,8 @@ jobs:
       - id: choose
         env:
           EVENT: ${{ github.event_name }}
-          FULL_REQUEST: ${{ inputs.suite == 'full' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: full')) }}
-          MOTION_ONLY: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: motion only') }}
+          FULL_REQUEST: "${{ inputs.suite == 'full' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: full')) }}"
+          MOTION_ONLY: "${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci: motion only') }}"
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.sha }}
         shell: bash
