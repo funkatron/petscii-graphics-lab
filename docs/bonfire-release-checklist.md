@@ -20,7 +20,7 @@ node --test tests/bonfire.unit.mjs
 | Independent rates, empty grid, undo | `bonfire.spec.cjs` second test |
 | Deterministic heat / frame math | `bonfire.unit.mjs` |
 
-All nine CI shards must pass on merge (see `.github/workflows/browser-tests.yml`).
+All nine CI shards must pass on merge (see `.github/workflows/ci.yml`).
 
 ## Visual (recommended)
 
