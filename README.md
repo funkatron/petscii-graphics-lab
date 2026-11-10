@@ -417,3 +417,4 @@ Playwright tests desktop Chromium and iPad WebKit in landscape and portrait. Tes
 - [Audit history](AUDIT.md): earlier findings and results from each development stage.
 - [Bundled dependencies](vendor/README.md): versions, build fingerprints, and licenses.
 - [Project license](LICENSE): BSD 3-Clause terms for the project code.
+sync-probe 20261110164658
