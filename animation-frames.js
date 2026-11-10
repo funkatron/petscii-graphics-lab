@@ -95,6 +95,9 @@ function samplesPerMotionCycle(source) {
     return 2;
   }
   if (source.effect === 'sine-scroll') {
+    if (DIAGONAL_DIRECTIONS.includes(direction)) {
+      return Math.max(24, Math.max(source.W, source.H));
+    }
     return Math.max(24, horizontal ? source.W : source.H);
   }
   if (source.effect === 'wave' || source.effect === 'ripple') {
@@ -342,22 +345,43 @@ function applyGridMotion(frame, phase, source, cells, inks) {
 
       if (source.effect === 'sine-scroll') {
         const direction = scrollDirection(source);
-        const horizontal = direction === 'left' || direction === 'right';
-        const sign = (direction === 'right' || direction === 'down') ? -1 : 1;
-        const travel = Math.floor(phase * (horizontal ? source.W : source.H)) * sign;
-        const position = (horizontal ? x / source.W : y / source.H) * (50 / (source.waveLength ?? 50));
-        const crossAxis = horizontal ? source.H : source.W;
-        const bend = Math.round(
-          Math.sin(position * Math.PI * 2)
-          * Math.min(3, Math.max(1, crossAxis / 4)) * 2
-          * ((source.waveAmplitude ?? 100) / 100),
-        );
-        if (horizontal) {
-          sampleX = wrap(x + travel, source.W);
-          sampleY = wrap(y + bend, source.H);
+        if (DIAGONAL_DIRECTIONS.includes(direction)) {
+          const dx = direction.endsWith('right') ? 1 : -1;
+          const dy = direction.startsWith('down') ? 1 : -1;
+          const length = Math.hypot(source.W, source.H);
+          // A stationary bend perpendicular to the canvas diagonal, in cell coordinates.
+          const position = (x / source.W + dx * dy * y / source.H) / 2
+            * (50 / (source.waveLength ?? 50));
+          const bend = Math.sin(position * Math.PI * 2)
+            * Math.min(3, Math.max(1, Math.min(source.W, source.H) / 4)) * 2
+            * ((source.waveAmplitude ?? 100) / 100);
+          sampleX = wrap(
+            x - dx * Math.floor(phase * source.W) + Math.round(-dy * source.H / length * bend),
+            source.W,
+          );
+          sampleY = wrap(
+            y - dy * Math.floor(phase * source.H) + Math.round(dx * source.W / length * bend),
+            source.H,
+          );
         } else {
-          sampleY = wrap(y + travel, source.H);
-          sampleX = wrap(x + bend, source.W);
+          const horizontal = direction === 'left' || direction === 'right';
+          const sign = (direction === 'right' || direction === 'down') ? -1 : 1;
+          const travel = Math.floor(phase * (horizontal ? source.W : source.H)) * sign;
+          const position = (horizontal ? x / source.W : y / source.H)
+            * (50 / (source.waveLength ?? 50));
+          const crossAxis = horizontal ? source.H : source.W;
+          const bend = Math.round(
+            Math.sin(position * Math.PI * 2)
+            * Math.min(3, Math.max(1, crossAxis / 4)) * 2
+            * ((source.waveAmplitude ?? 100) / 100),
+          );
+          if (horizontal) {
+            sampleX = wrap(x + travel, source.W);
+            sampleY = wrap(y + bend, source.H);
+          } else {
+            sampleY = wrap(y + travel, source.H);
+            sampleX = wrap(x + bend, source.W);
+          }
         }
       }
 
