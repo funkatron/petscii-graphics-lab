@@ -21,7 +21,7 @@ function select(files, {full=false, motionOnly=false}={}) {
     set.add('tests/intro-motion.spec.cjs');
     set.add('tests/depth-exports.spec.cjs');
   }
-  if (changed(/^pointer-stroke\.js$/)) set.add('tests/drawing.spec.cjs');
+  if (changed(/^pointer-stroke\.js$/)) set.add('tests/layout.spec.cjs');
   if (changed(/^(typed-text|text-grid|glyph-families|c64-colors)\.js$/))
     set.add('tests/c64-only.spec.cjs');
   if (changed(/^bonfire\.js$/)) set.add('tests/bonfire.spec.cjs');
