@@ -160,7 +160,7 @@ dialog::backdrop{background:#0009}
 </head>
 <body>
 <div class="app">
-<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="projectMenu"><summary>Project</summary><div class="project-menu"><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
+<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
 <div class="row"><button id="openTextGrid">Open text grid</button></div><input id="textGridFile" type="file" accept=".txt,text/plain" hidden>
 <p class="note">Text grids replace the drawing and can be undone. Project files keep editable art and replay. Changes also autosave on this device.</p></fieldset>
 </div></details><span id="saveStatus" class="note" role="status">Saved on this device</span><button id="downloadOpen">Download artwork</button><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
@@ -585,7 +585,7 @@ function animationExportSnapshot(){
  const warning=animationPlan(s).warning;if(warning)throw Error(warning);
  if(!rom&&numeric)throw Error('Reload C64 glyphs before exporting animation');
  if(s.grid.every(g=>g==='')&&!s.events.length)throw Error('Draw something first, then export an animation');
- return {s,bits:rom?.slice(),project:projectData()};
+ return {s,bits:rom?.slice(),project:projectData(),name:projectStem()};
 }
 function animationExportFrames(s){
  let elapsed=0;return Array.from({length:animationCount(s)},(_,index)=>{
@@ -624,7 +624,7 @@ async function exportAnimation(kind){
  if(animationExportTask)return;
  if(kind==='video'&&!validVideoRepeats(Number($('videoRepeats').value))){setStatus('Video repetitions must be a whole number from 1 to 100');$('videoRepeats').focus();return}
  let snapshot;try{snapshot=animationExportSnapshot()}catch(e){setStatus(e.message);return}
- const key=JSON.stringify(snapshot.project),cached=animationDownloads[kind];
+ const key=JSON.stringify({project:snapshot.project,name:snapshot.name}),cached=animationDownloads[kind];
  if(cached?.key===key){downloadReadyFile(cached);$('exportBadge').textContent=(kind==='gif'?'GIF':kind==='video'?'Video':'ZIP')+' ready';setStatus('Download requested. Tap '+animationDownloadLabels[kind]+' again if needed.');return}
  const button=$(animationDownloadButtons[kind]);
  const task={cancelled:false};animationExportTask=task;
@@ -676,7 +676,7 @@ async function exportAnimation(kind){
    zip.end();blob=new Blob(zipChunks,{type:'application/zip'});
   }
   checkpoint();const old=animationDownloads[kind],url=URL.createObjectURL(blob);
-  const name='petscii-'+s.effect+'-'+width+'x'+height+(kind==='video'&&repetitions>1?'-'+repetitions+'x':'')+(kind==='gif'?'.gif':kind==='video'?'.'+video.extension:'-frames.zip');
+  const name=snapshot.name+'-'+s.effect+'-'+width+'x'+height+(kind==='video'&&repetitions>1?'-'+repetitions+'x':'')+(kind==='gif'?'.gif':kind==='video'?'.'+video.extension:'-frames.zip');
   const file={key,url,name};animationDownloads[kind]=file;
   if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);
   button.dataset.downloadUrl=url;button.dataset.downloadName=name;downloadReadyFile(file);
@@ -770,8 +770,8 @@ $('toggle').onclick=()=>{
  $('toggle').textContent=closed?'☰':'✕';
  requestAnimationFrame(()=>setTimeout(fit,230));
 };
-function download(name,txt,type){const url=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
-$('text').onclick=()=>download('petscii-composition.txt',textGrid(),'text/plain;charset=utf-8');
+function download(suffix,txt,type){let name;try{name=projectStem()+suffix}catch(e){setStatus(e.message);return}const url=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);return true}
+$('text').onclick=()=>download('.txt',textGrid(),'text/plain;charset=utf-8');
 function makeSvg(foreground=colorHex('ink'),background=colorHex('background')){
  if(!rom&&grid.some(g=>typeof g==='number'))throw Error('Glyph data unavailable; reload C64 glyphs before exporting artwork');
  const parts=[];
@@ -783,10 +783,10 @@ function makeSvg(foreground=colorHex('ink'),background=colorHex('background')){
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W*16+' '+H*16+'" width="'+W*16+'" height="'+H*16+'">'+bg+'<g fill="'+foreground+'">'+parts.join('')+'</g></svg>';
 }
 function stillBackground(){const bg=$('pngBg').value;return bg==='transparent'?null:bg==='canvas'?colorHex('background'):bg}
-$('svg').onclick=()=>{try{download('petscii-composition.svg',makeSvg(undefined,stillBackground()),'image/svg+xml')}catch(e){setStatus(e.message)}};
+$('svg').onclick=()=>{try{download('.svg',makeSvg(undefined,stillBackground()),'image/svg+xml')}catch(e){setStatus(e.message)}};
 $('png').onclick=async()=>{
  const button=$('png'),scale=Number($('pngScale').value),exportW=W,exportH=H;
- let markup;try{markup=makeSvg(undefined,stillBackground())}catch(e){setStatus(e.message);return}
+ let markup,name;try{name=projectStem();markup=makeSvg(undefined,stillBackground())}catch(e){setStatus(e.message);return}
  const blob=new Blob([markup],{type:'image/svg+xml;charset=utf-8'});
  const url=URL.createObjectURL(blob);
  button.disabled=true;setStatus('Rendering PNG…');
@@ -801,7 +801,7 @@ $('png').onclick=async()=>{
   c.drawImage(image,0,0,bmp.width,bmp.height);
   const pngBlob=await new Promise((resolve,reject)=>bmp.toBlob(b=>b?resolve(b):reject(new Error('PNG encoding failed')),'image/png'));
   const pngUrl=URL.createObjectURL(pngBlob);
-  const a=document.createElement('a');a.href=pngUrl;a.download='petscii-composition-'+bmp.width+'x'+bmp.height+'.png';
+  const a=document.createElement('a');a.href=pngUrl;a.download=name+'-'+bmp.width+'x'+bmp.height+'.png';
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(pngUrl),60000);
   setStatus('PNG exported: '+bmp.width+' × '+bmp.height);
@@ -818,9 +818,10 @@ $('exportC64').onclick=async()=>{
  if(animationExportTask)return;
  const moving=$('c64Mode').value==='animation',repetitions=moving?Number($('c64Repeats').value):1,format=$('c64Format').value,allowTimingOverrun=moving&&$('c64TimingOverride').checked&&c64TimingConsentKey===c64TimingKey();
  const outputLabel=format==='d64'?'C64 disk':'C64 program';
+ let name;try{name=projectStem()}catch(e){setStatus(e.message);return}
  if((moving&&$('c64Repeats').value.trim()==='')||!Number.isInteger(repetitions)||repetitions<0||repetitions>100){setStatus('C64 repetitions must be a whole number from 0 to 100');$('c64Repeats').focus();return}
  const source=animationSource(),s={...source,grid:source.grid.slice(),inks:source.inks.slice(),base:source.base.slice(),baseColors:source.baseColors.slice(),events:source.events.map(e=>e.slice()),eventColors:source.eventColors.slice()},glyphBits=rom?.slice();
- const key=JSON.stringify({project:projectData(),moving,repetitions,format,allowTimingOverrun}),cached=animationDownloads.c64;
+ const key=JSON.stringify({project:projectData(),name,moving,repetitions,format,allowTimingOverrun}),cached=animationDownloads.c64;
  if(cached?.key===key){downloadReadyFile(cached);setStatus(outputLabel+' download requested');return}
  const task={cancelled:false};animationExportTask=task;
  for(const id of Object.values(animationDownloadButtons))$(id).disabled=true;
@@ -831,18 +832,15 @@ $('exportC64').onclick=async()=>{
   const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}];
   const result=createC64AdaptiveProgram({columns:s.W,rows:s.H,charset:0,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(frames.some(f=>f.cells.some(g=>g>255))?{glyphBits}:{})});if(task.cancelled)throw Error('Export canceled');
   const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
-  const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:'petscii-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
+  const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:name+'-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
   animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?'C64 disk ready':'C64 program ready';setStatus('C64 '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.'+(allowTimingOverrun?' Timing warning overridden.':''));
  }catch(e){setStatus('C64 export failed: '+e.message)}
  finally{animationExportTask=null;for(const id of Object.values(animationDownloadButtons))$(id).disabled=false;$('exportC64').textContent=animationDownloadLabels.c64;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false;$('cancelSheetDownload').hidden=true}
 };
-$('colorRam').onclick=()=>{download('c64-colors-'+W+'x'+H+'.bin',Uint8Array.from(cellColors),'application/octet-stream');setStatus('Downloaded color RAM (one palette index per cell, row-major)')};
+$('colorRam').onclick=()=>{if(download('-c64-colors-'+W+'x'+H+'.bin',Uint8Array.from(cellColors),'application/octet-stream'))setStatus('Downloaded color RAM (one palette index per cell, row-major)')};
 $('screenCodes').onclick=()=>{
  const bytes=new Uint8Array(grid.length*2),view=new DataView(bytes.buffer);grid.forEach((g,i)=>view.setUint16(i*2,g===''?65535:g,true));
- const blob=new Blob([bytes],{type:'application/octet-stream'});
- const url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download='c64-glyph-ids-'+W+'x'+H+'.bin';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);
- setStatus('Downloaded glyph IDs (16-bit little-endian; FFFF = empty)');
+ if(download('-c64-glyph-ids-'+W+'x'+H+'.bin',bytes,'application/octet-stream'))setStatus('Downloaded glyph IDs (16-bit little-endian; FFFF = empty)');
 };
 $('textColors').onchange=()=>{out.value=textGrid()};
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(textGrid());setStatus('Text copied')}catch{setStatus('Select text to copy')}};
@@ -872,14 +870,31 @@ function applyProject(data){
 }
 window.addEventListener('pagehide',autosave);
 function randomProjectFilename(){
- const words=[['amber','azure','coral','cosmic','crimson','electric','golden','indigo','jade','mint','neon','pearl','silver','velvet','violet','wild'],['lunar','pixel','disco','echo','fuzzy','laser','midnight','moss','orbit','prism','ripple','solar','spark','star','tide','wave'],['otter','badger','comet','falcon','fern','fox','gecko','heron','lynx','moth','nebula','owl','panda','raven','tiger','wren']],values=crypto.getRandomValues(new Uint32Array(3));
+ const words=[['amber','azure','bright','cosmic','crimson','electric','golden','gentle','quiet','misty','neon','silver','vivid','warm','wild','lunar'],['otter','badger','comet','falcon','fern','fox','gecko','heron','lynx','moth','nebula','owl','panda','raven','tiger','wren']],values=crypto.getRandomValues(new Uint32Array(2));
  return words.map((list,i)=>list[values[i]%list.length]).join('-');
 }
-$('projectFilename').value=randomProjectFilename();
-$('projectFilename').oninput=()=>{$('projectFilename').removeAttribute('aria-invalid')};
-function projectFilename(){
- const name=$('projectFilename').value.trim().replace(/(?:\.json)+$/i,'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_');if(!name||/^\.+$/.test(name)){$('projectMenu').open=true;$('projectFilename').setAttribute('aria-invalid','true');$('projectFilename').focus();throw Error('Enter a project file name')}$('projectFilename').removeAttribute('aria-invalid');return name+'.json';
+function regenerateProjectName(){
+ const previous=$('projectFilename').value,next=randomProjectFilename();
+ // Avoid an unchanged result even if the random draw repeats.
+ $('projectFilename').value=next===previous?next.replace(/-[^-]+$/,m=>m==='-raven'?'-otter':'-raven'):next;
+ $('projectFilename').removeAttribute('aria-invalid');
 }
+$('projectFilename').value=randomProjectFilename();
+$('regenerateProjectName').onclick=()=>{regenerateProjectName();setStatus('New project name: '+$('projectFilename').value)};
+$('projectFilename').oninput=()=>{$('projectFilename').removeAttribute('aria-invalid')};
+function projectStem(){
+ const name=$('projectFilename').value.trim().replace(/(?:\.json)+$/i,'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').replace(/[. ]+$/g,'');
+ if(!name||/^\.+$/.test(name)){if($('downloadDialog').open)$('downloadDialog').close();$('projectMenu').open=true;$('projectFilename').setAttribute('aria-invalid','true');$('projectFilename').focus();throw Error('Enter a project file name')}
+ $('projectFilename').removeAttribute('aria-invalid');return name;
+}
+function projectFilename(){return projectStem()+'.json'}
+$('newProject').onclick=()=>{
+ if(animationExportTask){setStatus('Finish or cancel the current export before starting a new project');return}
+ if((grid.some(g=>g!=='')||replayEvents.length||$('typedText').value)&&!confirm('Start a new project? This replaces the automatic draft on this device. Save an editable project first if you need a separate copy. You can Undo to recover the drawing.'))return;
+ remember();applyProject({columns:16,rows:16,grid:Array(256).fill(''),colors:{ink:14,background:6}});
+ regenerateProjectName();c64TimingConsentKey=null;$('c64TimingOverride').checked=false;
+ $('projectMenu').open=false;autosave();setStatus('New project started. Undo restores the previous drawing.');canvas.focus({preventScroll:true});
+};
 function projectFile(){return new File([JSON.stringify(projectData(),null,2)],projectFilename(),{type:'application/json'})}
 // Self-contained project URLs survive Safari's deferred download handoff.
 function downloadProject(){
