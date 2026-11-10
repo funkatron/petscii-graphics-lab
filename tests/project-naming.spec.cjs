@@ -7,7 +7,11 @@ test.beforeEach(async({page})=>{
  await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
 });
 async function namedDownload(page,selector){
- await reveal(page,selector);const waiting=page.waitForEvent('download');await page.locator(selector).click();
+ await reveal(page,selector);const waiting=page.waitForEvent('download');
+ // iPad hides the desktop Save Project button in favor of Share.
+ // Its download handler remains available for deterministic export assertions.
+ if(selector==='#saveProject')await page.evaluate(()=>document.getElementById('saveProject').click());
+ else await page.locator(selector).click();
  const file=await waiting;return {name:file.suggestedFilename(),bytes:await contents(file)};
 }
 test('two-word regeneration changes only the name and stays accessible',async({page})=>{
