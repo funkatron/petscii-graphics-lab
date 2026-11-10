@@ -22,10 +22,20 @@ async function reveal(page,selector){
  if(location.format)await page.locator('#animationFormat').selectOption(location.format);
 }
 async function ui(page,selector,method='click',...args){await reveal(page,selector);const result=await page.locator(selector).first()[method](...args);if(method==='selectOption'&&['#columns','#rows'].includes(selector))await page.locator('#applyResize').click();return result}
+const SAVE_PROJECT_SELECTOR = '#saveProject';
+
+async function clickDownloadTrigger(page, selector) {
+  // On iPad, Share replaces the visible download button; the hidden control still downloads.
+  if (selector === SAVE_PROJECT_SELECTOR) {
+    await page.evaluate(() => document.getElementById('saveProject').click());
+    return;
+  }
+  await page.locator(selector).first().click();
+}
 async function download(page,selector){
  try{
   await reveal(page,selector);
-  const [file]=await Promise.all([page.waitForEvent('download'),page.locator(selector).click()]);
+  const [file]=await Promise.all([page.waitForEvent('download'),clickDownloadTrigger(page,selector)]);
   return await contents(file);
  }catch(error){
   // Preserve the original failure; diagnostics must never replace it.
