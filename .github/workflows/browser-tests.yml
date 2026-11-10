@@ -91,6 +91,7 @@ jobs:
           echo "/tmp/petscii-test-venv/bin" >> "$GITHUB_PATH"
       - name: Focused browser checks
         if: needs.select.outputs.mode == 'focused'
+        shell: bash
         env:
           SPECS: ${{ needs.select.outputs.specs }}
         run: |
