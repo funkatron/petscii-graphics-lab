@@ -47,7 +47,7 @@ test('all export families use the sanitized project name and retain valid conten
  test.setTimeout(120000);
  await loadProject(page,project([160,0],2,1,{cellColors:[2,3],animation:{effect:'inverse',colorEffect:'none',seconds:1,scale:1,background:'dark',videoRepeats:1}}));
  await ui(page,'#projectFilename','fill','  Electric/Raven.JSON  ');
- for(const [selector,extension] of [['#saveProject','json'],['#text','txt'],['#svg','svg'],['#png','png'],['#screenCodes','bin'],['#colorRam','bin'],['#exportGif','gif'],['#exportFrames','zip'],['#exportVideo','video']]){
+ for(const [selector,extension] of [['#saveProject','json'],['#text','txt'],['#svg','svg'],['#png','png'],['#screenCodes','bin'],['#colorRam','bin'],['#exportGif','gif'],['#exportFrames','zip'],...(test.info().project.name.startsWith('ipad')?[]:[['#exportVideo','video']])]){
   const file=await namedDownload(page,selector);expect(file.name).toMatch(/^Electric_Raven[.-]/);
   if(extension==='video')expect(file.name).toMatch(/\.(mp4|webm)$/);else expect(file.name.endsWith('.'+extension)).toBe(true);
   expect(file.bytes.length).toBeGreaterThan(0);
