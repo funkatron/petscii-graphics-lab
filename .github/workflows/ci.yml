@@ -82,7 +82,7 @@ jobs:
           node-version: '22'
       - run: npm ci
       - name: Install export validation tools for full or export-focused checks
-        if: needs.select.outputs.mode == 'full' || contains(needs.select.outputs.specs, 'exports.spec.cjs') || contains(needs.select.outputs.specs, 'c64')
+        if: needs.select.outputs.mode == 'full' || contains(needs.select.outputs.specs, 'exports.spec.cjs') || contains(needs.select.outputs.specs, 'c64') || contains(needs.select.outputs.specs, 'd64.spec.cjs') || contains(needs.select.outputs.specs, 'project-naming.spec.cjs')
         run: |
           apt-get update
           apt-get install -y --no-install-recommends ffmpeg python3 python3-venv
