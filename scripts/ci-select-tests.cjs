@@ -11,6 +11,19 @@ function select(files, {full=false, motionOnly=false}={}) {
   // Shared UI, dependencies and test infrastructure require a smoke test.
   if (changed(/^(index\.html|assets\/|vendor\/|package(-lock)?\.json$|playwright\.config\.cjs$|\.github\/|tests\/helpers\.cjs$)/))
     set.add('tests/layout.spec.cjs');
+  // Extracted shared modules affect multiple workflows, not just layout.
+  if (changed(/^project-validation\.js$/)) {
+    set.add('tests/c64-only.spec.cjs');
+    set.add('tests/animation-controls.spec.cjs');
+  }
+  if (changed(/^animation-frames\.js$/)) {
+    set.add('tests/animation.spec.cjs');
+    set.add('tests/intro-motion.spec.cjs');
+    set.add('tests/depth-exports.spec.cjs');
+  }
+  if (changed(/^pointer-stroke\.js$/)) set.add('tests/drawing.spec.cjs');
+  if (changed(/^(typed-text|text-grid|glyph-families|c64-colors)\.js$/))
+    set.add('tests/c64-only.spec.cjs');
   if (changed(/^bonfire\.js$/)) set.add('tests/bonfire.spec.cjs');
   if (changed(/^(solid-motion\.js|depth-)/)) set.add('tests/solid-motion.spec.cjs');
   if (changed(/^space-warp\.js$/)) set.add('tests/space-warp.spec.cjs');
