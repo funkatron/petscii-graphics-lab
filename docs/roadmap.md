@@ -2,6 +2,10 @@
 
 This page tracks requested work and completed milestones. For current controls, use the [user guide](../README.md).
 
+## Project workflow — implementation, browser validation pending
+
+See issue #66. New Project resets to a blank default drawing with confirmation and Undo recovery. An icon-only refresh button generates adjective–noun names. All export formats use the same validated project name and capture it before asynchronous work; caches account for renaming. Names stay outside v3 drawing data. Regression coverage includes reset/cancel/Undo, source preservation, filename sanitization, export contents and in-flight naming. Chromium and iPad WebKit CI results are required before release.
+
 ## Current priorities
 
 1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
