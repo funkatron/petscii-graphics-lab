@@ -136,7 +136,11 @@ Resizing keeps the overlapping artwork at the top left. Applying both dimensions
 
 The Project menu separates **Save editable project** from **Open artwork**. Only one save action appears: Share / Save project when native file sharing is supported, otherwise Download editable project. Both produce editable JSON files.
 
-**Project → Project name** starts with a memorable random three-word name, such as `amber-lunar-otter`. Edit it before saving if you prefer. The name stays the same for the current page session. The fixed `.json` suffix is added automatically. Characters unsuitable for filenames are replaced with underscores. This name is an export preference, not part of the drawing.
+**Project → New Project** starts a blank 16 × 16 drawing with default colors and animation settings. If you have artwork, replay or unplaced text, confirm before replacing the automatic draft. Save an editable project first to keep a separate copy. **Undo** restores the previous drawing and settings; names stay outside drawing history.
+
+**Project → Project name** starts with two words: an adjective followed by a noun, such as `electric-raven`. Edit it freely, or tap the refresh icon beside it to generate another name without changing your drawing. Every download uses this name: editable JSON, SVG, PNG, text, binary data, GIF, video, frame ZIP and C64 PRG/D64. Formats add their own extensions and useful dimensions/effect suffixes. Characters unsuitable for filenames are replaced with underscores; trailing dots and spaces are removed. An empty name must be corrected before exporting.
+
+Names are an export preference for the current page session, not part of the v3 drawing file or automatic draft. Renaming affects subsequent downloads; an export already running keeps the name captured when it started. A frame ZIP keeps its standard internal `project.json`, `timing.json` and numbered frame paths.
 
 On devices that support file sharing, **Project → Share / Save project** opens the native share sheet. On iPad, choose **Save to Files** and select a folder. This is the saving action shown on supported devices. Canceling leaves your artwork unchanged. Download status means the browser received the request; check Downloads or Files to confirm the file was saved.
 
