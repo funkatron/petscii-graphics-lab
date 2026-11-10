@@ -82,12 +82,18 @@ export function createC64Program(input){
  }
  return result;
 }
-// Preserve accepted generic bytes; promote only a native candidate that fits
-// both limits. Analysis and downloads must select the identical program.
+// Prefer the paired player for eligible animations within both budgets.
 export function createC64AdaptiveProgram(input){
  let result=createC64Program({...input,analyze:true});
  const memoryFits=p=>p.diagnostics.programBytes<=p.diagnostics.memoryLimit;
  const fits=p=>p.diagnostics.worstUpdateRatio<=1&&memoryFits(p);
+ if(input.frames.length>=2&&input.glyphBits===undefined){
+  const dictionary=buildPairDictionary(input.frames,input.ink);
+  if(dictionary){
+   const paired=compileC64Program(input,true,false,dictionary);
+   if(fits(paired))return paired;
+  }
+ }
  if(!fits(result)&&input.frames.length>=2&&input.frames.length<=256){
   const native=createC64RowProgram({...input,analyze:true});
   if(fits(native)||(input.allowTimingOverrun&&memoryFits(native)&&(!memoryFits(result)||native.diagnostics.worstUpdateRatio<result.diagnostics.worstUpdateRatio)))result=native;
@@ -104,7 +110,15 @@ export function createC64RowProgram(input){
  }
  return result;
 }
-function compileC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits},allowSharing,nativeRows=false){
+function buildPairDictionary(frames,ink){
+ const pairs=new Set([32*16+ink]);
+ for(const frame of frames)for(let i=0;i<frame.cells.length;i++){
+  pairs.add((frame.cells[i]===''?32:frame.cells[i])*16+frame.inks[i]);
+  if(pairs.size>256)return null;
+ }
+ return [...pairs];
+}
+function compileC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits},allowSharing,nativeRows=false,dictionary=null){
  if(!Number.isInteger(columns)||columns<1||columns>40||!Number.isInteger(rows)||rows<1||rows>25)throw Error('C64 programs support up to 40 columns × 25 rows. Resize the canvas first.');
  if(![0,1].includes(charset)||![background,ink].every(c=>Number.isInteger(c)&&c>=0&&c<16))throw Error('Invalid C64 display settings');
  if(!Number.isInteger(repetitions)||repetitions<0||repetitions>100)throw Error('C64 repetitions must be a whole number from 0 to 100 (0 loops continuously)');
@@ -125,6 +139,7 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
    codes.set(g,slot);return slot;
   })}));
  }
+ const pairCodes=dictionary&&new Map(dictionary.map((value,i)=>[value,i]));
  function encodeStream(packColors){
  let usesPackedColors=false,packedSavings=0;
  const stream=[],records=[],streamBytes={characters:0,screen:0,color:0,framing:0};
@@ -149,6 +164,30 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
   }
   streamBytes[address===0xc800?'characters':address===0xd800?'color':'screen']+=stream.length-start;return cost;
  };
+ const pairedRuns=(screen,colors,previousScreen,previousColors)=>{
+  let cost=0;
+  const start=stream.length;
+  const changed=screen.map((g,i)=>!previousScreen||g!==previousScreen[i]||colors[i]!==previousColors[i]);
+  // Rewriting up to three unchanged cells can avoid another command.
+  const maxGap=3;
+  for(let i=0;i<1000;){
+   if(!changed[i]){i++;continue}
+   let end=i+1;
+   for(let j=i+1;j<Math.min(1000,i+255,end+maxGap+1);j++)if(changed[j])end=j+1;
+   const target=0x400+i;
+   stream.push(target&255,target>>8,end-i);
+   for(let j=i;j<end;j++)stream.push(pairCodes.get(screen[j]*16+colors[j]));
+   // Include indexed-read and branch page crossings and command setup.
+   cost+=190+(end-i)*36;
+   i=end;
+  }
+  // Paired payloads are counted once under screen data.
+  streamBytes.screen+=stream.length-start;
+  return cost;
+ };
+ const updatePicture=(screen,colors,previousScreen,previousColors)=>2500+(dictionary
+  ?pairedRuns(screen,colors,previousScreen,previousColors)
+  :changedRuns(screen,previousScreen,custom?0xc400:0x400)+changedRuns(colors,previousColors,0xd800));
  let previousScreen,previousColors,firstScreen,firstColors,firstTicks,continuationOffset;
  let elapsed=0,previousTick=0,worstUpdateRatio=0;
  for(const frame of frames){
@@ -163,7 +202,7 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
   for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=screenOffset+y*40+x;screen[d]=frame.cells[i]===''?(custom?0:32):frame.cells[i];colors[d]=frame.inks[i]}
   const start=stream.length,before={...streamBytes},packingBefore=packedSavings;
   if(custom&&!previousScreen)changedRuns(characterBytes,undefined,0xc800);
-  const cost=changedRuns(screen,previousScreen,custom?0xc400:0x400)+changedRuns(colors,previousColors,0xd800)+2500;
+  const cost=updatePicture(screen,colors,previousScreen,previousColors);
   records.push({start,end:stream.length,ticks,cost,initial:!previousScreen,packedSavings:packedSavings-packingBefore,bytes:Object.fromEntries(['characters','screen','color'].map(k=>[k,streamBytes[k]-before[k]]))});
   if(previousScreen)worstUpdateRatio=Math.max(worstUpdateRatio,cost/(ticks*985248/60));
   stream.push(0,0);if(!firstScreen){firstScreen=screen;firstColors=colors;firstTicks=ticks;continuationOffset=stream.length}previousScreen=screen;previousColors=colors;
@@ -171,7 +210,7 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  stream.push(0,0);
  const loopOffset=stream.length;stream.push(firstTicks&255,firstTicks>>8);
  const start=stream.length,before={...streamBytes},packingBefore=packedSavings;
- const loopCost=changedRuns(firstScreen,previousScreen,custom?0xc400:0x400)+changedRuns(firstColors,previousColors,0xd800)+2500;
+ const loopCost=updatePicture(firstScreen,firstColors,previousScreen,previousColors);
  records.push({start,end:stream.length,ticks:firstTicks,cost:loopCost,initial:frames.length===1,packedSavings:packedSavings-packingBefore,bytes:Object.fromEntries(['characters','screen','color'].map(k=>[k,streamBytes[k]-before[k]]))});
  if(frames.length>1)worstUpdateRatio=Math.max(worstUpdateRatio,loopCost/(firstTicks*985248/60));
  stream.push(0,0,255,255);const continuationPointer=stream.length;stream.push(0,0);
@@ -179,8 +218,8 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  }
  // The optional decoder adds 51 bytes. Keep the original encoding unless packing
  // saves more than its complete code footprint, including the dispatch branch.
- let encoded=encodeStream(true);
- if((nativeRows?encoded.records[0].packedSavings:encoded.packedSavings)<=51)encoded=encodeStream(false);
+ let encoded=encodeStream(!dictionary);
+ if(!dictionary&&(nativeRows?encoded.records[0].packedSavings:encoded.packedSavings)<=51)encoded=encodeStream(false);
  const nativePlan=nativeRows?planNativeRows({columns,rows,frames,screenAddress:custom?0xc400:0x400,blank:custom?0:32,screenOffset}):null;
  encoded=nativePlan?nativeFrameStream(encoded,nativePlan):allowSharing?shareFrameBlocks(encoded):{...encoded,sharedBlockSavings:0,sharedPointers:[],sharedOffsets:[]};
  const {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer,sharedBlockSavings,sharedPointers,sharedOffsets}=encoded;
@@ -216,8 +255,22 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  emit(0xa9,147);abs(0x20,0xffd2);emit(0x60);
  label('get');emit(0xa0,0,0xb1,0xfb,0xe6,0xfb);branch(0xd0,'got');emit(0xe6,0xfc);label('got');emit(0xc9,0,0x60);
  label('plane');abs(0x20,'get');emit(0x85,0xfd);abs(0x20,'get');emit(0x85,0xfe);branch(0xf0,nativePlan?'nativeControl':usesSharedBlocks?'planeControl':'planeEnd');
- abs(0x20,'get');emit(0xaa);branch(0xf0,'literal');abs(0x20,'get');
- label('run');emit(0x91,0xfd,0xc8,0xca);branch(0xd0,'run');abs(0x4c,'plane');label('planeEnd');emit(0x60);
+ if(dictionary){
+  // Each literal byte indexes both tables. Patch the two absolute,Y stores
+  // once per command so the inner loop writes both planes with the same Y.
+  abs(0x20,'get');abs(0x8d,'pairCount');
+  emit(0xa5,0xfd);abs(0x8d,'pairScreenLo');abs(0x8d,'pairColorLo');
+  emit(0xa5,0xfe);abs(0x8d,'pairScreenHi');emit(0x18,0x69,0xd4);abs(0x8d,'pairColorHi');
+  label('pairByte');emit(0xb1,0xfb,0xaa);abs(0xbd,'pairGlyphs');
+  labels.pairScreenLo=origin+bytes.length+1;labels.pairScreenHi=origin+bytes.length+2;abs(0x99,0x400);
+  abs(0xbd,'pairColors');labels.pairColorLo=origin+bytes.length+1;labels.pairColorHi=origin+bytes.length+2;abs(0x99,0xd800);
+  emit(0xc8,0xc0);label('pairCount');emit(0);branch(0xd0,'pairByte');
+  emit(0x98,0x18,0x65,0xfb,0x85,0xfb);branch(0x90,'pairDone');emit(0xe6,0xfc);
+  label('pairDone');abs(0x4c,'plane');label('planeEnd');emit(0x60);
+ }else{
+  abs(0x20,'get');emit(0xaa);branch(0xf0,'literal');abs(0x20,'get');
+  label('run');emit(0x91,0xfd,0xc8,0xca);branch(0xd0,'run');abs(0x4c,'plane');label('planeEnd');emit(0x60);
+ }
  if(nativePlan){
   label('nativeControl');emit(0xa5,0xfd);branch(0xf0,'planeEnd');
   abs(0x20,'get');emit(0xaa);abs(0x20,'nativeRender');abs(0x4c,'plane');
@@ -229,23 +282,25 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
   emit(0xa5,0xfb,0x48,0xa5,0xfc,0x48,0xa5,0xfd,0x85,0xfb,0xa5,0xfe,0x85,0xfc);
   abs(0x20,'plane');emit(0x68,0x85,0xfc,0x68,0x85,0xfb);abs(0x4c,'plane');
  }
- label('literal');abs(0x20,'get');emit(0xaa);if(usesPackedColors)branch(0xf0,'packed');
- // Copy a literal with indexed addressing; advance the source once per run.
- // The next run supplies a new destination, so no destination advance is needed.
- label('literalByte');emit(0xb1,0xfb,0x91,0xfd,0xc8,0xca);branch(0xd0,'literalByte');
- emit(0x98,0x18,0x65,0xfb,0x85,0xfb);branch(0x90,'literalDone');emit(0xe6,0xfc);
- label('literalDone');abs(0x4c,'plane');
- // Packed ink literals: low nibble first, with no padding write for odd counts.
- if(usesPackedColors){
-  label('packed');abs(0x20,'get');emit(0xaa);
-  // Y stays zero. Inline the byte read and both nibble writes to avoid three
-  // subroutine calls per pair, retaining source/destination page carry handling.
-  label('packedByte');emit(0xb1,0xfb,0xe6,0xfb);branch(0xd0,'packedGot');emit(0xe6,0xfc);
-  label('packedGot');emit(0x48,0x29,15,0x91,0xfd,0xe6,0xfd);branch(0xd0,'packedLow');emit(0xe6,0xfe);
-  label('packedLow');emit(0xca);branch(0xf0,'packedOdd');
-  emit(0x68,0x4a,0x4a,0x4a,0x4a,0x91,0xfd,0xe6,0xfd);branch(0xd0,'packedHigh');emit(0xe6,0xfe);
-  label('packedHigh');emit(0xca);branch(0xd0,'packedByte');abs(0x4c,'plane');
-  label('packedOdd');emit(0x68);abs(0x4c,'plane');
+ if(!dictionary){
+  label('literal');abs(0x20,'get');emit(0xaa);if(usesPackedColors)branch(0xf0,'packed');
+  // Copy a literal with indexed addressing; advance the source once per run.
+  // The next run supplies a new destination, so no destination advance is needed.
+  label('literalByte');emit(0xb1,0xfb,0x91,0xfd,0xc8,0xca);branch(0xd0,'literalByte');
+  emit(0x98,0x18,0x65,0xfb,0x85,0xfb);branch(0x90,'literalDone');emit(0xe6,0xfc);
+  label('literalDone');abs(0x4c,'plane');
+  // Packed ink literals: low nibble first, with no padding write for odd counts.
+  if(usesPackedColors){
+   label('packed');abs(0x20,'get');emit(0xaa);
+   // Y stays zero. Inline the byte read and both nibble writes to avoid three
+   // subroutine calls per pair, retaining source/destination page carry handling.
+   label('packedByte');emit(0xb1,0xfb,0xe6,0xfb);branch(0xd0,'packedGot');emit(0xe6,0xfc);
+   label('packedGot');emit(0x48,0x29,15,0x91,0xfd,0xe6,0xfd);branch(0xd0,'packedLow');emit(0xe6,0xfe);
+   label('packedLow');emit(0xca);branch(0xf0,'packedOdd');
+   emit(0x68,0x4a,0x4a,0x4a,0x4a,0x91,0xfd,0xe6,0xfd);branch(0xd0,'packedHigh');emit(0xe6,0xfe);
+   label('packedHigh');emit(0xca);branch(0xd0,'packedByte');abs(0x4c,'plane');
+   label('packedOdd');emit(0x68);abs(0x4c,'plane');
+  }
  }
  let nativeBytes=0;
  if(nativePlan){
@@ -259,9 +314,14 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
   nativeBytes=bytes.length-start;
  }
  for(const name of ['remaining','lastTick','delay','delayHigh','started']){label(name);emit(0)}
+ if(dictionary){
+  label('pairGlyphs');emit(...dictionary.map(v=>v>>4));
+  label('pairColors');emit(...dictionary.map(v=>v&15));
+ }
  label('data');labels.loopData=labels.data+loopOffset;labels.continuation=labels.data+continuationOffset;fixups.push({at:bytes.length+continuationPointer,target:'continuation'});for(const [id,offset] of sharedOffsets.entries())labels['shared'+id]=labels.data+offset;for(const {at,id} of sharedPointers)fixups.push({at:bytes.length+at,target:'shared'+id});for(const byte of stream)emit(byte);
  // Resolve pointers after optional decoders have fixed the code/data layout.
  for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown C64 player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error('C64 branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
  // Host-side symbols let full-machine checks observe frames without changing the PRG.
- return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{renderer:nativePlan?'native-rows':'generic',nativeBytes,nativeRowKernels:nativePlan?.kernels.length??0,nativeFrameStates:nativePlan?.stateCount??0,programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,sharedBlockSavings,sharedBlockCount:sharedOffsets.length,sharedFrameReferences:sharedPointers.length,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
+ return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{renderer:nativePlan?'native-rows':dictionary?'paired':'generic',nativeBytes,nativeRowKernels:nativePlan?.kernels.length??0,nativeFrameStates:nativePlan?.stateCount??0,programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,sharedBlockSavings,sharedBlockCount:sharedOffsets.length,sharedFrameReferences:sharedPointers.length,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }
+

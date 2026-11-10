@@ -1,6 +1,6 @@
 # Native row renderer
 
-This prototype targets full-screen animations with repeated row patterns. It preserves the browser's complete sampled frames and timing. The editor tries it when the generic renderer exceeds timing or memory limits. It selects native rows only when that candidate fits both limits; otherwise the original blockers remain. Previously accepted generic exports retain identical bytes.
+This renderer targets full-screen animations with repeated row patterns and preserves the browser's complete sampled frames and timing. The editor first prefers paired glyph-and-color playback for eligible ROM-backed animations, then uses the generic renderer when it fits. Native rows are tried when those options do not fit. The explicit timing override can select a memory-fitting native program with a timing warning. See the [player selection rules](maintainer-reference.md#player-selection) for the current order and diagnostics.
 
 ## What changed
 
@@ -64,4 +64,4 @@ The work model includes 2,500 cycles of frame overhead, 32 per row dispatch, two
 
 The prototype passed **46 targeted Chromium tests** before integration. On October 26, 2026, the owner loaded the private reference D64 in Poke on iPad and reported correct playback and RUN/STOP return to BASIC. This is a manual check of that project; the emulator model and an exact timed run were not recorded. Full VICE checks with IRQ/chip behavior, VIC-II pixels and 1541 loading, followed by physical-hardware checks, are required before claiming equivalent hardware playback. VICE was unavailable in the current runtime; the attempted package setup failed before installation. The prototype is not raster synchronized and may show intermediate updates/tearing.
 
-Follow-up: broaden full-machine PAL/NTSC coverage and measure physical-machine headroom. Preserve the exact two-second reference target and retain the generic path when the native candidate is unsuitable. Integration regressions exercise the ordinary Download action, compare PRG/D64 bytes with the selected candidate, execute the downloaded PRG at both CPU speeds, and preserve accepted generic output and rejection behavior.
+Follow-up: broaden full-machine PAL/NTSC coverage and measure physical-machine headroom. Preserve the exact two-second reference target and retain the generic path when the native candidate is unsuitable. Integration regressions exercise the ordinary Download action, compare PRG/D64 bytes with the selected candidate, execute the downloaded PRG at both CPU speeds, and verify the current player selection and rejection behavior.
