@@ -419,3 +419,4 @@ Playwright tests desktop Chromium and iPad WebKit in landscape and portrait. Tes
 - [Project license](LICENSE): BSD 3-Clause terms for the project code.
 sync-probe 20261110164658
 sync-probe-2 20261110164715
+sync-probe-idle 20261110164855
