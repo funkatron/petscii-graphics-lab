@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+// Pure change-scope selector. No GitHub API access or side effects.
+const path = require('node:path');
+function select(files, {full=false, motionOnly=false}={}) {
+  if (full) return {mode:'full', specs:[]};
+  if (motionOnly) return {mode:'focused', specs:['tests/solid-motion.spec.cjs','tests/space-warp.spec.cjs','tests/depth-exports.spec.cjs']};
+  if (!files.length || files.every(file => file.startsWith('docs/') || file.endsWith('.md')))
+    return {mode:'none',specs:[]};
+  const set = new Set();
+  const changed = pattern => files.some(file => pattern.test(file));
+  // Shared UI, dependencies and test infrastructure require a smoke test.
+  if (changed(/^(index\.html|assets\/|vendor\/|package(-lock)?\.json$|playwright\.config\.cjs$|\.github\/|tests\/helpers\.cjs$)/))
+    set.add('tests/layout.spec.cjs');
+  if (changed(/^bonfire\.js$/)) set.add('tests/bonfire.spec.cjs');
+  if (changed(/^(solid-motion\.js|depth-)/)) set.add('tests/solid-motion.spec.cjs');
+  if (changed(/^space-warp\.js$/)) set.add('tests/space-warp.spec.cjs');
+  // Run directly modified browser tests as well.
+  for (const file of files) {
+    if (/^tests\/[a-zA-Z0-9._-]+\.spec\.cjs$/.test(file)) set.add(file);
+  }
+  // Unknown source changes get a smoke check instead of silently passing.
+  if (!set.size) set.add('tests/layout.spec.cjs');
+  return {mode:'focused',specs:[...set]};
+}
+module.exports = {select};
+if (require.main === module) {
+  const fs = require('node:fs');
+  const files = fs.readFileSync(0,'utf8').split('\n').filter(Boolean);
+  const result = select(files,{full:process.env.FULL_REQUEST==='true',motionOnly:process.env.MOTION_ONLY==='true'});
+  const out = process.env.GITHUB_OUTPUT;
+  if (!out) throw new Error('GITHUB_OUTPUT is required');
+  fs.appendFileSync(out,`mode=${result.mode}\nspecs=${result.specs.join(' ')}\n`);
+}
