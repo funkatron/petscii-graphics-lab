@@ -129,3 +129,4 @@ Track requested features in the [roadmap](docs/roadmap.md). Movement/reveal and 
 - Keyboard shortcuts, improved undo workflow, zoom, and optional grid guides.
 - Export/import of C64-oriented character grids and metadata when reliably encoded.
 - Stencil-specific manufacturing helpers only as optional tools.
+
