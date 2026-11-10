@@ -124,3 +124,4 @@ jobs:
           [[ "$SELECTION" == success ]] || exit 1
           if [[ "$MODE" == none ]]; then exit 0; fi
           [[ "$UNIT" == success && "$BROWSER" == success ]]
+
