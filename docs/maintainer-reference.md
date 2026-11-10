@@ -339,9 +339,9 @@ Editable project downloads use a self-contained base64 data URL with an octet-st
 
 Feature-detect file sharing with canShare and a JSON File before exposing Share / Save project. Build the current file synchronously inside the click handler, then invoke navigator.share. Preserve source and autosave, restore the button after success/cancel/failure, and distinguish a browser download request/share handoff from verified disk saving. Native iPad save completion requires physical-device verification; headless WebKit download events alone do not prove the reported Safari error is fixed.
 
-Project filename is transient UI state shared by both save actions. Trim whitespace, remove pasted trailing .json suffixes case-insensitively, replace filesystem-reserved/control characters, reject empty or dot-only stems, and append the fixed lowercase .json suffix. Capture the name with the current project before download/share. Do not add it to v3 project data or history.
+Project filename is transient UI state shared by both save actions and every artwork export. Trim whitespace, remove pasted trailing .json suffixes case-insensitively, replace filesystem-reserved/control characters, reject empty or dot-only stems, and append the fixed lowercase .json suffix. Capture the name with the current project before download/share. Do not add it to v3 project data or history.
 
-Generate the initial filename once per page from three 16-word lists using crypto.getRandomValues; do not regenerate on menu navigation or saving, and never overwrite a user edit. Names are convenient defaults, not guaranteed unique identifiers.
+Generate the initial filename once per page from two 16-word lists (adjectives, nouns) using crypto.getRandomValues, joined with a hyphen. Regenerate only on the explicit icon button or New Project; ensure regeneration differs from the current value. Do not regenerate on menu navigation or saving, and never overwrite a user edit implicitly. Names are convenient defaults, not guaranteed unique identifiers.
 
 Project navigation groups filename/download/native sharing separately from project/text-grid opening. Keep the menu within the viewport and scrollable at enlarged text sizes. Invalid filenames reopen the menu, retain the entered value, mark the field invalid and focus it for correction; no file request occurs.
 
@@ -375,6 +375,13 @@ Geometry tests cover empty and narrow grids, mixed-bank glyph/ink pairs, silhoue
 - Color identifier `bonfire` applies the independent periodic heat field at destination coordinates after movement. Clamp heat to [0,1], multiply by six, floor and cap at five; map to C64 inks [9,2,10,8,7,1] (brown, red, light red, orange, yellow, white). Skip empty cells. Original inks do not offset this palette. With Still drawing, only occupied inks change.
 - Both use 48 target samples per cycle; movement requires 12 and color four under the existing shared budget warning. Independent cycle rates, export snapshots, cache identity, v3 JSON validation, history and ZIP timing metadata use the existing effect fields. Hide irrelevant direction/wave controls. Loop endpoints normalize modulo one; no mutable random state or warm-up is required. All preview, GIF, ZIP, video and C64 paths use the shared `animationCells` frames. Native exports retain their usual memory/timing checks; no full-screen native performance claim is made.
 - Tests: `tests/bonfire.unit.mjs` covers degenerate dimensions, valid source pairs, empty input, deterministic order, taper and exact endpoint closure. `tests/bonfire.spec.cjs` checks controls, independent rates, Undo/autosave, source preservation and preview/GIF/ZIP pixels in Chromium and both iPad layouts. CI results are separate from implementation status; visual review on iPad and physical C64 playback remain pending.
+
+
+### New project and shared export naming
+
+`projectStem()` validates the transient name for all formats, strips repeated trailing `.json`, replaces reserved/control characters and removes trailing dots/spaces. `projectFilename()` adds the fixed JSON extension. Still text/SVG and binary downloads use the shared download helper. PNG, animation and C64 exports capture the stem before asynchronous work. Animation and C64 cache keys include the captured name so renaming cannot reuse an old filename. ZIP internal paths and C64 disk directory names remain stable; the outer filename uses the project name. No v3 schema or application version change is needed.
+
+New Project confirms replacement when artwork, replay events or unplaced text exist, refuses to interrupt an active animation/C64 export, and uses one drawing-history entry. It clears pending tools/text and preview through `remember()`, applies a blank 16 × 16 default project, resets timing consent, generates a fresh name, and immediately autosaves. Undo restores artwork/settings/replay through the existing history contract; the name remains independent of history. A confirmation is not evidence of an external saved backup.
 
 ### Diagonal Sine scroller
 
