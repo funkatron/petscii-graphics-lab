@@ -24,3 +24,13 @@ test('full validation overrides all other selections',()=>{
 test('legacy motion-only label remains supported',()=>{
   assert.ok(select(['README.md'],{motionOnly:true}).specs.includes('tests/solid-motion.spec.cjs'));
 });
+
+test('extracted shared modules select affected browser workflows',()=>{
+  const animation=select(['animation-frames.js']).specs;
+  for(const spec of ['tests/animation.spec.cjs','tests/intro-motion.spec.cjs','tests/depth-exports.spec.cjs'])
+    assert.ok(animation.includes(spec),spec);
+  assert.ok(select(['project-validation.js']).specs.includes('tests/c64-only.spec.cjs'));
+  assert.ok(select(['pointer-stroke.js']).specs.includes('tests/layout.spec.cjs'));
+  for(const module of ['typed-text.js','text-grid.js','glyph-families.js','c64-colors.js'])
+    assert.ok(select([module]).specs.includes('tests/c64-only.spec.cjs'),module);
+});
