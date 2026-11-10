@@ -39,7 +39,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - `index.html` contains the application’s HTML, CSS, and plain JavaScript; `assets/c64-glyphs.svg` supplies the built-in character artwork. Keep it usable from GitHub Pages without a backend.
 
-- `package.json`, `playwright.config.cjs`, `tests/*.spec.cjs`, and `.github/workflows/browser-tests.yml` implement automated browser testing for Chromium and iPad WebKit in landscape and portrait.
+- `package.json`, `playwright.config.cjs`, `tests/*.spec.cjs`, and `.github/workflows/ci.yml` implement automated browser testing for Chromium and iPad WebKit in landscape and portrait.
 
 - Artwork uses numeric atlas glyph IDs 0–511 (source bank × 256 + screen code) and an empty-cell marker only. There is no Unicode-shape renderer or stencil-analysis workflow. Keep glyph IDs distinct from screen codes and PETSCII bytes.
 
