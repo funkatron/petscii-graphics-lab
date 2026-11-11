@@ -52,6 +52,10 @@ test('rectangle and selection corner taps only enter two-tap mode when explicitl
  expect((await saved(page)).grid.filter(g=>g===160)).toHaveLength(12);
  await ui(page,'#undo');
  expect((await saved(page)).grid).toEqual(blank);
+ await ui(page,'#tool-select');
+ await tap(0,0);await tap(3,3);
+ await expect(page.locator('#deleteSelection')).toBeVisible();
+ await page.keyboard.press('Escape');
  await ui(page,'#tapPoints','uncheck');
  await tap(0,0);await tap(3,3);
  await expect(page.locator('#tapPoints')).not.toBeChecked();
