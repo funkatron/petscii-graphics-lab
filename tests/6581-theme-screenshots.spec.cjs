@@ -4,7 +4,7 @@ test('capture Commodore enclosure styling in the full editor viewport',async({pa
  await page.goto('/');
  await page.locator('.app[data-ready=true]').waitFor();
  await expect(page.locator('#canvas')).toBeVisible();
- await expect(page.locator('.drawing-strip')).toBeVisible();
+ await expect(page.getByRole('toolbar',{name:'Drawing controls'})).toBeVisible();
  const theme=await page.evaluate(()=>({
   trim:getComputedStyle(document.documentElement).getPropertyValue('--case-trim').trim(),
   highlight:getComputedStyle(document.documentElement).getPropertyValue('--case-highlight').trim()
