@@ -42,9 +42,12 @@ test('rectangle and selection corner taps only enter two-tap mode when explicitl
  expect((await saved(page)).grid.filter(g=>g===160).length).toBeLessThan(12);
  await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
  await ui(page,'#tool-select');
- await tap(0,0);await tap(3,3);
+ await tap(0,0);
+ await expect(page.locator('#selectionInfo')).toHaveText('1 × 1 selected');
+ await tap(3,3);
  await expect(page.locator('#tapPoints')).not.toBeChecked();
- await expect(page.locator('#deleteSelection')).toBeHidden();
+ // Two independent taps select the most recently tapped cell, not the entire diagonal.
+ await expect(page.locator('#selectionInfo')).toHaveText('1 × 1 selected');
  await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
  await ui(page,'#tapPoints','check');
  await ui(page,'#tool-rectangle');
@@ -54,7 +57,7 @@ test('rectangle and selection corner taps only enter two-tap mode when explicitl
  expect((await saved(page)).grid).toEqual(blank);
  await ui(page,'#tool-select');
  await tap(0,0);await tap(3,3);
- await expect(page.locator('#deleteSelection')).toBeVisible();
+ await expect(page.locator('#selectionInfo')).toHaveText('4 × 4 selected');
  await page.keyboard.press('Escape');
  await ui(page,'#tapPoints','uncheck');
  await tap(0,0);await tap(3,3);
