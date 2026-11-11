@@ -287,7 +287,7 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 }
 .glyph-picker .palette .glyph canvas{
  width:28px!important;height:28px!important;background:transparent!important;
- filter:invert(1) brightness(.24) sepia(.15);
+ filter:invert(1); /* Black ROM canvas becomes ivory-white; white glyph pixels become black. */
 }
 .glyph-picker .palette .glyph:hover{background:#fff8e7;border-color:#5b7793}
 .glyph-picker .palette .glyph.active,
