@@ -33,3 +33,9 @@
 - Demo outputs in `agents/petscii-preview/out/`.
 - Details: `cursorrules/work-log-2026-11-10-petscii-preview.md`.
 - Moved here from project6581 after realizing this was the intended repo.
+
+## Plus/4 color animation twins (2026-11-11)
+
+- Added exploratory TED 121-color palette (`plus4-colors.js`) and Plus/4 twins of color-cycle / wave / glow / raster / plasma / bonfire.
+- Drawing/ink palette remains C64 Pepto; Plus/4 effects only recolor animation frames via TED RGB.
+- Unit tests: `tests/plus4-colors.unit.mjs`.

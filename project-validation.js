@@ -28,6 +28,7 @@ export const MOTION_EFFECTS = [
 ];
 export const COLOR_EFFECTS = [
   'none', 'bonfire', 'raster-bars', 'plasma', 'color-cycle', 'color-wave', 'color-glow',
+  'plus4-cycle', 'plus4-wave', 'plus4-glow', 'plus4-raster', 'plus4-plasma', 'plus4-bonfire',
 ];
 
 const ALLOWED_SECONDS = [0.5, 1, 2, 4, 8, 12];

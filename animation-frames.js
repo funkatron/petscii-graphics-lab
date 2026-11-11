@@ -3,6 +3,11 @@ import {spaceWarpFrame} from './space-warp.js';
 import {depthSurfaceFrame} from './depth-surfaces.js';
 import {solidMotionFrame, SOLID_EFFECTS} from './solid-motion.js';
 import {DEPTH_EFFECTS, INTRO_MOTIONS, DIAGONAL_DIRECTIONS} from './project-validation.js';
+import {
+  PLUS4_COLOR_CYCLES,
+  c64InkToTed,
+  isPlus4ColorEffect,
+} from './plus4-colors.js';
 
 const COLOR_CYCLES = {
   bonfire: BONFIRE_COLORS,
@@ -11,7 +16,30 @@ const COLOR_CYCLES = {
   'color-cycle': [0, 11, 12, 15, 1, 7, 13, 5, 3, 14, 6, 4, 2, 10, 8, 9],
   'color-wave': [2, 8, 7, 13, 3, 14, 6, 4],
   'color-glow': [9, 8, 2, 10, 7, 1, 7, 10, 2, 8],
+  ...PLUS4_COLOR_CYCLES,
 };
+
+function colorFamily(effect) {
+  if (effect === 'plus4-wave' || effect === 'color-wave') {
+    return 'color-wave';
+  }
+  if (effect === 'plus4-raster' || effect === 'raster-bars') {
+    return 'raster-bars';
+  }
+  if (effect === 'plus4-plasma' || effect === 'plasma') {
+    return 'plasma';
+  }
+  if (effect === 'plus4-bonfire' || effect === 'bonfire') {
+    return 'bonfire';
+  }
+  if (effect === 'plus4-cycle' || effect === 'color-cycle') {
+    return 'color-cycle';
+  }
+  if (effect === 'plus4-glow' || effect === 'color-glow') {
+    return 'color-glow';
+  }
+  return effect;
+}
 
 const FRAME_BUDGET_MS = 20;
 
@@ -56,10 +84,11 @@ export function effectCycles(source) {
 }
 
 function colorStepsFor(source) {
-  if (source.colorEffect === 'bonfire') {
+  const family = colorFamily(source.colorEffect);
+  if (family === 'bonfire') {
     return 48;
   }
-  if (source.colorEffect === 'plasma') {
+  if (family === 'plasma') {
     return 24;
   }
   const ramp = COLOR_CYCLES[source.colorEffect];
@@ -133,7 +162,8 @@ function minimumFrameCount(source, motionCycles, colorSteps, colorCycles) {
 
   let colorMinimum = 1;
   if (colorSteps > 1) {
-    const perCycle = (source.colorEffect === 'plasma' || source.colorEffect === 'bonfire') ? 4 : 2;
+    const family = colorFamily(source.colorEffect);
+    const perCycle = (family === 'plasma' || family === 'bonfire') ? 4 : 2;
     colorMinimum = colorCycles * perCycle;
   }
   return Math.max(motionMinimum, colorMinimum);
@@ -441,22 +471,33 @@ function applyGridMotion(frame, phase, source, cells, inks) {
 }
 
 function applyColorPass(colorPhase, source, cells, inks) {
-  const ramp = COLOR_CYCLES[source.colorEffect];
+  const effect = source.colorEffect;
+  const family = colorFamily(effect);
+  const ramp = COLOR_CYCLES[effect];
   if (!ramp) {
     return;
   }
+  const ted = isPlus4ColorEffect(effect);
 
   for (let index = 0; index < cells.length; index++) {
     if (cells[index] === '') {
       continue;
     }
-    const fixedRamp = source.colorEffect === 'raster-bars' || source.colorEffect === 'plasma';
-    const start = fixedRamp ? 0 : Math.max(0, ramp.indexOf(inks[index]));
+    const fixedRamp = family === 'raster-bars' || family === 'plasma';
+    let start = 0;
+    if (!fixedRamp) {
+      if (ted) {
+        const cousin = c64InkToTed(inks[index]);
+        start = Math.max(0, ramp.indexOf(cousin));
+      } else {
+        start = Math.max(0, ramp.indexOf(inks[index]));
+      }
+    }
     let step = Math.floor(colorPhase * ramp.length);
 
-    if (source.colorEffect === 'color-wave' || source.colorEffect === 'raster-bars') {
+    if (family === 'color-wave' || family === 'raster-bars') {
       const direction = source.colorWaveDirection
-        ?? (source.colorEffect === 'raster-bars' ? 'up' : 'up-left');
+        ?? (family === 'raster-bars' ? 'up' : 'up-left');
       const x = index % source.W;
       const y = Math.floor(index / source.W);
       const offset = (
@@ -475,7 +516,7 @@ function applyColorPass(colorPhase, source, cells, inks) {
       );
     }
 
-    if (source.colorEffect === 'plasma') {
+    if (family === 'plasma') {
       const direction = source.colorWaveDirection ?? 'up-left';
       const dx = direction.includes('left') ? 1 : direction.includes('right') ? -1 : 0;
       const dy = direction.includes('up') ? 1 : direction.includes('down') ? -1 : 0;
@@ -499,10 +540,11 @@ function applyColorPass(colorPhase, source, cells, inks) {
       );
     }
 
-    if (source.colorEffect === 'bonfire') {
+    if (family === 'bonfire') {
       const heat = bonfireHeat(index % source.W, Math.floor(index / source.W), source.W, source.H, colorPhase);
-      inks[index] = BONFIRE_COLORS[
-        Math.min(BONFIRE_COLORS.length - 1, Math.floor(heat * BONFIRE_COLORS.length))
+      const fireRamp = ted ? ramp : BONFIRE_COLORS;
+      inks[index] = fireRamp[
+        Math.min(fireRamp.length - 1, Math.floor(heat * fireRamp.length))
       ];
     } else {
       inks[index] = ramp[((start + step) % ramp.length + ramp.length) % ramp.length];
@@ -555,5 +597,9 @@ export function animationCells(frame, source) {
   }
 
   applyColorPass(colorPhase, source, cells, inks);
-  return {cells, inks};
+  return {
+    cells,
+    inks,
+    colorPalette: isPlus4ColorEffect(source.colorEffect) ? 'ted-pal' : 'pepto-pal',
+  };
 }
