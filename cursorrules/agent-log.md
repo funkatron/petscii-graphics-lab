@@ -26,3 +26,10 @@
 
 - `node --test tests/project-validation.unit.mjs tests/bonfire.unit.mjs` — 10 passed.
 - Chromium: `c64-only`, `bonfire`, `layout` repeated-download — 8 passed.
+
+## PETSCII machine-mode preview (2026-11-10)
+
+- Added `agents/petscii-preview/` renderer + MCP for C64 / C128 / Plus-4 shared-glyph chrome demos.
+- Demo outputs in `agents/petscii-preview/out/`.
+- Details: `cursorrules/work-log-2026-11-10-petscii-preview.md`.
+- Moved here from project6581 after realizing this was the intended repo.
