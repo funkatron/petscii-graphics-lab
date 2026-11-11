@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from mcp.server.mcpserver import MCPServer
 
+from color_anim import render_color_animation_gif
 from machines import MACHINES, get_machine
 from render import render_mode_animation, render_screen, save_machine_stills
 
@@ -166,6 +167,57 @@ def render_themed_examples(
         "examples": written,
         "out_dir": str(directory.resolve()),
         "note": "Themed MCP examples: chrome differs, glyphs shared.",
+    }
+
+
+@mcp.tool()
+def render_color_animation(
+    effect: str = "plus4-cycle",
+    scale: int = 4,
+    save_path: str | None = None,
+) -> dict:
+    """
+    Render a looping GIF of a PGL color animation effect.
+
+    C64 effects: color-cycle, color-wave, color-glow, raster-bars, plasma, bonfire
+    Plus/4 TED twins: plus4-cycle, plus4-wave, plus4-glow, plus4-raster, plus4-plasma, plus4-bonfire
+    """
+    out = Path(save_path) if save_path else (
+        Path(__file__).resolve().parents[1] / "out" / "examples" / f"{effect}.gif"
+    )
+    path = render_color_animation_gif(effect, out, scale=scale)
+    return {
+        "effect": effect,
+        "saved_to": str(path.resolve()),
+        "note": "Uses real PGL animation-frames.js ramps; Plus/4 effects use TED palette RGB.",
+    }
+
+
+@mcp.tool()
+def render_color_animation_set(
+    scale: int = 4,
+    out_dir: str | None = None,
+) -> dict:
+    """Render a comparison set of C64 vs Plus/4 color-animation GIFs."""
+    directory = Path(out_dir) if out_dir else Path(__file__).resolve().parents[1] / "out" / "examples"
+    effects = [
+        "color-cycle",
+        "plus4-cycle",
+        "color-wave",
+        "plus4-wave",
+        "plasma",
+        "plus4-plasma",
+        "color-glow",
+        "plus4-glow",
+    ]
+    written: list[str] = []
+    for effect in effects:
+        path = render_color_animation_gif(effect, directory / f"{effect}.gif", scale=scale)
+        written.append(str(path.resolve()))
+    return {
+        "gifs": written,
+        "out_dir": str(directory.resolve()),
+        "note": "Side-by-side C64 Pepto vs Plus/4 TED color animation twins.",
     }
 
 

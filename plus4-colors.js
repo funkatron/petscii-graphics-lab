@@ -125,7 +125,7 @@ export function isPlus4ColorEffect(effect) {
 export const PLUS4_COLOR_CYCLES = Object.freeze({
   // Soft gray→pastel walk, then chromatic mid-lumas.
   'plus4-cycle': Object.freeze([
-    0,
+    // Skip pure black so cycle demos stay visible on a dark canvas.
     tedIndex(1, 2),
     tedIndex(1, 4),
     tedIndex(1, 6),
@@ -141,6 +141,7 @@ export const PLUS4_COLOR_CYCLES = Object.freeze({
     tedIndex(15, 5),
     tedIndex(12, 4),
     tedIndex(14, 3),
+    tedIndex(10, 4),
   ]),
   // Pastel chroma ribbon at a steady mid luma.
   'plus4-wave': Object.freeze([

@@ -23,7 +23,11 @@ Outputs land in `agents/petscii-preview/out/`.
 | `list_machines` | Mode chrome metadata |
 | `render_petscii_screen` | One machine PNG (`png_base64`, optional `save_path`) |
 | `render_machine_comparison` | C64/C128/Plus4 stills + mode-switch GIF |
-| `render_themed_examples` | Themed example pack + GIF |
+| `render_themed_examples` | Themed machine-chrome example pack + GIF |
+| `render_color_animation` | One PGL color-animation GIF (C64 or Plus/4) |
+| `render_color_animation_set` | C64 vs Plus/4 color-animation GIF pack |
+
+Color-animation GIFs land in `out/examples/` as `color-cycle.gif`, `plus4-cycle.gif`, `plus4-plasma.gif`, etc.
 
 ### Cursor MCP config
 
