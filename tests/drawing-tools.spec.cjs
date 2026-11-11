@@ -25,3 +25,42 @@ test('palette shows one selected tool and restores saved eraser state',async({pa
  await ui(page,'#tool-line');await expect(page.locator('#tool-line')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','false');
  await ui(page,'#erase');await saved(page);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#erase')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','false');
 });
+
+test('rectangle and selection corner taps only enter two-tap mode when explicitly enabled',async({page})=>{
+ const canvas=page.locator('#canvas');
+ const tap=async(x,y)=>canvas.evaluate((c,p)=>{
+  const r=c.getBoundingClientRect(),cx=r.left+(p.x+.5)*r.width/4,cy=r.top+(p.y+.5)*r.height/4;
+  for(const type of ['pointerdown','pointerup'])c.dispatchEvent(new PointerEvent(type,{pointerId:83,pointerType:'touch',isPrimary:true,bubbles:true,cancelable:true,clientX:cx,clientY:cy}));
+ },{x,y});
+ const blank=Array(16).fill('');
+ await expect(page.locator('#tapPoints')).not.toBeChecked();
+ await ui(page,'#tool-rectangle');
+ await tap(0,0);
+ await expect(page.locator('#tapPoints')).not.toBeChecked();
+ await tap(3,3);
+ // Two independent taps must not create a rectangle or leave a pending corner.
+ expect((await saved(page)).grid.filter(g=>g===160).length).toBeLessThan(12);
+ await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
+ await ui(page,'#tool-select');
+ await tap(0,0);
+ await expect(page.locator('#selectionInfo')).toHaveText('1 × 1 selected');
+ await tap(3,3);
+ await expect(page.locator('#tapPoints')).not.toBeChecked();
+ // Two independent taps select the most recently tapped cell, not the entire diagonal.
+ await expect(page.locator('#selectionInfo')).toHaveText('1 × 1 selected');
+ await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
+ await ui(page,'#tool-rectangle');
+ await expect(page.locator('#tapPoints')).toBeVisible();
+ await ui(page,'#tapPoints','check');
+ await tap(0,0);await tap(3,3);
+ expect((await saved(page)).grid.filter(g=>g===160)).toHaveLength(12);
+ await ui(page,'#undo');
+ expect((await saved(page)).grid).toEqual(blank);
+ await ui(page,'#tool-select');
+ await tap(0,0);await tap(3,3);
+ await expect(page.locator('#selectionInfo')).toHaveText('4 × 4 selected');
+ await page.keyboard.press('Escape');
+ await ui(page,'#tapPoints','uncheck');
+ await tap(0,0);await tap(3,3);
+ await expect(page.locator('#tapPoints')).not.toBeChecked();
+});
