@@ -39,3 +39,8 @@
 - Added exploratory TED 121-color palette (`plus4-colors.js`) and Plus/4 twins of color-cycle / wave / glow / raster / plasma / bonfire.
 - Drawing/ink palette remains C64 Pepto; Plus/4 effects only recolor animation frames via TED RGB.
 - Unit tests: `tests/plus4-colors.unit.mjs`.
+
+## MCP registration (2026-11-11)
+
+- Registered `petscii-preview` in project `.cursor/mcp.json` and `~/.cursor/mcp.json`.
+- Added `render_themed_examples` MCP tool; sample outputs under `agents/petscii-preview/out/examples/`.
