@@ -66,11 +66,15 @@ function flatten(rows) {
   return rows.flat();
 }
 
-function projectFromRows(rows, colors, name) {
+function projectFromRows(rows, colors, name, cellColorFn) {
   const columns = rows[0].length;
   const gridRows = rows.length;
   const grid = flatten(rows);
-  const cellColors = grid.map((g) => (g === SPACE ? colors.background : colors.ink));
+  const cellColors = grid.map((g, i) => {
+    if (cellColorFn) return cellColorFn(g, i, columns);
+    if (g === SPACE) return colors.background;
+    return colors.ink;
+  });
   const data = {
     format: 'petscii-stencil-lab',
     version: 3,
@@ -93,6 +97,29 @@ function projectFromRows(rows, colors, name) {
   validateProject(data);
   delete data._exploreNote;
   return data;
+}
+
+function fillRow(glyph, width) {
+  return Array.from({ length: width }, () => glyph);
+}
+
+function labeledSwatch(label, width, { reverseText = false } = {}) {
+  const inner = Array.from({ length: width - 2 }, () => SOLID);
+  const text = label.slice(0, width - 2);
+  const mid = Array.from({ length: width - 2 }, (_, i) => {
+    if (i < text.length) {
+      const code = charCode(text[i]);
+      // Reverse glyphs read as paper cutouts when ink is light and canvas bg is dark.
+      if (reverseText) return code | 0x80;
+      return code;
+    }
+    return SOLID;
+  });
+  return [
+    [V, ...inner, V],
+    [V, ...mid, V],
+    [V, ...inner, V],
+  ];
 }
 
 const pieces = [
@@ -147,11 +174,52 @@ const pieces = [
       textRow('C64 GLYPHS', 18),
     ],
   },
+  {
+    // One canvas, three ink moods. Shared black paper; swatches carry the feel.
+    file: 'mode-swatches.json',
+    name: 'Mode swatches',
+    colors: { ink: 1, background: 0 },
+    rows: [
+      textRow('SAME GLYPHS', 24),
+      textRow('', 24),
+      hBar(24, TL, TR),
+      ...labeledSwatch(' C64 LIGHTBLUE ', 24),
+      [V, ...fillRow(SPACE, 22), V],
+      ...labeledSwatch(' C128 CYAN     ', 24),
+      [V, ...fillRow(SPACE, 22), V],
+      ...labeledSwatch(' PLUS4 PAPER   ', 24, { reverseText: true }),
+      hBar(24, BL, BR),
+      textRow('', 24),
+      textRow('PALETTE ONLY', 24),
+    ],
+    cellColorFn(g, i, columns) {
+      const y = Math.floor(i / columns);
+      // Row map inside the 24-wide card:
+      // 0 title, 1 blank, 2 top bar,
+      // 3-5 C64, 6 gap, 7-9 C128, 10 gap, 11-13 Plus4, 14 bottom bar, ...
+      const isText = g !== SOLID && g !== V && g !== H && g !== TL && g !== TR && g !== BL && g !== BR && g !== SPACE;
+      if (y >= 3 && y <= 5) {
+        if (g === SOLID) return 6; // blue fill
+        return 14; // light blue text/frame
+      }
+      if (y >= 7 && y <= 9) {
+        if (g === SOLID) return 6;
+        return 3; // cyan text/frame
+      }
+      if (y >= 11 && y <= 13) {
+        // Reverse text + solids in light gray → gray paper with dark cutouts.
+        return 15;
+      }
+      if (g === SPACE) return 0;
+      if (isText) return 1;
+      return 1; // white labels/frame
+    },
+  },
 ];
 
 mkdirSync(outDir, { recursive: true });
 for (const piece of pieces) {
-  const data = projectFromRows(piece.rows, piece.colors, piece.name);
+  const data = projectFromRows(piece.rows, piece.colors, piece.name, piece.cellColorFn);
   const path = join(outDir, piece.file);
   writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
   console.log('wrote', path, `${data.columns}x${data.rows}`);
