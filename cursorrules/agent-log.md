@@ -44,3 +44,9 @@
 
 - Registered `petscii-preview` in project `.cursor/mcp.json` and `~/.cursor/mcp.json`.
 - Added `render_themed_examples` MCP tool; sample outputs under `agents/petscii-preview/out/examples/`.
+
+## Raven color-animation artwork (2026-11-11)
+
+- Color GIF export defaults to `agents/petscii-preview/examples/golden-fuzzy-raven.json` (40×40 painted cube+bonfire).
+- `export_color_animation.mjs` / MCP tools accept `--project` / `project_path`.
+- Regenerated C64 + Plus/4 color GIFs under `agents/petscii-preview/out/examples/` (gitignored `out/`).

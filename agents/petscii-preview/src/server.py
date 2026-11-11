@@ -173,33 +173,39 @@ def render_themed_examples(
 @mcp.tool()
 def render_color_animation(
     effect: str = "plus4-cycle",
-    scale: int = 4,
+    scale: int = 2,
     save_path: str | None = None,
+    project_path: str | None = None,
 ) -> dict:
     """
     Render a looping GIF of a PGL color animation effect.
 
+    Defaults to artwork from examples/golden-fuzzy-raven.json when present.
     C64 effects: color-cycle, color-wave, color-glow, raster-bars, plasma, bonfire
     Plus/4 TED twins: plus4-cycle, plus4-wave, plus4-glow, plus4-raster, plus4-plasma, plus4-bonfire
     """
     out = Path(save_path) if save_path else (
         Path(__file__).resolve().parents[1] / "out" / "examples" / f"{effect}.gif"
     )
-    path = render_color_animation_gif(effect, out, scale=scale)
+    project = Path(project_path) if project_path else None
+    path = render_color_animation_gif(effect, out, scale=scale, project_path=project)
     return {
         "effect": effect,
         "saved_to": str(path.resolve()),
+        "project": str((project or Path(__file__).resolve().parents[1] / "examples" / "golden-fuzzy-raven.json").resolve()),
         "note": "Uses real PGL animation-frames.js ramps; Plus/4 effects use TED palette RGB.",
     }
 
 
 @mcp.tool()
 def render_color_animation_set(
-    scale: int = 4,
+    scale: int = 2,
     out_dir: str | None = None,
+    project_path: str | None = None,
 ) -> dict:
-    """Render a comparison set of C64 vs Plus/4 color-animation GIFs."""
+    """Render a comparison set of C64 vs Plus/4 color-animation GIFs from a PGL project."""
     directory = Path(out_dir) if out_dir else Path(__file__).resolve().parents[1] / "out" / "examples"
+    project = Path(project_path) if project_path else None
     effects = [
         "color-cycle",
         "plus4-cycle",
@@ -209,15 +215,25 @@ def render_color_animation_set(
         "plus4-plasma",
         "color-glow",
         "plus4-glow",
+        "raster-bars",
+        "plus4-raster",
+        "bonfire",
+        "plus4-bonfire",
     ]
     written: list[str] = []
     for effect in effects:
-        path = render_color_animation_gif(effect, directory / f"{effect}.gif", scale=scale)
+        path = render_color_animation_gif(
+            effect,
+            directory / f"{effect}.gif",
+            scale=scale,
+            project_path=project,
+        )
         written.append(str(path.resolve()))
     return {
         "gifs": written,
         "out_dir": str(directory.resolve()),
-        "note": "Side-by-side C64 Pepto vs Plus/4 TED color animation twins.",
+        "project": str((project or Path(__file__).resolve().parents[1] / "examples" / "golden-fuzzy-raven.json").resolve()),
+        "note": "Raven artwork with C64 Pepto vs Plus/4 TED (full/gap-filled) color ramps.",
     }
 
 

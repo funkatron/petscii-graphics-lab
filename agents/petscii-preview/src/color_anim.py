@@ -26,9 +26,26 @@ def find_node() -> str:
     return "node"
 
 
-def export_frames_json(effect: str, json_path: Path) -> Path:
+DEFAULT_PROJECT = (
+    Path(__file__).resolve().parents[1] / "examples" / "golden-fuzzy-raven.json"
+)
+
+
+def export_frames_json(
+    effect: str,
+    json_path: Path,
+    *,
+    project_path: Path | None = None,
+) -> Path:
     json_path.parent.mkdir(parents=True, exist_ok=True)
-    command = [find_node(), str(EXPORT_SCRIPT), effect, str(json_path)]
+    project = project_path or DEFAULT_PROJECT
+    command = [
+        find_node(),
+        str(EXPORT_SCRIPT),
+        effect,
+        str(json_path),
+        f"--project={project}",
+    ]
     subprocess.run(command, check=True, cwd=str(REPO_ROOT))
     return json_path
 
@@ -74,11 +91,12 @@ def render_color_animation_gif(
     effect: str,
     out_path: Path,
     *,
-    scale: int = 4,
+    scale: int = 2,
     json_path: Path | None = None,
+    project_path: Path | None = None,
 ) -> Path:
     payload_path = json_path or (out_path.parent / f"{effect}.frames.json")
-    export_frames_json(effect, payload_path)
+    export_frames_json(effect, payload_path, project_path=project_path)
     data = json.loads(payload_path.read_text(encoding="utf-8"))
     banks = load_glyph_banks()
     frames: list[Image.Image] = []
