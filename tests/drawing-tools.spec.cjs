@@ -40,11 +40,12 @@ test('rectangle and selection corner taps only enter two-tap mode when explicitl
  await tap(3,3);
  // Two independent taps must not create a rectangle or leave a pending corner.
  expect((await saved(page)).grid.filter(g=>g===160).length).toBeLessThan(12);
- await ui(page,'#undo');
+ await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
  await ui(page,'#tool-select');
  await tap(0,0);await tap(3,3);
  await expect(page.locator('#tapPoints')).not.toBeChecked();
  await expect(page.locator('#deleteSelection')).toBeHidden();
+ await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
  await ui(page,'#tapPoints','check');
  await ui(page,'#tool-rectangle');
  await tap(0,0);await tap(3,3);
