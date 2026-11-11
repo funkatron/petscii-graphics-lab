@@ -176,9 +176,10 @@ def render_color_animation(
     scale: int = 2,
     save_path: str | None = None,
     project_path: str | None = None,
+    motion: str = "rotating-cube",
 ) -> dict:
     """
-    Render a looping GIF of a PGL color animation effect.
+    Render a looping GIF of a PGL color animation on rotating-cube motion.
 
     Defaults to artwork from examples/golden-fuzzy-raven.json when present.
     C64 effects: color-cycle, color-wave, color-glow, raster-bars, plasma, bonfire
@@ -188,12 +189,19 @@ def render_color_animation(
         Path(__file__).resolve().parents[1] / "out" / "examples" / f"{effect}.gif"
     )
     project = Path(project_path) if project_path else None
-    path = render_color_animation_gif(effect, out, scale=scale, project_path=project)
+    path = render_color_animation_gif(
+        effect,
+        out,
+        scale=scale,
+        project_path=project,
+        motion=motion,
+    )
     return {
         "effect": effect,
+        "motion": motion,
         "saved_to": str(path.resolve()),
         "project": str((project or Path(__file__).resolve().parents[1] / "examples" / "golden-fuzzy-raven.json").resolve()),
-        "note": "Uses real PGL animation-frames.js ramps; Plus/4 effects use TED palette RGB.",
+        "note": "Rotating-cube motion plus PGL color ramps; Plus/4 effects use TED palette RGB.",
     }
 
 
@@ -202,8 +210,9 @@ def render_color_animation_set(
     scale: int = 2,
     out_dir: str | None = None,
     project_path: str | None = None,
+    motion: str = "rotating-cube",
 ) -> dict:
-    """Render a comparison set of C64 vs Plus/4 color-animation GIFs from a PGL project."""
+    """Render C64 vs Plus/4 color-animation GIFs with rotating-cube motion from a PGL project."""
     directory = Path(out_dir) if out_dir else Path(__file__).resolve().parents[1] / "out" / "examples"
     project = Path(project_path) if project_path else None
     effects = [
@@ -227,13 +236,15 @@ def render_color_animation_set(
             directory / f"{effect}.gif",
             scale=scale,
             project_path=project,
+            motion=motion,
         )
         written.append(str(path.resolve()))
     return {
         "gifs": written,
         "out_dir": str(directory.resolve()),
         "project": str((project or Path(__file__).resolve().parents[1] / "examples" / "golden-fuzzy-raven.json").resolve()),
-        "note": "Raven artwork with C64 Pepto vs Plus/4 TED (full/gap-filled) color ramps.",
+        "motion": motion,
+        "note": "Raven artwork: rotating-cube motion with C64 Pepto vs Plus/4 TED color ramps.",
     }
 
 

@@ -2,7 +2,7 @@
 /**
  * Export color-animation frame data for MCP GIF rendering.
  * Usage:
- *   node export_color_animation.mjs <colorEffect> [out.json] [--project=path.json]
+ *   node export_color_animation.mjs <colorEffect> [out.json] [--project=path.json] [--motion=rotating-cube]
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -20,13 +20,20 @@ const {
 } = await import(pathToFileURL(join(root, 'plus4-colors.js')).href);
 const { validateProject } = await import(pathToFileURL(join(root, 'project-validation.js')).href);
 
+const FRAME_BUDGET_MS = 20;
+const CUBE_MOTION_SAMPLES = 48;
+
 const args = process.argv.slice(2);
 const effect = args.find((a) => !a.startsWith('--') && !a.endsWith('.json')) || 'plus4-cycle';
 const outArg = args.find((a) => a.endsWith('.json') && !a.startsWith('--'));
 const projectArg = args.find((a) => a.startsWith('--project='));
+const motionArg = args.find((a) => a.startsWith('--motion='));
 const projectPath = projectArg
   ? projectArg.slice('--project='.length)
   : join(here, 'examples', 'golden-fuzzy-raven.json');
+const motionEffect = motionArg
+  ? motionArg.slice('--motion='.length)
+  : 'rotating-cube';
 const outPath = outArg || join(here, 'out', 'examples', `${effect}.frames.json`);
 
 const C64_RAMP_LENGTHS = {
@@ -38,12 +45,23 @@ const C64_RAMP_LENGTHS = {
   bonfire: 6,
 };
 
-function secondsForEffect(name) {
-  const ted = isPlus4ColorEffect(name);
-  const rampLen = ted
-    ? (PLUS4_COLOR_CYCLES[name]?.length || 16)
-    : (C64_RAMP_LENGTHS[name] || 16);
-  return Math.max(2, Math.ceil((rampLen * 50) / 1000));
+function colorRampSteps(name) {
+  if (isPlus4ColorEffect(name)) {
+    return PLUS4_COLOR_CYCLES[name]?.length || 16;
+  }
+  return C64_RAMP_LENGTHS[name] || 16;
+}
+
+function secondsForEffect(name, motion) {
+  const rampLen = colorRampSteps(name);
+  const neededFrames = motion === 'none'
+    ? rampLen
+    : Math.max(CUBE_MOTION_SAMPLES, rampLen);
+  // Keep ~50ms-per-ramp-step feel, and enough budget so animationCount
+  // does not clip cube samples when Pepto ramps are short.
+  const fromRampFeel = Math.ceil((rampLen * 50) / 1000);
+  const fromBudget = Math.ceil((neededFrames * FRAME_BUDGET_MS) / 1000);
+  return Math.max(2, fromRampFeel, fromBudget);
 }
 
 function buildDemoGrid() {
@@ -80,6 +98,7 @@ function buildDemoGrid() {
     grid,
     inks,
     colors: { ink: 14, background: 0 },
+    animation: {},
     projectName: null,
   };
 }
@@ -96,6 +115,7 @@ function loadProjectArtwork(path) {
       ink: data.colors?.ink ?? 14,
       background: data.colors?.background ?? 0,
     },
+    animation: data.animation || {},
     projectName: path,
   };
 }
@@ -108,7 +128,7 @@ try {
   artwork = buildDemoGrid();
 }
 
-const { columns, rows, grid, inks, colors } = artwork;
+const { columns, rows, grid, inks, colors, animation } = artwork;
 const cellCount = columns * rows;
 const source = {
   W: columns,
@@ -120,17 +140,21 @@ const source = {
   events: [],
   eventColors: [],
   colors: { ...colors },
-  effect: 'none',
+  effect: motionEffect,
   colorEffect: effect,
-  seconds: secondsForEffect(effect),
+  seconds: secondsForEffect(effect, motionEffect),
   scale: 1,
   background: 'dark',
   motionCycles: 1,
   colorCycles: 1,
+  cameraDistance: animation.cameraDistance ?? 4,
+  cameraOrbit: animation.cameraOrbit ?? 0,
+  cameraElevation: animation.cameraElevation ?? 0,
+  cameraMotion: animation.cameraMotion ?? 0,
   colorWaveDirection: effect.includes('raster') ? 'up' : 'up-left',
   colorWaveShape: effect.includes('plasma') ? 'sine' : 'sawtooth',
   colorWaveAmplitude: 100,
-  colorWaveLength: 50,
+  colorWaveLength: animation.colorWaveLength ?? 50,
 };
 
 const frameCount = animationCount(source);
@@ -151,6 +175,7 @@ for (let i = 0; i < frameCount; i++) {
 
 const payload = {
   effect,
+  motionEffect,
   project: artwork.projectName,
   colorPalette: ted ? 'ted-pal' : 'pepto-pal',
   columns,
@@ -166,9 +191,11 @@ writeFileSync(outPath, `${JSON.stringify(payload)}\n`);
 console.log(JSON.stringify({
   outPath,
   effect,
+  motionEffect,
   frameCount,
   colorPalette: payload.colorPalette,
   project: artwork.projectName,
   columns,
   rows,
+  seconds: source.seconds,
 }));

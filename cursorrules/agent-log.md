@@ -50,3 +50,9 @@
 - Color GIF export defaults to `agents/petscii-preview/examples/golden-fuzzy-raven.json` (40×40 painted cube+bonfire).
 - `export_color_animation.mjs` / MCP tools accept `--project` / `project_path`.
 - Regenerated C64 + Plus/4 color GIFs under `agents/petscii-preview/out/examples/` (gitignored `out/`).
+
+## Rotating-cube + color GIF set (2026-11-11)
+
+- Exporter defaults motion to `rotating-cube` (`--motion=` override); copies project camera fields.
+- Seconds sized so frame budget keeps a full 48-sample cube tumble with each color ramp.
+- Regenerated all 12 C64/Plus4 color GIFs with cube motion on raven artwork.

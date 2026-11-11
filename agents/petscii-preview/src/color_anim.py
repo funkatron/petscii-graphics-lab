@@ -36,6 +36,7 @@ def export_frames_json(
     json_path: Path,
     *,
     project_path: Path | None = None,
+    motion: str = "rotating-cube",
 ) -> Path:
     json_path.parent.mkdir(parents=True, exist_ok=True)
     project = project_path or DEFAULT_PROJECT
@@ -45,6 +46,7 @@ def export_frames_json(
         effect,
         str(json_path),
         f"--project={project}",
+        f"--motion={motion}",
     ]
     subprocess.run(command, check=True, cwd=str(REPO_ROOT))
     return json_path
@@ -94,9 +96,15 @@ def render_color_animation_gif(
     scale: int = 2,
     json_path: Path | None = None,
     project_path: Path | None = None,
+    motion: str = "rotating-cube",
 ) -> Path:
     payload_path = json_path or (out_path.parent / f"{effect}.frames.json")
-    export_frames_json(effect, payload_path, project_path=project_path)
+    export_frames_json(
+        effect,
+        payload_path,
+        project_path=project_path,
+        motion=motion,
+    )
     data = json.loads(payload_path.read_text(encoding="utf-8"))
     banks = load_glyph_banks()
     frames: list[Image.Image] = []
