@@ -77,6 +77,8 @@ Requires `ffmpeg` on `PATH`:
 sudo apt-get install -y ffmpeg   # or brew install ffmpeg
 ```
 
+Encoding notes: frames are duplicated to a **25 fps CFR** timeline from each frame’s `durationMs` (so timing matches the GIF), padded to even dimensions for H.264, and written with `yuv420p` + `faststart`. Prefer a painted project — an empty canvas yields a valid but black video.
+
 ## Workspace
 
 Default example artwork: `examples/golden-fuzzy-raven.json`  

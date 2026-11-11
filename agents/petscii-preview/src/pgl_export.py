@@ -415,6 +415,18 @@ def export_color_ram_bin(project_path: str | None = None, save_path: str | None 
     return {"ok": True, "saved_to": str(out), "bytes": len(raw), "project": str(path)}
 
 
+def _even_pad(image: Image.Image) -> Image.Image:
+    """H.264 yuv420p needs even width and height."""
+    width, height = image.size
+    pad_w = width % 2
+    pad_h = height % 2
+    if pad_w == 0 and pad_h == 0:
+        return image
+    canvas = Image.new(image.mode, (width + pad_w, height + pad_h), (0, 0, 0))
+    canvas.paste(image, (0, 0))
+    return canvas
+
+
 def export_video(
     project_path: str | None = None,
     settings: dict[str, Any] | None = None,
@@ -442,14 +454,15 @@ def export_video(
         shutil.rmtree(frame_dir)
     frame_dir.mkdir(parents=True)
 
-    # Constant frame duration for ffmpeg; use median durationMs.
-    durations = [max(40, int(f.get("durationMs", 80))) for f in data["frames"]]
-    median = sorted(durations)[len(durations) // 2]
-    fps = max(1.0, 1000.0 / median)
-
+    # Expand each animation frame into N copies so timing matches durationMs
+    # while staying constant-frame-rate (most players choke on VFR mp4s).
+    tick_ms = 40
+    fps = 1000.0 / tick_ms
     written = 0
-    for rep in range(max(1, repetitions)):
+    source_frames = 0
+    for _rep in range(max(1, repetitions)):
         for frame in data["frames"]:
+            source_frames += 1
             img = render_cells_image(
                 frame["cells"],
                 frame["inks"],
@@ -460,8 +473,16 @@ def export_video(
                 scale,
                 banks,
             )
-            written += 1
-            img.save(frame_dir / f"frame-{written:05d}.png")
+            img = _even_pad(img.convert("RGB"))
+            duration_ms = max(tick_ms, int(frame.get("durationMs", data.get("durationMs", 80))))
+            copies = max(1, round(duration_ms / tick_ms))
+            for _copy in range(copies):
+                written += 1
+                img.save(frame_dir / f"frame-{written:05d}.png")
+
+    if written == 0:
+        shutil.rmtree(frame_dir)
+        return {"ok": False, "error": "no frames produced for video export"}
 
     out = Path(save_path).expanduser().resolve() if save_path else (
         workspace / f"{stem}-{data.get('motionEffect', 'none')}-{data.get('effect', 'none')}.{format}"
@@ -469,17 +490,34 @@ def export_video(
     out.parent.mkdir(parents=True, exist_ok=True)
 
     if format == "webm":
-        codec_args = ["-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "32"]
+        codec_args = [
+            "-c:v", "libvpx-vp9",
+            "-b:v", "0",
+            "-crf", "30",
+            "-row-mt", "1",
+            "-pix_fmt", "yuv420p",
+        ]
     else:
-        codec_args = ["-c:v", "libx264", "-pix_fmt", "yuv420p"]
+        codec_args = [
+            "-c:v", "libx264",
+            "-preset", "medium",
+            "-tune", "animation",
+            "-crf", "17",
+            "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
+            "-profile:v", "high",
+            "-level", "4.0",
+        ]
 
     command = [
         ffmpeg,
         "-y",
         "-framerate",
-        str(fps),
+        f"{fps:.6f}",
         "-i",
         str(frame_dir / "frame-%05d.png"),
+        "-r",
+        f"{fps:.6f}",
         *codec_args,
         str(out),
     ]
@@ -488,14 +526,17 @@ def export_video(
     if result.returncode != 0:
         return {
             "ok": False,
-            "error": result.stderr[-500:] if result.stderr else "ffmpeg failed",
+            "error": result.stderr[-800:] if result.stderr else "ffmpeg failed",
             "command": command,
         }
+    size = out.stat().st_size if out.exists() else 0
     return {
         "ok": True,
         "saved_to": str(out),
-        "frameCount": written,
+        "frameCount": source_frames,
+        "encodedFrames": written,
         "fps": fps,
+        "bytes": size,
         "format": format,
         "project": data.get("project"),
         "motionEffect": data.get("motionEffect"),
