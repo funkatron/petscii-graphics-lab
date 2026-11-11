@@ -13,10 +13,32 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 // Load as ESM via dynamic import from repo root.
 const { animationCells, animationCount } = await import(pathToFileURL(join(root, 'animation-frames.js')).href);
 const { C64_COLORS } = await import(pathToFileURL(join(root, 'c64-colors.js')).href);
-const { PLUS4_COLORS, isPlus4ColorEffect } = await import(pathToFileURL(join(root, 'plus4-colors.js')).href);
+const {
+  PLUS4_COLORS,
+  PLUS4_COLOR_CYCLES,
+  isPlus4ColorEffect,
+} = await import(pathToFileURL(join(root, 'plus4-colors.js')).href);
 
 const effect = process.argv[2] || 'plus4-cycle';
 const outPath = process.argv[3] || join(dirname(fileURLToPath(import.meta.url)), 'out', 'examples', `${effect}.frames.json`);
+
+const C64_RAMP_LENGTHS = {
+  'color-cycle': 16,
+  'color-wave': 8,
+  'color-glow': 10,
+  'raster-bars': 8,
+  plasma: 8,
+  bonfire: 6,
+};
+
+function secondsForEffect(name) {
+  const ted = isPlus4ColorEffect(name);
+  const rampLen = ted
+    ? (PLUS4_COLOR_CYCLES[name]?.length || 16)
+    : (C64_RAMP_LENGTHS[name] || 16);
+  // ~50ms per ramp step, with a floor so short ramps still loop nicely.
+  return Math.max(2, Math.ceil((rampLen * 50) / 1000));
+}
 
 const columns = 16;
 const rows = 8;
@@ -70,7 +92,7 @@ const source = {
   colors: { ink: 14, background: 0 },
   effect: 'none',
   colorEffect: effect,
-  seconds: 1.0,
+  seconds: secondsForEffect(effect),
   scale: 1,
   background: 'dark',
   motionCycles: 1,

@@ -85,13 +85,19 @@ export function effectCycles(source) {
 
 function colorStepsFor(source) {
   const family = colorFamily(source.colorEffect);
+  const ramp = COLOR_CYCLES[source.colorEffect];
   if (family === 'bonfire') {
-    return 48;
+    // Keep a dense fire timeline; never shorter than the ramp itself.
+    return Math.max(48, ramp ? ramp.length : 0);
   }
   if (family === 'plasma') {
+    // C64 plasma stays on the classic 24-sample loop; Plus/4 uses the
+    // expanded TED ramp length so gap-filled colors actually appear.
+    if (ramp && ramp.length > 8) {
+      return ramp.length;
+    }
     return 24;
   }
-  const ramp = COLOR_CYCLES[source.colorEffect];
   return ramp ? ramp.length : 1;
 }
 
