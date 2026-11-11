@@ -170,6 +170,7 @@ dialog::backdrop{background:#0009}
 <details id="canvasDetails" class="tool-group"><summary>Canvas setup</summary><div class="group-body">
 <fieldset class="sidebar-section" id="canvasSizeGroup"><legend>Canvas size</legend>
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option selected>16</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option selected>16</option></select></div></div>
+<button id="c64CanvasPreset" type="button" class="full-width">C64 screen · 40 × 25</button>
 <div id="resizeDraft" hidden><p id="resizeSummary" class="note"></p><canvas id="resizePreview" aria-label="Resized drawing preview"></canvas><div class="row"><button id="applyResize">Apply size</button><button id="cancelResize">Cancel</button></div></div></fieldset><details id="drawingActions" class="help-disclosure"><summary>Whole drawing actions</summary><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div><button id="clear" class="full-width">Clear drawing</button></details>
 </div></details>
 <details id="colorDetails" class="tool-group"><summary>Colors <span id="colorSummary" class="summary-badge" aria-hidden="true"></span></summary><div class="group-body">
@@ -763,6 +764,7 @@ $('clear').onclick=()=>{remember();grid.fill('');cellColors.fill(colors.ink);res
 $('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1){grid[y*W+x]=glyph;cellColors[y*W+x]=colors.ink}resetReplay();redraw()};
 $('checker').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++){grid[y*W+x]=(x+y)%2?glyph:'';cellColors[y*W+x]=colors.ink}resetReplay();redraw()};
 function resize(){if(Number($('columns').value)===W&&Number($('rows').value)===H)return;remember();const nw=Number($('columns').value),nh=Number($('rows').value),next=Array(nw*nh).fill(''),inks=Array(nw*nh).fill(colors.ink);for(let y=0;y<Math.min(H,nh);y++)for(let x=0;x<Math.min(W,nw);x++){next[y*nw+x]=grid[y*W+x];inks[y*nw+x]=cellColors[y*W+x]}grid=next;cellColors=inks;W=nw;H=nh;resetReplay();fit()}
+$('c64CanvasPreset').onclick=()=>{$('columns').value='40';$('rows').value='25';updateResizeDraft()};
 $('columns').onchange=updateResizeDraft;$('rows').onchange=updateResizeDraft;$('applyResize').onclick=resize;$('cancelResize').onclick=()=>{$('columns').value=String(W);$('rows').value=String(H);updateResizeDraft()};
 $('toggle').onclick=()=>{
  const closed=$('sidebar').classList.toggle('closed');
