@@ -6,6 +6,25 @@ This page tracks requested work and completed milestones. For current controls, 
 
 See issue #66. New Project resets to a blank default drawing with confirmation and Undo recovery. An icon-only refresh button generates adjective–noun names. All export formats use the same validated project name and capture it before asynchronous work; caches account for renaming. Names stay outside v3 drawing data. Regression coverage includes reset/cancel/Undo, source preservation, filename sanitization, export contents and in-flight naming. Chromium and iPad WebKit CI results are required before release.
 
+## Shared visual language with Project6581 — planned
+
+Bring the Commodore 64C/128D-inspired design vocabulary from [Project6581](https://github.com/funkatron/Project6581) into PETSCII Graphics Lab without copying its instrument-specific layout. Preserve the canvas-first editing model and existing controls.
+
+### Design tokens and visual hierarchy
+
+- [ ] Audit the current Project6581 CSS at implementation time; identify the effective final palette rather than copying superseded declarations.
+- [ ] Establish shared *visual* tokens for warm enclosure trim, dark graphite surfaces, cyan structural accents, yellow active/selected states, text contrast, borders, and focus indicators. Keep the C64 artwork palette independent from application chrome.
+- [ ] Apply the language to header, drawing strip, settings, glyph picker, menus, dialogs, and status indicators in a small first PR. Retain familiar control positions and keep the drawing area dominant.
+- [ ] Use consistent compact typography, control heights, button widths and section spacing without shrinking essential touch targets below 44 px or losing accessible names.
+- [ ] Keep the canvas rendering, export colors, project data, undo history, and animation frames unchanged by chrome styling.
+
+### Verification and rollout
+
+- [ ] Capture and compare full-screen iPad landscape/portrait and desktop screenshots before and after; check canvas size, overflow, modal placement, visible selection, and contrast.
+- [ ] Add focused browser checks for computed theme styles and critical UI visibility; run Chromium and both iPad WebKit configurations, with full UI tests only if the layout changes materially.
+- [ ] Inspect Copilot reviews and CI before merge; request physical iPad/Pencil review of touch reach and readability before considering the visual refresh complete.
+- [ ] Consider a later optional light-enclosure variant only after the shared dark theme is stable. Do not introduce theme controls in the first pass.
+
 ## Current priorities
 
 1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
