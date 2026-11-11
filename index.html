@@ -225,6 +225,42 @@ header button,header select,header #projectMenu>summary{background:#293b56;color
 dialog{border:4px solid #d4cbb7;box-shadow:0 18px 65px #000a}
 @media(max-width:690px){.sidebar{box-shadow:12px 0 30px #0008}}
 
+
+/* Hardware key palette: warm light controls, dark labels, and deliberate active keys. */
+header button,header select,header #projectMenu>summary,
+.drawing-strip button,.drawing-strip summary,
+.sidebar button:not(.color-grid button):not(.glyph),
+.sidebar select,.sidebar input[type=number],.sidebar input[type=text],
+.glyph-picker button:not(.glyph),.glyph-picker select{
+ background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+ box-shadow:inset 0 1px #fffaf0,0 2px 0 #9b9589;
+}
+header button:hover,.drawing-strip button:hover,.sidebar button:hover,.glyph-picker button:hover{
+ background:#fff6e4;border-color:#526f86;
+}
+header button:active,.drawing-strip button:active,.sidebar button:active,.glyph-picker button:active{
+ box-shadow:inset 0 2px 3px #0002;transform:translateY(1px);
+}
+header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
+.drawing-strip button.active,.sidebar button.active,
+.sidebar button[aria-pressed=true]:not(.color-grid button),
+.glyph-picker button.active,.export-tabs [aria-selected=true]{
+ background:#ffdf70;color:#19283b;border-color:#a18a48;
+ box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
+}
+.sidebar .glyph-family,.glyph-picker .glyph-family,
+.sidebar .group-body,.sidebar .field label,.glyph-picker .note,
+.sidebar .note,.glyph-picker h2,.sidebar legend{color:#26364a}
+.sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section{
+ background:#eee8db;border-color:#999388;
+}
+.sidebar .tool-group>summary,.sidebar .animation-section legend,.sidebar .sidebar-section legend{
+ color:#26364a;
+}
+.glyph-picker .glyph{background:#172840;color:#f9fbff;border-color:#66849f;box-shadow:none}
+.glyph-picker .glyph:hover{background:#263b58}
+.color-grid button,.color-grid button:hover{box-shadow:none}
+
 </style>
 </head>
 <body>
