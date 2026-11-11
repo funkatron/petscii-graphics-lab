@@ -261,6 +261,22 @@ header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
 .glyph-picker .glyph:hover{background:#263b58}
 .color-grid button,.color-grid button:hover{box-shadow:none}
 
+
+/* Select menus should read as light hardware controls, including their option lists. */
+select,header select,.sidebar select,.glyph-picker select,dialog select,
+.animation-section select,.sidebar-section select{
+ color-scheme:light;
+ background-color:#f5efe1;
+ color:#23344b;
+ border:1px solid #858d91;
+ box-shadow:inset 0 1px #fffaf0,0 2px 0 #a69e90;
+}
+select option,select optgroup{background:#fffaf0;color:#23344b}
+select:hover,header select:hover,.sidebar select:hover,.glyph-picker select:hover,dialog select:hover{
+ background-color:#fffaf0;border-color:#526f86;
+}
+select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
+
 </style>
 </head>
 <body>
