@@ -49,8 +49,9 @@ test('rectangle and selection corner taps only enter two-tap mode when explicitl
  // Two independent taps select the most recently tapped cell, not the entire diagonal.
  await expect(page.locator('#selectionInfo')).toHaveText('1 × 1 selected');
  await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
- await ui(page,'#tapPoints','check');
  await ui(page,'#tool-rectangle');
+ await expect(page.locator('#tapPoints')).toBeVisible();
+ await ui(page,'#tapPoints','check');
  await tap(0,0);await tap(3,3);
  expect((await saved(page)).grid.filter(g=>g===160)).toHaveLength(12);
  await ui(page,'#undo');
