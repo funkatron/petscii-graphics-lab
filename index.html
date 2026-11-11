@@ -156,6 +156,46 @@ dialog::backdrop{background:#0009}
 .sidebar-section .field{min-width:0}
 .sidebar-section select{min-width:0;padding-inline:5px}
 @media(min-width:691px){.animation-section{grid-template-columns:repeat(auto-fit,minmax(min(95px,100%),1fr))}}
+
+/* Project6581-inspired 64C/128D visual language. Chrome only: never recolor art. */
+:root{
+ --case-trim:#d4cbb7;--case-seam:#7ee8ff;--case-highlight:#ffdf70;
+ --case-bg:#090d22;--case-surface:#0b1530;--case-raised:#172b4a;
+ --case-edge:#8ab8d4;--case-text:#f5f8ff;--case-muted:#c5d5e8;
+ background:var(--case-bg);color:var(--case-text);
+}
+.app{background:var(--case-bg)}
+header{background:#07142c;border-top:4px solid var(--case-trim);border-bottom:2px solid var(--case-seam);color:var(--case-text)}
+header h1{letter-spacing:.045em}
+.sidebar,.glyph-picker{background:var(--case-surface);border-color:var(--case-edge)}
+.tool-strip,.picker-heading{background:var(--case-surface)}
+.drawing-strip{background:#101d38;border-bottom-color:var(--case-seam)}
+.stage{background:radial-gradient(circle at 50% 38%,#182746,var(--case-bg) 78%)}
+.canvas-frame{background:#0a1226;border-color:var(--case-edge);border-top:3px solid var(--case-trim)}
+button,select,.field input[type=number],input[type=text]{
+ background:var(--case-raised);color:var(--case-text);border-color:var(--case-edge);
+ font-weight:600;
+}
+button:hover{border-color:var(--case-seam)}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{
+ outline:3px solid var(--case-highlight);outline-offset:2px;
+}
+button.active,button[aria-pressed=true],.export-tabs [aria-selected=true],
+#paint[aria-pressed=true],#erase[aria-pressed=true],#glyphPin[aria-pressed=true]{
+ background:var(--case-highlight);color:#10172d;border-color:#fff;
+}
+.tool-group,.animation-section,.sidebar-section{border-color:#526c89;background:#101d38}
+summary,.animation-section legend,.sidebar-section legend{color:var(--case-text)}
+label,.note,.stagefoot,#dimensions{color:var(--case-muted)}
+.status,#quickglyph,.summary-badge{color:var(--case-highlight)}
+.glyph-picker .glyph[aria-pressed=true]{outline:2px solid var(--case-highlight)}
+#inkPopover,.tool-popover,.project-menu,dialog{
+ background:var(--case-surface);color:var(--case-text);border-color:var(--case-edge);
+ border-top:3px solid var(--case-trim);
+}
+input[type=checkbox]{accent-color:#00b8ce}
+@media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
+
 </style>
 </head>
 <body>
