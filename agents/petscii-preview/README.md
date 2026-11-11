@@ -23,19 +23,16 @@ Outputs land in `agents/petscii-preview/out/`.
 | `list_machines` | Mode chrome metadata |
 | `render_petscii_screen` | One machine PNG (`png_base64`, optional `save_path`) |
 | `render_machine_comparison` | C64/C128/Plus4 stills + mode-switch GIF |
+| `render_themed_examples` | Themed example pack + GIF |
 
-### Cursor MCP config example
+### Cursor MCP config
 
-```json
-{
-  "mcpServers": {
-    "petscii-preview": {
-      "command": "/absolute/path/to/petscii-graphics-lab/agents/petscii-preview/.venv/bin/python",
-      "args": ["/absolute/path/to/petscii-graphics-lab/agents/petscii-preview/src/server.py"]
-    }
-  }
-}
-```
+Registered in:
+
+- project: `.cursor/mcp.json`
+- user: `~/.cursor/mcp.json`
+
+Restart Cursor (or start a new agent session) after changing MCP config, then confirm with MCP tools / `agent mcp list`.
 
 ## Screen text notes
 

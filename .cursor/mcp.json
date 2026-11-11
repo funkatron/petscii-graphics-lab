@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "petscii-preview": {
+      "command": "/home/coj/projects/petscii-graphics-lab/agents/petscii-preview/.venv/bin/python",
+      "args": [
+        "/home/coj/projects/petscii-graphics-lab/agents/petscii-preview/src/server.py"
+      ]
+    }
+  }
+}

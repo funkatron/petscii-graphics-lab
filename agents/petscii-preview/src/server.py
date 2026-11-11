@@ -96,5 +96,78 @@ def render_machine_comparison(
     }
 
 
+@mcp.tool()
+def render_themed_examples(
+    scale: int = 3,
+    out_dir: str | None = None,
+) -> dict:
+    """
+    Render a small set of themed PETSCII screens plus a mode-switch GIF.
+
+    Themes: C64 synth panel, C128 40-col card, Plus/4 paper READY, shared glyph note.
+    """
+    directory = Path(out_dir) if out_dir else Path(__file__).resolve().parents[1] / "out" / "examples"
+    directory.mkdir(parents=True, exist_ok=True)
+
+    themes = [
+        (
+            "c64",
+            "c64-synth-panel.png",
+            [
+                " {{#70}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#6e}}",
+                " {{#5d}} C64 SYNTH PANEL {{#5d}}",
+                " {{#5d}} WAVE   PULSE    {{#5d}}",
+                " {{#5d}} CUTOFF ####.... {{#5d}}",
+                " {{#5d}} RES    ##...... {{#5d}}",
+                " {{#6d}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#7d}}",
+            ],
+        ),
+        (
+            "c128",
+            "c128-40col-card.png",
+            [
+                " {{#70}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#6e}}",
+                " {{#5d}} C128 40-COL MODE {{#5d}}",
+                " {{#5d}} VIC-II TEXT GRID {{#5d}}",
+                " {{#5d}} SAME C64 GLYPHS  {{#5d}}",
+                " {{#6d}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#7d}}",
+            ],
+        ),
+        (
+            "plus4",
+            "plus4-paper-ready.png",
+            [
+                " {{#70}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#6e}}",
+                " {{#5d}} PLUS/4 TED PAPER {{#5d}}",
+                " {{#5d}} BLACK ON GRAY    {{#5d}}",
+                " {{#5d}} READY.           {{#5d}}",
+                " {{#6d}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#40}}{{#7d}}",
+            ],
+        ),
+    ]
+
+    written: list[str] = []
+    for machine, filename, lines in themes:
+        image = render_screen(
+            machine,
+            lines,
+            scale=scale,
+            include_banner=True,
+            cursor=True,
+        )
+        path = directory / filename
+        image.save(path)
+        written.append(str(path.resolve()))
+
+    gif = render_mode_animation(scale=max(2, scale - 1), out_path=directory / "mode-switch.gif")
+    written.append(str(gif.resolve()))
+
+    return {
+        "examples": written,
+        "out_dir": str(directory.resolve()),
+        "note": "Themed MCP examples: chrome differs, glyphs shared.",
+    }
+
+
 if __name__ == "__main__":
     mcp.run()
