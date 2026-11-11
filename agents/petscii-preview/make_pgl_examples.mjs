@@ -15,8 +15,8 @@ const TL = 0x70;
 const TR = 0x6e;
 const BL = 0x6d;
 const BR = 0x7d;
-const H = 0x64;
-const V = 0x5d;
+const H = 0x40; // full-width horizontal bar
+const V = 0x5d; // vertical bar
 const SPACE = 0x20;
 const SOLID = 0xa0;
 

@@ -42,3 +42,15 @@ Outputs land in `agents/petscii-preview/out/`.
 - Plain characters map to screen codes.
 - Explicit codes: `{{#70}}` or `{{112}}`
 - Reverse video: `{{!A}}` or `{{!#20}}`
+
+## Exploratory PGL examples
+
+Generate openable v3 projects (and optional PNG previews):
+
+```bash
+node agents/petscii-preview/make_pgl_examples.mjs
+agents/petscii-preview/.venv/bin/python agents/petscii-preview/render_pgl_examples.py
+```
+
+Projects: `agents/petscii-preview/examples/*.json`  
+Open in the lab with **Project → Open**.
