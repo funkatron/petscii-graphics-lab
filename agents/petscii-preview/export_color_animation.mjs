@@ -1,28 +1,14 @@
 #!/usr/bin/env node
 /**
- * Export color-animation frame data for MCP GIF rendering.
+ * Compat wrapper: maps old CLI to export_animation.mjs.
  * Usage:
  *   node export_color_animation.mjs <colorEffect> [out.json] [--project=path.json] [--motion=rotating-cube]
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const here = dirname(fileURLToPath(import.meta.url));
-
-const { animationCells, animationCount } = await import(pathToFileURL(join(root, 'animation-frames.js')).href);
-const { C64_COLORS } = await import(pathToFileURL(join(root, 'c64-colors.js')).href);
-const {
-  PLUS4_COLORS,
-  PLUS4_COLOR_CYCLES,
-  isPlus4ColorEffect,
-} = await import(pathToFileURL(join(root, 'plus4-colors.js')).href);
-const { validateProject } = await import(pathToFileURL(join(root, 'project-validation.js')).href);
-
-const FRAME_BUDGET_MS = 20;
-const CUBE_MOTION_SAMPLES = 48;
-
 const args = process.argv.slice(2);
 const effect = args.find((a) => !a.startsWith('--') && !a.endsWith('.json')) || 'plus4-cycle';
 const outArg = args.find((a) => a.endsWith('.json') && !a.startsWith('--'));
@@ -31,171 +17,29 @@ const motionArg = args.find((a) => a.startsWith('--motion='));
 const projectPath = projectArg
   ? projectArg.slice('--project='.length)
   : join(here, 'examples', 'golden-fuzzy-raven.json');
-const motionEffect = motionArg
-  ? motionArg.slice('--motion='.length)
-  : 'rotating-cube';
+const motionEffect = motionArg ? motionArg.slice('--motion='.length) : 'rotating-cube';
 const outPath = outArg || join(here, 'out', 'examples', `${effect}.frames.json`);
 
-const C64_RAMP_LENGTHS = {
-  'color-cycle': 16,
-  'color-wave': 8,
-  'color-glow': 10,
-  'raster-bars': 8,
-  plasma: 8,
-  bonfire: 6,
-};
-
-function colorRampSteps(name) {
-  if (isPlus4ColorEffect(name)) {
-    return PLUS4_COLOR_CYCLES[name]?.length || 16;
-  }
-  return C64_RAMP_LENGTHS[name] || 16;
-}
-
-function secondsForEffect(name, motion) {
-  const rampLen = colorRampSteps(name);
-  const neededFrames = motion === 'none'
-    ? rampLen
-    : Math.max(CUBE_MOTION_SAMPLES, rampLen);
-  // Keep ~50ms-per-ramp-step feel, and enough budget so animationCount
-  // does not clip cube samples when Pepto ramps are short.
-  const fromRampFeel = Math.ceil((rampLen * 50) / 1000);
-  const fromBudget = Math.ceil((neededFrames * FRAME_BUDGET_MS) / 1000);
-  return Math.max(2, fromRampFeel, fromBudget);
-}
-
-function buildDemoGrid() {
-  const columns = 16;
-  const rows = 8;
-  const grid = Array(columns * rows).fill('');
-  const inks = Array(columns * rows).fill(14);
-  const put = (x, y, code, ink = 14) => {
-    if (x < 0 || y < 0 || x >= columns || y >= rows) return;
-    grid[y * columns + x] = code;
-    inks[y * columns + x] = ink;
-  };
-  for (let y = 1; y < rows - 1; y++) {
-    for (let x = 1; x < columns - 1; x++) {
-      put(x, y, 160, (x + y) % 2 === 0 ? 14 : 3);
-    }
-  }
-  put(0, 0, 0x70, 14);
-  put(columns - 1, 0, 0x6e, 14);
-  put(0, rows - 1, 0x6d, 14);
-  put(columns - 1, rows - 1, 0x7d, 14);
-  for (let x = 1; x < columns - 1; x++) {
-    put(x, 0, 0x40, 14);
-    put(x, rows - 1, 0x40, 14);
-  }
-  for (let y = 1; y < rows - 1; y++) {
-    put(0, y, 0x5d, 14);
-    put(columns - 1, y, 0x5d, 14);
-  }
-  [3, 25, 3, 12, 5].forEach((code, i) => put(5 + i, 3, code, 1));
-  return {
-    columns,
-    rows,
-    grid,
-    inks,
-    colors: { ink: 14, background: 0 },
-    animation: {},
-    projectName: null,
-  };
-}
-
-function loadProjectArtwork(path) {
-  const data = JSON.parse(readFileSync(path, 'utf8'));
-  validateProject(data);
-  return {
-    columns: data.columns,
-    rows: data.rows,
-    grid: data.grid.slice(),
-    inks: (data.cellColors || Array(data.columns * data.rows).fill(data.colors?.ink ?? 14)).slice(),
-    colors: {
-      ink: data.colors?.ink ?? 14,
-      background: data.colors?.background ?? 0,
-    },
-    animation: data.animation || {},
-    projectName: path,
-  };
-}
-
-let artwork;
-try {
-  artwork = loadProjectArtwork(projectPath);
-} catch (error) {
-  console.error(JSON.stringify({ warning: `project load failed (${error.message}); using demo grid` }));
-  artwork = buildDemoGrid();
-}
-
-const { columns, rows, grid, inks, colors, animation } = artwork;
-const cellCount = columns * rows;
-const source = {
-  W: columns,
-  H: rows,
-  grid,
-  inks,
-  base: Array(cellCount).fill(''),
-  baseColors: Array(cellCount).fill(colors.ink),
-  events: [],
-  eventColors: [],
-  colors: { ...colors },
-  effect: motionEffect,
+const settings = JSON.stringify({
   colorEffect: effect,
-  seconds: secondsForEffect(effect, motionEffect),
-  scale: 1,
-  background: 'dark',
-  motionCycles: 1,
-  colorCycles: 1,
-  cameraDistance: animation.cameraDistance ?? 4,
-  cameraOrbit: animation.cameraOrbit ?? 0,
-  cameraElevation: animation.cameraElevation ?? 0,
-  cameraMotion: animation.cameraMotion ?? 0,
-  colorWaveDirection: effect.includes('raster') ? 'up' : 'up-left',
-  colorWaveShape: effect.includes('plasma') ? 'sine' : 'sawtooth',
-  colorWaveAmplitude: 100,
-  colorWaveLength: animation.colorWaveLength ?? 50,
-};
+  motionEffect,
+});
 
-const frameCount = animationCount(source);
-const ted = isPlus4ColorEffect(effect);
-const palette = ted
-  ? PLUS4_COLORS.map(([, hex]) => hex)
-  : C64_COLORS.map(([, hex]) => hex);
-const backgroundHex = C64_COLORS[colors.background]?.[1] || '#000000';
+const result = spawnSync(
+  process.execPath,
+  [
+    join(here, 'export_animation.mjs'),
+    `--project=${projectPath}`,
+    `--out=${outPath}`,
+    `--settings=${settings}`,
+  ],
+  { encoding: 'utf8' },
+);
 
-const frames = [];
-for (let i = 0; i < frameCount; i++) {
-  const picture = animationCells(i, source);
-  frames.push({
-    cells: picture.cells,
-    inks: picture.inks,
-  });
+if (result.stdout) {
+  process.stdout.write(result.stdout);
 }
-
-const payload = {
-  effect,
-  motionEffect,
-  project: artwork.projectName,
-  colorPalette: ted ? 'ted-pal' : 'pepto-pal',
-  columns,
-  rows,
-  background: backgroundHex,
-  palette,
-  frameCount,
-  durationMs: Math.round((source.seconds * 1000) / frameCount),
-  frames,
-};
-
-writeFileSync(outPath, `${JSON.stringify(payload)}\n`);
-console.log(JSON.stringify({
-  outPath,
-  effect,
-  motionEffect,
-  frameCount,
-  colorPalette: payload.colorPalette,
-  project: artwork.projectName,
-  columns,
-  rows,
-  seconds: source.seconds,
-}));
+if (result.stderr) {
+  process.stderr.write(result.stderr);
+}
+process.exit(result.status ?? 1);

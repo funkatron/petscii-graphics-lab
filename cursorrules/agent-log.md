@@ -56,3 +56,11 @@
 - Exporter defaults motion to `rotating-cube` (`--motion=` override); copies project camera fields.
 - Seconds sized so frame budget keeps a full 48-sample cube tumble with each color ramp.
 - Regenerated all 12 C64/Plus4 color GIFs with cube motion on raven artwork.
+
+## Full PGL MCP UI parity (2026-11-11)
+
+- Generalized `export_animation.mjs` for any motion × color + full animation settings.
+- Phase 1: project CRUD, text-grid, plan/still/GIF/ZIP/C64/bin MCP tools.
+- Phase 2: drawing tools (paint/fill/line/rect/text/selection/undo) on workspace projects.
+- Phase 3: `export_video` via PNG frames + ffmpeg (MP4/WebM); requires ffmpeg on PATH.
+- Smoke tests: `agents/petscii-preview/tests/test_pgl_mcp_smoke.py`.
