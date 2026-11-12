@@ -1210,6 +1210,23 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
   background:#ffdf70!important;border-color:#aa862e!important;
  }
 
+ /* Keep animation controls readable regardless of the legacy runtime skin. */
+ .stage .preview-banner,#previewLabel{color:#293a4d!important;text-shadow:none!important}
+ .stage .preview-banner #returnDrawing{
+  background:#eee7d6!important;color:#23344b!important;
+  border:1px solid #8a8d8d!important;
+ }
+ .stagebar>.help-trigger{
+  background:#eee7d6!important;color:#23344b!important;
+  border:1px solid #8a8d8d!important;
+ }
+ /* Native export sections were inheriting the old dark-dialog heading color. */
+ dialog details>summary,dialog .help-disclosure>summary,
+ dialog details>summary::marker{
+  color:#35475a!important;
+ }
+ dialog details>summary:hover{color:#172b45!important}
+
  .context-help button,.preview-banner button,
  #animationPlay,#animationStop,#motionPreview,#c64Preview{
   background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
