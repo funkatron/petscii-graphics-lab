@@ -4,6 +4,18 @@ Draw with Commodore 64 character graphics using a finger, Apple Pencil, or mouse
 
 **[Open the editor](https://funkatron.github.io/petscii-graphics-lab/)** — it runs in your browser. No installation or extra glyph download is needed.
 
+## Verified on real Commodore hardware
+
+In November 2026, an animation exported from PETSCII Graphics Lab as a Commodore 64 PRG was written to a physical floppy disk and successfully loaded and displayed on a **Commodore 128 in C64 compatibility mode**, using a **Commodore 1541 disk drive** and a **Magnavox CRT monitor**.
+
+**Verified path:** Browser editor → C64 PRG export → physical floppy → 1541 → C128 in C64 mode → CRT.
+
+The recorded demonstration shows graphics and animation changing on the CRT. It does **not** independently establish exact frame timing, byte-for-byte readback integrity, or successful execution on a standalone C64.
+
+A short animated GIF from the hardware recording can be added here when its final version is ready. The original footage should be retained as primary evidence.
+
+See [real-hardware validation notes](docs/real-hardware-validation.md) for the procedure, observations, and limitations.
+
 ## Draw your first picture
 
 1. Open **Glyphs** and choose a shape. A *glyph* is one 8×8 character image.
