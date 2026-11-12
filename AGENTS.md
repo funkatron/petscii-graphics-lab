@@ -37,13 +37,17 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 ## Where the code lives
 
-- `index.html` contains the application’s HTML, CSS, and plain JavaScript; `assets/c64-glyphs.svg` supplies the built-in character artwork. Keep it usable from GitHub Pages without a backend.
+- `index.html` contains the application’s HTML and plain JavaScript; `styles/editor.css` holds shared UI styling and design tokens (see `styles/README.md`); `assets/c64-glyphs.svg` supplies the built-in character artwork. Keep it usable from GitHub Pages without a backend.
 
 - `package.json`, `playwright.config.cjs`, `tests/*.spec.cjs`, and `.github/workflows/ci.yml` implement automated browser testing for Chromium and iPad WebKit in landscape and portrait.
 
 - Artwork uses numeric atlas glyph IDs 0–511 (source bank × 256 + screen code) and an empty-cell marker only. There is no Unicode-shape renderer or stencil-analysis workflow. Keep glyph IDs distinct from screen codes and PETSCII bytes.
 
 - Keep changes targeted. The owner approved the v3 unified-glyph format break without migration; preserve v3 files and existing editor workflows.
+
+## UI styling contract
+
+Use the shared 64C form-control tokens and rules in [styles/README.md](styles/README.md) for dialogs, popovers, Project, settings, and glyph controls. Warm cream recessed inputs, beige raised buttons, visible focus, and readable disabled states are the defaults; do not introduce isolated white native-looking fields. Keep UI chrome separate from C64 artwork and export colors. Verify portrait, landscape, and desktop screenshots when changing controls.
 
 ## Drawing and interaction
 
