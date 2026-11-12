@@ -96,10 +96,10 @@ jobs:
           SPECS: ${{ needs.select.outputs.specs }}
         run: |
           read -r -a files <<< "$SPECS"
-          npm test -- "${files[@]}" --project=${{ matrix.project }} --workers=1 --global-timeout=600000
+          npm test -- "${files[@]}" --project=${{ matrix.project }} --workers=2 --global-timeout=600000
       - name: Full browser and export suite
         if: needs.select.outputs.mode == 'full'
-        run: npm test -- --project=${{ matrix.project }} --workers=1 --shard=${{ matrix.shard }}/3 --global-timeout=1200000
+        run: npm test -- --project=${{ matrix.project }} --workers=2 --shard=${{ matrix.shard }}/3 --global-timeout=1200000
       - uses: actions/upload-artifact@v4
         if: always()
         with:
