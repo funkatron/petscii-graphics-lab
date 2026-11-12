@@ -13,6 +13,16 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 3. **New animation types:** prioritize additional creative effects over C64 capacity optimization and memory-expansion support; continue the demoscene-inspired effects below.
 4. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
 
+## Native Commodore 128 40-column PRG export — proposed
+
+Add an explicit **C128 native-mode, 40-column** export target alongside the existing C64 PRG/D64 outputs. This is a future feature, not currently supported.
+
+- [ ] Research C128 native-mode startup, memory mapping, bank switching, and VIC-IIe initialization. Identify differences from the existing C64 player and verify them against hardware documentation.
+- [ ] Prototype a native-mode 40-column PRG player reusing existing glyph, ink, frame, timing, and capacity logic where valid. Do not assume C64 machine-code startup or register access is interchangeable.
+- [ ] Preserve existing C64 export bytes and behavior; make the machine target explicit in the download UI and document its requirements.
+- [ ] Validate representative still and animated exports in C128-native emulation and on a physical C128, including PAL/NTSC considerations and program exit/recovery.
+- [ ] Keep **C128 80-column RGBI/VDC output** outside this scope. The 40-column target uses the VIC-IIe video output, not the 9-pin RGBI port.
+
 ## Brittle-test audit — in progress
 
 See the [audit findings and remaining work](test-reliability-audit.md).
