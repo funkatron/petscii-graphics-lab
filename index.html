@@ -1332,6 +1332,11 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  dialog button{min-width:max(44px,2em);box-sizing:border-box}
  dialog button[hidden]{display:none!important}
  #cancelSheetDownload{min-height:44px;padding-inline:14px}
+ /* Stacked panel actions fill their available width; inline icon controls stay compact. */
+ .project-menu .row{display:flex;flex-direction:column;align-items:stretch;width:100%;box-sizing:border-box}
+ .project-menu .row>button:not([hidden]){display:block;width:100%;min-width:0;box-sizing:border-box;flex:0 0 auto}
+ .project-menu .project-name>button{width:44px;min-width:44px;flex:0 0 44px}
+ .project-menu fieldset{box-sizing:border-box;width:100%}
  /* Selected PETSCII keycaps display white ROM glyphs against orange. */
  .glyph-picker .palette .glyph.active canvas,
  .glyph-picker .palette .glyph[aria-pressed=true] canvas{
