@@ -1234,6 +1234,15 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
   .preview-banner button{transition:background-color .12s,border-color .12s,box-shadow .12s,transform .12s}
  }
 
+ /* Selected PETSCII keycaps display white ROM glyphs against orange. */
+ .glyph-picker .palette .glyph.active canvas,
+ .glyph-picker .palette .glyph[aria-pressed=true] canvas{
+  filter:none!important;
+  mix-blend-mode:screen;
+ }
+ .glyph-picker .palette .glyph.active small,
+ .glyph-picker .palette .glyph[aria-pressed=true] small{color:#fff9ee}
+
  /* Keep animation controls readable regardless of the legacy runtime skin. */
  .stage .preview-banner,#previewLabel{color:#293a4d!important;text-shadow:none!important}
  .stage .preview-banner #returnDrawing{
