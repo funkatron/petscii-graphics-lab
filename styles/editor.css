@@ -373,3 +373,45 @@ header #saveStatus,header .status,header .note{color:#34465a}
  .canvas-frame{border-width:9px 10px 12px;border-radius:18px;
  box-shadow:0 0 0 2px #8b8172,0 0 0 4px var(--ui-bezel-highlight),0 3px 0 5px #a79b89,0 8px 12px #554c3e65,inset 0 4px 10px #000b}
 }
+
+
+/* Shared 64C form-control system: warm recessed fields, raised buttons.
+   Keep these tokens independent of artwork colors and export rendering. */
+:root{
+ --ui-field-bg:#f7f0e3;
+ --ui-field-border:#938a7a;
+ --ui-field-disabled-bg:#ded7c9;
+ --ui-field-disabled-text:#596372;
+ --ui-control-shadow:#a69e90;
+}
+:is(.sidebar,.glyph-picker,.project-menu,dialog,.tool-popover,#inkPopover)
+:is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
+    textarea,select){
+ background-color:var(--ui-field-bg);
+ color:var(--ui-text);
+ border:1px solid var(--ui-field-border);
+ border-radius:9px;
+}
+:is(.sidebar,.glyph-picker,.project-menu,dialog,.tool-popover,#inkPopover)
+:is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
+    textarea,select):disabled{
+ background-color:var(--ui-field-disabled-bg);
+ color:var(--ui-field-disabled-text);
+ opacity:1;
+}
+:is(.sidebar,.glyph-picker,.project-menu,dialog,.tool-popover,#inkPopover)
+:is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
+    textarea,select):focus-visible{
+ outline:3px solid var(--ui-focus-border);
+ outline-offset:2px;
+}
+:is(.project-menu,dialog,.tool-popover,#inkPopover) button:not([aria-pressed=true]):not(.active):not(:disabled){
+ background:var(--ui-control-bg);
+ color:var(--ui-text);
+ border-color:var(--ui-control-border);
+}
+:is(.project-menu,dialog,.tool-popover,#inkPopover) button:disabled{
+ background:var(--ui-field-disabled-bg);
+ color:var(--ui-field-disabled-text);
+ opacity:1;
+}
