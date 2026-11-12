@@ -11,6 +11,9 @@ function select(files, {full=false, motionOnly=false}={}) {
   // Shared UI, dependencies and test infrastructure require a smoke test.
   if (changed(/^(index\.html|assets\/|vendor\/|package(-lock)?\.json$|playwright\.config\.cjs$|\.github\/|tests\/helpers\.cjs$)/))
     set.add('tests/layout.spec.cjs');
+  // Capture reviewable iPad/desktop screenshots whenever the editor UI changes.
+  if (changed(/^(index\.html|assets\/)/))
+    set.add('tests/6581-theme-screenshots.spec.cjs');
   // Extracted shared modules affect multiple workflows, not just layout.
   if (changed(/^project-validation\.js$/)) {
     set.add('tests/c64-only.spec.cjs');
