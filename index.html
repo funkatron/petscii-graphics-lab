@@ -1300,6 +1300,10 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  @media(max-width:600px){header{column-gap:6px}header #projectMenu>summary{padding-top:0;padding-bottom:0}}
  /* Glyph favorite is a compact utility action, not a full-width palette control. */
  #favoriteGlyph{flex:0 0 42px!important;inline-size:42px;min-inline-size:42px;max-inline-size:42px;block-size:42px;min-block-size:42px;max-block-size:42px;box-sizing:border-box;padding:0;display:inline-flex;align-items:center;justify-content:center;align-self:center;font-size:1.2rem;line-height:1}
+ /* Keep the glyph family selector level with its adjacent favorite action. */
+ .picker-heading .glyph-filter{display:flex;align-items:center;min-height:42px;gap:6px}
+ .picker-heading #glyphFamily{box-sizing:border-box;height:42px;min-height:42px;max-height:42px;align-self:center;margin-block:0;padding-block:0;line-height:1.2}
+ .picker-heading #favoriteGlyph{align-self:center}
  /* Selected PETSCII keycaps display white ROM glyphs against orange. */
  .glyph-picker .palette .glyph.active canvas,
  .glyph-picker .palette .glyph[aria-pressed=true] canvas{
