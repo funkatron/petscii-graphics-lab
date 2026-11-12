@@ -1272,6 +1272,12 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  .context-help .help-points{margin:8px 0 2px;padding-left:1.25rem;display:grid;gap:10px}
  .context-help .help-points li{padding-left:3px;line-height:1.5}
 
+ .context-help h4{margin:16px 0 6px;font-size:.86rem}
+ .context-help .help-control,.context-help .help-key{display:inline-block;vertical-align:baseline;padding:1px 6px;border:1px solid #a6a096;border-radius:5px;background:#eee7d6;color:#23344b;font-size:.86em;font-weight:650;line-height:1.55;box-shadow:0 2px 0 #9a948b;white-space:nowrap}
+ .context-help .help-key{font-family:inherit;background:#f8f4eb;border-color:#c5beb0;box-shadow:0 2px 0 #9c968a}
+ .context-help .help-example{margin-top:16px;padding:12px;border-radius:8px;background:#263a50}
+ .context-help .help-example p{margin:6px 0 0}
+ .context-help .help-points strong{font-weight:700}
  /* Selected PETSCII keycaps display white ROM glyphs against orange. */
  .glyph-picker .palette .glyph.active canvas,
  .glyph-picker .palette .glyph[aria-pressed=true] canvas{
@@ -1335,9 +1341,51 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  const help=document.createElement('section');help.id='contextHelp';help.className='context-help';help.setAttribute('popover','manual');help.setAttribute('role','dialog');help.setAttribute('aria-labelledby','contextHelpTitle');help.innerHTML='<button id="closeHelp" aria-label="Close help">✕</button><h3 id="contextHelpTitle"></h3><div id="contextHelpBody"></div>';document.body.append(help);let helpButton;
  function closeHelp(){if(!help.matches(':popover-open'))return;help.hidePopover();helpButton?.setAttribute('aria-expanded','false');helpButton?.focus({preventScroll:true})}
  $('closeHelp').onclick=closeHelp;
- function helpFor(anchor,title,body){const b=document.createElement('button');b.className='help-trigger';b.textContent='?';b.setAttribute('aria-label','Help about '+title.toLowerCase());b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','contextHelp');b.onclick=()=>{if(helpButton===b&&help.matches(':popover-open')){closeHelp();return}helpButton?.setAttribute('aria-expanded','false');helpButton=b;$('contextHelpTitle').textContent=title;const helpBody=$('contextHelpBody');helpBody.replaceChildren();const sentences=body.match(/[^.!?]+[.!?]+|[^.!?]+$/g)?.map(part=>part.trim()).filter(Boolean)||[body];const intro=document.createElement('p');intro.className='help-intro';intro.textContent=sentences.shift()||'';helpBody.append(intro);if(sentences.length){const list=document.createElement('ul');list.className='help-points';for(const sentence of sentences){const item=document.createElement('li');item.textContent=sentence;list.append(item)}helpBody.append(list)}const parent=b.closest('dialog')||document.body;if(help.parentElement!==parent){if(help.matches(':popover-open'))help.hidePopover();parent.append(help)}help.showPopover();b.setAttribute('aria-expanded','true');$('closeHelp').focus({preventScroll:true})};anchor.append(b)}
- helpFor(document.querySelector('.stagebar'),'Drawing tools','Choose a glyph and ink, then draw. Fill replaces connected cells with the same glyph and ink. Line, Rectangle and Select accept a drag or two taps when Tap endpoints is enabled. Drag inside a selection to move it, or choose Move/Duplicate and tap a destination. Text accepts letters, numbers and common punctuation: tap a starting cell, type below the canvas, then Apply text. Arrow keys move the keyboard cursor; Enter marks endpoints or focuses text entry; Escape or Cancel abandons a pending operation.');
- for(const [id,title,text] of [['projectMenu','Projects','Project files preserve editable artwork and replay. Automatic drafts stay on this device; download a project before changing devices.'],['animationDetails','Animation timing','Timeline & preview groups duration and playback. Movement and Color each group their effect, direction, waveform, height and cycles. Wave height controls movement distance; 100% is twice the earlier range. Color wave height narrows the color sequence independently. Low heights can round to a static result. Loop duration sets the entire timeline. Movement and color cycles repeat independently within it. An 8-second loop with 4 movement cycles repeats its movement every 2 seconds. Preview never changes the original artwork.'],['colorDetails','Colors','Ink affects future strokes. Background is shared. Recolor entire drawing changes all occupied cells and can be undone.'],['export-data','C64 exports','Readiness checks geometry, distinct glyph patterns, program memory and estimated update time. PRG and D64 share the same player limits. Ready means exporter checks passed, not guaranteed smooth playback on physical hardware.']]){const section=$(id),anchor=document.createElement('div');if(section.tagName==='DETAILS'){anchor.className='help-section';section.before(anchor);anchor.append(section)}else{anchor.className='section-heading';const heading=document.createElement('h3');heading.textContent='C64 exports';anchor.append(heading);section.prepend(anchor)}helpFor(anchor,title,text)}
+ function helpFor(anchor,title,body){const b=document.createElement('button');b.className='help-trigger';b.textContent='?';b.setAttribute('aria-label','Help about '+title.toLowerCase());b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','contextHelp');b.onclick=()=>{if(helpButton===b&&help.matches(':popover-open')){closeHelp();return}helpButton?.setAttribute('aria-expanded','false');helpButton=b;$('contextHelpTitle').textContent=title;$('contextHelpBody').innerHTML=body;const parent=b.closest('dialog')||document.body;if(help.parentElement!==parent){if(help.matches(':popover-open'))help.hidePopover();parent.append(help)}help.showPopover();b.setAttribute('aria-expanded','true');$('closeHelp').focus({preventScroll:true})};anchor.append(b)}
+ const control=(label)=>'<span class="help-control">'+label+'</span>';
+ const key=(label)=>'<kbd class="help-key">'+label+'</kbd>';
+ const bullet=(label,description)=>'<li><strong>'+label+':</strong> '+description+'</li>';
+ const helpList=(intro,items,extra='')=>'<p class="help-intro">'+intro+'</p><ul class="help-points">'+items.join('')+'</ul>'+extra;
+ const drawingHelp=helpList('Choose a character using '+control('Glyphs')+', select an ink color, and draw directly on the canvas.',[
+ bullet('Fill','Replaces connected cells containing the same character and ink.'),
+ bullet('Line, Rectangle &amp; Select','Drag across the canvas, or enable '+control('Tap endpoints')+' to select two points.'),
+ bullet('Move &amp; Duplicate','Drag an existing selection, or choose '+control('Move')+' or '+control('Duplicate')+' and tap its destination.'),
+ bullet('Text','Tap a starting cell, enter your text, then press '+control('Apply text')+'.')
+ ],'<h4>Keyboard shortcuts</h4><ul class="help-points">'+[
+ bullet(key('← ↑ ↓ →'),'Move the cursor.'),
+ bullet(key('Enter ↵'),'Mark an endpoint or focus text entry.'),
+ bullet(key('Esc')+' / '+control('Cancel'),'Abandon a pending operation.')
+ ].join('')+'</ul>');
+ helpFor(document.querySelector('.stagebar'),'Drawing tools',drawingHelp);
+ const helpSections=[
+ ['projectMenu','Projects',helpList('Keep editable artwork and animation settings together.',[
+ bullet('Project files','Preserve editable artwork and replay.'),
+ bullet('Automatic drafts','Stay on the current device.'),
+ bullet('Moving devices','Download your project file before switching devices.')
+ ])],
+ ['animationDetails','Animation timing',helpList('Control how your animation moves, changes color, and repeats.',[
+ bullet('Timeline','Sets the total duration of one animation loop.'),
+ bullet('Movement','Choose an effect, direction, waveform, height, and number of cycles.'),
+ bullet('Color','Configure color effects independently of movement.'),
+ bullet('Wave height','Controls movement distance. At 100%, the range is twice the earlier implementation.'),
+ bullet('Color wave height','Limits how much of the color sequence is used.'),
+ bullet('Cycles','Determines how often each effect repeats within the loop.'),
+ bullet('Low heights','May produce no visible change because of rounding.'),
+ bullet('Preview','Never changes your original artwork.')
+ ],'<div class="help-example"><strong>Example: An 8-second animation</strong><p>Loop duration: <strong>8 seconds</strong></p><p>Movement cycles: <strong>4</strong></p><p>Movement repeats every <strong>2 seconds</strong>.</p></div>')],
+ ['colorDetails','Colors',helpList('Choose colors for new strokes or update existing artwork.',[
+ bullet('Ink','Changes the color of future strokes without recoloring existing artwork.'),
+ bullet('Background','Sets the shared canvas background.'),
+ bullet('Recolor entire drawing','Changes all occupied cells.'),
+ bullet('Undo','Restores the previous colors after recoloring.')
+ ])],
+ ['export-data','C64 exports',helpList('Check whether your artwork fits the Commodore 64 player limits.',[
+ bullet('Readiness checks','Evaluate geometry, distinct character patterns, memory usage, and estimated update time.'),
+ bullet('PRG &amp; D64','Both formats share the same player limitations.'),
+ bullet('Ready status','Means export checks passed. It does not guarantee smooth playback on physical Commodore 64 hardware.')
+ ])]
+ ];
+ for(const [id,title,body] of helpSections){const section=$(id),anchor=document.createElement('div');if(section.tagName==='DETAILS'){anchor.className='help-section';section.before(anchor);anchor.append(section)}else{anchor.className='section-heading';const heading=document.createElement('h3');heading.textContent='C64 exports';anchor.append(heading);section.prepend(anchor)}helpFor(anchor,title,body)}
  $('animationInfo').parentElement.hidden=true;const c64Explanation=document.querySelector('#exportC64 + p.note');c64Explanation.hidden=true;document.querySelector('button[aria-label="Help about c64 exports"]').addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const copy=c64Explanation.cloneNode(true);copy.hidden=false;$('contextHelpBody').append(copy)});
  for(const selector of ['#projectMenu .note','#colorDetails .note','#animationInfo','#helpDetails','#downloadDescription'])document.querySelectorAll(selector).forEach(e=>e.hidden=true);
  canvas.addEventListener('pointerdown',e=>{if(help.matches(':popover-open')){e.stopImmediatePropagation();e.preventDefault();closeHelp()}},true);
