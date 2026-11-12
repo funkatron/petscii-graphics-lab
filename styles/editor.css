@@ -180,7 +180,7 @@ dialog::backdrop{background:#0009}
 .sidebar-section select{min-width:0;padding-inline:5px}
 @media(min-width:691px){.animation-section{grid-template-columns:repeat(auto-fit,minmax(min(95px,100%),1fr))}}
 
-/* Second pass: make the shared hardware language visible beyond subtle borders. */
+/* C64C component surfaces and layout. Later rules specialize individual controls. */
 :root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light}
 body{background:var(--ui-case-bg);color:var(--case-text)}
 .app{background:var(--ui-case-bg)}
@@ -320,7 +320,7 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 #downloadPreview,#resizePreview{background:repeating-conic-gradient(#d7d1c5 0 25%,#f7f0e3 0 50%) 0/16px 16px}
 
 
-/* C64C-era monitor surround and contrast repairs, without resizing artwork. */
+/* Monitor surround, readable stage labels, and contextual help. */
 .stage{
  background:linear-gradient(145deg,#e9e1d0 0%,#d3c9b5 54%,#bcb29f 100%);
  border-left:2px solid #faf5e8;
@@ -356,7 +356,7 @@ header #saveStatus,header .status,header .note{color:#34465a}
 @media(max-width:690px){.canvas-frame{border-width:7px 8px 9px;border-radius:15px}}
 
 
-/* Slightly deeper, forward-projecting molded CRT surround. */
+/* Final CRT bezel geometry (desktop and narrow screens). */
 .canvas-frame{
  border-width:15px 17px 19px;
  border-color:var(--ui-bezel-highlight) #b9af9e #a69c8b #ded5c4;
