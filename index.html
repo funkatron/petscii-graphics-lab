@@ -1298,6 +1298,8 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  header #projectMenu{align-self:center}
  header{align-items:center;column-gap:8px}
  @media(max-width:600px){header{column-gap:6px}header #projectMenu>summary{padding-top:0;padding-bottom:0}}
+ /* Glyph favorite is a compact utility action, not a full-width palette control. */
+ #favoriteGlyph{flex:0 0 42px!important;inline-size:42px;min-inline-size:42px;max-inline-size:42px;block-size:42px;min-block-size:42px;max-block-size:42px;box-sizing:border-box;padding:0;display:inline-flex;align-items:center;justify-content:center;align-self:center;font-size:1.2rem;line-height:1}
  /* Selected PETSCII keycaps display white ROM glyphs against orange. */
  .glyph-picker .palette .glyph.active canvas,
  .glyph-picker .palette .glyph[aria-pressed=true] canvas{
