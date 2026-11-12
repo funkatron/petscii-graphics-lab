@@ -603,9 +603,10 @@ export function animationCells(frame, source) {
   }
 
   applyColorPass(colorPhase, source, cells, inks);
+  const tedMachine = source.machine === 'plus4';
   return {
     cells,
     inks,
-    colorPalette: isPlus4ColorEffect(source.colorEffect) ? 'ted-pal' : 'pepto-pal',
+    colorPalette: tedMachine || isPlus4ColorEffect(source.colorEffect) ? 'ted-pal' : 'pepto-pal',
   };
 }

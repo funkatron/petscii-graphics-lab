@@ -1,6 +1,6 @@
 # Machine modes and display palettes
 
-**Status:** Design contract (not shipped in the product UI yet).  
+**Status:** Design contract; product UI implementation in progress on the machine-modes feature branch.  
 **Audience:** Maintainers and coding agents. Read this before changing machine, palette, chrome, or Plus/4 color behavior.
 
 For current drawing controls, see the [user guide](../README.md). For byte-level editor contracts, see the [maintainer reference](maintainer-reference.md). Track delivery on the [roadmap](roadmap.md).
@@ -108,15 +108,15 @@ Before locking CSS seeds, collect:
 2. Physical case and keyboard photos (secondary accent cue).
 3. Authoritative KERNAL / COLOR defaults when photos disagree.
 
-**Provisional findings (verify with photos / emulator captures before shipping):**
+**Locked seed indices / chrome cues (implementation):**
 
-| Machine | Boot chrome (reported) | Case cue |
-| --- | --- | --- |
-| C64 | Border light blue (`$0E`), background blue (`$06`), text light blue | Breadbin / C64C beige–brown |
-| C128 (40-col) | Distinct from C64; often darker with light-green text/border — confirm | Darker gray 128 case |
-| Plus/4 | Black on white / “dirty gray” paper; pink border often cited | Dark gray body, light gray keys |
+| Machine | Boot indices / TED | Case cue | Sources |
+| --- | --- | --- | --- |
+| C64 | Border 14 (light blue), background 6 (blue), text 14 | Beige–brown `#6b5428` | KERNAL `$0E`/`$06`; Pepto RGB via active display palette |
+| C128 (40-col) | Border 13 (light green), background 11 (dark gray), text 13 | Dark gray `#3a3a3a` | Cameron Kaiser / common 40-col description; C128 System Guide Appendix F (default text light green) |
+| Plus/4 | Ink 0; paper bg TED white L5 (`tedIndex(1,5)`); pink bezel TED pink L4 | Dark gray `#2f2f2f` | Plus/4 paper READY + pink border reports; TED exploratory RGB |
 
-App chrome should **evoke** these machines, not paste CRT READY banners into the header. Replace exploratory MCP RGB sketches with reference-backed seeds and record the locked table here when implemented.
+App chrome **evokes** these machines via CSS tokens resolved in `machine-modes.js` — it does not paste CRT READY banners into the header.
 
 ### Contrast strategy (iPad Safari)
 
@@ -174,4 +174,8 @@ Product owns the JS source of truth. Do not dual-write Python MCP machine tables
 
 ## Shipped behavior
 
-_None yet. Update this section when the product UI lands, including locked chrome seed RGB values and test evidence._
+- Header **Machine** menu with C64 / C128 (40-col) / Plus/4 and VIC **Display palette** (Pepto / Colodore / VICE / RGB).
+- App chrome tokens via `applyMachineChrome()`; Plus/4 uses dark foreground on paper panels.
+- Plus/4 drawing uses TED indices `0–120`; entering/leaving Plus/4 remaps inks (undoable).
+- Contextual color-animation lists; C64 PRG/D64 and color text disabled in Plus/4 mode.
+- Unit: `tests/machine-modes.unit.mjs`. Chromium Playwright: `tests/machine-modes.spec.cjs` (3 passed).

@@ -1,12 +1,12 @@
 /**
- * Commodore Plus/4 / TED exploratory palette (121 colors).
+ * Commodore Plus/4 / TED palette (121 colors).
  *
  * TED encodes chroma (0–15) and luma (0–7). Black (chroma 0) stays black at
  * every luma. Indices here are: 0 = black, then chroma 1–15 × luma 0–7.
  *
  * RGB is a YPbPr→RGB approximation for feel-finding, not a unique hardware
- * specification. Drawing/ink UI remains Pepto C64; these colors are for
- * Plus/4 color-animation effects only.
+ * specification. Used for Plus/4 drawing inks and TED-native color animation
+ * (see docs/machine-modes.md).
  *
  * Plus/4 animation ramps either walk the full TED set, or expand a C64 ramp
  * by inserting TED luma steps that fill the gaps between discrete VIC colors
@@ -15,7 +15,7 @@
 
 import {colorRGB} from './c64-colors.js';
 
-const CHROMA_NAMES = [
+export const CHROMA_NAMES = Object.freeze([
   'Black',
   'White',
   'Red',
@@ -32,7 +32,7 @@ const CHROMA_NAMES = [
   'Light blue',
   'Dark blue',
   'Light green',
-];
+]);
 
 // Relative Pb/Pr from TED documentation / Wikipedia (MOS TED).
 const CHROMA_PB_PR = [
@@ -117,6 +117,18 @@ export function c64InkToTed(ink, luma = 4) {
     return tedIndex(1, luma);
   }
   return tedIndex(ink, luma);
+}
+
+/** Collapse a TED index to its VIC chroma cousin (luma discarded). */
+export function tedInkToC64(tedInk) {
+  if (!Number.isInteger(tedInk) || tedInk <= 0) {
+    return 0;
+  }
+  if (tedInk > 120) {
+    return 1;
+  }
+  const chroma = Math.floor((tedInk - 1) / 8) + 1;
+  return Math.max(0, Math.min(15, chroma));
 }
 
 /** Full TED set: black, then chroma 1–15 × luma 0–7. */

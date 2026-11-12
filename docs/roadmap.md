@@ -19,11 +19,11 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 Design contract: [machine modes](machine-modes.md).
 
 - [x] Publish the design document and link it from AGENTS, maintainer reference, and this roadmap.
-- [ ] Lock chrome seed colors from boot-screen and case photo references.
-- [ ] Implement header Machine / Display palette controls and machine-themed app chrome.
-- [ ] Ship VIC display palettes (Pepto, Colodore, VICE, RGB) and Plus/4 TED drawing (`0–120`) with undoable VIC↔TED conversion.
-- [ ] Redesign Plus/4 color animations for native TED cell inks; gate C64 PRG/Color RAM and color text in Plus/4 mode.
-- [ ] Add Playwright/unit coverage; update the design doc’s shipped section.
+- [x] Lock chrome seed colors from boot-screen and case photo references (see [machine modes](machine-modes.md)).
+- [x] Implement header Machine / Display palette controls and machine-themed app chrome.
+- [x] Ship VIC display palettes (Pepto, Colodore, VICE, RGB) and Plus/4 TED drawing (`0–120`) with undoable VIC↔TED conversion.
+- [x] Gate C64 PRG/Color RAM and color text in Plus/4 mode; contextual animation lists (TED-native effect ids retained).
+- [x] Add Playwright/unit coverage; update the design doc’s shipped section (Chromium machine-modes spec).
 - [ ] Follow-up: C128 80-column (VDC) mode.
 - [ ] Follow-up: TED-capable color text-grid format.
 
