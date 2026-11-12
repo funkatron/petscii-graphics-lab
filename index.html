@@ -336,6 +336,42 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 #downloadFigure{background:#eee7d6}
 #downloadPreview,#resizePreview{background:repeating-conic-gradient(#d7d1c5 0 25%,#f7f0e3 0 50%) 0/16px 16px}
 
+
+/* C64C-era monitor surround and contrast repairs, without resizing artwork. */
+.stage{
+ background:linear-gradient(145deg,#e9e1d0 0%,#d3c9b5 54%,#bcb29f 100%);
+ border-left:2px solid #faf5e8;
+ box-shadow:inset 3px 3px 6px #fff9,inset -4px -4px 8px #71695745;
+}
+.canvas-frame{
+ border:solid #c9c0ae;border-width:11px 12px 13px;
+ border-radius:22px;
+ background:#0b1228;
+ box-shadow:0 0 0 2px #8d8577,0 0 0 5px #e9e1d1,
+ inset 0 4px 13px #000c,inset 4px 0 9px #0008,
+ 0 7px 16px #62594955;
+}
+.stagebar,.stagefoot,.stagebar #dimensions,.stagebar #status,.stagebar #quickglyph{
+ color:#293a4d;text-shadow:0 1px #fff8;
+}
+.drawing-strip .tool-hint,.drawing-strip .drawing-hint,
+.drawing-strip label,.drawing-strip span:not(.tool-label),
+.drawing-strip .hint{color:#293a4d}
+header #saveStatus,header .status,header .note{color:#34465a}
+#inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{
+ background:#ffdf70;color:#19283b;border-color:#a18a48;
+ box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
+}
+.context-help{
+ background:#f1eadc;color:#26364a;border:2px solid #9c9689;
+ box-shadow:0 12px 30px #1a233650;
+}
+.context-help h3,.context-help p,.context-help li{color:#26364a}
+.context-help button{
+ background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+}
+@media(max-width:690px){.canvas-frame{border-width:7px 8px 9px;border-radius:15px}}
+
 </style>
 </head>
 <body>
