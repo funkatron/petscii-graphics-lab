@@ -1309,6 +1309,12 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  .glyph-filter-row>.field{min-width:0;display:flex;flex-direction:column;gap:5px}
  .glyph-filter-row #glyphFamily{width:100%;min-width:0;height:42px;min-height:42px;max-height:42px;box-sizing:border-box;margin:0;padding-block:0}
  .glyph-filter-row #favoriteGlyph{width:42px;min-width:42px;max-width:42px;height:42px;min-height:42px;max-height:42px;box-sizing:border-box;align-self:end;justify-self:end;margin:0;padding:0;flex:none}
+ /* Horizontal controls: shared cross-axis alignment without flattening label stacks. */
+ .row:not(.glyph-filter-row),.picker-title,.dialog-heading,.section-heading{align-items:center;column-gap:8px}
+ .row:not(.glyph-filter-row)>button{align-self:center}
+ .row:not(.glyph-filter-row)>.field{align-self:stretch}
+ .drawing-strip{align-items:center;column-gap:6px}
+ .picker-title>button,.section-heading>button,.dialog-heading>button{align-self:center;flex-shrink:0}
  /* Selected PETSCII keycaps display white ROM glyphs against orange. */
  .glyph-picker .palette .glyph.active canvas,
  .glyph-picker .palette .glyph[aria-pressed=true] canvas{
