@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#d4cbb7">
 <title>PETSCII Graphics Lab</title>
 <style>
-:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:dark;background:#0e1728;color:#eef5fa}
+:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light;background:#d4cbb7;color:#23344b}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 button,select,textarea,input{font:inherit}
@@ -557,7 +557,7 @@ let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).f
 let cellColors=Array(256).fill(14);
 let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0;
 let W=16,H=16,grid=Array(256).fill(''),glyph=64,erasing=false,painting=false,last=null,pointer=null,unit=20;
-function setStatus(s){$('status').textContent=s;$('downloadStatus').textContent=s}
+function setStatus(s){$('status').textContent=s;/* The export badge owns dialog progress; avoid a second competing status line. */$('downloadStatus').textContent=''}
 function romGlyphRows(code){
  if(!rom||!Number.isInteger(code)||code<0||code>511)return null;
  // The C64 4KB ROM has two 2048-byte sets, each with 256 8-byte glyphs.
@@ -1301,6 +1301,9 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  dialog button{min-width:max(44px,2em);box-sizing:border-box}
  dialog button[hidden]{display:none!important}
  #cancelSheetDownload{min-height:44px;padding-inline:14px}
+ /* Keep export feedback readable on the ivory dialog surface. */
+ #downloadDialog #exportBadge,#downloadDialog #downloadStatus,#downloadDialog .motion-summary,#downloadDialog .note{color:#26364a}
+ #downloadDialog #exportBadge{font-weight:700}
  /* Stacked panel actions fill their available width; inline icon controls stay compact. */
  .project-menu .row{display:flex;flex-direction:column;align-items:stretch;width:100%;box-sizing:border-box}
  .project-menu .row>button:not([hidden]){display:block;width:100%;min-width:0;box-sizing:border-box;flex:0 0 auto}
