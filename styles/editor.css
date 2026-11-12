@@ -1,0 +1,358 @@
+/* PETSCII Graphics Lab editor styles. Keep artwork colors separate from interface chrome. */
+:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light;background:#d4cbb7;color:#23344b}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+button,select,textarea,input{font:inherit}
+#quickPlay{min-width:44px}
+button,select{border:1px solid var(--case-edge);background:var(--case-raised);color:var(--case-text);border-radius:9px;min-height:44px;padding:8px 11px}
+button{cursor:pointer}
+button:disabled{cursor:default;opacity:.5}
+button:focus-visible,select:focus-visible{outline:3px solid #6cddd0;outline-offset:2px}
+button.active{background:var(--case-highlight);border-color:var(--case-edge)}
+button:hover{border-color:#8ba9ba}
+.app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+header{height:61px;flex:none;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b4059;padding:8px 14px;background:var(--case-bg)}
+h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.08rem;line-height:1.2;margin:0}
+.subtitle{font-size:.72rem;color:#a2b8ca;margin-top:3px}
+#toggle{font-size:1.12rem;min-width:43px}
+.layout{display:flex;flex:1;min-height:0;position:relative}
+.sidebar{width:276px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:var(--case-surface);border-right:1px solid var(--case-edge);padding:10px;transition:width .2s ease,padding .2s ease;scrollbar-width:thin}
+.sidebar.closed{width:0;padding:0;border:0;overflow:hidden}
+.color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}.color-grid button{min-height:44px;border:2px solid #66768a;font-weight:bold}.color-grid button[aria-pressed=true]{outline:3px solid var(--case-text);outline-offset:1px}#inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{background:#176655;border-color:#77ddc4}.color-chip{display:inline-block;width:14px;height:14px;border:1px solid #95a4b4;border-radius:3px;vertical-align:middle;margin-right:4px}.color-name{display:block;font-size:.67rem;margin-top:3px}#glyphPreview{background:var(--art-bg)}.glyph{color:var(--art-ink)}
+.glyph-filter{display:flex;align-items:center;gap:6px;min-height:44px;flex:1}.glyph-filter input{flex:none}
+.glyph-family{grid-column:1/-1;font-size:.78rem;color:var(--case-text);margin:12px 0 3px;font-weight:600}
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:5px;padding:2px}
+.glyph{height:44px;font-size:23px;padding:0;display:flex;align-items:center;justify-content:center;position:relative}
+.glyph small{position:absolute;right:3px;bottom:1px;font:9px ui-monospace,monospace;color:var(--case-muted)}
+.glyph canvas{pointer-events:none}
+.palette:not(.show-codes) .glyph small{display:none}
+.sidebar.closed{visibility:hidden}
+input[type=checkbox]{width:20px;height:20px;vertical-align:middle}
+a{color:var(--case-text)}
+.row{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0}
+.row button{flex:1}
+.field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:85px}
+label{font-size:.77rem;color:var(--case-muted)}
+.field select{width:100%}
+.field input[type=number]{width:100%;min-height:44px;padding:8px 11px;border:1px solid var(--case-edge);background:var(--case-raised);color:var(--case-text);border-radius:9px}
+input[type=text]{width:100%;min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--case-edge);background:var(--case-raised);color:var(--case-text);border-radius:9px}
+textarea{resize:vertical;width:100%;min-height:80px;background:var(--case-surface);color:var(--case-text);border:1px solid var(--case-edge);border-radius:8px;font:12px/1.45 ui-monospace,monospace;padding:8px}
+.note{font-size:.72rem;color:var(--case-muted);line-height:1.45}
+.stage{min-width:0;min-height:0;flex:1;display:flex;flex-direction:column;padding:12px;gap:9px;background:radial-gradient(circle at 50% 38%,#192c40,#0e1728 75%)}
+.stagebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none;min-height:26px}
+.status{font-size:.77rem;color:var(--case-text)}
+#dimensions{font-size:.77rem;color:#a8bacc}
+.canvas-frame{flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #304861;border-radius:12px;background:#0d192b;padding:9px;touch-action:none;overscroll-behavior:contain}
+canvas.preview-locked{cursor:default}
+.canvas-frame:has(.preview-locked){border-color:#a8c9bd}
+canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:crosshair;image-rendering:pixelated}
+.stagefoot{font-size:.72rem;color:var(--case-muted);flex:none;text-align:center}
+#quickglyph{font-size:1rem;color:#9ee6d4}
+[hidden]{display:none!important}
+.app-title{min-width:0;flex:1}
+#glyphToggle{display:flex;align-items:center;gap:7px}
+#glyphPreview{width:24px;height:24px;flex:none}
+.tool-strip{position:sticky;top:-10px;z-index:2;background:var(--case-surface);padding:1px 0 8px}
+.tool-strip .row{margin:0}
+.sidebar button{font-size:.79rem;padding:8px 6px}
+.sidebar select,.glyph-picker select{font-size:.84rem}
+.tool-strip button{white-space:nowrap}
+#cancelAnimationExport{width:100%;margin-top:7px;border-color:#dfb77a}
+.tool-group{border:1px solid var(--case-edge);border-radius:9px;margin-bottom:8px}
+summary{cursor:pointer;min-height:44px;padding:12px 10px;font-size:.83rem;font-weight:600;color:var(--case-text)}
+summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radius:8px}
+.group-body{padding:0 10px 10px}
+.field+.field{margin-top:9px}
+.row .field+.field{margin-top:0}
+.full-width{width:100%}
+.help-disclosure{border-top:1px solid var(--case-edge);margin-top:10px}
+.help-disclosure>summary{font-size:.75rem;padding:12px 0}
+.summary-badge{float:right;font-size:.65rem;color:var(--case-text);font-weight:400;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.export-tabs{display:flex;gap:4px;margin:10px 0}
+.export-tabs button{flex:1;min-width:0;padding:8px 3px;font-size:.77rem}
+.export-tabs [aria-selected=true]{background:#176655;border-color:#77ddc4}
+[role=tabpanel]{padding-top:2px}
+.motion-summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;font-size:.72rem;color:var(--case-muted);margin-bottom:10px}
+.motion-summary span{flex-basis:100%}
+.motion-summary button{padding:6px 9px}
+.glyph-picker{width:320px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:var(--case-surface);padding:10px;border-left:1px solid var(--case-edge);scrollbar-width:thin}
+.glyph-picker h2{font-size:.9rem;margin:0}
+.picker-heading{position:sticky;top:-10px;background:var(--case-surface);padding:5px 0;z-index:1}
+.picker-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.picker-heading .note{margin:5px 0}
+.picker-heading button{min-width:42px}
+#favoriteGlyph{flex:0 0 44px}
+.glyph-backdrop{position:absolute;inset:0;z-index:6;border:0;border-radius:0;background:#0005;padding:0}
+@media(max-width:1199px){
+ .glyph-picker{position:absolute;right:10px;top:10px;bottom:10px;width:min(420px,calc(100% - 20px));border:1px solid var(--case-edge);border-radius:12px;z-index:7;box-shadow:0 10px 45px #0009}
+}
+@media(max-width:480px){header{gap:7px;padding:7px 8px}h1{font-size:.92rem}.subtitle{display:none}#glyphToggle{padding:7px;gap:4px}}
+@media(max-width:690px){
+ header{height:56px}
+ .sidebar{position:absolute;left:0;top:0;bottom:0;z-index:5;width:min(310px,86vw);box-shadow:12px 0 30px #0008}
+ .sidebar.closed{transform:translateX(-100%);width:min(310px,86vw);padding:14px;visibility:hidden}
+ .stage{padding:8px}
+ .stagefoot{font-size:.65rem}
+}
+
+.symmetry-on{color:var(--case-text);background:#176655;border-radius:9px}#downloadPreview{width:100%;object-fit:contain}#saveFailure{color:#ffcc95;margin:0}
+/* Keep frequent actions stable; occasional controls live in separate surfaces. */
+button,select,.field input[type=number]{min-height:44px}
+.drawing-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:7px 10px;flex:none;background:var(--case-bg);border-bottom:1px solid #30445d;z-index:8}
+.drawing-strip button,.drawing-strip summary{white-space:nowrap}
+.drawing-strip summary{padding:10px;list-style:none}
+#paint[aria-pressed=true],#erase[aria-pressed=true],#glyphPin[aria-pressed=true]{background:#176655;border-color:#77ddc4}
+#inkPopover{position:fixed;inset:auto;margin:0;width:min(310px,calc(100vw - 16px));max-height:calc(100dvh - 145px);overflow:auto;background:var(--case-surface);color:var(--case-text);border:1px solid var(--case-edge);border-radius:12px;padding:14px;box-shadow:0 10px 35px #0008}
+#inkPopover h2{font-size:.9rem;margin:0}#inkPopover .color-grid{margin-bottom:0}#inkPopover .color-grid button{min-height:48px;padding:6px;font-size:.72rem;line-height:1.15}#inkSelection{margin:8px 0 0}
+#symmetryMenu{position:relative;border:1px solid var(--case-edge);border-radius:9px}
+.tool-popover{position:absolute;top:100%;right:0;background:var(--case-surface);border:1px solid var(--case-edge);padding:14px;width:210px;border-radius:9px;box-shadow:0 10px 30px #0008}
+#projectMenu>summary{list-style:none;border:1px solid var(--case-edge);border-radius:9px;padding:11px;font-size:.8rem}
+.project-menu{position:absolute;right:12px;top:58px;width:min(340px,calc(100vw - 24px));box-sizing:border-box;max-height:calc(100dvh - 80px);overflow:auto;padding:14px;background:var(--case-surface);border:1px solid var(--case-edge);z-index:12;border-radius:10px;box-shadow:0 10px 35px #0008}
+.project-menu .row:has(>button[hidden]){display:none}
+.project-name{display:flex;align-items:center;gap:6px}.project-name input{flex:1;width:0}.project-name span{font-size:.8rem;flex:none}
+.project-menu fieldset{min-width:0;margin:0 0 12px;padding:10px;border:1px solid var(--case-edge);border-radius:8px}.project-menu fieldset:last-child{margin-bottom:0}.project-menu legend{font-size:.8rem;font-weight:700}.project-menu input{box-sizing:border-box;max-width:100%;min-width:0}.project-menu .row{flex-direction:column}.project-menu .save-hint{font-size:.72rem;line-height:1.4;margin:6px 0}
+#saveStatus{max-width:145px;font-size:.68rem}
+.preview-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#b5e9dd;font-size:.8rem}
+.preview-banner button{font-size:.75rem}
+.task-progress:has(button[hidden]){display:none}
+#cancelAnimationExport{width:auto;margin:0}
+dialog{color:var(--case-text);background:var(--case-surface);border:1px solid var(--case-edge);border-radius:14px;width:min(820px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:18px;overscroll-behavior:contain}
+dialog::backdrop{background:#0009}
+.dialog-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.dialog-heading h2{font-size:1.1rem;margin:0}
+.download-layout:has(#downloadFigure[hidden]){grid-template-columns:minmax(0,1fr)}
+.download-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+#downloadFigure{margin:16px 0;padding:14px;background:var(--case-surface);border-radius:10px;align-self:start;min-width:0}
+#c64TimingOverrideWrap label{display:flex;align-items:center;gap:8px;min-height:44px}
+#downloadPreview,#resizePreview{width:auto;height:auto;max-height:260px;margin:auto;background:repeating-conic-gradient(#304055 0 25%,#1c2a3b 0 50%) 0/16px 16px;cursor:default}
+#resizePreview{max-height:110px}#downloadDimensions{margin-top:12px}
+.glyph canvas{background:#000!important}.glyph{color:#fff}
+#glyphPin{font-size:.75rem;padding:7px}
+#glyphPin{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;color:#23344b;background:#eee7d6;border:1px solid #8a8d8d;border-radius:8px;box-shadow:0 2px 0 #a49b8c}
+#glyphPin svg{display:block;pointer-events:none}
+#glyphPin[aria-pressed=true]{background:#c94e1a!important;color:#fff!important;border-color:#8c3215!important;box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)}
+.picker-title h2{margin-right:auto}.glyph-picker.pinned{position:static;width:300px;border-radius:0;box-shadow:none;flex:none}
+#downloadPreview{width:100%;object-fit:contain}
+@media(max-width:800px){#saveStatus{display:none}.drawing-strip{gap:4px}.tool-label{display:none}.drawing-strip button{padding:8px 10px}}
+@media(max-width:600px){#downloadOpen{font-size:.76rem;padding:8px}#projectMenu>summary{padding:11px 7px}.download-layout{grid-template-columns:1fr;gap:0}#downloadFigure{order:-1;margin:10px 0}#downloadPreview{max-height:120px}#downloadDescription{display:none}#quickPlay{min-width:44px;padding:8px}.drawing-strip{padding:6px 5px}#glyphToggle{padding:7px}#glyphToggle span{display:none}#inkQuick{padding:8px}#inkChip{margin:0}.app-title .subtitle{display:none}}
+
+.animation-section,.sidebar-section{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:0 0 8px;padding:6px;border:1px solid var(--case-edge);border-radius:8px;min-width:0}
+.animation-section legend,.sidebar-section legend{font-size:.8rem;font-weight:600;color:var(--case-text);padding:0 5px}
+.animation-section .field{min-width:0;margin:0}.animation-section .field+.field{margin-top:0}
+.animation-section label{min-height:1.3em;display:flex;align-items:end;line-height:1.3}
+.animation-section select{min-width:0;padding-inline:5px;width:100%}
+#animationEffect,#animationColor{width:100%}
+#animationMovement>.field:first-of-type,#animationColors>.field:first-of-type,#animationTimeline>.field,#animationTimeline>.row{grid-column:1/-1}
+#animationTimeline>.row{margin:0}#animationTimeline label{min-height:0}
+#scrollOptions,#waveOptions,#colorWaveOptions{display:contents}
+#introMotionHelp{grid-column:1/-1;margin:0}
+.animation-section .wave-length{grid-column:1}
+#animationTimeline>.cycle-rate{grid-column:auto}
+#animationTimeline .cycle-rate label{min-height:2.6em}
+.sidebar-section>.row,.sidebar-section>.color-grid,.sidebar-section>button,.sidebar-section>#resizeDraft{grid-column:1/-1}
+.sidebar-section>.row{margin:0}.sidebar-section>.color-grid{margin:4px 0}
+.sidebar-section .field{min-width:0}
+.sidebar-section select{min-width:0;padding-inline:5px}
+@media(min-width:691px){.animation-section{grid-template-columns:repeat(auto-fit,minmax(min(95px,100%),1fr))}}
+
+/* C64C case tokens. Monitor darkness is intentionally separate from interface chrome. */
+:root{
+ --case-trim:#d4cbb7;--case-seam:#8294a6;--case-highlight:#ffdf70;
+ --case-bg:#d4cbb7;--case-surface:#eee7d6;--case-raised:#eee7d6;
+ --case-edge:#8a8d8d;--case-text:#23344b;--case-muted:#45566d;
+ color-scheme:light;
+}
+@media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
+
+/* Second pass: make the shared hardware language visible beyond subtle borders. */
+:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light}
+body{background:#d4cbb7;color:var(--case-text)}
+.app{background:#d4cbb7}
+header{background:linear-gradient(180deg,#e4dcc9 0%,#d4cbb7 100%);color:#1b2638;border-top:5px solid #eee8d9;border-bottom:3px solid #8294a6;box-shadow:inset 0 -1px #f8f1e3}
+header h1{color:#26344b;font-weight:800;text-shadow:0 1px #fff8}
+header .subtitle{color:#45566d}
+header button,header select,header #projectMenu>summary{background:#293b56;color:#f8f8f4;border-color:#667a90}
+.drawing-strip{background:#d4cbb7;border-bottom:3px solid #8795a5;box-shadow:inset 0 1px #eee7d7}
+.drawing-strip button,.drawing-strip summary{background:#253651;color:#f7f9ff;border-color:#6e829b}
+.drawing-strip button[aria-pressed=true],.drawing-strip button.active{background:#ffdf70;color:#17243a;border-color:#a07b20}
+.sidebar,.glyph-picker{background:#d4cbb7;color:#1b2638;border-color:#8e8a80}
+.sidebar label,.glyph-picker label,.sidebar .note,.glyph-picker .note{color:#384b60}
+.sidebar summary,.glyph-picker summary,.sidebar legend,.glyph-picker h2{color:#22334b}
+.sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section,.glyph-picker .tool-group{background:#e4dece;border-color:#9e9b91}
+.sidebar .tool-strip,.glyph-picker .picker-heading{background:#d4cbb7}
+.sidebar button,.sidebar select,.sidebar input[type=number],.sidebar input[type=text],.glyph-picker button,.glyph-picker select{
+ background:#273c58;color:#f5f7fc;border-color:#6d8399
+}
+.sidebar button.active,.sidebar button[aria-pressed=true]:not(.color-grid button),
+.glyph-picker button.active{background:#ffdf70;color:#17243a;border-color:#aa862e}
+.sidebar .summary-badge{color:#304f78}
+.stage{background:radial-gradient(circle at 50% 30%,#263956,#0b1229 80%)}
+.canvas-frame{border:3px solid #d4cbb7;box-shadow:0 0 0 1px #536980,0 8px 18px #0005;background:#0b1228}
+.stagebar,.stagefoot{color:#e3e8f4}
+dialog{border:4px solid #d4cbb7;box-shadow:0 18px 65px #000a}
+@media(max-width:690px){.sidebar{box-shadow:12px 0 30px #0008}}
+
+
+/* Hardware key palette: warm light controls, dark labels, and deliberate active keys. */
+header button,header select,header #projectMenu>summary,
+.drawing-strip button,.drawing-strip summary,
+.sidebar button:not(.color-grid button):not(.glyph),
+.sidebar select,.sidebar input[type=number],.sidebar input[type=text],
+.glyph-picker button:not(.glyph),.glyph-picker select{
+ background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+ box-shadow:inset 0 1px #fffaf0,0 2px 0 #9b9589;
+}
+header button:hover,.drawing-strip button:hover,.sidebar button:hover,.glyph-picker button:hover{
+ background:#fff6e4;border-color:#526f86;
+}
+header button:active,.drawing-strip button:active,.sidebar button:active,.glyph-picker button:active{
+ box-shadow:inset 0 2px 3px #0002;transform:translateY(1px);
+}
+header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
+.drawing-strip button.active,.sidebar button.active,
+.sidebar button[aria-pressed=true]:not(.color-grid button),
+.glyph-picker button.active,.export-tabs [aria-selected=true]{
+ background:#ffdf70;color:#19283b;border-color:#a18a48;
+ box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
+}
+.sidebar .glyph-family,.glyph-picker .glyph-family,
+.sidebar .group-body,.sidebar .field label,.glyph-picker .note,
+.sidebar .note,.glyph-picker h2,.sidebar legend{color:#26364a}
+.sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section{
+ background:#eee8db;border-color:#999388;
+}
+.sidebar .tool-group>summary,.sidebar .animation-section legend,.sidebar .sidebar-section legend{
+ color:#26364a;
+}
+.glyph-picker .glyph{background:#172840;color:#f9fbff;border-color:#66849f;box-shadow:none}
+.glyph-picker .glyph:hover{background:#263b58}
+.color-grid button,.color-grid button:hover{box-shadow:none}
+
+
+/* Select menus should read as light hardware controls, including their option lists. */
+select,header select,.sidebar select,.glyph-picker select,dialog select,
+.animation-section select,.sidebar-section select{
+ color-scheme:light;
+ background-color:#f5efe1;
+ color:#23344b;
+ border:1px solid #858d91;
+ box-shadow:inset 0 1px #fffaf0,0 2px 0 #a69e90;
+}
+select option,select optgroup{background:#fffaf0;color:#23344b}
+select:hover,header select:hover,.sidebar select:hover,.glyph-picker select:hover,dialog select:hover{
+ background-color:#fffaf0;border-color:#526f86;
+}
+select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
+
+/* C64C-inspired PETSCII keycaps; preserve picker size and authentic ROM pixels. */
+.glyph-picker .palette .glyph{
+ background:linear-gradient(155deg,#fff9eb 0%,#eee5d2 72%,#d6cbb7 100%);
+ color:#24364c;border:1px solid #8f8a80;border-radius:6px;
+ box-shadow:inset 1px 1px #fffdf5,inset -1px -1px #b9b09f,0 2px 0 #9d9587;
+ padding:3px 3px 5px;min-height:44px;height:44px;
+}
+.glyph-picker .palette .glyph canvas{
+ width:28px!important;height:28px!important;background:transparent!important;
+ filter:invert(1); /* Black ROM canvas becomes ivory-white; white glyph pixels become black. */
+}
+.glyph-picker .palette .glyph:hover{background:#fff8e7;border-color:#5b7793}
+.glyph-picker .palette .glyph.active,
+.glyph-picker .palette .glyph[aria-pressed=true]{
+ background:#ffdf70;color:#1b293a;border-color:#9b7a31;
+ box-shadow:inset 1px 1px #fff1b5,inset -1px -1px #d5b85b,0 2px 0 #a38b4c;
+}
+.glyph-picker .palette .glyph small{color:#485a6e;font-weight:700;right:3px;bottom:1px}
+.glyph-picker .palette .glyph:focus-visible{outline:3px solid #007e9c;outline-offset:2px}
+
+
+/* Consistent 64C enclosure surfaces: panels, popovers, dialogs and their text. */
+:root{color-scheme:light}
+.sidebar,.glyph-picker,.picker-heading,.tool-strip,
+.project-menu,.tool-popover,#inkPopover,dialog{
+ background:#e5ddcb;color:#26364a;border-color:#9c9689;
+}
+.sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section,
+.project-menu fieldset{
+ background:#f1eadc;color:#26364a;border-color:#aaa294;
+}
+.sidebar summary,.glyph-picker summary,.project-menu summary,
+.project-menu legend,dialog legend,dialog h2,
+.sidebar label,.glyph-picker label,.project-menu label,dialog label,
+.sidebar .note,.glyph-picker .note,.project-menu .note,dialog .note,
+.sidebar .motion-summary,.sidebar .motion-summary span,
+.sidebar .summary-badge,.project-menu .save-hint{
+ color:#35475a;
+}
+.sidebar .tool-strip{background:#e5ddcb}
+.picker-heading{background:#e5ddcb}
+.project-menu input:not([type=checkbox]),dialog input:not([type=checkbox]),
+.project-menu textarea,dialog textarea,.sidebar textarea{
+ background:#fff9ed;color:#26364a;border:1px solid #9b9486;
+}
+.project-menu button,dialog button,#inkPopover button,.tool-popover button{
+ background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+}
+.project-menu button:hover,dialog button:hover,#inkPopover button:hover,.tool-popover button:hover{
+ background:#fff6e4;border-color:#526f86;
+}
+.project-menu button[aria-pressed=true],dialog button[aria-pressed=true],
+.project-menu button.active,dialog button.active{
+ background:#ffdf70;color:#19283b;border-color:#a18a48;
+}
+.help-disclosure{border-color:#aaa294}
+#downloadFigure{background:#eee7d6}
+#downloadPreview,#resizePreview{background:repeating-conic-gradient(#d7d1c5 0 25%,#f7f0e3 0 50%) 0/16px 16px}
+
+
+/* C64C-era monitor surround and contrast repairs, without resizing artwork. */
+.stage{
+ background:linear-gradient(145deg,#e9e1d0 0%,#d3c9b5 54%,#bcb29f 100%);
+ border-left:2px solid #faf5e8;
+ box-shadow:inset 3px 3px 6px #fff9,inset -4px -4px 8px #71695745;
+}
+.canvas-frame{
+ border:solid #c9c0ae;border-width:11px 12px 13px;
+ border-radius:22px;
+ background:#0b1228;
+ box-shadow:0 0 0 2px #8d8577,0 0 0 5px #e9e1d1,
+ inset 0 4px 13px #000c,inset 4px 0 9px #0008,
+ 0 7px 16px #62594955;
+}
+.stagebar,.stagefoot,.stagebar #dimensions,.stagebar #status,.stagebar #quickglyph{
+ color:#293a4d;text-shadow:0 1px #fff8;
+}
+.drawing-strip .tool-hint,.drawing-strip .drawing-hint,
+.drawing-strip label,.drawing-strip span:not(.tool-label),
+.drawing-strip .hint{color:#293a4d}
+header #saveStatus,header .status,header .note{color:#34465a}
+#inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{
+ background:#ffdf70;color:#19283b;border-color:#a18a48;
+ box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
+}
+.context-help{
+ background:#f1eadc;color:#26364a;border:2px solid #9c9689;
+ box-shadow:0 12px 30px #1a233650;
+}
+.context-help h3,.context-help p,.context-help li{color:#26364a}
+.context-help button{
+ background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+}
+@media(max-width:690px){.canvas-frame{border-width:7px 8px 9px;border-radius:15px}}
+
+
+/* Slightly deeper, forward-projecting molded CRT surround. */
+.canvas-frame{
+ border-width:15px 17px 19px;
+ border-color:#e7dfcf #b9af9e #a69c8b #ded5c4;
+ border-radius:26px;
+ box-shadow:
+  0 0 0 2px #8b8172,
+  0 0 0 6px #e7dfcf,
+  0 4px 0 7px #a79b89,
+  0 12px 18px 5px #554c3e70,
+  inset 0 6px 15px #000d,
+  inset 6px 0 12px #0009;
+}
+@media(max-width:690px){
+ .canvas-frame{border-width:9px 10px 12px;border-radius:18px;
+ box-shadow:0 0 0 2px #8b8172,0 0 0 4px #e7dfcf,0 3px 0 5px #a79b89,0 8px 12px #554c3e65,inset 0 4px 10px #000b}
+}
