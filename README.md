@@ -16,6 +16,8 @@ A short animated GIF from the hardware recording can be added here when its fina
 
 See [real-hardware validation notes](docs/real-hardware-validation.md) for the procedure, observations, and limitations.
 
+For faster physical-floppy iterations, see the [ZoomFloppy quick-transfer guide](docs/zoomfloppy-quick-transfer.md).
+
 ## Draw your first picture
 
 1. Open **Glyphs** and choose a shape. A *glyph* is one 8×8 character image.
