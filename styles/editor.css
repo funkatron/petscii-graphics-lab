@@ -391,6 +391,7 @@ header #saveStatus,header .status,header .note{color:#34465a}
  color:var(--ui-text);
  border:1px solid var(--ui-field-border);
  border-radius:9px;
+ box-shadow:inset 0 1px 2px #70675a25;
 }
 :is(.sidebar,.glyph-picker,.project-menu,dialog,.tool-popover,#inkPopover)
 :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
