@@ -16,4 +16,13 @@ test('capture Commodore enclosure styling in the full editor viewport',async({pa
  if(!(await page.locator('#glyphPicker').isVisible()))await page.locator('#glyphToggle').click();
  await expect(page.locator('#glyphPicker')).toBeVisible();
  await testInfo.attach('editor-panels-'+testInfo.project.name,{body:await page.screenshot({animations:'disabled',fullPage:true}),contentType:'image/png'});
+ // Capture the actual animation preview, where the legacy theme previously leaked through.
+ await page.locator('#glyphClose').click();
+ await page.locator('#animationPlay').click();
+ await expect(page.locator('#previewBanner')).toBeVisible();
+ await page.locator('#quickPlay').click(); // Pause to keep the capture deterministic.
+ await page.locator('.stagebar .help-trigger').click();
+ await expect(page.locator('#contextHelp')).toBeVisible();
+ await testInfo.attach('animation-preview-help-'+testInfo.project.name,{body:await page.screenshot({animations:'disabled',fullPage:true}),contentType:'image/png'});
+
 });
