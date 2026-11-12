@@ -133,7 +133,11 @@ dialog::backdrop{background:#0009}
 #downloadPreview,#resizePreview{width:auto;height:auto;max-height:260px;margin:auto;background:repeating-conic-gradient(#304055 0 25%,#1c2a3b 0 50%) 0/16px 16px;cursor:default}
 #resizePreview{max-height:110px}#downloadDimensions{margin-top:12px}
 .glyph canvas{background:#000!important}.glyph{color:#fff}
-#glyphPin{font-size:.75rem;padding:7px}.glyph-picker.pinned{position:static;width:300px;border-radius:0;box-shadow:none;flex:none}
+#glyphPin{font-size:.75rem;padding:7px}
+#glyphPin{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;color:#23344b;background:#eee7d6;border:1px solid #8a8d8d;border-radius:8px;box-shadow:0 2px 0 #a49b8c}
+#glyphPin svg{display:block;pointer-events:none}
+#glyphPin[aria-pressed=true]{background:#c94e1a!important;color:#fff!important;border-color:#8c3215!important;box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)}
+.picker-title h2{margin-right:auto}.glyph-picker.pinned{position:static;width:300px;border-radius:0;box-shadow:none;flex:none}
 #downloadPreview{width:100%;object-fit:contain}
 @media(max-width:800px){#saveStatus{display:none}.drawing-strip{gap:4px}.tool-label{display:none}.drawing-strip button{padding:8px 10px}}
 @media(max-width:600px){#downloadOpen{font-size:.76rem;padding:8px}#projectMenu>summary{padding:11px 7px}.download-layout{grid-template-columns:1fr;gap:0}#downloadFigure{order:-1;margin:10px 0}#downloadPreview{max-height:120px}#downloadDescription{display:none}#quickPlay{min-width:44px;padding:8px}.drawing-strip{padding:6px 5px}#glyphToggle{padding:7px}#glyphToggle span{display:none}#inkQuick{padding:8px}#inkChip{margin:0}.app-title .subtitle{display:none}}
@@ -451,7 +455,7 @@ header #saveStatus,header .status,header .note{color:#34465a}
 <div class="task-progress"><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
 <aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
-<div class="picker-heading"><div class="picker-title"><h2>Glyphs</h2><button id="glyphPin" aria-pressed="false" title="Keep glyphs beside the canvas">Pin</button><button id="glyphClose" aria-label="Close glyph picker">✕</button></div>
+<div class="picker-heading"><div class="picker-title"><h2>Glyphs</h2><button id="glyphPin" aria-pressed="false" aria-label="Pin glyph picker" title="Keep glyph picker open"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5-4 1-3 4 1 4-2 2-5-5-5 7 3-9-3-3 2-2 4 1 4-3 1-4Z"/></svg></button><button id="glyphClose" aria-label="Close glyph picker">✕</button></div>
 </div>
 <div class="row"><label class="glyph-filter"><input id="showAlphanumerics" type="checkbox"> Show letters &amp; numbers</label></div><p id="hiddenGlyph" class="note" hidden>Selected glyph is outside this view. Choose a visible glyph, change Browse glyphs, or show letters &amp; numbers.</p>
 <div class="row"><div class="field"><label for="glyphFamily">Browse glyphs</label><select id="glyphFamily"><option value="similar" selected>Grouped by shape</option><option value="recent">Recently used</option><option value="favorites">Favorites</option><option value="blocks">Blocks</option><option value="lines">Lines</option><option value="corners">Corners</option><option value="diagonals">Diagonals</option><option value="symbols">Symbols</option></select></div><button id="favoriteGlyph" aria-pressed="false" title="Favorite the selected glyph">☆</button></div><div id="palette" class="palette"></div><p id="glyphEmpty" class="note" hidden>No glyphs here yet. Choose a glyph, or tap ☆ to keep it in Favorites.</p>
@@ -1242,6 +1246,38 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  /* Give the glyph picker title breathing room beside the panel edge. */
  .glyph-picker .picker-heading{padding-inline:12px}
 
+ /* Symmetry uses the same keycap geometry and active state as drawing tools. */
+ #symmetryMenu{border:0;border-radius:0;background:transparent}
+ #symmetryMenu>summary{
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  min-height:44px;padding:8px 12px;cursor:pointer;
+  color:#23344b;background:#eee7d6;border:1px solid #8a8d8d;border-radius:8px;
+  box-shadow:0 2px 0 #a49b8c;
+ }
+ #symmetryMenu>summary::-webkit-details-marker{display:none}
+ #symmetryMenu>summary.symmetry-on{
+  color:#fff9ee!important;background:#c94e1a!important;border-color:#8c3215!important;
+  box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)
+ }
+ #symmetryMenu>summary:focus-visible{outline:3px solid #007e9c;outline-offset:2px}
+ #symmetryMenu>summary:active{box-shadow:inset 0 3px 6px #0004!important;transform:translateY(2px)}
+
+ /* Align the symmetry disclosure with the adjacent hardware buttons. */
+ #symmetryMenu>summary{list-style:none;font:inherit;line-height:normal}
+ #symmetryMenu>summary::marker{content:""}
+ #symmetryMenu>summary:after{content:"▾";font-size:.7em;opacity:.75;margin-left:3px}
+ #symmetryMenu[open]>summary:after{content:"▴"}
+ /* Scan-friendly help: concise introduction, separated action points. */
+ .context-help .help-intro{margin:12px 0;font-weight:600;line-height:1.45}
+ .context-help .help-points{margin:8px 0 2px;padding-left:1.25rem;display:grid;gap:10px}
+ .context-help .help-points li{padding-left:3px;line-height:1.5}
+
+ .context-help h4{margin:16px 0 6px;font-size:.86rem}
+ .context-help .help-control,.context-help .help-key{display:inline-block;vertical-align:baseline;padding:1px 6px;border:1px solid #a6a096;border-radius:5px;background:#eee7d6;color:#23344b;font-size:.86em;font-weight:650;line-height:1.55;box-shadow:0 2px 0 #9a948b;white-space:nowrap}
+ .context-help .help-key{font-family:inherit;background:#f8f4eb;border-color:#c5beb0;box-shadow:0 2px 0 #9c968a}
+ .context-help .help-example{margin-top:16px;padding:12px;border-radius:8px;background:#263a50}
+ .context-help .help-example p{margin:6px 0 0}
+ .context-help .help-points strong{font-weight:700}
  /* Selected PETSCII keycaps display white ROM glyphs against orange. */
  .glyph-picker .palette .glyph.active canvas,
  .glyph-picker .palette .glyph[aria-pressed=true] canvas{
@@ -1305,9 +1341,51 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  const help=document.createElement('section');help.id='contextHelp';help.className='context-help';help.setAttribute('popover','manual');help.setAttribute('role','dialog');help.setAttribute('aria-labelledby','contextHelpTitle');help.innerHTML='<button id="closeHelp" aria-label="Close help">✕</button><h3 id="contextHelpTitle"></h3><div id="contextHelpBody"></div>';document.body.append(help);let helpButton;
  function closeHelp(){if(!help.matches(':popover-open'))return;help.hidePopover();helpButton?.setAttribute('aria-expanded','false');helpButton?.focus({preventScroll:true})}
  $('closeHelp').onclick=closeHelp;
- function helpFor(anchor,title,body){const b=document.createElement('button');b.className='help-trigger';b.textContent='?';b.setAttribute('aria-label','Help about '+title.toLowerCase());b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','contextHelp');b.onclick=()=>{if(helpButton===b&&help.matches(':popover-open')){closeHelp();return}helpButton?.setAttribute('aria-expanded','false');helpButton=b;$('contextHelpTitle').textContent=title;$('contextHelpBody').textContent=body;const parent=b.closest('dialog')||document.body;if(help.parentElement!==parent){if(help.matches(':popover-open'))help.hidePopover();parent.append(help)}help.showPopover();b.setAttribute('aria-expanded','true');$('closeHelp').focus({preventScroll:true})};anchor.append(b)}
- helpFor(document.querySelector('.stagebar'),'Drawing tools','Choose a glyph and ink, then draw. Fill replaces connected cells with the same glyph and ink. Line, Rectangle and Select accept a drag or two taps when Tap endpoints is enabled. Drag inside a selection to move it, or choose Move/Duplicate and tap a destination. Text accepts letters, numbers and common punctuation: tap a starting cell, type below the canvas, then Apply text. Arrow keys move the keyboard cursor; Enter marks endpoints or focuses text entry; Escape or Cancel abandons a pending operation.');
- for(const [id,title,text] of [['projectMenu','Projects','Project files preserve editable artwork and replay. Automatic drafts stay on this device; download a project before changing devices.'],['animationDetails','Animation timing','Timeline & preview groups duration and playback. Movement and Color each group their effect, direction, waveform, height and cycles. Wave height controls movement distance; 100% is twice the earlier range. Color wave height narrows the color sequence independently. Low heights can round to a static result. Loop duration sets the entire timeline. Movement and color cycles repeat independently within it. An 8-second loop with 4 movement cycles repeats its movement every 2 seconds. Preview never changes the original artwork.'],['colorDetails','Colors','Ink affects future strokes. Background is shared. Recolor entire drawing changes all occupied cells and can be undone.'],['export-data','C64 exports','Readiness checks geometry, distinct glyph patterns, program memory and estimated update time. PRG and D64 share the same player limits. Ready means exporter checks passed, not guaranteed smooth playback on physical hardware.']]){const section=$(id),anchor=document.createElement('div');if(section.tagName==='DETAILS'){anchor.className='help-section';section.before(anchor);anchor.append(section)}else{anchor.className='section-heading';const heading=document.createElement('h3');heading.textContent='C64 exports';anchor.append(heading);section.prepend(anchor)}helpFor(anchor,title,text)}
+ function helpFor(anchor,title,body){const b=document.createElement('button');b.className='help-trigger';b.textContent='?';b.setAttribute('aria-label','Help about '+title.toLowerCase());b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','contextHelp');b.onclick=()=>{if(helpButton===b&&help.matches(':popover-open')){closeHelp();return}helpButton?.setAttribute('aria-expanded','false');helpButton=b;$('contextHelpTitle').textContent=title;$('contextHelpBody').innerHTML=body;const parent=b.closest('dialog')||document.body;if(help.parentElement!==parent){if(help.matches(':popover-open'))help.hidePopover();parent.append(help)}help.showPopover();b.setAttribute('aria-expanded','true');$('closeHelp').focus({preventScroll:true})};anchor.append(b)}
+ const control=(label)=>'<span class="help-control">'+label+'</span>';
+ const key=(label)=>'<kbd class="help-key">'+label+'</kbd>';
+ const bullet=(label,description)=>'<li><strong>'+label+':</strong> '+description+'</li>';
+ const helpList=(intro,items,extra='')=>'<p class="help-intro">'+intro+'</p><ul class="help-points">'+items.join('')+'</ul>'+extra;
+ const drawingHelp=helpList('Choose a character using '+control('Glyphs')+', select an ink color, and draw directly on the canvas.',[
+ bullet('Fill','Replaces connected cells containing the same character and ink.'),
+ bullet('Line, Rectangle &amp; Select','Drag across the canvas, or enable '+control('Tap endpoints')+' to select two points.'),
+ bullet('Move &amp; Duplicate','Drag an existing selection, or choose '+control('Move')+' or '+control('Duplicate')+' and tap its destination.'),
+ bullet('Text','Tap a starting cell, enter your text, then press '+control('Apply text')+'.')
+ ],'<h4>Keyboard shortcuts</h4><ul class="help-points">'+[
+ bullet(key('← ↑ ↓ →'),'Move the cursor.'),
+ bullet(key('Enter ↵'),'Mark an endpoint or focus text entry.'),
+ bullet(key('Esc')+' / '+control('Cancel'),'Abandon a pending operation.')
+ ].join('')+'</ul>');
+ helpFor(document.querySelector('.stagebar'),'Drawing tools',drawingHelp);
+ const helpSections=[
+ ['projectMenu','Projects',helpList('Keep editable artwork and animation settings together.',[
+ bullet('Project files','Preserve editable artwork and replay.'),
+ bullet('Automatic drafts','Stay on the current device.'),
+ bullet('Moving devices','Download your project file before switching devices.')
+ ])],
+ ['animationDetails','Animation timing',helpList('Control how your animation moves, changes color, and repeats.',[
+ bullet('Timeline','Sets the total duration of one animation loop.'),
+ bullet('Movement','Choose an effect, direction, waveform, height, and number of cycles.'),
+ bullet('Color','Configure color effects independently of movement.'),
+ bullet('Wave height','Controls movement distance. At 100%, the range is twice the earlier implementation.'),
+ bullet('Color wave height','Limits how much of the color sequence is used.'),
+ bullet('Cycles','Determines how often each effect repeats within the loop.'),
+ bullet('Low heights','May produce no visible change because of rounding.'),
+ bullet('Preview','Never changes your original artwork.')
+ ],'<div class="help-example"><strong>Example: An 8-second animation</strong><p>Loop duration: <strong>8 seconds</strong></p><p>Movement cycles: <strong>4</strong></p><p>Movement repeats every <strong>2 seconds</strong>.</p></div>')],
+ ['colorDetails','Colors',helpList('Choose colors for new strokes or update existing artwork.',[
+ bullet('Ink','Changes the color of future strokes without recoloring existing artwork.'),
+ bullet('Background','Sets the shared canvas background.'),
+ bullet('Recolor entire drawing','Changes all occupied cells.'),
+ bullet('Undo','Restores the previous colors after recoloring.')
+ ])],
+ ['export-data','C64 exports',helpList('Check whether your artwork fits the Commodore 64 player limits.',[
+ bullet('Readiness checks','Evaluate geometry, distinct character patterns, memory usage, and estimated update time.'),
+ bullet('PRG &amp; D64','Both formats share the same player limitations.'),
+ bullet('Ready status','Means export checks passed. It does not guarantee smooth playback on physical Commodore 64 hardware.')
+ ])]
+ ];
+ for(const [id,title,body] of helpSections){const section=$(id),anchor=document.createElement('div');if(section.tagName==='DETAILS'){anchor.className='help-section';section.before(anchor);anchor.append(section)}else{anchor.className='section-heading';const heading=document.createElement('h3');heading.textContent='C64 exports';anchor.append(heading);section.prepend(anchor)}helpFor(anchor,title,body)}
  $('animationInfo').parentElement.hidden=true;const c64Explanation=document.querySelector('#exportC64 + p.note');c64Explanation.hidden=true;document.querySelector('button[aria-label="Help about c64 exports"]').addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const copy=c64Explanation.cloneNode(true);copy.hidden=false;$('contextHelpBody').append(copy)});
  for(const selector of ['#projectMenu .note','#colorDetails .note','#animationInfo','#helpDetails','#downloadDescription'])document.querySelectorAll(selector).forEach(e=>e.hidden=true);
  canvas.addEventListener('pointerdown',e=>{if(help.matches(':popover-open')){e.stopImmediatePropagation();e.preventDefault();closeHelp()}},true);
