@@ -1,5 +1,16 @@
 /* PETSCII Graphics Lab editor styles. Keep artwork colors separate from interface chrome. */
-:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light;background:#d4cbb7;color:#23344b}
+/* Shared interface tokens. Artwork palette values must not depend on these. */
+:root{
+ --ui-control-bg:#eee7d6;
+ --ui-text:#23344b;
+ --ui-control-border:#8a8d8d;
+ --ui-selected-bg:#ffdf70;
+ --ui-heading:#26364a;
+ --ui-control-hover:#fff6e4;
+ --ui-focus-border:#526f86;
+}
+
+:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light;background:#d4cbb7;color:var(--ui-text)}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 button,select,textarea,input{font:inherit}
@@ -127,7 +138,7 @@ dialog::backdrop{background:#0009}
 #resizePreview{max-height:110px}#downloadDimensions{margin-top:12px}
 .glyph canvas{background:#000!important}.glyph{color:#fff}
 #glyphPin{font-size:.75rem;padding:7px}
-#glyphPin{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;color:#23344b;background:#eee7d6;border:1px solid #8a8d8d;border-radius:8px;box-shadow:0 2px 0 #a49b8c}
+#glyphPin{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;color:var(--ui-text);background:var(--ui-control-bg);border:1px solid var(--ui-control-border);border-radius:8px;box-shadow:0 2px 0 #a49b8c}
 #glyphPin svg{display:block;pointer-events:none}
 #glyphPin[aria-pressed=true]{background:#c94e1a!important;color:#fff!important;border-color:#8c3215!important;box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)}
 .picker-title h2{margin-right:auto}.glyph-picker.pinned{position:static;width:300px;border-radius:0;box-shadow:none;flex:none}
@@ -156,9 +167,9 @@ dialog::backdrop{background:#0009}
 
 /* C64C case tokens. Monitor darkness is intentionally separate from interface chrome. */
 :root{
- --case-trim:#d4cbb7;--case-seam:#8294a6;--case-highlight:#ffdf70;
- --case-bg:#d4cbb7;--case-surface:#eee7d6;--case-raised:#eee7d6;
- --case-edge:#8a8d8d;--case-text:#23344b;--case-muted:#45566d;
+ --case-trim:#d4cbb7;--case-seam:#8294a6;--case-highlight:var(--ui-selected-bg);
+ --case-bg:#d4cbb7;--case-surface:var(--ui-control-bg);--case-raised:var(--ui-control-bg);
+ --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#45566d;
  color-scheme:light;
 }
 @media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
@@ -173,7 +184,7 @@ header .subtitle{color:#45566d}
 header button,header select,header #projectMenu>summary{background:#293b56;color:#f8f8f4;border-color:#667a90}
 .drawing-strip{background:#d4cbb7;border-bottom:3px solid #8795a5;box-shadow:inset 0 1px #eee7d7}
 .drawing-strip button,.drawing-strip summary{background:#253651;color:#f7f9ff;border-color:#6e829b}
-.drawing-strip button[aria-pressed=true],.drawing-strip button.active{background:#ffdf70;color:#17243a;border-color:#a07b20}
+.drawing-strip button[aria-pressed=true],.drawing-strip button.active{background:var(--ui-selected-bg);color:#17243a;border-color:#a07b20}
 .sidebar,.glyph-picker{background:#d4cbb7;color:#1b2638;border-color:#8e8a80}
 .sidebar label,.glyph-picker label,.sidebar .note,.glyph-picker .note{color:#384b60}
 .sidebar summary,.glyph-picker summary,.sidebar legend,.glyph-picker h2{color:#22334b}
@@ -183,7 +194,7 @@ header button,header select,header #projectMenu>summary{background:#293b56;color
  background:#273c58;color:#f5f7fc;border-color:#6d8399
 }
 .sidebar button.active,.sidebar button[aria-pressed=true]:not(.color-grid button),
-.glyph-picker button.active{background:#ffdf70;color:#17243a;border-color:#aa862e}
+.glyph-picker button.active{background:var(--ui-selected-bg);color:#17243a;border-color:#aa862e}
 .sidebar .summary-badge{color:#304f78}
 .stage{background:radial-gradient(circle at 50% 30%,#263956,#0b1229 80%)}
 .canvas-frame{border:3px solid #d4cbb7;box-shadow:0 0 0 1px #536980,0 8px 18px #0005;background:#0b1228}
@@ -198,11 +209,11 @@ header button,header select,header #projectMenu>summary,
 .sidebar button:not(.color-grid button):not(.glyph),
 .sidebar select,.sidebar input[type=number],.sidebar input[type=text],
 .glyph-picker button:not(.glyph),.glyph-picker select{
- background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+ background:var(--ui-control-bg);color:var(--ui-text);border:1px solid var(--ui-control-border);
  box-shadow:inset 0 1px #fffaf0,0 2px 0 #9b9589;
 }
 header button:hover,.drawing-strip button:hover,.sidebar button:hover,.glyph-picker button:hover{
- background:#fff6e4;border-color:#526f86;
+ background:var(--ui-control-hover);border-color:var(--ui-focus-border);
 }
 header button:active,.drawing-strip button:active,.sidebar button:active,.glyph-picker button:active{
  box-shadow:inset 0 2px 3px #0002;transform:translateY(1px);
@@ -211,17 +222,17 @@ header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
 .drawing-strip button.active,.sidebar button.active,
 .sidebar button[aria-pressed=true]:not(.color-grid button),
 .glyph-picker button.active,.export-tabs [aria-selected=true]{
- background:#ffdf70;color:#19283b;border-color:#a18a48;
+ background:var(--ui-selected-bg);color:#19283b;border-color:#a18a48;
  box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
 }
 .sidebar .glyph-family,.glyph-picker .glyph-family,
 .sidebar .group-body,.sidebar .field label,.glyph-picker .note,
-.sidebar .note,.glyph-picker h2,.sidebar legend{color:#26364a}
+.sidebar .note,.glyph-picker h2,.sidebar legend{color:var(--ui-heading)}
 .sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section{
  background:#eee8db;border-color:#999388;
 }
 .sidebar .tool-group>summary,.sidebar .animation-section legend,.sidebar .sidebar-section legend{
- color:#26364a;
+ color:var(--ui-heading);
 }
 .glyph-picker .glyph{background:#172840;color:#f9fbff;border-color:#66849f;box-shadow:none}
 .glyph-picker .glyph:hover{background:#263b58}
@@ -233,13 +244,13 @@ select,header select,.sidebar select,.glyph-picker select,dialog select,
 .animation-section select,.sidebar-section select{
  color-scheme:light;
  background-color:#f5efe1;
- color:#23344b;
+ color:var(--ui-text);
  border:1px solid #858d91;
  box-shadow:inset 0 1px #fffaf0,0 2px 0 #a69e90;
 }
-select option,select optgroup{background:#fffaf0;color:#23344b}
+select option,select optgroup{background:#fffaf0;color:var(--ui-text)}
 select:hover,header select:hover,.sidebar select:hover,.glyph-picker select:hover,dialog select:hover{
- background-color:#fffaf0;border-color:#526f86;
+ background-color:#fffaf0;border-color:var(--ui-focus-border);
 }
 select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 
@@ -257,7 +268,7 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 .glyph-picker .palette .glyph:hover{background:#fff8e7;border-color:#5b7793}
 .glyph-picker .palette .glyph.active,
 .glyph-picker .palette .glyph[aria-pressed=true]{
- background:#ffdf70;color:#1b293a;border-color:#9b7a31;
+ background:var(--ui-selected-bg);color:#1b293a;border-color:#9b7a31;
  box-shadow:inset 1px 1px #fff1b5,inset -1px -1px #d5b85b,0 2px 0 #a38b4c;
 }
 .glyph-picker .palette .glyph small{color:#485a6e;font-weight:700;right:3px;bottom:1px}
@@ -268,11 +279,11 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 :root{color-scheme:light}
 .sidebar,.glyph-picker,.picker-heading,.tool-strip,
 .project-menu,.tool-popover,#inkPopover,dialog{
- background:#e5ddcb;color:#26364a;border-color:#9c9689;
+ background:#e5ddcb;color:var(--ui-heading);border-color:#9c9689;
 }
 .sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section,
 .project-menu fieldset{
- background:#f1eadc;color:#26364a;border-color:#aaa294;
+ background:#f1eadc;color:var(--ui-heading);border-color:#aaa294;
 }
 .sidebar summary,.glyph-picker summary,.project-menu summary,
 .project-menu legend,dialog legend,dialog h2,
@@ -286,20 +297,20 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 .picker-heading{background:#e5ddcb}
 .project-menu input:not([type=checkbox]),dialog input:not([type=checkbox]),
 .project-menu textarea,dialog textarea,.sidebar textarea{
- background:#fff9ed;color:#26364a;border:1px solid #9b9486;
+ background:#fff9ed;color:var(--ui-heading);border:1px solid #9b9486;
 }
 .project-menu button,dialog button,#inkPopover button,.tool-popover button{
- background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+ background:var(--ui-control-bg);color:var(--ui-text);border:1px solid var(--ui-control-border);
 }
 .project-menu button:hover,dialog button:hover,#inkPopover button:hover,.tool-popover button:hover{
- background:#fff6e4;border-color:#526f86;
+ background:var(--ui-control-hover);border-color:var(--ui-focus-border);
 }
 .project-menu button[aria-pressed=true],dialog button[aria-pressed=true],
 .project-menu button.active,dialog button.active{
- background:#ffdf70;color:#19283b;border-color:#a18a48;
+ background:var(--ui-selected-bg);color:#19283b;border-color:#a18a48;
 }
 .help-disclosure{border-color:#aaa294}
-#downloadFigure{background:#eee7d6}
+#downloadFigure{background:var(--ui-control-bg)}
 #downloadPreview,#resizePreview{background:repeating-conic-gradient(#d7d1c5 0 25%,#f7f0e3 0 50%) 0/16px 16px}
 
 
@@ -325,16 +336,16 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 .drawing-strip .hint{color:#293a4d}
 header #saveStatus,header .status,header .note{color:#34465a}
 #inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{
- background:#ffdf70;color:#19283b;border-color:#a18a48;
+ background:var(--ui-selected-bg);color:#19283b;border-color:#a18a48;
  box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
 }
 .context-help{
- background:#f1eadc;color:#26364a;border:2px solid #9c9689;
+ background:#f1eadc;color:var(--ui-heading);border:2px solid #9c9689;
  box-shadow:0 12px 30px #1a233650;
 }
-.context-help h3,.context-help p,.context-help li{color:#26364a}
+.context-help h3,.context-help p,.context-help li{color:var(--ui-heading)}
 .context-help button{
- background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+ background:var(--ui-control-bg);color:var(--ui-text);border:1px solid var(--ui-control-border);
 }
 @media(max-width:690px){.canvas-frame{border-width:7px 8px 9px;border-radius:15px}}
 
