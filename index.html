@@ -1257,7 +1257,8 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  }
  #animationPlay[aria-pressed=true],#motionPreview[aria-pressed=true],
  #c64Preview[aria-pressed=true]{
-  background:#ffdf70;color:#17243a;border-color:#aa862e;
+  background:var(--key-active);color:#fff9ee;border-color:var(--key-active-edge);
+  box-shadow:inset 0 3px 6px #61240b70,0 1px 0 #f8edda;transform:translateY(2px);
  }
 #c64Readiness{border:1px solid #64778d;border-radius:8px;padding:12px;margin:10px 0;font-size:.85rem}#c64Readiness p{margin:5px 0}#c64Readiness ul{padding-left:20px}
  @media(min-width:691px) and (max-width:900px){.sidebar{position:static;width:260px;box-shadow:none}.sidebar.closed{width:0;padding:0;visibility:hidden}.app-title h1{font-size:.95rem}#saveStatus{display:none}}
