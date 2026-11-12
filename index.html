@@ -277,6 +277,26 @@ select:hover,header select:hover,.sidebar select:hover,.glyph-picker select:hove
 }
 select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 
+/* C64C-inspired PETSCII keycaps; preserve picker size and authentic ROM pixels. */
+.glyph-picker .palette .glyph{
+ background:linear-gradient(155deg,#fff9eb 0%,#eee5d2 72%,#d6cbb7 100%);
+ color:#24364c;border:1px solid #8f8a80;border-radius:6px;
+ box-shadow:inset 1px 1px #fffdf5,inset -1px -1px #b9b09f,0 2px 0 #9d9587;
+ padding:3px 3px 5px;min-height:44px;height:44px;
+}
+.glyph-picker .palette .glyph canvas{
+ width:28px!important;height:28px!important;background:transparent!important;
+ filter:invert(1); /* Black ROM canvas becomes ivory-white; white glyph pixels become black. */
+}
+.glyph-picker .palette .glyph:hover{background:#fff8e7;border-color:#5b7793}
+.glyph-picker .palette .glyph.active,
+.glyph-picker .palette .glyph[aria-pressed=true]{
+ background:#ffdf70;color:#1b293a;border-color:#9b7a31;
+ box-shadow:inset 1px 1px #fff1b5,inset -1px -1px #d5b85b,0 2px 0 #a38b4c;
+}
+.glyph-picker .palette .glyph small{color:#485a6e;font-weight:700;right:3px;bottom:1px}
+.glyph-picker .palette .glyph:focus-visible{outline:3px solid #007e9c;outline-offset:2px}
+
 </style>
 </head>
 <body>
