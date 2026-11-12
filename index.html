@@ -1292,6 +1292,12 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  #symmetryMenu>summary{min-height:44px}
  @media(max-width:800px){.drawing-strip{gap:6px}}
  @media(max-width:600px){.drawing-strip{gap:4px}}
+ /* Unified top-bar geometry: Project is a details/summary, not a button. */
+ header button,header select,header #projectMenu>summary,header #downloadOpen{box-sizing:border-box;min-height:44px;height:44px;max-height:44px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1.2;padding-top:0;padding-bottom:0}
+ header #projectMenu>summary{padding-top:0;padding-bottom:0}
+ header #projectMenu{align-self:center}
+ header{align-items:center;column-gap:8px}
+ @media(max-width:600px){header{column-gap:6px}header #projectMenu>summary{padding-top:0;padding-bottom:0}}
  /* Selected PETSCII keycaps display white ROM glyphs against orange. */
  .glyph-picker .palette .glyph.active canvas,
  .glyph-picker .palette .glyph[aria-pressed=true] canvas{
