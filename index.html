@@ -1183,7 +1183,101 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  .help-section{position:relative}.help-section>details>summary,.help-section>#projectMenu>summary{padding-right:40px}.help-section>.help-trigger{position:absolute;right:5px;top:7px}
  .section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.section-heading h3{margin:0}
  .context-help{position:fixed;inset:auto 12px 12px auto;margin:0;width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;background:#18263a;color:#eef5fa;border:1px solid #71869c;border-radius:12px;padding:16px;z-index:30;font-size:.9rem;line-height:1.5}
- .context-help h3{margin:0}.context-help button{float:right}#c64Readiness{border:1px solid #64778d;border-radius:8px;padding:12px;margin:10px 0;font-size:.85rem}#c64Readiness p{margin:5px 0}#c64Readiness ul{padding-left:20px}
+ .context-help h3{margin:0}.context-help button{float:right}
+
+ /* Theme rules must follow the dynamically injected legacy styles. */
+ .stagebar,.stagebar #dimensions,.stagebar #status,.stagebar #quickglyph,
+ .stagefoot,.preview-banner,#previewLabel{
+  color:#293a4d;text-shadow:0 1px #fff7;
+ }
+ .stage #stageHint{color:#293a4d}
+ .canvas-frame:has(canvas.preview-locked){
+  border-color:#e7dfcf #b9af9e #a69c8b #ded5c4;
+ }
+ .context-help{
+  background:#f1eadc;color:#26364a;border:2px solid #9c9689;
+  box-shadow:0 12px 30px #1a233650;
+ }
+ .context-help h3,.context-help p,.context-help li{color:#26364a}
+
+ /* Help triggers use the same ivory hardware key treatment as other controls. */
+ .stagebar .help-trigger,.help-section .help-trigger{
+  background:#eee7d6!important;color:#23344b!important;
+  border:1px solid #8a8d8d!important;
+  box-shadow:0 2px 0 #a49b8c;
+ }
+ .stagebar .help-trigger:hover,.help-section .help-trigger:hover{
+  background:#fff6e4!important;border-color:#526f86!important;
+ }
+ .stagebar .help-trigger[aria-expanded=true],.help-section .help-trigger[aria-expanded=true]{
+  background:var(--key-active,#c94e1a)!important;color:#fff9ee!important;
+  border-color:var(--key-active-edge,#8c3215)!important;
+  box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px);
+ }
+
+ /* Warm orange hardware accent with a recessed selected-key state. */
+ :root{--key-active:#c94e1a;--key-active-edge:#8c3215}
+ header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
+ .drawing-strip button.active,.sidebar button.active,
+ .sidebar button[aria-pressed=true]:not(.color-grid button),
+ .glyph-picker button.active,.export-tabs [aria-selected=true],
+ .project-menu button[aria-pressed=true],dialog button[aria-pressed=true],
+ .project-menu button.active,dialog button.active,
+ #animationPlay[aria-pressed=true],#motionPreview[aria-pressed=true],
+ #c64Preview[aria-pressed=true]{
+  background:var(--key-active)!important;color:#fff9ee!important;
+  border-color:var(--key-active-edge)!important;
+  box-shadow:inset 0 3px 6px #61240b70,inset 0 1px 2px #fff5,0 1px 0 #f8edda!important;
+  transform:translateY(2px);
+ }
+ header button:active,.drawing-strip button:active,.sidebar button:active,
+ .glyph-picker button:active,.preview-banner button:active{
+  box-shadow:inset 0 3px 6px #0004!important;transform:translateY(2px);
+ }
+ @media(prefers-reduced-motion:no-preference){
+  header button,.drawing-strip button,.sidebar button,.glyph-picker button,
+  .preview-banner button{transition:background-color .12s,border-color .12s,box-shadow .12s,transform .12s}
+ }
+
+ /* Give the glyph picker title breathing room beside the panel edge. */
+ .glyph-picker .picker-heading{padding-inline:12px}
+
+ /* Selected PETSCII keycaps display white ROM glyphs against orange. */
+ .glyph-picker .palette .glyph.active canvas,
+ .glyph-picker .palette .glyph[aria-pressed=true] canvas{
+  filter:brightness(0) invert(1)!important; /* Preserve transparency; make ROM pixels white. */
+  mix-blend-mode:normal;
+ }
+ .glyph-picker .palette .glyph.active small,
+ .glyph-picker .palette .glyph[aria-pressed=true] small{color:#fff9ee}
+
+ /* Keep animation controls readable regardless of the legacy runtime skin. */
+ .stage .preview-banner,#previewLabel{color:#293a4d!important;text-shadow:none!important}
+ .stage .preview-banner #returnDrawing{
+  background:#eee7d6!important;color:#23344b!important;
+  border:1px solid #8a8d8d!important;
+ }
+ .stagebar>.help-trigger{
+  background:#eee7d6!important;color:#23344b!important;
+  border:1px solid #8a8d8d!important;
+ }
+ /* Native export sections were inheriting the old dark-dialog heading color. */
+ dialog details>summary,dialog .help-disclosure>summary,
+ dialog details>summary::marker{
+  color:#35475a!important;
+ }
+ dialog details>summary:hover{color:#172b45!important}
+
+ .context-help button,.preview-banner button,
+ #animationPlay,#animationStop,#motionPreview,#c64Preview{
+  background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+ }
+ #animationPlay[aria-pressed=true],#motionPreview[aria-pressed=true],
+ #c64Preview[aria-pressed=true]{
+  background:var(--key-active);color:#fff9ee;border-color:var(--key-active-edge);
+  box-shadow:inset 0 3px 6px #61240b70,0 1px 0 #f8edda;transform:translateY(2px);
+ }
+#c64Readiness{border:1px solid #64778d;border-radius:8px;padding:12px;margin:10px 0;font-size:.85rem}#c64Readiness p{margin:5px 0}#c64Readiness ul{padding-left:20px}
  @media(min-width:691px) and (max-width:900px){.sidebar{position:static;width:260px;box-shadow:none}.sidebar.closed{width:0;padding:0;visibility:hidden}.app-title h1{font-size:.95rem}#saveStatus{display:none}}
  @media(max-width:600px){.drawing-strip{gap:4px}header{gap:6px}.app-title{min-width:0}.app-title h1{font-size:.8rem}}
  @media(max-height:500px) and (max-width:1000px) and (orientation:landscape){
