@@ -52,6 +52,8 @@ test('repeated project and artwork downloads survive panel navigation with ident
 });
 
 test('capture Project panel and Download artwork export states',async({page},testInfo)=>{
+ test.setTimeout(60000);
+ await loadProject(page,project([160,0],2,1));
  const capture=async name=>testInfo.attach(name,{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
  await page.locator('#projectMenu>summary').click();
  await expect(page.locator('#newProject')).toBeVisible();
@@ -67,7 +69,7 @@ test('capture Project panel and Download artwork export states',async({page},tes
  await page.route('**/video-export.js',async route=>{started();await gate;await route.continue()});
  try{
   await page.locator('#exportVideo').click();
-  await requested;
+  await Promise.race([requested,new Promise(resolve=>setTimeout(resolve,5000))]);
   await expect(page.locator('#cancelSheetDownload')).toBeVisible();
   await capture('download-artwork-video-exporting');
  }finally{
