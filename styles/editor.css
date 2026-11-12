@@ -113,6 +113,15 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 }
 
 .symmetry-on{color:var(--case-text);background:#176655;border-radius:9px}#downloadPreview{width:100%;object-fit:contain}#saveFailure{color:#ffcc95;margin:0}
+/* C64C case tokens. Monitor darkness is intentionally separate from interface chrome. */
+:root{
+ --case-trim:var(--ui-case-bg);--case-seam:#8294a6;--case-highlight:var(--ui-selected-bg);
+ --case-bg:var(--ui-case-bg);--case-surface:var(--ui-control-bg);--case-raised:var(--ui-control-bg);
+ --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#45566d;
+ color-scheme:light;
+}
+@media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
+
 /* Keep frequent actions stable; occasional controls live in separate surfaces. */
 button,select,.field input[type=number]{min-height:44px}
 .drawing-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:7px 10px;flex:none;background:var(--case-bg);border-bottom:1px solid #30445d;z-index:8}
@@ -170,15 +179,6 @@ dialog::backdrop{background:#0009}
 .sidebar-section .field{min-width:0}
 .sidebar-section select{min-width:0;padding-inline:5px}
 @media(min-width:691px){.animation-section{grid-template-columns:repeat(auto-fit,minmax(min(95px,100%),1fr))}}
-
-/* C64C case tokens. Monitor darkness is intentionally separate from interface chrome. */
-:root{
- --case-trim:var(--ui-case-bg);--case-seam:#8294a6;--case-highlight:var(--ui-selected-bg);
- --case-bg:var(--ui-case-bg);--case-surface:var(--ui-control-bg);--case-raised:var(--ui-control-bg);
- --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#45566d;
- color-scheme:light;
-}
-@media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
 
 /* Second pass: make the shared hardware language visible beyond subtle borders. */
 :root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light}
