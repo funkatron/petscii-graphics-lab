@@ -1,6 +1,12 @@
 /* PETSCII Graphics Lab editor styles. Keep artwork colors separate from interface chrome. */
 /* Shared interface tokens. Artwork palette values must not depend on these. */
 :root{
+ --ui-case-bg:#d4cbb7;
+ --ui-control-highlight:#fffaf0;
+ --ui-selected-text:#19283b;
+ --ui-selected-border:#a18a48;
+ --ui-panel-bg:#e5ddcb;
+ --ui-bezel-highlight:#e7dfcf;
  --ui-control-bg:#eee7d6;
  --ui-text:#23344b;
  --ui-control-border:#8a8d8d;
@@ -10,7 +16,7 @@
  --ui-focus-border:#526f86;
 }
 
-:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light;background:#d4cbb7;color:var(--ui-text)}
+:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light;background:var(--ui-case-bg);color:var(--ui-text)}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 button,select,textarea,input{font:inherit}
@@ -167,8 +173,8 @@ dialog::backdrop{background:#0009}
 
 /* C64C case tokens. Monitor darkness is intentionally separate from interface chrome. */
 :root{
- --case-trim:#d4cbb7;--case-seam:#8294a6;--case-highlight:var(--ui-selected-bg);
- --case-bg:#d4cbb7;--case-surface:var(--ui-control-bg);--case-raised:var(--ui-control-bg);
+ --case-trim:var(--ui-case-bg);--case-seam:#8294a6;--case-highlight:var(--ui-selected-bg);
+ --case-bg:var(--ui-case-bg);--case-surface:var(--ui-control-bg);--case-raised:var(--ui-control-bg);
  --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#45566d;
  color-scheme:light;
 }
@@ -176,20 +182,20 @@ dialog::backdrop{background:#0009}
 
 /* Second pass: make the shared hardware language visible beyond subtle borders. */
 :root{font-family:system-ui,-apple-system,sans-serif;color-scheme:light}
-body{background:#d4cbb7;color:var(--case-text)}
-.app{background:#d4cbb7}
-header{background:linear-gradient(180deg,#e4dcc9 0%,#d4cbb7 100%);color:#1b2638;border-top:5px solid #eee8d9;border-bottom:3px solid #8294a6;box-shadow:inset 0 -1px #f8f1e3}
+body{background:var(--ui-case-bg);color:var(--case-text)}
+.app{background:var(--ui-case-bg)}
+header{background:linear-gradient(180deg,#e4dcc9 0%,var(--ui-case-bg) 100%);color:#1b2638;border-top:5px solid #eee8d9;border-bottom:3px solid #8294a6;box-shadow:inset 0 -1px #f8f1e3}
 header h1{color:#26344b;font-weight:800;text-shadow:0 1px #fff8}
 header .subtitle{color:#45566d}
 header button,header select,header #projectMenu>summary{background:#293b56;color:#f8f8f4;border-color:#667a90}
-.drawing-strip{background:#d4cbb7;border-bottom:3px solid #8795a5;box-shadow:inset 0 1px #eee7d7}
+.drawing-strip{background:var(--ui-case-bg);border-bottom:3px solid #8795a5;box-shadow:inset 0 1px #eee7d7}
 .drawing-strip button,.drawing-strip summary{background:#253651;color:#f7f9ff;border-color:#6e829b}
 .drawing-strip button[aria-pressed=true],.drawing-strip button.active{background:var(--ui-selected-bg);color:#17243a;border-color:#a07b20}
-.sidebar,.glyph-picker{background:#d4cbb7;color:#1b2638;border-color:#8e8a80}
+.sidebar,.glyph-picker{background:var(--ui-case-bg);color:#1b2638;border-color:#8e8a80}
 .sidebar label,.glyph-picker label,.sidebar .note,.glyph-picker .note{color:#384b60}
 .sidebar summary,.glyph-picker summary,.sidebar legend,.glyph-picker h2{color:#22334b}
 .sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section,.glyph-picker .tool-group{background:#e4dece;border-color:#9e9b91}
-.sidebar .tool-strip,.glyph-picker .picker-heading{background:#d4cbb7}
+.sidebar .tool-strip,.glyph-picker .picker-heading{background:var(--ui-case-bg)}
 .sidebar button,.sidebar select,.sidebar input[type=number],.sidebar input[type=text],.glyph-picker button,.glyph-picker select{
  background:#273c58;color:#f5f7fc;border-color:#6d8399
 }
@@ -197,9 +203,9 @@ header button,header select,header #projectMenu>summary{background:#293b56;color
 .glyph-picker button.active{background:var(--ui-selected-bg);color:#17243a;border-color:#aa862e}
 .sidebar .summary-badge{color:#304f78}
 .stage{background:radial-gradient(circle at 50% 30%,#263956,#0b1229 80%)}
-.canvas-frame{border:3px solid #d4cbb7;box-shadow:0 0 0 1px #536980,0 8px 18px #0005;background:#0b1228}
+.canvas-frame{border:3px solid var(--ui-case-bg);box-shadow:0 0 0 1px #536980,0 8px 18px #0005;background:#0b1228}
 .stagebar,.stagefoot{color:#e3e8f4}
-dialog{border:4px solid #d4cbb7;box-shadow:0 18px 65px #000a}
+dialog{border:4px solid var(--ui-case-bg);box-shadow:0 18px 65px #000a}
 @media(max-width:690px){.sidebar{box-shadow:12px 0 30px #0008}}
 
 
@@ -210,7 +216,7 @@ header button,header select,header #projectMenu>summary,
 .sidebar select,.sidebar input[type=number],.sidebar input[type=text],
 .glyph-picker button:not(.glyph),.glyph-picker select{
  background:var(--ui-control-bg);color:var(--ui-text);border:1px solid var(--ui-control-border);
- box-shadow:inset 0 1px #fffaf0,0 2px 0 #9b9589;
+ box-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 #9b9589;
 }
 header button:hover,.drawing-strip button:hover,.sidebar button:hover,.glyph-picker button:hover{
  background:var(--ui-control-hover);border-color:var(--ui-focus-border);
@@ -222,7 +228,7 @@ header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
 .drawing-strip button.active,.sidebar button.active,
 .sidebar button[aria-pressed=true]:not(.color-grid button),
 .glyph-picker button.active,.export-tabs [aria-selected=true]{
- background:var(--ui-selected-bg);color:#19283b;border-color:#a18a48;
+ background:var(--ui-selected-bg);color:var(--ui-selected-text);border-color:var(--ui-selected-border);
  box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
 }
 .sidebar .glyph-family,.glyph-picker .glyph-family,
@@ -246,11 +252,11 @@ select,header select,.sidebar select,.glyph-picker select,dialog select,
  background-color:#f5efe1;
  color:var(--ui-text);
  border:1px solid #858d91;
- box-shadow:inset 0 1px #fffaf0,0 2px 0 #a69e90;
+ box-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 #a69e90;
 }
-select option,select optgroup{background:#fffaf0;color:var(--ui-text)}
+select option,select optgroup{background:var(--ui-control-highlight);color:var(--ui-text)}
 select:hover,header select:hover,.sidebar select:hover,.glyph-picker select:hover,dialog select:hover{
- background-color:#fffaf0;border-color:var(--ui-focus-border);
+ background-color:var(--ui-control-highlight);border-color:var(--ui-focus-border);
 }
 select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 
@@ -279,7 +285,7 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 :root{color-scheme:light}
 .sidebar,.glyph-picker,.picker-heading,.tool-strip,
 .project-menu,.tool-popover,#inkPopover,dialog{
- background:#e5ddcb;color:var(--ui-heading);border-color:#9c9689;
+ background:var(--ui-panel-bg);color:var(--ui-heading);border-color:#9c9689;
 }
 .sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section,
 .project-menu fieldset{
@@ -293,8 +299,8 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 .sidebar .summary-badge,.project-menu .save-hint{
  color:#35475a;
 }
-.sidebar .tool-strip{background:#e5ddcb}
-.picker-heading{background:#e5ddcb}
+.sidebar .tool-strip{background:var(--ui-panel-bg)}
+.picker-heading{background:var(--ui-panel-bg)}
 .project-menu input:not([type=checkbox]),dialog input:not([type=checkbox]),
 .project-menu textarea,dialog textarea,.sidebar textarea{
  background:#fff9ed;color:var(--ui-heading);border:1px solid #9b9486;
@@ -307,7 +313,7 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 }
 .project-menu button[aria-pressed=true],dialog button[aria-pressed=true],
 .project-menu button.active,dialog button.active{
- background:var(--ui-selected-bg);color:#19283b;border-color:#a18a48;
+ background:var(--ui-selected-bg);color:var(--ui-selected-text);border-color:var(--ui-selected-border);
 }
 .help-disclosure{border-color:#aaa294}
 #downloadFigure{background:var(--ui-control-bg)}
@@ -336,7 +342,7 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 .drawing-strip .hint{color:#293a4d}
 header #saveStatus,header .status,header .note{color:#34465a}
 #inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{
- background:var(--ui-selected-bg);color:#19283b;border-color:#a18a48;
+ background:var(--ui-selected-bg);color:var(--ui-selected-text);border-color:var(--ui-selected-border);
  box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
 }
 .context-help{
@@ -353,11 +359,11 @@ header #saveStatus,header .status,header .note{color:#34465a}
 /* Slightly deeper, forward-projecting molded CRT surround. */
 .canvas-frame{
  border-width:15px 17px 19px;
- border-color:#e7dfcf #b9af9e #a69c8b #ded5c4;
+ border-color:var(--ui-bezel-highlight) #b9af9e #a69c8b #ded5c4;
  border-radius:26px;
  box-shadow:
   0 0 0 2px #8b8172,
-  0 0 0 6px #e7dfcf,
+  0 0 0 6px var(--ui-bezel-highlight),
   0 4px 0 7px #a79b89,
   0 12px 18px 5px #554c3e70,
   inset 0 6px 15px #000d,
@@ -365,5 +371,5 @@ header #saveStatus,header .status,header .note{color:#34465a}
 }
 @media(max-width:690px){
  .canvas-frame{border-width:9px 10px 12px;border-radius:18px;
- box-shadow:0 0 0 2px #8b8172,0 0 0 4px #e7dfcf,0 3px 0 5px #a79b89,0 8px 12px #554c3e65,inset 0 4px 10px #000b}
+ box-shadow:0 0 0 2px #8b8172,0 0 0 4px var(--ui-bezel-highlight),0 3px 0 5px #a79b89,0 8px 12px #554c3e65,inset 0 4px 10px #000b}
 }
