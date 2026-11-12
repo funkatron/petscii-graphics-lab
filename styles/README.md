@@ -22,3 +22,26 @@ The extracted stylesheet preserves the existing cascade and contains historical 
 5. Keep future mode-specific styling in separate files or token scopes, not in conditional CSS based on artwork contents.
 
 No new machine modes are enabled by this change.
+
+## Shared 64C form-control conventions
+
+Use the tokens in `editor.css` for all editor surfaces (sidebar, glyph picker,
+Project menu, popovers and dialogs). Avoid native white form surfaces or isolated
+hex-color overrides for routine controls.
+
+| Element | Treatment | Token |
+| --- | --- | --- |
+| Panel/dialog | Warm ivory enclosure | `--ui-panel-bg` |
+| Editable text, number, dropdown, textarea | Recessed warm cream with dark text | `--ui-field-bg`, `--ui-field-border`, `--ui-text` |
+| Ordinary button | Raised beige with distinct border | `--ui-control-bg`, `--ui-control-border` |
+| Selected/pressed action | Warm gold; never rely on color alone | `--ui-selected-bg`, `--ui-selected-text` |
+| Disabled control | Muted beige and readable subdued text | `--ui-field-disabled-bg`, `--ui-field-disabled-text` |
+| Keyboard focus | Visible high-contrast outline | `--ui-focus-border` |
+
+**Rules**
+
+1. Preserve native semantics and accessible names. Text/number fields and selects should look editable; buttons should look pressable. Do not style color swatches, checkboxes, radio buttons, sliders, file inputs or artwork pixels as ordinary text fields.
+2. Do not use pure-white input backgrounds to signal editability. Use warm cream and clear borders instead. Keep hover, focus, pressed, disabled and progress states distinguishable without relying on color alone.
+3. Use shared tokens rather than adding per-dialog color declarations. If a new control needs a distinct treatment, document why here and test it across the affected surfaces.
+4. Check iPad portrait, iPad landscape and desktop screenshots, especially **Download artwork** before and during export. Automated browser checks do not replace real-device accessibility and touch checks.
+5. This is UI chrome only: never change C64 artwork, monitor pixels or export colors through these tokens.
