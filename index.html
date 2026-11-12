@@ -1199,6 +1199,17 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
   box-shadow:0 12px 30px #1a233650;
  }
  .context-help h3,.context-help p,.context-help li{color:#26364a}
+
+ /* Help triggers use the same ivory hardware key treatment as other controls. */
+ .stagebar .help-trigger,.help-section .help-trigger{
+  background:#eee7d6!important;color:#23344b!important;
+  border:1px solid #8a8d8d!important;
+  box-shadow:0 2px 0 #a49b8c;
+ }
+ .stagebar .help-trigger:hover,.help-section .help-trigger:hover{
+  background:#ffdf70!important;border-color:#aa862e!important;
+ }
+
  .context-help button,.preview-banner button,
  #animationPlay,#animationStop,#motionPreview,#c64Preview{
   background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
