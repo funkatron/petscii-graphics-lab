@@ -1246,6 +1246,22 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  /* Give the glyph picker title breathing room beside the panel edge. */
  .glyph-picker .picker-heading{padding-inline:12px}
 
+ /* Symmetry uses the same keycap geometry and active state as drawing tools. */
+ #symmetryMenu{border:0;border-radius:0;background:transparent}
+ #symmetryMenu>summary{
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  min-height:44px;padding:8px 12px;cursor:pointer;
+  color:#23344b;background:#eee7d6;border:1px solid #8a8d8d;border-radius:8px;
+  box-shadow:0 2px 0 #a49b8c;
+ }
+ #symmetryMenu>summary::-webkit-details-marker{display:none}
+ #symmetryMenu>summary.symmetry-on{
+  color:#fff9ee!important;background:#c94e1a!important;border-color:#8c3215!important;
+  box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)
+ }
+ #symmetryMenu>summary:focus-visible{outline:3px solid #007e9c;outline-offset:2px}
+ #symmetryMenu>summary:active{box-shadow:inset 0 3px 6px #0004!important;transform:translateY(2px)}
+
  /* Selected PETSCII keycaps display white ROM glyphs against orange. */
  .glyph-picker .palette .glyph.active canvas,
  .glyph-picker .palette .glyph[aria-pressed=true] canvas{
