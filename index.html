@@ -297,6 +297,45 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 .glyph-picker .palette .glyph small{color:#485a6e;font-weight:700;right:3px;bottom:1px}
 .glyph-picker .palette .glyph:focus-visible{outline:3px solid #007e9c;outline-offset:2px}
 
+
+/* Consistent 64C enclosure surfaces: panels, popovers, dialogs and their text. */
+:root{color-scheme:light}
+.sidebar,.glyph-picker,.picker-heading,.tool-strip,
+.project-menu,.tool-popover,#inkPopover,dialog{
+ background:#e5ddcb;color:#26364a;border-color:#9c9689;
+}
+.sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section,
+.project-menu fieldset{
+ background:#f1eadc;color:#26364a;border-color:#aaa294;
+}
+.sidebar summary,.glyph-picker summary,.project-menu summary,
+.project-menu legend,dialog legend,dialog h2,
+.sidebar label,.glyph-picker label,.project-menu label,dialog label,
+.sidebar .note,.glyph-picker .note,.project-menu .note,dialog .note,
+.sidebar .motion-summary,.sidebar .motion-summary span,
+.sidebar .summary-badge,.project-menu .save-hint{
+ color:#35475a;
+}
+.sidebar .tool-strip{background:#e5ddcb}
+.picker-heading{background:#e5ddcb}
+.project-menu input:not([type=checkbox]),dialog input:not([type=checkbox]),
+.project-menu textarea,dialog textarea,.sidebar textarea{
+ background:#fff9ed;color:#26364a;border:1px solid #9b9486;
+}
+.project-menu button,dialog button,#inkPopover button,.tool-popover button{
+ background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+}
+.project-menu button:hover,dialog button:hover,#inkPopover button:hover,.tool-popover button:hover{
+ background:#fff6e4;border-color:#526f86;
+}
+.project-menu button[aria-pressed=true],dialog button[aria-pressed=true],
+.project-menu button.active,dialog button.active{
+ background:#ffdf70;color:#19283b;border-color:#a18a48;
+}
+.help-disclosure{border-color:#aaa294}
+#downloadFigure{background:#eee7d6}
+#downloadPreview,#resizePreview{background:repeating-conic-gradient(#d7d1c5 0 25%,#f7f0e3 0 50%) 0/16px 16px}
+
 </style>
 </head>
 <body>
