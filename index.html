@@ -1239,6 +1239,9 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
   .preview-banner button{transition:background-color .12s,border-color .12s,box-shadow .12s,transform .12s}
  }
 
+ /* Give the glyph picker title breathing room beside the panel edge. */
+ .glyph-picker .picker-heading{padding-inline:12px}
+
  /* Selected PETSCII keycaps display white ROM glyphs against orange. */
  .glyph-picker .palette .glyph.active canvas,
  .glyph-picker .palette .glyph[aria-pressed=true] canvas{
