@@ -372,6 +372,25 @@ header #saveStatus,header .status,header .note{color:#34465a}
 }
 @media(max-width:690px){.canvas-frame{border-width:7px 8px 9px;border-radius:15px}}
 
+
+/* Slightly deeper, forward-projecting molded CRT surround. */
+.canvas-frame{
+ border-width:15px 17px 19px;
+ border-color:#e7dfcf #b9af9e #a69c8b #ded5c4;
+ border-radius:26px;
+ box-shadow:
+  0 0 0 2px #8b8172,
+  0 0 0 6px #e7dfcf,
+  0 4px 0 7px #a79b89,
+  0 12px 18px 5px #554c3e70,
+  inset 0 6px 15px #000d,
+  inset 6px 0 12px #0009;
+}
+@media(max-width:690px){
+ .canvas-frame{border-width:9px 10px 12px;border-radius:18px;
+ box-shadow:0 0 0 2px #8b8172,0 0 0 4px #e7dfcf,0 3px 0 5px #a79b89,0 8px 12px #554c3e65,inset 0 4px 10px #000b}
+}
+
 </style>
 </head>
 <body>
