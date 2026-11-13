@@ -54,6 +54,13 @@
 - Fix: compare cells/inks (+ assert pepto-pal); debounce schedule without revision bump; only reschedule from redraw when data export tab is open.
 - Pushed `6468a5e` for GitHub Actions (no local Playwright).
 
+## Flush ink palette tiles (2026-11-13)
+
+- Branch `ui/flush-ink-palette` / PR #97.
+- `.color-grid` VIC + TED swatches: gap 0, no border/radius/chrome; selection is inset white+black ring.
+- Compact injected button min-height/padding no longer applies to swatches.
+- Tests: colors flush abutment; machine-modes TED 121 / 8-col / gap 0.
+
 ## PR #96 WebKit dialog stability (2026-11-13)
 
 - Follow-up: unit+chromium green; both iPad jobs still failed — modal recentered while readiness rewrote, so `#downloadClose` / export tabs never settled; suite hit 600s.
