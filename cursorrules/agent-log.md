@@ -53,3 +53,9 @@
 - iPad portrait: `#import` / export-tab clicks never settled while readiness panel stuck on "Checking…"; `schedule()` bumped `revision` on every redraw and invalidated in-flight checks.
 - Fix: compare cells/inks (+ assert pepto-pal); debounce schedule without revision bump; only reschedule from redraw when data export tab is open.
 - Pushed `6468a5e` for GitHub Actions (no local Playwright).
+
+## PR #96 WebKit dialog stability (2026-11-13)
+
+- Follow-up: unit+chromium green; both iPad jobs still failed — modal recentered while readiness rewrote, so `#downloadClose` / export tabs never settled; suite hit 600s.
+- Stop schedule-from-redraw and panel rewrite on debounce; helpers close dialog via `.close()` and skip already-selected tabs; focused CI global-timeout 20m.
+- Retriggered on `5bd6a18`.
