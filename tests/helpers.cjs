@@ -22,13 +22,27 @@ async function reveal(page,selector){
   const tab=page.locator('[data-export-tab="'+location.mode+'"]');
   if(await tab.getAttribute('aria-selected')!=='true')await tab.click();
  }
- // Open disclosures from outside in, using actual user controls.
+ // Open disclosures from outside in. Prefer the open property: WebKit can keep
+ // summary controls unstable while the header/toolbar reflows around Machine.
  const details=await target.evaluate(e=>{const ids=[];for(let p=e.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS'&&p.id)ids.unshift(p.id);return ids});
- for(const id of details)if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click();
+ for(const id of details){
+  await page.locator('#'+id).evaluate(e=>{if(!e.open)e.open=true});
+ }
  if(selector==='#png'||selector==='#svg')await page.locator('#stillFormat').selectOption(selector.slice(1));
  if(location.format)await page.locator('#animationFormat').selectOption(location.format);
 }
-async function ui(page,selector,method='click',...args){await reveal(page,selector);const result=await page.locator(selector).first()[method](...args);if(method==='selectOption'&&['#columns','#rows'].includes(selector))await page.locator('#applyResize').click();return result}
+async function ui(page,selector,method='click',...args){
+ await reveal(page,selector);
+ const target=page.locator(selector).first();
+ // Toolbar chrome can still jitter briefly after canvas fit; force only for plain clicks.
+ if(method==='click'&&args.length===0){
+  await target.click({force:true});
+  return;
+ }
+ const result=await target[method](...args);
+ if(method==='selectOption'&&['#columns','#rows'].includes(selector))await page.locator('#applyResize').click();
+ return result;
+}
 const SAVE_PROJECT_SELECTOR = '#saveProject';
 
 async function clickDownloadTrigger(page, selector) {

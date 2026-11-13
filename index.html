@@ -413,10 +413,18 @@ $('retryGlyphs').onclick=async()=>{
 function fit(){
  const r=frame.getBoundingClientRect();
  const availableW=Math.max(20,r.width-22),availableH=Math.max(20,r.height-22);
- unit=Math.max(1,Math.min(availableW/W,availableH/H));
- const width=W*unit,height=H*unit,dpr=Math.min(devicePixelRatio||1,3);
- canvas.style.width=width+'px';canvas.style.height=height+'px';
+ const nextUnit=Math.max(1,Math.min(availableW/W,availableH/H));
+ // Integer CSS pixels: float style strings can oscillate and re-trigger ResizeObserver,
+ // which keeps toolbar controls (Undo, Project) unstable for Playwright on iPad WebKit.
+ const width=Math.round(W*nextUnit),height=Math.round(H*nextUnit),dpr=Math.min(devicePixelRatio||1,3);
+ const styleW=width+'px',styleH=height+'px';
  const pixelWidth=Math.round(width*dpr),pixelHeight=Math.round(height*dpr);
+ if(canvas.style.width===styleW&&canvas.style.height===styleH&&canvas.width===pixelWidth&&canvas.height===pixelHeight){
+  unit=width/W;
+  return;
+ }
+ unit=width/W;
+ canvas.style.width=styleW;canvas.style.height=styleH;
  if(canvas.width!==pixelWidth)canvas.width=pixelWidth;
  if(canvas.height!==pixelHeight)canvas.height=pixelHeight;
  redraw();
