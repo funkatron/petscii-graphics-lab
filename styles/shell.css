@@ -1,195 +1,138 @@
 /* Shell layout / geometry / responsive overrides.
-   Formerly injected at runtime from index.html; linked after editor.css so cascade order matches.
-   Theme tokens and case paints live in editor.css. */
+   Linked after editor.css. Theme colors live in editor.css — keep this file geometry-first.
+   Use !important only when a fixed size must beat a broader control rule. */
 
-
+/* Compact control sizing (desktop chrome packing). */
 button,select,.field input[type=number]{min-height:38px;font-size:.875rem;padding:6px 9px}
 .color-grid button{min-height:0;padding:0;border:0;border-radius:0;box-shadow:none;transform:none}
-.drawing-strip{justify-content:flex-start;gap:8px;padding:6px 10px;flex-wrap:wrap}
-header{height:auto;min-height:61px;flex-wrap:wrap}
+.drawing-strip{justify-content:flex-start;gap:8px;padding:6px 10px;flex-wrap:wrap;align-items:center;column-gap:6px}
+header{height:auto;min-height:61px;flex-wrap:wrap;align-items:center;column-gap:8px}
 header .app-title{flex-basis:0}
-.text-entry{flex:none;max-height:35%;overflow:auto;border:1px solid #42536b;border-radius:9px;padding:8px}.text-entry textarea{min-height:48px;max-height:90px;font:1rem/1.3 ui-monospace,monospace;resize:vertical}.text-entry .row{align-items:center;margin:4px 0 0}.text-entry .note{flex:1;min-width:140px}.text-entry button{flex:none}
+.text-entry{flex:none;max-height:35%;overflow:auto;border:1px solid var(--panel-well-border);border-radius:9px;padding:8px}
+.text-entry textarea{min-height:48px;max-height:90px;font:1rem/1.3 ui-monospace,monospace;resize:vertical}
+.text-entry .row{align-items:center;margin:4px 0 0}
+.text-entry .note{flex:1;min-width:140px}
+.text-entry button{flex:none}
 .recovery-group{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
+/* Fixed tool-icon box must beat generic button padding. */
 .tool-icon{width:38px;height:38px;padding:8px!important;display:inline-grid;place-items:center}
 .tool-icon svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-#quickglyph{display:none}.stagefoot{font-size:.8rem;min-height:1.6em}.note{font-size:.8rem}
+#quickglyph{display:none}
+.stagefoot{font-size:.8rem;min-height:1.6em}
+.note{font-size:.8rem}
 .selection-dock{height:46px;flex:none;overflow-x:auto;overflow-y:hidden}
 /* Reserve gesture actions before a drag, but give idle drawing tools the space. */
 .app:not(:has(#tool-select[aria-pressed=true],#tool-line[aria-pressed=true],#tool-rectangle[aria-pressed=true])) .selection-dock:has(>.selection-actions[hidden]){display:none}
 .selection-actions{width:max-content;min-width:100%;height:44px;flex-wrap:nowrap;padding:3px 0;background:transparent}
 .selection-actions button,.selection-actions span{flex-shrink:0}
-.stage{position:relative}.sidebar{transition:none}.help-trigger{width:28px;min-width:28px;min-height:28px;height:28px;padding:2px!important;border-radius:50%;font-size:.75rem;font-weight:bold}
-.help-section{position:relative}.help-section>details>summary,.help-section>#projectMenu>summary{padding-right:40px}.help-section>.help-trigger{position:absolute;right:5px;top:7px}
-.section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.section-heading h3{margin:0}
-.context-help{position:fixed;inset:auto 12px 12px auto;margin:0;width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;background:#18263a;color:#eef5fa;border:1px solid #71869c;border-radius:12px;padding:16px;z-index:30;font-size:.9rem;line-height:1.5}
-.context-help h3{margin:0}.context-help button{float:right}
+.stage{position:relative}
+.sidebar{transition:none}
+/* Compact help affordance geometry (colors in editor.css). */
+.help-trigger{width:28px;min-width:28px;min-height:28px;height:28px;padding:2px!important;border-radius:50%;font-size:.75rem;font-weight:bold}
+.help-section{position:relative}
+.help-section>details>summary,.help-section>#projectMenu>summary{padding-right:40px}
+.help-section>.help-trigger{position:absolute;right:5px;top:7px}
+.section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.section-heading h3{margin:0}
+.context-help{position:fixed;inset:auto 12px 12px auto;margin:0;width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;border-radius:12px;padding:16px;z-index:30;font-size:.9rem;line-height:1.5}
+.context-help h3{margin:0}
+.context-help button{float:right}
+.context-help .help-intro{margin:12px 0;font-weight:600;line-height:1.45}
+.context-help .help-points{margin:8px 0 2px;padding-left:1.25rem;display:grid;gap:10px}
+.context-help .help-points li{padding-left:3px;line-height:1.5}
+.context-help h4{margin:16px 0 6px;font-size:.86rem}
+.context-help .help-control,.context-help .help-key{display:inline-block;vertical-align:baseline;padding:1px 6px;border-radius:5px;font-size:.86em;font-weight:650;line-height:1.55;white-space:nowrap}
+.context-help .help-example{margin-top:16px;padding:12px;border-radius:8px}
+.context-help .help-example p{margin:6px 0 0}
+.context-help .help-points strong{font-weight:700}
 
-/* Theme/token overrides that must follow the compact layout rules above. */
-.stagebar,.stagebar #dimensions,.stagebar #status,.stagebar #quickglyph,
-.stagefoot,.preview-banner,#previewLabel{
- color:var(--stage-caption);text-shadow:var(--stage-caption-shadow);
-}
-.stage #stageHint{color:var(--stage-caption)}
 .canvas-frame:has(canvas.preview-locked){
  border-color:var(--ui-bezel-highlight) #b9af9e #a69c8b var(--ui-bezel-highlight);
 }
-.context-help{
- background:var(--help-panel-bg);color:var(--help-panel-fg);border:2px solid var(--help-panel-border);
- box-shadow:0 12px 30px #1a233650;
-}
-.context-help h3,.context-help p,.context-help li{color:var(--help-panel-fg)}
 
-/* Help triggers use the same hardware key treatment as other controls. */
-.stagebar .help-trigger,.help-section .help-trigger{
- background:var(--ui-ivory)!important;color:var(--ui-ink)!important;
- border:1px solid var(--ui-outline)!important;
- box-shadow:0 2px 0 var(--ui-control-shadow);
-}
-.stagebar .help-trigger:hover,.help-section .help-trigger:hover{
- background:var(--ui-control-hover)!important;border-color:var(--ui-focus-border)!important;
-}
-.stagebar .help-trigger[aria-expanded=true],.help-section .help-trigger[aria-expanded=true]{
- background:var(--key-active)!important;color:#fff9ee!important;
- border-color:var(--key-active-edge)!important;
- box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px);
-}
-header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
-.drawing-strip button.active,.sidebar button.active,
-.sidebar button[aria-pressed=true]:not(.color-grid button),
-.glyph-picker button.active,.export-tabs [aria-selected=true],
-.project-menu button[aria-pressed=true],dialog button[aria-pressed=true],
-.project-menu button.active,dialog button.active,
-#animationPlay[aria-pressed=true],#motionPreview[aria-pressed=true],
-#c64Preview[aria-pressed=true]{
- background:var(--key-active)!important;color:#fff9ee!important;
- border-color:var(--key-active-edge)!important;
- box-shadow:inset 0 3px 6px #61240b70,inset 0 1px 2px #fff5,0 1px 0 #f8edda!important;
- transform:translateY(2px);
-}
-header button:active,.drawing-strip button:active,.sidebar button:active,
-.glyph-picker button:active,.preview-banner button:active{
- box-shadow:inset 0 3px 6px #0004!important;transform:translateY(2px);
-}
 @media(prefers-reduced-motion:no-preference){
  header button,.drawing-strip button,.sidebar button,.glyph-picker button,
  .preview-banner button{transition:background-color .12s,border-color .12s,box-shadow .12s,transform .12s}
 }
 
-/* Give the glyph picker title breathing room beside the panel edge. */
 .glyph-picker .picker-heading{padding-inline:12px}
 
-/* Symmetry disclosure geometry (colors live in editor.css theme tokens). */
+/* Symmetry disclosure geometry (colors in editor.css). */
+#symmetryMenu{position:relative;display:flex;align-items:center;min-height:44px;margin-left:9px;border:0!important;background:transparent!important}
 #symmetryMenu>summary{
- display:inline-flex;align-items:center;justify-content:center;gap:4px;
- min-height:44px;padding:8px 12px;cursor:pointer;border-radius:8px;
- list-style:none;font:inherit;line-height:normal;
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ height:44px;min-height:44px;padding:0 10px!important;margin:0;cursor:pointer;border-radius:8px!important;
+ list-style:none;font:inherit;line-height:normal;box-sizing:border-box;
+ transform:none!important;box-shadow:none!important;
 }
 #symmetryMenu>summary::-webkit-details-marker{display:none}
 #symmetryMenu>summary::marker{content:""}
 #symmetryMenu>summary:after{content:"▾";font-size:.7em;opacity:.75;margin-left:3px}
 #symmetryMenu[open]>summary:after{content:"▴"}
 #symmetryMenu>summary:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:2px}
-#symmetryMenu>summary:active{box-shadow:inset 0 3px 6px #0004!important;transform:translateY(2px)}
-#symmetryMenu>summary.symmetry-on{transform:translateY(2px)}
-/* Scan-friendly help: concise introduction, separated action points. */
-.context-help .help-intro{margin:12px 0;font-weight:600;line-height:1.45}
-.context-help .help-points{margin:8px 0 2px;padding-left:1.25rem;display:grid;gap:10px}
-.context-help .help-points li{padding-left:3px;line-height:1.5}
+#symmetryMenu>summary:active,#symmetryMenu>summary.symmetry-on{transform:none!important}
+.symmetry-chevron{font-size:1rem;line-height:1;opacity:.8;margin-left:2px}
 
-.context-help h4{margin:16px 0 6px;font-size:.86rem}
-.context-help .help-control,.context-help .help-key{display:inline-block;vertical-align:baseline;padding:1px 6px;border:1px solid var(--help-panel-border);border-radius:5px;background:var(--ui-ivory);color:var(--ui-ink);font-size:.86em;font-weight:650;line-height:1.55;box-shadow:0 2px 0 var(--ui-control-shadow);white-space:nowrap}
-.context-help .help-key{font-family:inherit;background:var(--ui-field-bg);border-color:var(--ui-field-border);box-shadow:0 2px 0 var(--ui-control-shadow)}
-.context-help .help-example{margin-top:16px;padding:12px;border-radius:8px;background:#263a50}
-.context-help .help-example p{margin:6px 0 0}
-.context-help .help-points strong{font-weight:700}
-/* Shared surface tokens: keep popover text on themed chrome, not artwork colors. */
-#inkPopover{background:var(--ui-ivory);color:var(--ui-ink);border-color:var(--ui-outline)}
-#inkPopover h2,#inkPopover .note,#inkPopover #inkSelection{color:var(--ui-ink);text-shadow:none}
 #inkPopover .dialog-heading{align-items:center;gap:8px}
 #inkPopover .dialog-heading>button{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;display:grid;place-items:center}
 .picker-title{justify-content:flex-start;gap:8px}
 .picker-title #glyphPin,.picker-title #glyphClose{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
 .picker-title #glyphPin{margin-left:auto}
-.drawing-strip{gap:8px;align-items:center}
 .drawing-strip>button,.drawing-strip>#symmetryMenu>summary{min-height:44px;box-sizing:border-box}
-#symmetryMenu>summary{min-height:44px}
 @media(max-width:800px){.drawing-strip{gap:6px}}
 @media(max-width:600px){.drawing-strip{gap:4px}}
-/* Unified top-bar geometry: Theme/Project are details/summary, not buttons. */
+
+/* Unified top-bar geometry: Project/Machine are details/summary, not buttons. */
 header button,header select,header #projectMenu>summary,header #machineMenu>summary,header #downloadOpen{box-sizing:border-box;min-height:44px;height:44px;max-height:44px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1.2;padding-top:0;padding-bottom:0}
 header #projectMenu>summary,header #machineMenu>summary{padding-top:0;padding-bottom:0}
 header #projectMenu,header #machineMenu{align-self:center}
-header{align-items:center;column-gap:8px}
 @media(max-width:600px){header{column-gap:6px}header #projectMenu>summary,header #machineMenu>summary{padding-top:0;padding-bottom:0}}
+
 /* Glyph favorite is a compact utility action, not a full-width palette control. */
 #favoriteGlyph{flex:0 0 42px!important;inline-size:42px;min-inline-size:42px;max-inline-size:42px;block-size:42px;min-block-size:42px;max-block-size:42px;box-sizing:border-box;padding:0;display:inline-flex;align-items:center;justify-content:center;align-self:center;font-size:1.2rem;line-height:1}
-/* Keep the glyph family selector level with its adjacent favorite action. */
 .picker-heading .glyph-filter{display:flex;align-items:center;min-height:42px;gap:6px}
 .picker-heading #glyphFamily{box-sizing:border-box;height:42px;min-height:42px;max-height:42px;align-self:center;margin-block:0;padding-block:0;line-height:1.2}
 .picker-heading #favoriteGlyph{align-self:center}
-/* Glyph filter: align the star to the select row, not the label+select stack. */
 .glyph-filter-row{display:grid;grid-template-columns:minmax(0,1fr) 42px;column-gap:8px;align-items:end}
 .glyph-filter-row>.field{min-width:0;display:flex;flex-direction:column;gap:5px}
 .glyph-filter-row #glyphFamily{width:100%;min-width:0;height:42px;min-height:42px;max-height:42px;box-sizing:border-box;margin:0;padding-block:0}
 .glyph-filter-row #favoriteGlyph{width:42px;min-width:42px;max-width:42px;height:42px;min-height:42px;max-height:42px;box-sizing:border-box;align-self:end;justify-self:end;margin:0;padding:0;flex:none}
-/* Horizontal controls: shared cross-axis alignment without flattening label stacks. */
+
 .row:not(.glyph-filter-row),.picker-title,.dialog-heading,.section-heading{align-items:center;column-gap:8px}
 .row:not(.glyph-filter-row)>button{align-self:center}
 .row:not(.glyph-filter-row)>.field{align-self:stretch}
-.drawing-strip{align-items:center;column-gap:6px}
 .picker-title>button,.section-heading>button,.dialog-heading>button{align-self:center;flex-shrink:0}
-/* Drawing modifiers are visually separated from tools, not pressed tool buttons. */
-#symmetryMenu{position:relative;display:flex;align-items:center;min-height:44px;margin-left:9px;border:0!important;background:transparent!important}
-#symmetryMenu>summary{height:44px;min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;padding:0 10px!important;margin:0;transform:none!important;box-shadow:none!important;border-radius:8px!important}
-#symmetryMenu>summary.symmetry-on{transform:none!important}
-#symmetryMenu>summary:active{transform:none!important}
-.symmetry-chevron{font-size:1rem;line-height:1;opacity:.8;margin-left:2px}
-/* Shared control geometry (colors from editor.css tokens). */
+
 button{box-sizing:border-box;min-width:max(38px,1.9em)}
 .dialog-heading>button[aria-label]{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center}
 dialog button{min-width:max(44px,2em);box-sizing:border-box}
 dialog button[hidden]{display:none!important}
 #cancelSheetDownload{min-height:44px;padding-inline:14px}
-/* Stacked panel actions fill their available width; inline icon controls stay compact. */
 .project-menu .row{display:flex;flex-direction:column;align-items:stretch;width:100%;box-sizing:border-box}
 .project-menu .row>button:not([hidden]){display:block;width:100%;min-width:0;box-sizing:border-box;flex:0 0 auto}
 .project-menu .project-name>button{width:44px;min-width:44px;flex:0 0 44px}
 .project-menu fieldset{box-sizing:border-box;width:100%}
 
-/* Keep animation controls readable regardless of the legacy runtime skin. */
-.stage .preview-banner,#previewLabel{color:var(--stage-caption)!important;text-shadow:none!important}
-.stage .preview-banner #returnDrawing{
- background:var(--ui-ivory)!important;color:var(--ui-ink)!important;
- border:1px solid var(--ui-outline)!important;
-}
-.stagebar>.help-trigger{
- background:var(--ui-ivory)!important;color:var(--ui-ink)!important;
- border:1px solid var(--ui-outline)!important;
-}
-/* Native export sections were inheriting the old dark-dialog heading color. */
-dialog details>summary,dialog .help-disclosure>summary,
-dialog details>summary::marker{
- color:var(--chrome-label)!important;
-}
-dialog details>summary:hover{color:var(--header-title)!important}
+#c64Readiness{border:1px solid var(--panel-well-border);border-radius:8px;padding:12px;margin:10px 0;font-size:.85rem}
+#c64Readiness p{margin:5px 0}
+#c64Readiness ul{padding-left:20px}
 
-.context-help button,.preview-banner button,
-#animationPlay,#animationStop,#motionPreview,#c64Preview{
- background:var(--ui-ivory);color:var(--ui-ink);border:1px solid var(--ui-outline);
+@media(min-width:691px) and (max-width:900px){
+ .sidebar{position:static;width:280px;box-shadow:none}
+ .sidebar.closed{width:0;padding:0;visibility:hidden}
+ .app-title h1{font-size:.95rem}
+ #saveStatus{display:none}
 }
-#animationPlay[aria-pressed=true],#motionPreview[aria-pressed=true],
-#c64Preview[aria-pressed=true]{
- background:var(--key-active);color:#fff9ee;border-color:var(--key-active-edge);
- box-shadow:inset 0 3px 6px #61240b70,0 1px 0 #f8edda;transform:translateY(2px);
+@media(max-width:600px){
+ .drawing-strip{gap:4px}
+ header{gap:6px}
+ .app-title{min-width:0}
+ .app-title h1{font-size:.8rem}
 }
-#c64Readiness{border:1px solid #64778d;border-radius:8px;padding:12px;margin:10px 0;font-size:.85rem}#c64Readiness p{margin:5px 0}#c64Readiness ul{padding-left:20px}
-@media(min-width:691px) and (max-width:900px){.sidebar{position:static;width:280px;box-shadow:none}.sidebar.closed{width:0;padding:0;visibility:hidden}.app-title h1{font-size:.95rem}#saveStatus{display:none}}
-@media(max-width:600px){.drawing-strip{gap:4px}header{gap:6px}.app-title{min-width:0}.app-title h1{font-size:.8rem}}
 @media(max-height:500px) and (max-width:1000px) and (orientation:landscape){
  /* Retain the current-tool hint for assistive technology; help remains available. */
  #stageHint{position:absolute;width:1px;height:1px;min-height:0;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 }
-/* Keep phone controls inside notches/home indicators in either orientation. */
 @media(max-width:600px),(max-height:500px) and (max-width:1000px){
  .app{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
  .sidebar{position:absolute;left:0;top:0;bottom:0;z-index:5;width:min(320px,86%);box-shadow:12px 0 30px #0008}

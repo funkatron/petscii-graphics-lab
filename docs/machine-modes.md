@@ -134,7 +134,8 @@ Planned modules (names may match repo style when implemented):
 - `plus4-colors.js` — TED drawing + animation source; keep `c64InkToTed`; add `tedInkToC64`.
 - `project-validation.js` — conditional ink ranges; optional `machine` / `palette`.
 - `index.html` — header controls, machine-scoped swatches and animation lists; maps `data-ui-theme`.
-- `styles/editor.css` — shell paints under `html[data-ui-theme]`.
+- `styles/editor.css` — theme tokens and component surfaces under `html[data-ui-theme]`.
+- `styles/shell.css` — compact layout / geometry (linked after `editor.css`).
 - `animation-frames.js` — TED-native Plus/4 color passes and `ted-pal` tagging whenever `machine === 'plus4'`.
 
 Product owns the JS source of truth. Do not dual-write Python MCP machine tables unless a later sync is requested.

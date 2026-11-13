@@ -24,13 +24,13 @@ button,select,textarea,input{font:inherit}
 button,select{border:1px solid var(--case-edge);background:var(--case-raised);color:var(--case-text);border-radius:9px;min-height:44px;padding:8px 11px}
 button{cursor:pointer}
 button:disabled{cursor:default;opacity:.5}
-button:focus-visible,select:focus-visible{outline:3px solid #6cddd0;outline-offset:2px}
+button:focus-visible,select:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:2px}
 button.active{background:var(--case-highlight);border-color:var(--case-edge)}
-button:hover{border-color:#8ba9ba}
+button:hover{border-color:var(--ui-focus-border)}
 .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
-header{height:61px;flex:none;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b4059;padding:8px 14px;background:var(--case-bg)}
+header{height:61px;flex:none;display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--case-bg)}
 h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.08rem;line-height:1.2;margin:0}
-.subtitle{font-size:.72rem;color:#a2b8ca;margin-top:3px}
+.subtitle{font-size:.72rem;color:var(--case-muted);margin-top:3px}
 #toggle{font-size:1.12rem;min-width:43px}
 .layout{display:flex;flex:1;min-height:0;position:relative}
 .sidebar{width:300px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:var(--case-surface);border-right:1px solid var(--case-edge);padding:10px;transition:width .2s ease,padding .2s ease;scrollbar-width:thin}
@@ -50,7 +50,7 @@ h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.08rem;l
  box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 4px #000;
 }
 .color-grid button:focus-visible{outline:2px solid var(--ui-focus-border);outline-offset:-2px;z-index:2}
-#inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{background:#176655;border-color:#77ddc4}.color-chip{display:inline-block;width:14px;height:14px;border:1px solid #95a4b4;border-radius:3px;vertical-align:middle;margin-right:4px}.color-name{display:block;font-size:.67rem;margin-top:3px}#glyphPreview{background:var(--art-bg)}.glyph{color:var(--art-ink)}
+.color-chip{display:inline-block;width:14px;height:14px;border:1px solid var(--case-edge);border-radius:3px;vertical-align:middle;margin-right:4px}.color-name{display:block;font-size:.67rem;margin-top:3px}#glyphPreview{background:var(--art-bg)}.glyph{color:var(--art-ink)}
 .glyph-filter{display:flex;align-items:center;gap:6px;min-height:44px;flex:1}.glyph-filter input{flex:none}
 .glyph-family{grid-column:1/-1;font-size:.78rem;color:var(--case-text);margin:12px 0 3px;font-weight:600}
 .palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:5px;padding:2px}
@@ -70,16 +70,16 @@ label{font-size:.77rem;color:var(--case-muted)}
 input[type=text]{width:100%;min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--case-edge);background:var(--case-raised);color:var(--case-text);border-radius:9px}
 textarea{resize:vertical;width:100%;min-height:80px;background:var(--case-surface);color:var(--case-text);border:1px solid var(--case-edge);border-radius:8px;font:12px/1.45 ui-monospace,monospace;padding:8px}
 .note{font-size:.72rem;color:var(--case-muted);line-height:1.45}
-.stage{min-width:0;min-height:0;flex:1;display:flex;flex-direction:column;padding:12px;gap:9px;background:radial-gradient(circle at 50% 38%,#192c40,#0e1728 75%)}
+/* Stage/monitor colors live in the monitor section below; keep structure here. */
+.stage{min-width:0;min-height:0;flex:1;display:flex;flex-direction:column;padding:12px;gap:9px}
 .stagebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none;min-height:26px}
 .status{font-size:.77rem;color:var(--case-text)}
-#dimensions{font-size:.77rem;color:#a8bacc}
-.canvas-frame{flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #304861;border-radius:12px;background:#0d192b;padding:9px;touch-action:none;overscroll-behavior:contain}
+#dimensions{font-size:.77rem;color:var(--stage-caption)}
+.canvas-frame{flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:12px;padding:9px;touch-action:none;overscroll-behavior:contain}
 canvas.preview-locked{cursor:default}
-.canvas-frame:has(.preview-locked){border-color:#a8c9bd}
 canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:crosshair;image-rendering:pixelated}
 .stagefoot{font-size:.72rem;color:var(--case-muted);flex:none;text-align:center}
-#quickglyph{font-size:1rem;color:#9ee6d4}
+#quickglyph{font-size:1rem;color:var(--stage-caption)}
 [hidden]{display:none!important}
 .app-title{min-width:0;flex:1}
 #glyphToggle{display:flex;align-items:center;gap:7px}
@@ -89,10 +89,10 @@ canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-selec
 .sidebar button{font-size:.79rem;padding:8px 6px}
 .sidebar select,.glyph-picker select{font-size:.84rem}
 .tool-strip button{white-space:nowrap}
-#cancelAnimationExport{width:100%;margin-top:7px;border-color:#dfb77a}
+#cancelAnimationExport{width:100%;margin-top:7px;border-color:var(--ui-selected-border)}
 .tool-group{border:1px solid var(--case-edge);border-radius:9px;margin-bottom:8px}
 summary{cursor:pointer;min-height:44px;padding:12px 10px;font-size:.83rem;font-weight:600;color:var(--case-text)}
-summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radius:8px}
+summary:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:-3px;border-radius:8px}
 .group-body{padding:0 10px 10px}
 .field+.field{margin-top:9px}
 .row .field+.field{margin-top:0}
@@ -102,7 +102,7 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 .summary-badge{float:right;font-size:.65rem;color:var(--case-text);font-weight:400;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .export-tabs{display:flex;gap:4px;margin:10px 0}
 .export-tabs button{flex:1;min-width:0;padding:8px 3px;font-size:.77rem}
-.export-tabs [aria-selected=true]{background:#176655;border-color:#77ddc4}
+.export-tabs [aria-selected=true]{background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge)}
 [role=tabpanel]{padding-top:2px}
 .motion-summary{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;font-size:.72rem;color:var(--case-muted);margin-bottom:10px}
 .motion-summary span{flex-basis:100%}
@@ -127,7 +127,7 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
  .stagefoot{font-size:.65rem}
 }
 
-.symmetry-on{color:var(--case-text);background:#176655;border-radius:9px}#downloadPreview{width:100%;object-fit:contain}#saveFailure{color:#ffcc95;margin:0}
+.symmetry-on{border-radius:9px}#downloadPreview{width:100%;object-fit:contain}#saveFailure{color:var(--ui-accent);margin:0}
 /* C64C case tokens (default). Monitor darkness stays separate from interface chrome. */
 :root,html[data-ui-theme="c64c"]{
  --case-trim:var(--ui-case-bg);--case-seam:#8294a6;--case-highlight:var(--ui-selected-bg);
@@ -162,6 +162,11 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
  --glyph-key-selected-code:var(--text-on-accent);
  --glyph-rom-filter:invert(1);--glyph-rom-filter-selected:brightness(0) invert(1);
  --pin-raised-shadow:0 2px 0 #a49b8c;
+ --key-pressed-shadow:inset 0 3px 6px #61240b70,inset 0 1px 2px #fff5,0 1px 0 #f8edda;
+ --header-title-shadow:0 1px #fff8;
+ --ui-field-bg:#f7f0e3;--ui-field-border:#938a7a;--ui-field-disabled-bg:#ded7c9;
+ --ui-field-disabled-text:#596372;--ui-control-shadow:#a69e90;
+ --monitor-crt:#0b1228;--help-example-bg:#e8e0d0;
  color-scheme:light;
 }
 
@@ -216,6 +221,9 @@ html[data-ui-theme="c128"]{
  --glyph-key-selected-code:var(--text-on-accent);
  --glyph-rom-filter:invert(1);--glyph-rom-filter-selected:brightness(0) invert(1);
  --pin-raised-shadow:0 2px 0 var(--ui-control-shadow);
+ --key-pressed-shadow:inset 0 3px 6px #3a5a7a70,inset 0 1px 2px #fff5,0 1px 0 #ebe7de;
+ --header-title-shadow:0 1px #fff6;
+ --monitor-crt:#0b1228;--help-example-bg:#ddd8ce;
  color-scheme:light;
 }
 
@@ -271,6 +279,9 @@ html[data-ui-theme="plus4"]{
  /* Light ROM pixels on charcoal keys; invert only when selected (white on pink). */
  --glyph-rom-filter:none;--glyph-rom-filter-selected:brightness(0) invert(1);
  --pin-raised-shadow:0 2px 0 var(--ui-control-shadow);
+ --key-pressed-shadow:inset 0 3px 6px #61240b70,inset 0 1px 2px #fff5,0 1px 0 #3a3a3a;
+ --header-title-shadow:none;
+ --monitor-crt:#0b1228;--help-example-bg:#2a2a2a;
  color-scheme:dark;
 }
 
@@ -282,10 +293,9 @@ html[data-ui-theme="plus4"]{
 
 /* Keep frequent actions stable; occasional controls live in separate surfaces. */
 button,select,.field input[type=number]{min-height:44px}
-.drawing-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:7px 10px;flex:none;background:var(--case-bg);border-bottom:1px solid #30445d;z-index:8}
+.drawing-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:7px 10px;flex:none;background:var(--case-bg);z-index:8}
 .drawing-strip button,.drawing-strip summary{white-space:nowrap}
 .drawing-strip summary{padding:10px;list-style:none}
-#paint[aria-pressed=true],#erase[aria-pressed=true],#glyphPin[aria-pressed=true]{background:#176655;border-color:#77ddc4}
 #inkPopover{position:fixed;inset:auto;margin:0;width:min(320px,calc(100vw - 16px));max-height:calc(100dvh - 145px);overflow:auto;background:var(--case-surface);color:var(--case-text);border:1px solid var(--case-edge);border-radius:12px;padding:14px;box-shadow:0 10px 35px #0008}
 #inkPopover h2{font-size:.9rem;margin:0}#inkPopover .color-grid{margin-bottom:0}#inkPopover .color-grid button{font-size:.7rem}#inkSelection{margin:8px 0 0}
 #symmetryMenu{position:relative;border:1px solid var(--case-edge);border-radius:9px}
@@ -296,7 +306,7 @@ button,select,.field input[type=number]{min-height:44px}
 .project-name{display:flex;align-items:center;gap:6px}.project-name input{flex:1;width:0}.project-name span{font-size:.8rem;flex:none}
 .project-menu fieldset{min-width:0;margin:0 0 12px;padding:10px;border:1px solid var(--case-edge);border-radius:8px}.project-menu fieldset:last-child{margin-bottom:0}.project-menu legend{font-size:.8rem;font-weight:700}.project-menu input{box-sizing:border-box;max-width:100%;min-width:0}.project-menu .row{flex-direction:column}.project-menu .save-hint{font-size:.72rem;line-height:1.4;margin:6px 0}
 #saveStatus{max-width:145px;font-size:.68rem}
-.preview-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#b5e9dd;font-size:.8rem}
+.preview-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--stage-caption);font-size:.8rem}
 .preview-banner button{font-size:.75rem}
 .task-progress:has(button[hidden]){display:none}
 #cancelAnimationExport{width:auto;margin:0}
@@ -307,13 +317,13 @@ dialog::backdrop{background:#0009}
 .download-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
 #downloadFigure{margin:16px 0;padding:14px;background:var(--case-surface);border-radius:10px;align-self:start;min-width:0}
 #c64TimingOverrideWrap label{display:flex;align-items:center;gap:8px;min-height:44px}
-#downloadPreview,#resizePreview{width:auto;height:auto;max-height:260px;margin:auto;background:repeating-conic-gradient(#304055 0 25%,#1c2a3b 0 50%) 0/16px 16px;cursor:default}
+#downloadPreview,#resizePreview{width:auto;height:auto;max-height:260px;margin:auto;cursor:default}
 #resizePreview{max-height:110px}#downloadDimensions{margin-top:12px}
 .glyph canvas{background:#000!important}.glyph{color:#fff}
 #glyphPin{font-size:.75rem;padding:7px}
 #glyphPin{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;color:var(--ui-text);background:var(--ui-control-bg);border:1px solid var(--ui-control-border);border-radius:8px;box-shadow:var(--pin-raised-shadow)}
 #glyphPin svg{display:block;pointer-events:none}
-#glyphPin[aria-pressed=true]{background:var(--key-active)!important;color:var(--text-on-accent)!important;border-color:var(--key-active-edge)!important;box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)}
+#glyphPin[aria-pressed=true]{background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);box-shadow:var(--key-pressed-shadow);transform:translateY(2px)}
 .picker-title h2{margin-right:auto}.glyph-picker.pinned{position:static;width:300px;border-radius:0;box-shadow:none;flex:none}
 #downloadPreview{width:100%;object-fit:contain}
 @media(max-width:800px){#saveStatus{display:none}.drawing-strip{gap:4px}.tool-label{display:none}.drawing-strip button{padding:8px 10px}}
@@ -338,37 +348,25 @@ dialog::backdrop{background:#0009}
 .sidebar-section select{min-width:0;padding-inline:5px}
 @media(min-width:691px){.animation-section{grid-template-columns:repeat(auto-fit,minmax(min(95px,100%),1fr))}}
 
-/* Shared component surfaces. Theme scopes override the tokens above; avoid new hex locks here. */
-:root{font-family:system-ui,-apple-system,sans-serif}
+/* Enclosure chrome: one winning paint layer from theme tokens. */
 body{background:var(--ui-case-bg);color:var(--case-text)}
 .app{background:var(--ui-case-bg)}
 header{background:linear-gradient(180deg,var(--header-shine) 0%,var(--ui-case-bg) 100%);color:var(--case-text);border-top:5px solid var(--header-border-top);border-bottom:3px solid var(--case-seam);box-shadow:inset 0 -1px var(--header-inset)}
-header h1{color:var(--header-title);font-weight:800;text-shadow:0 1px #fff8}
+header h1{color:var(--header-title);font-weight:800;text-shadow:var(--header-title-shadow)}
 header .subtitle{color:var(--case-muted)}
-header button,header select,header #projectMenu>summary,header #machineMenu>summary{background:var(--header-control-bg);color:var(--header-control-fg);border-color:var(--header-control-border)}
 .drawing-strip{background:var(--ui-case-bg);border-bottom:3px solid var(--case-seam);box-shadow:inset 0 1px var(--header-border-top)}
-.drawing-strip button,.drawing-strip summary{background:var(--strip-control-bg);color:var(--strip-control-fg);border-color:var(--strip-control-border)}
-.drawing-strip button[aria-pressed=true],.drawing-strip button.active{background:var(--ui-selected-bg);color:var(--ui-selected-text);border-color:var(--ui-selected-border)}
 .sidebar,.glyph-picker{background:var(--ui-case-bg);color:var(--case-text);border-color:var(--case-edge)}
 .sidebar label,.glyph-picker label,.sidebar .note,.glyph-picker .note{color:var(--case-muted)}
 .sidebar summary,.glyph-picker summary,.sidebar legend,.glyph-picker h2{color:var(--header-title)}
 .sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section,.glyph-picker .tool-group{background:var(--panel-well);border-color:var(--panel-well-border)}
 .sidebar .tool-strip,.glyph-picker .picker-heading{background:var(--ui-case-bg)}
-.sidebar button,.sidebar select,.sidebar input[type=number],.sidebar input[type=text],.glyph-picker button,.glyph-picker select{
- background:var(--strip-control-bg);color:var(--strip-control-fg);border-color:var(--strip-control-border)
-}
-.sidebar button.active,.sidebar button[aria-pressed=true]:not(.color-grid button),
-.glyph-picker button.active{background:var(--ui-selected-bg);color:var(--ui-selected-text);border-color:var(--ui-selected-border)}
 .sidebar .summary-badge{color:var(--chrome-label)}
-.stage{background:radial-gradient(circle at 50% 30%,#263956,#0b1229 80%)}
-.canvas-frame{border:3px solid var(--ui-case-bg);box-shadow:0 0 0 1px #536980,0 8px 18px #0005;background:#0b1228}
-.stagebar,.stagefoot{color:#e3e8f4}
 dialog{border:4px solid var(--ui-case-bg);box-shadow:0 18px 65px #000a}
 @media(max-width:690px){.sidebar{box-shadow:12px 0 30px #0008}}
 
 
-/* Hardware key palette: warm light controls, dark labels, and deliberate active keys. */
-header button,header select,header #projectMenu>summary,
+/* Hardware key palette: raised controls; accent keys when pressed. */
+header button,header select,header #projectMenu>summary,header #machineMenu>summary,
 .drawing-strip button,.drawing-strip summary,
 .sidebar button:not(.color-grid button):not(.glyph),
 .sidebar select,.sidebar input[type=number],.sidebar input[type=text],
@@ -379,15 +377,20 @@ header button,header select,header #projectMenu>summary,
 header button:hover,.drawing-strip button:hover,.sidebar button:not(.color-grid button):hover,.glyph-picker button:hover{
  background:var(--ui-control-hover);border-color:var(--ui-focus-border);
 }
-header button:active,.drawing-strip button:active,.sidebar button:not(.color-grid button):active,.glyph-picker button:active{
+header button:active,.drawing-strip button:active,.sidebar button:not(.color-grid button):active,.glyph-picker button:active,
+.preview-banner button:active{
  box-shadow:inset 0 2px 3px #0002;transform:translateY(1px);
 }
 header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
 .drawing-strip button.active,.sidebar button.active,
 .sidebar button[aria-pressed=true]:not(.color-grid button),
-.glyph-picker button.active,.export-tabs [aria-selected=true]{
- background:var(--ui-selected-bg);color:var(--ui-selected-text);border-color:var(--ui-selected-border);
- box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
+.glyph-picker button.active,.export-tabs [aria-selected=true],
+.project-menu button[aria-pressed=true],dialog button[aria-pressed=true],
+.project-menu button.active,dialog button.active,
+#animationPlay[aria-pressed=true],#motionPreview[aria-pressed=true],
+#c64Preview[aria-pressed=true]{
+ background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);
+ box-shadow:var(--key-pressed-shadow);transform:translateY(2px);
 }
 .sidebar .glyph-family,.glyph-picker .glyph-family,
 .sidebar .group-body,.sidebar .field label,.glyph-picker .note,
@@ -481,10 +484,7 @@ select:disabled{background-color:var(--ui-field-disabled-bg);color:var(--ui-fiel
 .project-menu button:hover,dialog button:hover,#inkPopover button:hover,.tool-popover button:hover{
  background:var(--ui-control-hover);border-color:var(--ui-focus-border);
 }
-.project-menu button[aria-pressed=true],dialog button[aria-pressed=true],
-.project-menu button.active,dialog button.active{
- background:var(--ui-selected-bg);color:var(--ui-selected-text);border-color:var(--ui-selected-border);
-}
+/* Pressed/active accent for menus/dialogs is set with the hardware-key pressed rule above. */
 .help-disclosure{border-color:var(--panel-well-border)}
 #downloadFigure{background:var(--ui-control-bg)}
 #downloadPreview,#resizePreview{background:repeating-conic-gradient(var(--panel-well-border) 0 25%,var(--ui-field-bg) 0 50%) 0/16px 16px}
@@ -503,7 +503,7 @@ dialog input:not([type=checkbox]):not([type=radio]):not([type=range]){
 dialog input:not([type=checkbox]):not([type=radio]):not([type=range]):focus{
  outline:3px solid var(--ui-focus-border);outline-offset:1px;
 }
-/* Symmetry summary uses theme control tokens (geometry stays in injected layout helpers). */
+/* Symmetry summary colors (geometry in shell.css). */
 #symmetryMenu{border:0;border-radius:0;background:transparent}
 #symmetryMenu::before{
  content:"";position:absolute;left:-9px;top:6px;bottom:6px;width:1px;
@@ -527,12 +527,13 @@ dialog input:not([type=checkbox]):not([type=radio]):not([type=range]):focus{
 .canvas-frame{
  border:solid var(--ui-bezel-highlight);border-width:11px 12px 13px;
  border-radius:22px;
- background:#0b1228;
+ background:var(--monitor-crt);
  box-shadow:0 0 0 2px var(--panel-well-border),0 0 0 5px var(--stage-wash-top),
  inset 0 4px 13px #000c,inset 4px 0 9px #0008,
  0 7px 16px #62594955;
 }
-.stagebar,.stagefoot,.stagebar #dimensions,.stagebar #status,.stagebar #quickglyph{
+.stagebar,.stagefoot,.stagebar #dimensions,.stagebar #status,.stagebar #quickglyph,
+.stage #stageHint,.preview-banner,#previewLabel{
  color:var(--stage-caption);text-shadow:var(--stage-caption-shadow);
 }
 .drawing-strip .tool-hint,.drawing-strip .drawing-hint,
@@ -548,9 +549,28 @@ header #saveStatus,header .status,header .note{color:var(--chrome-label)}
  box-shadow:0 12px 30px #1a233650;
 }
 .context-help h3,.context-help p,.context-help li{color:var(--help-panel-fg)}
-.context-help button{
+.context-help button,.preview-banner button,
+#animationPlay,#animationStop,#motionPreview,#c64Preview,
+.stage .preview-banner #returnDrawing,.stagebar>.help-trigger,
+.stagebar .help-trigger,.help-section .help-trigger{
  background:var(--ui-control-bg);color:var(--ui-text);border:1px solid var(--ui-control-border);
 }
+.stagebar .help-trigger:hover,.help-section .help-trigger:hover{
+ background:var(--ui-control-hover);border-color:var(--ui-focus-border);
+}
+.stagebar .help-trigger[aria-expanded=true],.help-section .help-trigger[aria-expanded=true]{
+ background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);
+ box-shadow:var(--key-pressed-shadow);transform:translateY(2px);
+}
+.context-help .help-control,.context-help .help-key{
+ border:1px solid var(--help-panel-border);background:var(--ui-control-bg);color:var(--ui-text);
+ box-shadow:0 2px 0 var(--ui-control-shadow);
+}
+.context-help .help-key{background:var(--ui-field-bg);border-color:var(--ui-field-border)}
+.context-help .help-example{background:var(--help-example-bg);color:var(--help-panel-fg)}
+dialog details>summary,dialog .help-disclosure>summary,
+dialog details>summary::marker{color:var(--chrome-label)}
+dialog details>summary:hover{color:var(--header-title)}
 @media(max-width:690px){.canvas-frame{border-width:7px 8px 9px;border-radius:15px}}
 
 
@@ -573,15 +593,7 @@ header #saveStatus,header .status,header .note{color:var(--chrome-label)}
 }
 
 
-/* Shared 64C form-control system: warm recessed fields, raised buttons.
-   Keep these tokens independent of artwork colors and export rendering. */
-:root{
- --ui-field-bg:#f7f0e3;
- --ui-field-border:#938a7a;
- --ui-field-disabled-bg:#ded7c9;
- --ui-field-disabled-text:#596372;
- --ui-control-shadow:#a69e90;
-}
+/* Shared form-control system: recessed fields and raised buttons (tokens per theme). */
 :is(.sidebar,.glyph-picker,.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover)
 :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
     textarea,select){

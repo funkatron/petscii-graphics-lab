@@ -1,5 +1,9 @@
 # Agent log
 
+## 2026-11-13 — CSS legacy cleanup
+
+**What:** Collapse dead early/override layers in `editor.css`; make `shell.css` geometry-first (drop color `!important` wars); unify pressed keys on `--key-active` / `--text-on-accent`. Keep shell.css separate for future theming.
+
 ## 2026-11-13 — Extract injected CSS to shell.css
 
 **What:** Moved the runtime `createElement('style')` block from `index.html` into `styles/shell.css`, linked after `editor.css`. No visual change intended.

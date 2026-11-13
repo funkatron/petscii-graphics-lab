@@ -1,18 +1,18 @@
 # Editor styling and machine themes
 
-Stylesheets live under `styles/`, separate from application markup and rendering logic:
+Stylesheets live under `styles/`, separate from application markup and rendering logic. Keep them separate so future themes can re-skin surfaces without rewriting layout geometry.
 
-| File | Role |
-| --- | --- |
-| [editor.css](editor.css) | Shared chrome, form controls, and `html[data-ui-theme]` token scopes |
-| [shell.css](shell.css) | Layout / geometry / responsive overrides (formerly injected at runtime from `index.html`) |
+| File | Owns | Does not own |
+| --- | --- | --- |
+| [editor.css](editor.css) | Tokens, `html[data-ui-theme]` scopes, component **surfaces** (panels, fields, glyph keys, status text, pressed/active chrome) | Compact hit-target geometry, responsive breakpoints for chrome chrome packing |
+| [shell.css](shell.css) | Compact control **geometry**, tool-icon / selection-dock / help-trigger layout, header/strip alignment, responsive breakpoints | Theme colors (use tokens from `editor.css`) |
 
-Link order in `index.html` is `editor.css` then `shell.css` so shell rules keep the cascade win they had when appended last. Theme helpers live in [`ui-themes.js`](../ui-themes.js); machine and palette state lives in [`machine-modes.js`](../machine-modes.js) (see [machine modes](../docs/machine-modes.md)).
+Link order in `index.html` is `editor.css` then `shell.css`. Shell may override geometry; it should not re-declare theme colors. Theme helpers live in [`ui-themes.js`](../ui-themes.js); machine and palette state lives in [`machine-modes.js`](../machine-modes.js) (see [machine modes](../docs/machine-modes.md)).
 
 ## Responsibilities
 
-- **Shared interface:** control geometry, spacing, buttons, inputs, dialogs, focus, touch targets, and responsive layout.
-- **Machine appearance:** `data-ui-theme` scopes change case colors and visual identity for Commodore 64C, Commodore 128, and Plus/4.
+- **Shared interface:** control geometry (shell), spacing, buttons, inputs, dialogs, focus, touch targets, and responsive layout.
+- **Machine appearance:** `data-ui-theme` scopes in `editor.css` change case colors and visual identity for Commodore 64C, Commodore 128, and Plus/4.
 - **Artwork:** character ROM, screen geometry, color palettes, export encoding, and preview pixels are **not** selected by CSS. Never recolor artwork when changing interface themes.
 - **Monitor:** the intentionally dark screen surround remains distinct from case chrome.
 
@@ -54,6 +54,7 @@ Artwork uses separate `--art-ink` / `--art-bg` inline properties set from the Pe
 | Glyph selected | `--glyph-key-selected-*` | selected fill + orange edge |
 | ROM canvas filter | `--glyph-rom-filter`, `--glyph-rom-filter-selected` | `invert(1)` / white-on-selected |
 | Symmetry divider / summary | `--sym-divider*`, `--sym-summary-*` | warm plastic |
+| Pressed key shadow | `--key-pressed-shadow` | inset warm accent shadow |
 
 `--chrome-label` remains the secondary label color inside theme scopes (not related to retired JS `--chrome-*` paints).
 
@@ -69,15 +70,16 @@ Plus/4 charcoal (`#2f2f2f` case, light text) is the locked product look. Drawing
 
 ## Current state
 
-Theme scopes override tokens; avoid new per-theme selector forests and avoid ivory hex locks in `index.html` injected layout helpers. Do not implement C128/Plus/4 graphics capabilities through CSS.
+Theme scopes override tokens. Prefer one winning color rule in `editor.css` over stacking overrides in `shell.css`. Do not implement C128/Plus/4 graphics capabilities through CSS.
 
 ## Refactoring guardrails
 
-1. Keep layout, accessible hit targets, and responsive behavior invariant across themes.
+1. Keep layout, accessible hit targets, and responsive behavior invariant across themes (geometry lives in `shell.css`).
 2. Prefer token overrides over new per-theme selector trees.
 3. Preserve C64 pixel and export behavior; add capability tests before introducing non-C64 rendering.
 4. Compare iPad portrait, landscape, and desktop screenshots for Project, Download artwork, the drawing surface, and glyph picker when chrome changes.
 5. Keep appearance tokens separate from machine-capability logic: do not encode ink conversion, palettes or export gates in CSS.
+6. Reserve `!important` for geometry that must beat a broad rule (e.g. `[hidden]`, fixed tool-icon size); do not use it for theme colors.
 
 ## Shared form-control conventions
 
@@ -90,7 +92,7 @@ hex-color overrides for routine controls.
 | Panel/dialog | Warm ivory enclosure (C64C) | `--ui-panel-bg` |
 | Editable text, number, dropdown, textarea | Recessed field with readable text | `--ui-field-bg`, `--ui-field-border`, `--ui-text` |
 | Ordinary button | Raised control with distinct border | `--ui-control-bg`, `--ui-control-border` |
-| Selected/pressed action | Distinct selected fill; never color alone | `--ui-selected-bg`, `--ui-selected-text` |
+| Selected/pressed action | Distinct selected fill; never color alone | `--ui-selected-bg`, `--ui-selected-text` (or `--key-active` / `--text-on-accent` for accent keys) |
 | Disabled control | Muted surface and readable subdued text | `--ui-field-disabled-bg`, `--ui-field-disabled-text` |
 | Keyboard focus | Visible high-contrast outline | `--ui-focus-border` |
 
