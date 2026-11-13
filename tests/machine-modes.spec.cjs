@@ -53,6 +53,8 @@ test('header machine control switches chrome and persists machine in JSON',async
  expect(chrome.legacyFg).toBe('');
  await expect(page.locator('#displayPaletteField')).toBeHidden();
  await expect(page.locator('#colorPalette')).toHaveClass(/ted-grid/);
+ // Ensure sidebar is open so TED row geometry reflects the tools column width.
+ if(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed')))await page.locator('#toggle').click();
  const tedMetrics=await page.locator('#colorPalette').evaluate(grid=>{
   const style=getComputedStyle(grid),btn=getComputedStyle(grid.querySelector('button'));
   const firstRow=[...grid.querySelectorAll('button')].slice(0,8).map(b=>b.getBoundingClientRect());
@@ -70,7 +72,7 @@ test('header machine control switches chrome and persists machine in JSON',async
  expect(tedMetrics.columns).toBe(8);
  expect(tedMetrics.border).toBe('0px');
  expect(new Set(tedMetrics.rowTops).size).toBe(1);
- // Desktop is 300px; mid-width (e.g. iPad portrait) uses 280px — both keep TED 8-across.
+ // Desktop 300px; mid-width (iPad portrait) 280px; phone overlay up to 320px.
  expect(tedMetrics.sidebarWidth).toBeGreaterThanOrEqual(279);
  const saved=JSON.parse(await download(page,'#saveProject'));
  expect(saved.machine).toBe('plus4');
