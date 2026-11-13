@@ -49,7 +49,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 ## UI styling contract
 
-Use the shared 64C form-control tokens and rules in [styles/README.md](styles/README.md) for dialogs, popovers, Project, settings, and glyph controls. Warm cream recessed inputs, beige raised buttons, visible focus, and readable disabled states are the defaults; do not introduce isolated white native-looking fields. Keep UI chrome separate from C64 artwork and export colors. Verify portrait, landscape, and desktop screenshots when changing controls.
+Use the shared form-control tokens and rules in [styles/README.md](styles/README.md) for dialogs, popovers, Project, Theme, settings, and glyph controls. Warm cream recessed inputs, beige raised buttons, visible focus, and readable disabled states are the C64C defaults; C128 and Plus/4 change appearance via `html[data-ui-theme]` only. Do not introduce isolated white native-looking fields. Keep UI chrome separate from C64 artwork and export colors — theme switches must never alter glyphs, inks, or export bytes. Verify portrait, landscape, and desktop screenshots when changing controls.
 
 ## Drawing and interaction
 
