@@ -1,16 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-ui-theme="c64c">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#d4cbb7">
 <title>PETSCII Graphics Lab</title>
+<script>
+(()=>{try{const t=localStorage.getItem('petscii-ui-theme');if(t==='c64c'||t==='c128'||t==='plus4')document.documentElement.dataset.uiTheme=t}catch{}})();
+</script>
 <link rel="stylesheet" href="./styles/editor.css">
 
 </head>
 <body>
 <div class="app">
-<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
+<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="uiThemeMenu"><summary id="uiThemeSummary" aria-label="Interface look">C64C</summary><div class="ui-theme-menu"><div class="field"><label for="uiTheme">Interface look</label><select id="uiTheme"><option value="c64c">Commodore 64C</option><option value="c128">Commodore 128</option><option value="plus4">Commodore Plus/4</option></select></div><p class="note">Case colors only. Artwork, glyphs, and exports stay C64.</p></div></details><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
 <div class="row"><button id="openTextGrid">Open text grid</button></div><input id="textGridFile" type="file" accept=".txt,text/plain" hidden>
 <p class="note">Text grids replace the drawing and can be undone. Project files keep editable art and replay. Changes also autosave on this device.</p></fieldset>
 </div></details><span id="saveStatus" class="note" role="status">Saved on this device</span><button id="downloadOpen">Download artwork</button><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
@@ -118,16 +121,20 @@ const {graphicsCode,buildGlyphCatalog,familyGlyphCodes}=await import('./glyph-fa
 const {formatTextGrid,parseTextGrid,TEXT_GRID_MAX_BYTES}=await import('./text-grid.js');
 const {BONFIRE_COLORS}=await import('./bonfire.js');
 const {SOLID_EFFECTS}=await import('./solid-motion.js');
+const {UI_THEMES,applyUiTheme,readStoredUiTheme}=await import('./ui-themes.js');
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d'),frame=$('frame'),palette=$('palette'),out=$('output');
 // Navigation is UI state only: it never changes artwork, history or playback.
 const widePicker=matchMedia('(min-width:1200px)');
 let pickerPinned=false;
 const pickerDocked=()=>widePicker.matches||(pickerPinned&&innerWidth>=700);
+function syncUiThemeControls(id){$('uiTheme').value=id;$('uiThemeSummary').textContent=UI_THEMES[id].summary}
+syncUiThemeControls(applyUiTheme(readStoredUiTheme()));
+$('uiTheme').onchange=()=>{const id=applyUiTheme($('uiTheme').value);syncUiThemeControls(id);$('uiThemeMenu').open=false};
 $('glyphPin').onclick=()=>{pickerPinned=!pickerPinned;if(pickerPinned&&innerWidth>=700&&innerWidth<1000){$('sidebar').classList.add('closed');$('toggle').setAttribute('aria-expanded','false');$('toggle').textContent='☰'}$('glyphPin').setAttribute('aria-pressed',String(pickerPinned));syncPickerDock()};
 function syncPickerDock(){$('glyphPicker').classList.toggle('pinned',pickerPinned&&innerWidth>=700);$('glyphBackdrop').hidden=$('glyphPicker').hidden||pickerDocked();requestAnimationFrame(fit)}
 window.addEventListener('resize',syncPickerDock);
-$('downloadOpen').onclick=()=>{$('projectMenu').open=false;$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('downloadDialog').showModal();updateDownloadPreview()};
+$('downloadOpen').onclick=()=>{$('uiThemeMenu').open=false;$('projectMenu').open=false;$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('downloadDialog').showModal();updateDownloadPreview()};
 $('downloadClose').onclick=()=>$('downloadDialog').close();
 $('downloadDialog').addEventListener('click',e=>{if(e.target===$('downloadDialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close()}});
 
@@ -803,35 +810,32 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  /* Theme rules must follow the dynamically injected legacy styles. */
  .stagebar,.stagebar #dimensions,.stagebar #status,.stagebar #quickglyph,
  .stagefoot,.preview-banner,#previewLabel{
-  color:#293a4d;text-shadow:0 1px #fff7;
+  color:var(--stage-caption);text-shadow:var(--stage-caption-shadow);
  }
- .stage #stageHint{color:#293a4d}
+ .stage #stageHint{color:var(--stage-caption)}
  .canvas-frame:has(canvas.preview-locked){
-  border-color:#e7dfcf #b9af9e #a69c8b #ded5c4;
+  border-color:var(--ui-bezel-highlight) #b9af9e #a69c8b var(--ui-bezel-highlight);
  }
  .context-help{
-  background:#f1eadc;color:#26364a;border:2px solid #9c9689;
+  background:var(--help-panel-bg);color:var(--help-panel-fg);border:2px solid var(--help-panel-border);
   box-shadow:0 12px 30px #1a233650;
  }
- .context-help h3,.context-help p,.context-help li{color:#26364a}
+ .context-help h3,.context-help p,.context-help li{color:var(--help-panel-fg)}
 
- /* Help triggers use the same ivory hardware key treatment as other controls. */
+ /* Help triggers use the same hardware key treatment as other controls. */
  .stagebar .help-trigger,.help-section .help-trigger{
-  background:#eee7d6!important;color:#23344b!important;
-  border:1px solid #8a8d8d!important;
-  box-shadow:0 2px 0 #a49b8c;
+  background:var(--ui-ivory)!important;color:var(--ui-ink)!important;
+  border:1px solid var(--ui-outline)!important;
+  box-shadow:0 2px 0 var(--ui-control-shadow);
  }
  .stagebar .help-trigger:hover,.help-section .help-trigger:hover{
-  background:#fff6e4!important;border-color:#526f86!important;
+  background:var(--ui-control-hover)!important;border-color:var(--ui-focus-border)!important;
  }
  .stagebar .help-trigger[aria-expanded=true],.help-section .help-trigger[aria-expanded=true]{
-  background:var(--key-active,#c94e1a)!important;color:#fff9ee!important;
-  border-color:var(--key-active-edge,#8c3215)!important;
+  background:var(--key-active)!important;color:#fff9ee!important;
+  border-color:var(--key-active-edge)!important;
   box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px);
  }
-
- /* Warm orange hardware accent with a recessed selected-key state. */
- :root{--key-active:#c94e1a;--key-active-edge:#8c3215}
  header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
  .drawing-strip button.active,.sidebar button.active,
  .sidebar button[aria-pressed=true]:not(.color-grid button),
@@ -862,12 +866,12 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  #symmetryMenu>summary{
   display:inline-flex;align-items:center;justify-content:center;gap:4px;
   min-height:44px;padding:8px 12px;cursor:pointer;
-  color:#23344b;background:#eee7d6;border:1px solid #8a8d8d;border-radius:8px;
-  box-shadow:0 2px 0 #a49b8c;
+  color:var(--ui-ink);background:var(--ui-ivory);border:1px solid var(--ui-outline);border-radius:8px;
+  box-shadow:0 2px 0 var(--ui-control-shadow);
  }
  #symmetryMenu>summary::-webkit-details-marker{display:none}
  #symmetryMenu>summary.symmetry-on{
-  color:#fff9ee!important;background:#c94e1a!important;border-color:#8c3215!important;
+  color:#fff9ee!important;background:var(--key-active)!important;border-color:var(--key-active-edge)!important;
   box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)
  }
  #symmetryMenu>summary:focus-visible{outline:3px solid #007e9c;outline-offset:2px}
@@ -884,13 +888,12 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  .context-help .help-points li{padding-left:3px;line-height:1.5}
 
  .context-help h4{margin:16px 0 6px;font-size:.86rem}
- .context-help .help-control,.context-help .help-key{display:inline-block;vertical-align:baseline;padding:1px 6px;border:1px solid #a6a096;border-radius:5px;background:#eee7d6;color:#23344b;font-size:.86em;font-weight:650;line-height:1.55;box-shadow:0 2px 0 #9a948b;white-space:nowrap}
- .context-help .help-key{font-family:inherit;background:#f8f4eb;border-color:#c5beb0;box-shadow:0 2px 0 #9c968a}
+ .context-help .help-control,.context-help .help-key{display:inline-block;vertical-align:baseline;padding:1px 6px;border:1px solid var(--help-panel-border);border-radius:5px;background:var(--ui-ivory);color:var(--ui-ink);font-size:.86em;font-weight:650;line-height:1.55;box-shadow:0 2px 0 var(--ui-control-shadow);white-space:nowrap}
+ .context-help .help-key{font-family:inherit;background:var(--ui-field-bg);border-color:var(--ui-field-border);box-shadow:0 2px 0 var(--ui-control-shadow)}
  .context-help .help-example{margin-top:16px;padding:12px;border-radius:8px;background:#263a50}
  .context-help .help-example p{margin:6px 0 0}
  .context-help .help-points strong{font-weight:700}
- /* Shared C64C surface tokens: prevent dark-theme text leaking into ivory popovers. */
- :root{--ui-ink:#23344b;--ui-ivory:#eee7d6;--ui-outline:#8a8d8d;--ui-accent:#c94e1a}
+ /* Shared surface tokens: keep popover text on themed chrome, not artwork colors. */
  #inkPopover{background:var(--ui-ivory);color:var(--ui-ink);border-color:var(--ui-outline)}
  #inkPopover h2,#inkPopover .note,#inkPopover #inkSelection{color:var(--ui-ink);text-shadow:none}
  #inkPopover .dialog-heading{align-items:center;gap:8px}
@@ -903,12 +906,12 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  #symmetryMenu>summary{min-height:44px}
  @media(max-width:800px){.drawing-strip{gap:6px}}
  @media(max-width:600px){.drawing-strip{gap:4px}}
- /* Unified top-bar geometry: Project is a details/summary, not a button. */
- header button,header select,header #projectMenu>summary,header #downloadOpen{box-sizing:border-box;min-height:44px;height:44px;max-height:44px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1.2;padding-top:0;padding-bottom:0}
- header #projectMenu>summary{padding-top:0;padding-bottom:0}
- header #projectMenu{align-self:center}
+ /* Unified top-bar geometry: Theme/Project are details/summary, not buttons. */
+ header button,header select,header #projectMenu>summary,header #uiThemeMenu>summary,header #downloadOpen{box-sizing:border-box;min-height:44px;height:44px;max-height:44px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1.2;padding-top:0;padding-bottom:0}
+ header #projectMenu>summary,header #uiThemeMenu>summary{padding-top:0;padding-bottom:0}
+ header #projectMenu,header #uiThemeMenu{align-self:center}
  header{align-items:center;column-gap:8px}
- @media(max-width:600px){header{column-gap:6px}header #projectMenu>summary{padding-top:0;padding-bottom:0}}
+ @media(max-width:600px){header{column-gap:6px}header #projectMenu>summary,header #uiThemeMenu>summary{padding-top:0;padding-bottom:0}}
  /* Glyph favorite is a compact utility action, not a full-width palette control. */
  #favoriteGlyph{flex:0 0 42px!important;inline-size:42px;min-inline-size:42px;max-inline-size:42px;block-size:42px;min-block-size:42px;max-block-size:42px;box-sizing:border-box;padding:0;display:inline-flex;align-items:center;justify-content:center;align-self:center;font-size:1.2rem;line-height:1}
  /* Keep the glyph family selector level with its adjacent favorite action. */

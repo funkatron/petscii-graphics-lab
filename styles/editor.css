@@ -113,13 +113,88 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
 }
 
 .symmetry-on{color:var(--case-text);background:#176655;border-radius:9px}#downloadPreview{width:100%;object-fit:contain}#saveFailure{color:#ffcc95;margin:0}
-/* C64C case tokens. Monitor darkness is intentionally separate from interface chrome. */
-:root{
+/* C64C case tokens (default). Monitor darkness stays separate from interface chrome. */
+:root,html[data-ui-theme="c64c"]{
  --case-trim:var(--ui-case-bg);--case-seam:#8294a6;--case-highlight:var(--ui-selected-bg);
  --case-bg:var(--ui-case-bg);--case-surface:var(--ui-control-bg);--case-raised:var(--ui-control-bg);
  --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#45566d;
+ --ui-ink:#23344b;--ui-ivory:#eee7d6;--ui-outline:#8a8d8d;
+ --ui-accent:#c94e1a;--ui-accent-edge:#8c3215;
+ --key-active:var(--ui-accent);--key-active-edge:var(--ui-accent-edge);
+ --stage-caption:#293a4d;--stage-caption-shadow:0 1px #fff7;
+ --help-panel-bg:#f1eadc;--help-panel-fg:#26364a;--help-panel-border:#9c9689;
+ --theme-color:#d4cbb7;
  color-scheme:light;
 }
+
+/* C128 appearance: light gray/beige case with cooler trim. Artwork tokens untouched. */
+html[data-ui-theme="c128"]{
+ --ui-case-bg:#c5c0b4;
+ --ui-control-highlight:#f5f2ea;
+ --ui-selected-text:#1a2414;
+ --ui-selected-border:#6a8a4a;
+ --ui-panel-bg:#d6d1c6;
+ --ui-bezel-highlight:#ddd8ce;
+ --ui-control-bg:#e0dcd2;
+ --ui-text:#2a2a2a;
+ --ui-control-border:#7a7a72;
+ --ui-selected-bg:#9ec27a;
+ --ui-heading:#222222;
+ --ui-control-hover:#ebe7de;
+ --ui-focus-border:#4a6a8a;
+ --ui-field-bg:#f0ece4;
+ --ui-field-border:#8a867c;
+ --ui-field-disabled-bg:#d2cec5;
+ --ui-field-disabled-text:#5a5a5a;
+ --ui-control-shadow:#9a968c;
+ --case-trim:#6b6b6b;--case-seam:#8a8a8a;--case-highlight:var(--ui-selected-bg);
+ --case-bg:var(--ui-case-bg);--case-surface:var(--ui-panel-bg);--case-raised:var(--ui-control-bg);
+ --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#555555;
+ --ui-ink:var(--ui-text);--ui-ivory:var(--ui-control-bg);--ui-outline:var(--ui-control-border);
+ --ui-accent:#5a7a9a;--ui-accent-edge:#3a5a7a;
+ --key-active:var(--ui-accent);--key-active-edge:var(--ui-accent-edge);
+ --stage-caption:#333333;--stage-caption-shadow:0 1px #fff6;
+ --help-panel-bg:#e8e4da;--help-panel-fg:#2a2a2a;--help-panel-border:#8a867c;
+ --theme-color:#c5c0b4;
+ color-scheme:light;
+}
+
+/* Plus/4 appearance: dark charcoal enclosure with contrasting controls. */
+html[data-ui-theme="plus4"]{
+ --ui-case-bg:#2f2f2f;
+ --ui-control-highlight:#555555;
+ --ui-selected-text:#1a1014;
+ --ui-selected-border:#a03868;
+ --ui-panel-bg:#3a3a3a;
+ --ui-bezel-highlight:#4a4a4a;
+ --ui-control-bg:#454545;
+ --ui-text:#e8e8e8;
+ --ui-control-border:#6a6a6a;
+ --ui-selected-bg:#c94e8a;
+ --ui-heading:#f0f0f0;
+ --ui-control-hover:#505050;
+ --ui-focus-border:#8ab4d4;
+ --ui-field-bg:#262626;
+ --ui-field-border:#6a6a6a;
+ --ui-field-disabled-bg:#333333;
+ --ui-field-disabled-text:#9a9a9a;
+ --ui-control-shadow:#1a1a1a;
+ --case-trim:#1a1a1a;--case-seam:#555555;--case-highlight:var(--ui-selected-bg);
+ --case-bg:var(--ui-case-bg);--case-surface:var(--ui-panel-bg);--case-raised:var(--ui-control-bg);
+ --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#a8a8a8;
+ --ui-ink:var(--ui-text);--ui-ivory:var(--ui-control-bg);--ui-outline:var(--ui-control-border);
+ --ui-accent:#c94e8a;--ui-accent-edge:#8c3258;
+ --key-active:var(--ui-accent);--key-active-edge:var(--ui-accent-edge);
+ --stage-caption:#d0d0d0;--stage-caption-shadow:none;
+ --help-panel-bg:#3a3a3a;--help-panel-fg:#e8e8e8;--help-panel-border:#6a6a6a;
+ --theme-color:#2f2f2f;
+ color-scheme:dark;
+}
+
+#uiThemeMenu{position:relative;align-self:center}
+#uiThemeMenu>summary{list-style:none;border:1px solid var(--case-edge);border-radius:9px;padding:0 11px;font-size:.8rem;cursor:pointer}
+#uiThemeMenu>summary::-webkit-details-marker{display:none}
+.ui-theme-menu{position:absolute;left:0;top:calc(100% + 6px);width:min(280px,calc(100vw - 24px));box-sizing:border-box;padding:14px;background:var(--case-surface);border:1px solid var(--case-edge);z-index:12;border-radius:10px;box-shadow:0 10px 35px #0008}
 @media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
 
 /* Keep frequent actions stable; occasional controls live in separate surfaces. */
@@ -384,7 +459,7 @@ header #saveStatus,header .status,header .note{color:#34465a}
  --ui-field-disabled-text:#596372;
  --ui-control-shadow:#a69e90;
 }
-:is(.sidebar,.glyph-picker,.project-menu,dialog,.tool-popover,#inkPopover)
+:is(.sidebar,.glyph-picker,.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover)
 :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
     textarea,select){
  background-color:var(--ui-field-bg);
@@ -393,25 +468,25 @@ header #saveStatus,header .status,header .note{color:#34465a}
  border-radius:9px;
  box-shadow:inset 0 1px 2px #70675a25;
 }
-:is(.sidebar,.glyph-picker,.project-menu,dialog,.tool-popover,#inkPopover)
+:is(.sidebar,.glyph-picker,.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover)
 :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
     textarea,select):disabled{
  background-color:var(--ui-field-disabled-bg);
  color:var(--ui-field-disabled-text);
  opacity:1;
 }
-:is(.sidebar,.glyph-picker,.project-menu,dialog,.tool-popover,#inkPopover)
+:is(.sidebar,.glyph-picker,.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover)
 :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
     textarea,select):focus-visible{
  outline:3px solid var(--ui-focus-border);
  outline-offset:2px;
 }
-:is(.project-menu,dialog,.tool-popover,#inkPopover) button:not([aria-pressed=true]):not(.active):not(:disabled){
+:is(.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover) button:not([aria-pressed=true]):not(.active):not(:disabled){
  background:var(--ui-control-bg);
  color:var(--ui-text);
  border-color:var(--ui-control-border);
 }
-:is(.project-menu,dialog,.tool-popover,#inkPopover) button:disabled{
+:is(.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover) button:disabled{
  background:var(--ui-field-disabled-bg);
  color:var(--ui-field-disabled-text);
  opacity:1;

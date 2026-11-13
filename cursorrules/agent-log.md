@@ -26,3 +26,10 @@
 
 - `node --test tests/project-validation.unit.mjs tests/bonfire.unit.mjs` — 10 passed.
 - Chromium: `c64-only`, `bonfire`, `layout` repeated-download — 8 passed.
+
+## Machine theme architecture (2026-11-12)
+
+- Branch `ui/machine-theme-architecture` from main after PR #88.
+- Added `html[data-ui-theme=c64c|c128|plus4]` token scopes, `ui-themes.js`, header Interface look control, device pref `petscii-ui-theme`.
+- Themes change chrome only; artwork `--art-*` and C64 exports unchanged.
+- Tests: `node --test tests/ui-themes.unit.mjs tests/ci-selection.unit.mjs` (11 pass); Chromium `ui-theme`, `6581-theme-screenshots`, `layout` (8 pass). Local WebKit missing `libavif16`; CI covers iPad projects.
