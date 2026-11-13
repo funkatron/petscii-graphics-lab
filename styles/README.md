@@ -1,6 +1,13 @@
 # Editor styling and machine themes
 
-The editor stylesheet lives in [editor.css](editor.css), separate from application markup and rendering logic. Theme helpers live in [`ui-themes.js`](../ui-themes.js); machine and palette state lives in [`machine-modes.js`](../machine-modes.js) (see [machine modes](../docs/machine-modes.md)).
+Stylesheets live under `styles/`, separate from application markup and rendering logic:
+
+| File | Role |
+| --- | --- |
+| [editor.css](editor.css) | Shared chrome, form controls, and `html[data-ui-theme]` token scopes |
+| [shell.css](shell.css) | Layout / geometry / responsive overrides (formerly injected at runtime from `index.html`) |
+
+Link order in `index.html` is `editor.css` then `shell.css` so shell rules keep the cascade win they had when appended last. Theme helpers live in [`ui-themes.js`](../ui-themes.js); machine and palette state lives in [`machine-modes.js`](../machine-modes.js) (see [machine modes](../docs/machine-modes.md)).
 
 ## Responsibilities
 
