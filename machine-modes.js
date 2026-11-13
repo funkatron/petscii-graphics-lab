@@ -4,7 +4,7 @@
  * See docs/machine-modes.md for the product contract.
  */
 
-import {colorRGB, inkHex, isDisplayPaletteId, paletteColors} from './c64-colors.js';
+import {colorRGB, isDisplayPaletteId} from './c64-colors.js';
 import {c64InkToTed, plus4Hex, tedIndex, tedInkToC64} from './plus4-colors.js';
 
 export {tedInkToC64, c64InkToTed};
@@ -47,8 +47,8 @@ export function mutedInk(foregroundHex, backgroundHex) {
 }
 
 /**
- * TED white at luma 5 ≈ dirty paper; pink border chroma 11 luma 4.
- * VIC defaults use hardware indices (border/bg/text).
+ * Drawing defaults use boot-screen indices. Shell paints live in styles/editor.css
+ * under html[data-ui-theme]; chrome.caseHex is a maintainer cue only.
  */
 export const MACHINES = Object.freeze({
   c64: Object.freeze({
@@ -61,10 +61,6 @@ export const MACHINES = Object.freeze({
     defaultBackground: 6,
     borderIndex: 14,
     chrome: Object.freeze({
-      // Case/UI wash evokes blue READY screen family.
-      bg: null, // resolved from palette blue
-      panel: null,
-      panel2: null,
       accentIndex: 14,
       caseHex: '#6b5428',
     }),
@@ -88,19 +84,30 @@ export const MACHINES = Object.freeze({
     label: 'Commodore Plus/4',
     shortLabel: 'Plus/4',
     indexSpace: 'ted',
+    // Drawing defaults: dark ink on TED paper white L5; pink border cue TED pink L4.
+    // UI shell is charcoal (#2f2f2f) via data-ui-theme="plus4" in editor.css — not paper panels.
     defaultInk: 0,
     defaultBackground: tedIndex(1, 5),
     borderTed: tedIndex(11, 4),
     chrome: Object.freeze({
-      bg: '#d8d8d0',
-      panel: '#ecece4',
-      panel2: '#f6f6ee',
-      border: plus4Hex(tedIndex(11, 4)),
       accent: plus4Hex(tedIndex(11, 5)),
       caseHex: '#2f2f2f',
     }),
   }),
 });
+
+/** Legacy inline paints removed; clear them so stale sessions cannot override CSS themes. */
+const LEGACY_CHROME_PAINTS = Object.freeze([
+  '--chrome-bg',
+  '--chrome-panel',
+  '--chrome-panel-2',
+  '--chrome-border',
+  '--chrome-fg',
+  '--chrome-muted',
+  '--chrome-accent',
+  '--chrome-case',
+  '--chrome-bezel',
+]);
 
 export function isMachineId(value) {
   return typeof value === 'string' && Object.hasOwn(MACHINES, value);
@@ -156,75 +163,21 @@ export function convertInkArray(inks, fromMachine, toMachine) {
   return inks.map((ink) => convertInk(ink, fromMachine, toMachine));
 }
 
-function mixHex(a, b, amount) {
-  const left = colorRGB(a);
-  const right = colorRGB(b);
-  return rgbToHex([
-    left[0] + (right[0] - left[0]) * amount,
-    left[1] + (right[1] - left[1]) * amount,
-    left[2] + (right[2] - left[2]) * amount,
-  ]);
-}
-
-export function resolveChromeTokens(machineId, paletteId = 'pepto') {
-  const machine = getMachine(machineId);
-  if (machine.id === 'plus4') {
-    const bg = machine.chrome.bg;
-    const panel = machine.chrome.panel;
-    const fg = contrastingInk(panel);
-    return {
-      '--chrome-bg': bg,
-      '--chrome-panel': panel,
-      '--chrome-panel-2': machine.chrome.panel2,
-      '--chrome-border': mixHex(machine.chrome.border, panel, 0.35),
-      '--chrome-fg': fg,
-      '--chrome-muted': mutedInk(fg, panel),
-      '--chrome-accent': machine.chrome.accent,
-      '--chrome-case': machine.chrome.caseHex,
-      '--chrome-bezel': machine.chrome.border,
-    };
-  }
-
-  const colors = paletteColors(paletteId);
-  const blue = colors[6][1];
-  const accent = colors[machine.chrome.accentIndex][1];
-  const dark = colors[machine.defaultBackground][1];
-  let panel;
-  let bg;
-  let panel2;
-  if (machine.id === 'c128') {
-    panel = mixHex(dark, '#0a0a0a', 0.35);
-    bg = mixHex(dark, '#050505', 0.55);
-    panel2 = mixHex(dark, accent, 0.12);
-  } else {
-    panel = mixHex(blue, '#0e1728', 0.55);
-    bg = mixHex(blue, '#070b14', 0.7);
-    panel2 = mixHex(blue, '#111d30', 0.45);
-  }
-  const fg = contrastingInk(panel);
-  return {
-    '--chrome-bg': bg,
-    '--chrome-panel': panel,
-    '--chrome-panel-2': panel2,
-    '--chrome-border': mixHex(accent, panel, 0.55),
-    '--chrome-fg': fg,
-    '--chrome-muted': mutedInk(fg, panel),
-    '--chrome-accent': accent,
-    '--chrome-case': machine.chrome.caseHex,
-    '--chrome-bezel': inkHex(machine.borderIndex, paletteId),
-  };
-}
-
+/**
+ * Sets machine/palette data attributes. Shell colors come from CSS
+ * `html[data-ui-theme]` scopes (see styles/README.md), not inline paints.
+ */
 export function applyMachineChrome(machineId, paletteId = 'pepto', root = document.documentElement) {
   const machine = getMachine(machineId);
   const palette = isDisplayPaletteId(paletteId) ? paletteId : 'pepto';
   root.dataset.machine = machine.id;
   root.dataset.palette = machine.indexSpace === 'ted' ? 'ted' : palette;
-  const tokens = resolveChromeTokens(machine.id, palette);
-  for (const [name, value] of Object.entries(tokens)) {
-    root.style.setProperty(name, value);
+  if (root.style && typeof root.style.removeProperty === 'function') {
+    for (const name of LEGACY_CHROME_PAINTS) {
+      root.style.removeProperty(name);
+    }
   }
-  return tokens;
+  return {machine: machine.id, palette: root.dataset.palette};
 }
 
 export function readWorkspacePrefs() {

@@ -16,7 +16,7 @@ The editor stylesheet lives in [editor.css](editor.css), separate from applicati
 | `html[data-machine]` | `c64` (default) · `c128` · `plus4` | Source of truth; set by Machine control |
 | `html[data-ui-theme]` | `c64c` (default) · `c128` · `plus4` | Mapped from `data-machine`; scopes the token sets below |
 
-- **Machine modes drive appearance.** The header **Machine** control sets `html[data-machine]` (`c64` · `c128` · `plus4`) and `applyMachineChrome()` writes the `--chrome-*` tokens. `index.html` then maps the machine to `data-ui-theme` via `uiThemeForMachine()`: `c64` → `c64c`, `c128` → `c128`, `plus4` → `plus4`. There is no separate Interface look control.
+- **Machine modes drive appearance.** The header **Machine** control sets `html[data-machine]` (`c64` · `c128` · `plus4`) via `applyMachineChrome()` (data attributes only). `index.html` maps the machine to `data-ui-theme` via `uiThemeForMachine()`: `c64` → `c64c`, `c128` → `c128`, `plus4` → `plus4`. **CSS theme scopes own all shell paints** — there are no live JS `--chrome-*` inline paints. There is no separate Interface look control.
 - Default and missing values resolve to **C64C** — the existing warm ivory enclosure.
 - Preference key: `petscii-workspace-prefs` (device-local machine + display palette) replaces the old `petscii-ui-theme` key, which is no longer read. Machine and palette are stored in v3 project JSON (`machine`, `palette`); the mapped theme is derived, never stored.
 - Changing theme must not alter glyph IDs, cell inks, background index, animation settings, or export bytes.
@@ -26,23 +26,43 @@ The editor stylesheet lives in [editor.css](editor.css), separate from applicati
 
 1. **Shared `--ui-*`:** panel, field, control, selected, focus, and disabled surfaces.
 2. **Case `--case-*`:** enclosure wash, raised controls, edges, and muted text consumed by layout rules.
-3. **Theme accents:** `--header-*`, `--strip-control-*`, `--panel-well*`, `--stage-wash-*`, `--key-active`, `--stage-caption`, `--help-panel-*`, and `--theme-color` so later enclosure rules stay token-driven instead of locking C64C hex.
+3. **Theme accents:** `--header-*`, `--strip-control-*`, `--panel-well*`, `--stage-wash-*`, `--key-active`, `--stage-caption`, `--help-panel-*`, and `--theme-color`.
+4. **Semantic roles** (below): component rules bind to these; machine themes only reassign values under `html[data-ui-theme=…]`.
 
 Artwork uses separate `--art-ink` / `--art-bg` inline properties set from the Pepto drawing palette.
 
-### Initial visual directions
+### Semantic chrome tokens
+
+| Role | Token | C64C default (alias) |
+| --- | --- | --- |
+| Panel surface | `--surface-panel` | `var(--ui-panel-bg)` |
+| Recessed well | `--surface-well` | `var(--panel-well)` |
+| Editable field | `--surface-field` | `var(--ui-field-bg)` |
+| Body text | `--text` | `var(--ui-text)` |
+| Muted / notes | `--text-muted` | `var(--case-muted)` |
+| Status / export feedback | `--text-status` | `var(--ui-heading)` |
+| Text on accent / selected key | `--text-on-accent` | `#fff9ee` |
+| Select fill / border | `--select-bg`, `--select-border` | field tokens |
+| Glyph keycap | `--glyph-key-bg`, `--glyph-key-border`, `--glyph-key-shadow`, `--glyph-key-text`, `--glyph-key-code` | ivory keycap metaphor |
+| Glyph selected | `--glyph-key-selected-*` | selected fill + orange edge |
+| ROM canvas filter | `--glyph-rom-filter`, `--glyph-rom-filter-selected` | `invert(1)` / white-on-selected |
+| Symmetry divider / summary | `--sym-divider*`, `--sym-summary-*` | warm plastic |
+
+`--chrome-label` remains the secondary label color inside theme scopes (not related to retired JS `--chrome-*` paints).
+
+### Visual directions
 
 | Theme | Direction |
 | --- | --- |
-| C64C | Existing warm ivory case and controls |
+| C64C | Warm ivory case and ivory PETSCII keycaps |
 | C128 | Light gray/beige case with cooler trim/accent |
-| Plus/4 | Dark charcoal enclosure with contrasting controls |
+| Plus/4 | Dark charcoal enclosure, charcoal keycaps, light status text |
 
-These are design seeds, not finalized historical color specs.
+Plus/4 charcoal (`#2f2f2f` case, light text) is the locked product look. Drawing defaults still use TED paper READY indices; that is artwork, not shell chrome.
 
 ## Current state
 
-The extracted stylesheet still contains historical overrides. Theme scopes override tokens; they do not claim a full cascade dedupe. Do not implement C128/Plus/4 graphics capabilities through CSS.
+Theme scopes override tokens; avoid new per-theme selector forests and avoid ivory hex locks in `index.html` injected layout helpers. Do not implement C128/Plus/4 graphics capabilities through CSS.
 
 ## Refactoring guardrails
 

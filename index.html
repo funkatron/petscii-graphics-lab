@@ -251,7 +251,7 @@ $('recolorDrawing').onclick=()=>{if(!grid.some((g,i)=>g!==''&&cellColors[i]!==co
 
 const VIC_COLOR_EFFECTS=[['none','Original colors'],['color-cycle','Color cycle'],['color-wave','Rainbow wave'],['color-glow','Warm glow'],['raster-bars','Raster-style bars'],['plasma','Plasma field'],['bonfire','Bonfire colors']];
 const TED_COLOR_EFFECTS=[['none','Original colors'],['plus4-cycle','Plus/4 color cycle'],['plus4-wave','Plus/4 rainbow wave'],['plus4-glow','Plus/4 warm glow'],['plus4-raster','Plus/4 raster bars'],['plus4-plasma','Plus/4 plasma'],['plus4-bonfire','Plus/4 bonfire colors']];
-// Machine owns appearance: data-machine + chrome tokens, and the mapped data-ui-theme that editor.css consumes.
+ // Machine owns appearance: data-machine (+ palette) and the mapped data-ui-theme that editor.css paints.
 function applyMachineAppearance(){
  applyMachineChrome(workspaceMachine,workspacePalette);
  applyUiTheme(uiThemeForMachine(workspaceMachine),{persist:false});
@@ -1002,27 +1002,19 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  /* Give the glyph picker title breathing room beside the panel edge. */
  .glyph-picker .picker-heading{padding-inline:12px}
 
- /* Symmetry uses the same keycap geometry and active state as drawing tools. */
- #symmetryMenu{border:0;border-radius:0;background:transparent}
+ /* Symmetry disclosure geometry (colors live in editor.css theme tokens). */
  #symmetryMenu>summary{
   display:inline-flex;align-items:center;justify-content:center;gap:4px;
-  min-height:44px;padding:8px 12px;cursor:pointer;
-  color:var(--ui-ink);background:var(--ui-ivory);border:1px solid var(--ui-outline);border-radius:8px;
-  box-shadow:0 2px 0 var(--ui-control-shadow);
+  min-height:44px;padding:8px 12px;cursor:pointer;border-radius:8px;
+  list-style:none;font:inherit;line-height:normal;
  }
  #symmetryMenu>summary::-webkit-details-marker{display:none}
- #symmetryMenu>summary.symmetry-on{
-  color:#fff9ee!important;background:var(--key-active)!important;border-color:var(--key-active-edge)!important;
-  box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)
- }
- #symmetryMenu>summary:focus-visible{outline:3px solid #007e9c;outline-offset:2px}
- #symmetryMenu>summary:active{box-shadow:inset 0 3px 6px #0004!important;transform:translateY(2px)}
-
- /* Align the symmetry disclosure with the adjacent hardware buttons. */
- #symmetryMenu>summary{list-style:none;font:inherit;line-height:normal}
  #symmetryMenu>summary::marker{content:""}
  #symmetryMenu>summary:after{content:"▾";font-size:.7em;opacity:.75;margin-left:3px}
  #symmetryMenu[open]>summary:after{content:"▴"}
+ #symmetryMenu>summary:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:2px}
+ #symmetryMenu>summary:active{box-shadow:inset 0 3px 6px #0004!important;transform:translateY(2px)}
+ #symmetryMenu>summary.symmetry-on{transform:translateY(2px)}
  /* Scan-friendly help: concise introduction, separated action points. */
  .context-help .help-intro{margin:12px 0;font-weight:600;line-height:1.45}
  .context-help .help-points{margin:8px 0 2px;padding-left:1.25rem;display:grid;gap:10px}
@@ -1072,37 +1064,21 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  .picker-title>button,.section-heading>button,.dialog-heading>button{align-self:center;flex-shrink:0}
  /* Drawing modifiers are visually separated from tools, not pressed tool buttons. */
  #symmetryMenu{position:relative;display:flex;align-items:center;min-height:44px;margin-left:9px;border:0!important;background:transparent!important}
- #symmetryMenu::before{content:"";position:absolute;left:-9px;top:6px;bottom:6px;width:1px;background:#8d887e;box-shadow:1px 0 #fff8e8;pointer-events:none}
- #symmetryMenu>summary{height:44px;min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;padding:0 10px!important;margin:0;transform:none!important;box-shadow:none!important;background:#e6dfd1!important;color:#293a4c!important;border:1px solid #99958e!important;border-radius:8px!important}
- #symmetryMenu>summary.symmetry-on{background:#f7e5d2!important;color:#843713!important;border-color:#c76b3e!important;box-shadow:inset 0 0 0 1px #c76b3e!important;transform:none!important}
+ #symmetryMenu>summary{height:44px;min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;padding:0 10px!important;margin:0;transform:none!important;box-shadow:none!important;border-radius:8px!important}
+ #symmetryMenu>summary.symmetry-on{transform:none!important}
  #symmetryMenu>summary:active{transform:none!important}
  .symmetry-chevron{font-size:1rem;line-height:1;opacity:.8;margin-left:2px}
- /* Shared control geometry and accessible light-surface states. */
+ /* Shared control geometry (colors from editor.css tokens). */
  button{box-sizing:border-box;min-width:max(38px,1.9em)}
  .dialog-heading>button[aria-label]{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;flex:0 0 44px;display:inline-flex;align-items:center;justify-content:center}
- dialog .status{color:#364d5e!important;font-weight:600}
- dialog .status[role="status"]{min-height:1.2em}
- dialog input:not([type=checkbox]):not([type=radio]):not([type=range]){background:#fff9ed!important;color:#26364a!important;border:1px solid #898d90!important;box-shadow:none!important}
- dialog input:not([type=checkbox]):not([type=radio]):not([type=range]):focus{outline:3px solid #007e9c;outline-offset:1px}
  dialog button{min-width:max(44px,2em);box-sizing:border-box}
  dialog button[hidden]{display:none!important}
  #cancelSheetDownload{min-height:44px;padding-inline:14px}
- /* Keep export feedback readable on the ivory dialog surface. */
- #downloadDialog #exportBadge,#downloadDialog #downloadStatus,#downloadDialog .motion-summary,#downloadDialog .note{color:#26364a}
- #downloadDialog #exportBadge{font-weight:700}
  /* Stacked panel actions fill their available width; inline icon controls stay compact. */
  .project-menu .row{display:flex;flex-direction:column;align-items:stretch;width:100%;box-sizing:border-box}
  .project-menu .row>button:not([hidden]){display:block;width:100%;min-width:0;box-sizing:border-box;flex:0 0 auto}
  .project-menu .project-name>button{width:44px;min-width:44px;flex:0 0 44px}
  .project-menu fieldset{box-sizing:border-box;width:100%}
- /* Selected PETSCII keycaps display white ROM glyphs against orange. */
- .glyph-picker .palette .glyph.active canvas,
- .glyph-picker .palette .glyph[aria-pressed=true] canvas{
-  filter:brightness(0) invert(1)!important; /* Preserve transparency; make ROM pixels white. */
-  mix-blend-mode:normal;
- }
- .glyph-picker .palette .glyph.active small,
- .glyph-picker .palette .glyph[aria-pressed=true] small{color:#fff9ee}
 
  /* Keep animation controls readable regardless of the legacy runtime skin. */
  .stage .preview-banner,#previewLabel{color:var(--stage-caption)!important;text-shadow:none!important}

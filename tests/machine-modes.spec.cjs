@@ -39,8 +39,18 @@ test('header machine control switches chrome and persists machine in JSON',async
  await page.locator('#machineMenu > summary').click();
  await ui(page,'#workspaceMachine','selectOption','plus4');
  await expect(page.locator('html')).toHaveAttribute('data-machine','plus4');
- const fg=await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--chrome-fg').trim());
- expect(fg).toBe('#101010');
+ await expect(page.locator('html')).toHaveAttribute('data-ui-theme','plus4');
+ const chrome=await page.evaluate(()=>{
+  const style=getComputedStyle(document.documentElement);
+  return {
+   caseBg:style.getPropertyValue('--ui-case-bg').trim(),
+   textStatus:style.getPropertyValue('--text-status').trim(),
+   legacyFg:style.getPropertyValue('--chrome-fg').trim()
+  };
+ });
+ expect(chrome.caseBg).toBe('#2f2f2f');
+ expect(chrome.textStatus).toBe('#f0f0f0');
+ expect(chrome.legacyFg).toBe('');
  await expect(page.locator('#displayPaletteField')).toBeHidden();
  await expect(page.locator('#colorPalette')).toHaveClass(/ted-grid/);
  const tedMetrics=await page.locator('#colorPalette').evaluate(grid=>{
