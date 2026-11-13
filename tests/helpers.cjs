@@ -33,13 +33,7 @@ async function reveal(page,selector){
 }
 async function ui(page,selector,method='click',...args){
  await reveal(page,selector);
- const target=page.locator(selector).first();
- // Toolbar chrome can still jitter briefly after canvas fit; force only for plain clicks.
- if(method==='click'&&args.length===0){
-  await target.click({force:true});
-  return;
- }
- const result=await target[method](...args);
+ const result=await page.locator(selector).first()[method](...args);
  if(method==='selectOption'&&['#columns','#rows'].includes(selector))await page.locator('#applyResize').click();
  return result;
 }

@@ -410,23 +410,27 @@ $('retryGlyphs').onclick=async()=>{
  try{await loadBuiltinGlyphs();if(typeof glyph!=='number')glyph=64;updateSourceInfo();drawPalette();redraw();setStatus('C64 glyphs loaded')}
  catch(e){setStatus(e.message)}
 };
+// Last grid shape that fit() painted. Same CSS box can host 16×16 or 2×2; skip only
+ // when both the box and the grid key match, so ResizeObserver cannot thrash forever.
+let fittedGridKey='';
 function fit(){
  const r=frame.getBoundingClientRect();
  const availableW=Math.max(20,r.width-22),availableH=Math.max(20,r.height-22);
  const nextUnit=Math.max(1,Math.min(availableW/W,availableH/H));
- // Integer CSS pixels: float style strings can oscillate and re-trigger ResizeObserver,
- // which keeps toolbar controls (Undo, Project) unstable for Playwright on iPad WebKit.
+ // Integer CSS pixels: float style strings can oscillate and re-trigger ResizeObserver.
  const width=Math.round(W*nextUnit),height=Math.round(H*nextUnit),dpr=Math.min(devicePixelRatio||1,3);
  const styleW=width+'px',styleH=height+'px';
  const pixelWidth=Math.round(width*dpr),pixelHeight=Math.round(height*dpr);
- if(canvas.style.width===styleW&&canvas.style.height===styleH&&canvas.width===pixelWidth&&canvas.height===pixelHeight){
-  unit=width/W;
-  return;
- }
+ const unchangedSize=canvas.style.width===styleW&&canvas.style.height===styleH&&canvas.width===pixelWidth&&canvas.height===pixelHeight;
+ const gridKey=W+'x'+H;
  unit=width/W;
- canvas.style.width=styleW;canvas.style.height=styleH;
- if(canvas.width!==pixelWidth)canvas.width=pixelWidth;
- if(canvas.height!==pixelHeight)canvas.height=pixelHeight;
+ if(!unchangedSize){
+  canvas.style.width=styleW;canvas.style.height=styleH;
+  if(canvas.width!==pixelWidth)canvas.width=pixelWidth;
+  if(canvas.height!==pixelHeight)canvas.height=pixelHeight;
+ }
+ if(unchangedSize&&fittedGridKey===gridKey)return;
+ fittedGridKey=gridKey;
  redraw();
 }
 function textGrid(){
