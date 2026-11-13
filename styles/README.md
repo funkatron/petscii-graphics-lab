@@ -24,7 +24,7 @@ The editor stylesheet lives in [editor.css](editor.css), separate from applicati
 
 1. **Shared `--ui-*`:** panel, field, control, selected, focus, and disabled surfaces.
 2. **Case `--case-*`:** enclosure wash, raised controls, edges, and muted text consumed by layout rules.
-3. **Theme accents:** `--key-active`, `--stage-caption`, `--help-panel-*`, `--theme-color` for chrome that still lives in injected overrides.
+3. **Theme accents:** `--header-*`, `--strip-control-*`, `--panel-well*`, `--stage-wash-*`, `--key-active`, `--stage-caption`, `--help-panel-*`, and `--theme-color` so later enclosure rules stay token-driven instead of locking C64C hex.
 
 Artwork uses separate `--art-ink` / `--art-bg` inline properties set from the Pepto drawing palette.
 

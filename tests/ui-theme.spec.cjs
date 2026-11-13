@@ -35,6 +35,13 @@ test('default C64C theme matches ivory baseline and leaves artwork tokens alone'
  expect(plus4.artInk).toBe(painted.artInk);
  expect(plus4.artBg).toBe(painted.artBg);
  await expect(page.locator('#uiThemeSummary')).toHaveText('Plus/4');
+ const plus4Header=await page.locator('header').evaluate(el=>{
+  const c=getComputedStyle(el).backgroundColor;
+  const m=c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if(!m)return c;
+  return Number(m[1])+Number(m[2])+Number(m[3]);
+ });
+ expect(plus4Header).toBeLessThan(220);
  await testInfo.attach('theme-plus4-'+testInfo.project.name,{
   body:await page.screenshot({animations:'disabled',fullPage:true}),
   contentType:'image/png'

@@ -964,25 +964,25 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  .glyph-picker .palette .glyph[aria-pressed=true] small{color:#fff9ee}
 
  /* Keep animation controls readable regardless of the legacy runtime skin. */
- .stage .preview-banner,#previewLabel{color:#293a4d!important;text-shadow:none!important}
+ .stage .preview-banner,#previewLabel{color:var(--stage-caption)!important;text-shadow:none!important}
  .stage .preview-banner #returnDrawing{
-  background:#eee7d6!important;color:#23344b!important;
-  border:1px solid #8a8d8d!important;
+  background:var(--ui-ivory)!important;color:var(--ui-ink)!important;
+  border:1px solid var(--ui-outline)!important;
  }
  .stagebar>.help-trigger{
-  background:#eee7d6!important;color:#23344b!important;
-  border:1px solid #8a8d8d!important;
+  background:var(--ui-ivory)!important;color:var(--ui-ink)!important;
+  border:1px solid var(--ui-outline)!important;
  }
  /* Native export sections were inheriting the old dark-dialog heading color. */
  dialog details>summary,dialog .help-disclosure>summary,
  dialog details>summary::marker{
-  color:#35475a!important;
+  color:var(--chrome-label)!important;
  }
- dialog details>summary:hover{color:#172b45!important}
+ dialog details>summary:hover{color:var(--header-title)!important}
 
  .context-help button,.preview-banner button,
  #animationPlay,#animationStop,#motionPreview,#c64Preview{
-  background:#eee7d6;color:#23344b;border:1px solid #8a8d8d;
+  background:var(--ui-ivory);color:var(--ui-ink);border:1px solid var(--ui-outline);
  }
  #animationPlay[aria-pressed=true],#motionPreview[aria-pressed=true],
  #c64Preview[aria-pressed=true]{

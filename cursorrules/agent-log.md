@@ -33,3 +33,10 @@
 - Added `html[data-ui-theme=c64c|c128|plus4]` token scopes, `ui-themes.js`, header Interface look control, device pref `petscii-ui-theme`.
 - Themes change chrome only; artwork `--art-*` and C64 exports unchanged.
 - Tests: `node --test tests/ui-themes.unit.mjs tests/ci-selection.unit.mjs` (11 pass); Chromium `ui-theme`, `6581-theme-screenshots`, `layout` (8 pass). Local WebKit missing `libavif16`; CI covers iPad projects.
+
+## Theme screenshots + chrome token fix (2026-11-12)
+
+- CI on PR #95 was green (unit + chromium + both iPad WebKit jobs).
+- Pixel sampling showed hardcoded C64C enclosure rules (header gradient, panel wells, stage wash) still painted ivory over theme tokens.
+- Tokenized those surfaces; Plus/4 header/sidebar now measure ~#373737/#333333.
+- Review shots in `docs/review-screenshots/pr95/` (desktop + iPad portrait/landscape).
