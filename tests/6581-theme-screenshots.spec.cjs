@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 
 test('capture Commodore enclosure styling in the full editor viewport',async({page},testInfo)=>{
- await page.addInitScript(()=>localStorage.removeItem('petscii-ui-theme'));
+ await page.addInitScript(()=>localStorage.removeItem('petscii-workspace-prefs'));
  await page.goto('/');
  await page.locator('.app[data-ready=true]').waitFor();
  await expect(page.locator('#canvas')).toBeVisible();

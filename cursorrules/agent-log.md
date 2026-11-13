@@ -40,3 +40,22 @@
 - Pixel sampling showed hardcoded C64C enclosure rules (header gradient, panel wells, stage wash) still painted ivory over theme tokens.
 - Tokenized those surfaces; Plus/4 header/sidebar now measure ~#373737/#333333.
 - Review shots in `docs/review-screenshots/pr95/` (desktop + iPad portrait/landscape).
+
+## Machine modes rebased (2026-11-12)
+
+- Branch `feature/machine-modes-rebased` on top of theme architecture.
+- Machine header owns chrome via `applyMachineChrome` + `uiThemeForMachine`; TED drawing, schema, animation, export gates ported.
+- Local browser suites deferred; unit 26 pass; push for GitHub Actions.
+
+## PR #96 CI fix (2026-11-12)
+
+- Unit: sine-scroll deepEqual failed because `animationCells` now includes `colorPalette`.
+- iPad portrait: `#import` / export-tab clicks never settled while readiness panel stuck on "Checking…"; `schedule()` bumped `revision` on every redraw and invalidated in-flight checks.
+- Fix: compare cells/inks (+ assert pepto-pal); debounce schedule without revision bump; only reschedule from redraw when data export tab is open.
+- Pushed `6468a5e` for GitHub Actions (no local Playwright).
+
+## PR #96 WebKit dialog stability (2026-11-13)
+
+- Follow-up: unit+chromium green; both iPad jobs still failed — modal recentered while readiness rewrote, so `#downloadClose` / export tabs never settled; suite hit 600s.
+- Stop schedule-from-redraw and panel rewrite on debounce; helpers close dialog via `.close()` and skip already-selected tabs; focused CI global-timeout 20m.
+- Retriggered on `5bd6a18`.

@@ -206,10 +206,10 @@ html[data-ui-theme="plus4"]{
  color-scheme:dark;
 }
 
-#uiThemeMenu{position:relative;align-self:center}
-#uiThemeMenu>summary{list-style:none;border:1px solid var(--case-edge);border-radius:9px;padding:0 11px;font-size:.8rem;cursor:pointer}
-#uiThemeMenu>summary::-webkit-details-marker{display:none}
-.ui-theme-menu{position:absolute;left:0;top:calc(100% + 6px);width:min(280px,calc(100vw - 24px));box-sizing:border-box;padding:14px;background:var(--case-surface);border:1px solid var(--case-edge);z-index:12;border-radius:10px;box-shadow:0 10px 35px #0008}
+#machineMenu{position:relative;align-self:center}
+#machineMenu>summary{list-style:none;border:1px solid var(--case-edge);border-radius:9px;padding:0 11px;font-size:.8rem;cursor:pointer}
+#machineMenu>summary::-webkit-details-marker{display:none}
+.machine-menu{position:absolute;left:0;top:calc(100% + 6px);width:min(280px,calc(100vw - 24px));box-sizing:border-box;padding:14px;background:var(--case-surface);border:1px solid var(--case-edge);z-index:12;border-radius:10px;box-shadow:0 10px 35px #0008}
 @media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
 
 /* Keep frequent actions stable; occasional controls live in separate surfaces. */
@@ -277,7 +277,7 @@ body{background:var(--ui-case-bg);color:var(--case-text)}
 header{background:linear-gradient(180deg,var(--header-shine) 0%,var(--ui-case-bg) 100%);color:var(--case-text);border-top:5px solid var(--header-border-top);border-bottom:3px solid var(--case-seam);box-shadow:inset 0 -1px var(--header-inset)}
 header h1{color:var(--header-title);font-weight:800;text-shadow:0 1px #fff8}
 header .subtitle{color:var(--case-muted)}
-header button,header select,header #projectMenu>summary,header #uiThemeMenu>summary{background:var(--header-control-bg);color:var(--header-control-fg);border-color:var(--header-control-border)}
+header button,header select,header #projectMenu>summary,header #machineMenu>summary{background:var(--header-control-bg);color:var(--header-control-fg);border-color:var(--header-control-border)}
 .drawing-strip{background:var(--ui-case-bg);border-bottom:3px solid var(--case-seam);box-shadow:inset 0 1px var(--header-border-top)}
 .drawing-strip button,.drawing-strip summary{background:var(--strip-control-bg);color:var(--strip-control-fg);border-color:var(--strip-control-border)}
 .drawing-strip button[aria-pressed=true],.drawing-strip button.active{background:var(--ui-selected-bg);color:var(--ui-selected-text);border-color:var(--ui-selected-border)}
@@ -373,7 +373,7 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 
 /* Enclosure surfaces: panels, popovers, dialogs — token-driven for all themes. */
 .sidebar,.glyph-picker,.picker-heading,.tool-strip,
-.project-menu,.ui-theme-menu,.tool-popover,#inkPopover,dialog{
+.project-menu,.machine-menu,.tool-popover,#inkPopover,dialog{
  background:var(--ui-panel-bg);color:var(--ui-heading);border-color:var(--panel-well-border);
 }
 .sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section,
@@ -383,7 +383,7 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 .sidebar summary,.glyph-picker summary,.project-menu summary,
 .project-menu legend,dialog legend,dialog h2,
 .sidebar label,.glyph-picker label,.project-menu label,dialog label,
-.sidebar .note,.glyph-picker .note,.project-menu .note,.ui-theme-menu .note,dialog .note,
+.sidebar .note,.glyph-picker .note,.project-menu .note,.machine-menu .note,dialog .note,
 .sidebar .motion-summary,.sidebar .motion-summary span,
 .sidebar .summary-badge,.project-menu .save-hint{
  color:var(--chrome-label);
@@ -473,7 +473,7 @@ header #saveStatus,header .status,header .note{color:var(--chrome-label)}
  --ui-field-disabled-text:#596372;
  --ui-control-shadow:#a69e90;
 }
-:is(.sidebar,.glyph-picker,.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover)
+:is(.sidebar,.glyph-picker,.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover)
 :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
     textarea,select){
  background-color:var(--ui-field-bg);
@@ -482,26 +482,31 @@ header #saveStatus,header .status,header .note{color:var(--chrome-label)}
  border-radius:9px;
  box-shadow:inset 0 1px 2px #70675a25;
 }
-:is(.sidebar,.glyph-picker,.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover)
+:is(.sidebar,.glyph-picker,.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover)
 :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
     textarea,select):disabled{
  background-color:var(--ui-field-disabled-bg);
  color:var(--ui-field-disabled-text);
  opacity:1;
 }
-:is(.sidebar,.glyph-picker,.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover)
+:is(.sidebar,.glyph-picker,.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover)
 :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=file]),
     textarea,select):focus-visible{
  outline:3px solid var(--ui-focus-border);
  outline-offset:2px;
 }
-:is(.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover) button:not([aria-pressed=true]):not(.active):not(:disabled){
+:is(.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover) button:not([aria-pressed=true]):not(.active):not(:disabled){
  background:var(--ui-control-bg);
  color:var(--ui-text);
  border-color:var(--ui-control-border);
 }
-:is(.project-menu,.ui-theme-menu,dialog,.tool-popover,#inkPopover) button:disabled{
+:is(.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover) button:disabled{
  background:var(--ui-field-disabled-bg);
  color:var(--ui-field-disabled-text);
  opacity:1;
 }
+
+/* Machine modes: Plus/4 TED picker is 1 black + 15 chroma x 8 luma swatches. */
+.color-grid.ted-grid{grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.color-grid.ted-grid button{min-width:0;padding:2px;overflow:hidden;font-size:.62rem;line-height:1.1}
+#inkPopover .color-grid.ted-grid button{font-size:.58rem;padding:2px}

@@ -38,3 +38,12 @@ test('extracted shared modules select affected browser workflows',()=>{
   for(const module of ['typed-text.js','text-grid.js','glyph-families.js','c64-colors.js'])
     assert.ok(select([module]).specs.includes('tests/c64-only.spec.cjs'),module);
 });
+
+test('machine-mode modules select machine and theme browser workflows',()=>{
+  for(const module of ['machine-modes.js','plus4-colors.js']){
+    const specs=select([module]).specs;
+    assert.ok(specs.includes('tests/machine-modes.spec.cjs'),module);
+    assert.ok(specs.includes('tests/ui-theme.spec.cjs'),module);
+  }
+  assert.ok(select(['project-validation.js']).specs.includes('tests/machine-modes.spec.cjs'));
+});

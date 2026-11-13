@@ -1,3 +1,5 @@
+import {isDisplayPaletteId} from './c64-colors.js';
+import {isMachineId, isValidInkForMachine} from './machine-modes.js';
 import {SOLID_EFFECTS} from './solid-motion.js';
 
 export const ANIMATION_CYCLES = [1, 2, 4, 8, 16];
@@ -28,18 +30,35 @@ export const MOTION_EFFECTS = [
 ];
 export const COLOR_EFFECTS = [
   'none', 'bonfire', 'raster-bars', 'plasma', 'color-cycle', 'color-wave', 'color-glow',
+  'plus4-cycle', 'plus4-wave', 'plus4-glow', 'plus4-raster', 'plus4-plasma', 'plus4-bonfire',
 ];
 
 const ALLOWED_SECONDS = [0.5, 1, 2, 4, 8, 12];
 const ALLOWED_SCALE = [1, 2, 4];
 const ALLOWED_BACKGROUNDS = ['dark', 'white', 'transparent'];
 
-function isValidC64Color(value) {
-  return Number.isInteger(value) && value >= 0 && value < 16;
+function projectMachine(data) {
+  if (data?.machine === undefined) {
+    return 'c64';
+  }
+  return data.machine;
+}
+
+function isValidProjectColor(value, machineId) {
+  return isValidInkForMachine(value, machineId);
 }
 
 function isValidGlyphId(value) {
   return value === '' || (Number.isInteger(value) && value >= 0 && value <= 511);
+}
+
+function validateMachineFields(data) {
+  if (data.machine !== undefined && !isMachineId(data.machine)) {
+    throw Error('Invalid machine');
+  }
+  if (data.palette !== undefined && !isDisplayPaletteId(data.palette)) {
+    throw Error('Invalid palette');
+  }
 }
 
 function validateColorsField(data) {
@@ -50,8 +69,9 @@ function validateColorsField(data) {
   if (!colors) {
     throw Error('Invalid C64 colors');
   }
+  const machine = projectMachine(data);
   for (const key of ['ink', 'background']) {
-    if (!isValidC64Color(colors[key])) {
+    if (!isValidProjectColor(colors[key], machine)) {
       throw Error('Invalid C64 colors');
     }
   }
@@ -75,7 +95,8 @@ function validateGrid(data) {
     if (!Array.isArray(data.cellColors) || data.cellColors.length !== cellCount) {
       throw Error('Invalid cell colors');
     }
-    if (!data.cellColors.every(isValidC64Color)) {
+    const machine = projectMachine(data);
+    if (!data.cellColors.every((ink) => isValidProjectColor(ink, machine))) {
       throw Error('Invalid cell colors');
     }
   }
@@ -113,12 +134,13 @@ function validateDrawingReplay(data) {
     throw Error('Replay does not match drawing');
   }
 
+  const machine = projectMachine(data);
   const defaultInk = data.colors?.ink ?? 14;
   if (replay.baseColors !== undefined) {
     if (!Array.isArray(replay.baseColors) || replay.baseColors.length !== cellCount) {
       throw Error('Invalid replay colors');
     }
-    if (!replay.baseColors.every(isValidC64Color)) {
+    if (!replay.baseColors.every((ink) => isValidProjectColor(ink, machine))) {
       throw Error('Invalid replay colors');
     }
   }
@@ -126,7 +148,7 @@ function validateDrawingReplay(data) {
     if (!Array.isArray(replay.eventColors) || replay.eventColors.length !== replay.events.length) {
       throw Error('Invalid replay colors');
     }
-    if (!replay.eventColors.every(isValidC64Color)) {
+    if (!replay.eventColors.every((ink) => isValidProjectColor(ink, machine))) {
       throw Error('Invalid replay colors');
     }
   }
@@ -225,18 +247,19 @@ function validateAnimationField(data) {
 }
 
 export function validateProject(data) {
+  if (!data || data.format !== 'petscii-stencil-lab' || data.version !== 3) {
+    throw Error('Only version 3 unified glyph projects are supported');
+  }
+  validateMachineFields(data);
   validateColorsField(data);
-  if (data && data.glyphSource !== undefined && data.glyphSource !== 'builtin') {
+  if (data.glyphSource !== undefined && data.glyphSource !== 'builtin') {
     throw Error('Only built-in C64 glyph projects are supported');
   }
-  if (data?.selectedGlyph !== undefined) {
+  if (data.selectedGlyph !== undefined) {
     const id = data.selectedGlyph;
     if (!Number.isInteger(id) || id < 0 || id > 511) {
       throw Error('Invalid selected C64 glyph');
     }
-  }
-  if (!data || data.format !== 'petscii-stencil-lab' || data.version !== 3) {
-    throw Error('Only version 3 unified glyph projects are supported');
   }
   if (data.charset !== undefined) {
     throw Error('Whole-drawing character sets are no longer supported');

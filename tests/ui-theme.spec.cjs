@@ -13,28 +13,31 @@ async function themeTokens(page){
  });
 }
 
-test('default C64C theme matches ivory baseline and leaves artwork tokens alone',async({page},testInfo)=>{
+// Machine owns appearance: data-ui-theme is mapped from the header Machine control (c64->c64c).
+test('default C64C look matches ivory baseline; machine switches map to themes without recoloring VIC artwork',async({page},testInfo)=>{
+ page.on('dialog',dialog=>dialog.accept());
  await page.goto('/');
- await page.evaluate(()=>localStorage.removeItem('petscii-ui-theme'));
+ await page.evaluate(()=>{localStorage.removeItem('petscii-workspace-prefs');localStorage.removeItem('petscii-graphics-project-v3')});
  await page.reload();
  await page.locator('.app[data-ready=true]').waitFor();
  const before=await themeTokens(page);
  expect(before.theme).toBe('c64c');
  expect(before.caseBg).toBe('#d4cbb7');
- await expect(page.locator('#uiThemeSummary')).toHaveText('C64C');
+ await expect(page.locator('#machineSummary')).toHaveText('C64 · Pepto');
  await page.locator('#canvas').click({position:{x:24,y:24}});
  const painted=await themeTokens(page);
  expect(painted.artInk).toBeTruthy();
  expect(painted.artBg).toBeTruthy();
 
- await page.locator('#uiThemeMenu > summary').click();
- await page.locator('#uiTheme').selectOption('plus4');
+ await page.locator('#machineMenu > summary').click();
+ await page.locator('#workspaceMachine').selectOption('plus4');
  const plus4=await themeTokens(page);
  expect(plus4.theme).toBe('plus4');
  expect(plus4.caseBg).toBe('#2f2f2f');
- expect(plus4.artInk).toBe(painted.artInk);
- expect(plus4.artBg).toBe(painted.artBg);
- await expect(page.locator('#uiThemeSummary')).toHaveText('Plus/4');
+ // Plus/4 remaps inks into TED space (undoable); it must still publish artwork tokens.
+ expect(plus4.artInk).toBeTruthy();
+ expect(plus4.artBg).toBeTruthy();
+ await expect(page.locator('#machineSummary')).toHaveText('Plus/4 · TED');
  const plus4Header=await page.locator('header').evaluate(el=>{
   const c=getComputedStyle(el).backgroundColor;
   const m=c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -47,8 +50,8 @@ test('default C64C theme matches ivory baseline and leaves artwork tokens alone'
   contentType:'image/png'
  });
 
- await page.locator('#uiThemeMenu > summary').click();
- await page.locator('#uiTheme').selectOption('c128');
+ await page.locator('#machineMenu > summary').click();
+ await page.locator('#workspaceMachine').selectOption('c128');
  const c128=await themeTokens(page);
  expect(c128.theme).toBe('c128');
  expect(c128.caseBg).toBe('#c5c0b4');
@@ -76,19 +79,19 @@ test('default C64C theme matches ivory baseline and leaves artwork tokens alone'
  });
  await page.locator('#projectMenu > summary').click();
  await page.setViewportSize({width:1080,height:810});
- await page.locator('#uiThemeMenu > summary').click();
- await page.locator('#uiTheme').selectOption('c64c');
- await expect(page.locator('#uiThemeSummary')).toHaveText('C64C');
+ await page.locator('#machineMenu > summary').click();
+ await page.locator('#workspaceMachine').selectOption('c64');
+ await expect(page.locator('#machineSummary')).toHaveText('C64 · Pepto');
  await testInfo.attach('theme-c64c-ipad-landscape-'+testInfo.project.name,{
   body:await page.screenshot({animations:'disabled',fullPage:true}),
   contentType:'image/png'
  });
 
  await page.setViewportSize({width:1280,height:800});
- await page.locator('#uiThemeMenu > summary').click();
- await page.locator('#uiTheme').selectOption('c128');
+ await page.locator('#machineMenu > summary').click();
+ await page.locator('#workspaceMachine').selectOption('c128');
  await page.reload();
  await page.locator('.app[data-ready=true]').waitFor();
  expect(await page.evaluate(()=>document.documentElement.dataset.uiTheme)).toBe('c128');
- await expect(page.locator('#uiThemeSummary')).toHaveText('C128');
+ await expect(page.locator('#machineSummary')).toHaveText('C128 · Pepto');
 });
