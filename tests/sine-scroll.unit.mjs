@@ -34,8 +34,11 @@ for (const [W, H] of [[1, 1], [1, 7], [7, 1], [5, 3], [3, 5], [8, 8], [40, 25]])
           );
           assert.equal(n, expectedCount);
           for (let f = 0; f < n; f++) {
+            const frame = animationCells(f, s);
+            // animationCells also reports colorPalette; VIC sine scroll stays pepto-pal.
+            assert.equal(frame.colorPalette, 'pepto-pal');
             assert.deepEqual(
-              JSON.parse(JSON.stringify(animationCells(f, s))),
+              {cells: frame.cells, inks: frame.inks},
               reference(p, scrollDirection, f / n),
             );
           }
