@@ -14,6 +14,7 @@ For drawing instructions, start with the [user guide](../README.md).
 | Animated colors | [Color cycling](#color-cycling) |
 | Panels, controls, or resizing | [Workspace navigation](#workspace-navigation) |
 | Brush and cell colors | [C64 colors](#c64-colors) |
+| Machine modes, display palettes, Plus/4 TED, chrome | [Machine modes design](machine-modes.md) |
 | Source data and rebuilding glyphs | [Glyph provenance](#glyph-provenance-and-rebuilding) |
 
 ## Terms used here
@@ -209,6 +210,8 @@ These are per-cycle sampling targets. Independent cycle counts multiply those ta
 - **Navigation tests.** Preserve Canvas ResizeObserver fitting and stroke interpolation. Browser test helpers reveal controls through real dialog/disclosure/tab/picker clicks. Historical resize helpers apply each requested change; dedicated workspace tests exercise staging both dimensions and a single undo.
 
 ## C64 colors
+
+Planned C64 / C128 / Plus/4 machine modes, VIC display-palette switching, TED drawing indices, and machine chrome are specified in [machine modes](machine-modes.md). Until that UI ships, the editor remains Pepto `0–15` for drawing; Plus/4 appears only as animation color-effect twins. Do not add conflicting `machine` / TED cell fields without updating that design and this section.
 
 - **Palette.** `C64_COLORS` is the 16-entry Pepto PAL palette, in hardware index order. Reference: https://www.pepto.de/projects/colorvic/2001/ (gamma-corrected hex table). Treat RGB as an approximation of analog C64 output, not a unique exact hardware RGB specification.
 

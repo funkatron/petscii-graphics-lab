@@ -11,7 +11,21 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
 2. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
 3. **New animation types:** prioritize additional creative effects over C64 capacity optimization and memory-expansion support; continue the demoscene-inspired effects below.
-4. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
+4. **Machine modes / display palettes:** C64, C128 (40-col), and Plus/4 with VIC palette switching and full TED drawing — see [machine modes](machine-modes.md).
+5. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
+
+## Machine modes and display palettes — design in progress
+
+Design contract: [machine modes](machine-modes.md).
+
+- [x] Publish the design document and link it from AGENTS, maintainer reference, and this roadmap.
+- [ ] Lock chrome seed colors from boot-screen and case photo references.
+- [ ] Implement header Machine / Display palette controls and machine-themed app chrome.
+- [ ] Ship VIC display palettes (Pepto, Colodore, VICE, RGB) and Plus/4 TED drawing (`0–120`) with undoable VIC↔TED conversion.
+- [ ] Redesign Plus/4 color animations for native TED cell inks; gate C64 PRG/Color RAM and color text in Plus/4 mode.
+- [ ] Add Playwright/unit coverage; update the design doc’s shipped section.
+- [ ] Follow-up: C128 80-column (VDC) mode.
+- [ ] Follow-up: TED-capable color text-grid format.
 
 ## Native Commodore 128 40-column animation player — planned
 

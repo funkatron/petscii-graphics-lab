@@ -17,9 +17,11 @@ This file is the authoritative project guidance. Read it completely before chang
 
 2. Read the relevant sections of the [maintainer reference](docs/maintainer-reference.md). Its implementation contracts are part of this guidance.
 
-3. Inspect the implementation and tests for the area you will change.
+3. Before changing machine modes, display palettes, Plus/4 TED drawing, or machine chrome, read the [machine modes design](docs/machine-modes.md).
 
-4. Make the change, run appropriate checks, and report actual results and remaining limits.
+4. Inspect the implementation and tests for the area you will change.
+
+5. Make the change, run appropriate checks, and report actual results and remaining limits.
 
 The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.md) separates completed work from follow-ups.
 
@@ -103,7 +105,7 @@ Use the shared 64C form-control tokens and rules in [styles/README.md](styles/RE
 
 - **Built-in artwork:** both banks and inverse slots come from `assets/c64-glyphs.svg`. Keep the original ROM binary out of the repository. There is no user-facing ROM import.
 - **Editable files:** v3 keeps the `petscii-stencil-lab` format identifier and numeric ID 0, with no global charset. Autosave uses `petscii-graphics-project-v3`. Earlier formats are unsupported by owner decision.
-- **Colors:** preserve one ink index per cell and one shared background. A brush color change affects future strokes. Recoloring the entire drawing is a separate undoable action.
+- **Colors:** preserve one ink index per cell and one shared background. A brush color change affects future strokes. Recoloring the entire drawing is a separate undoable action. Planned multi-machine modes (C64 / C128 40-col / Plus/4 TED) and VIC display palettes are specified in [machine modes](docs/machine-modes.md); do not invent a conflicting schema while that work is in progress.
 - **Animation:** previews use derived frames and leave source artwork intact. The canvas is read-only during playing and paused previews; Return to drawing enables painting. Loop duration sets the whole timeline; independent movement/color rates repeat 1/2/4/8/16 times within it. Preview and all animation downloads share phase and sampling; warn instead of silently aliasing unsupported fast combinations. Videos support 1–100 complete loops.
 - **Animation options:** keep scroll direction and movement/color wave direction and waveform controls contextual. All preview and output formats share their snapshotted values; color waves alone never move characters.
 - **Downloads:** one action per selected format. Snapshot artwork before asynchronous work. Keep progress, cancellation, and the last completed download available.
@@ -126,8 +128,9 @@ Write for a novice who may be reading in short sessions.
 
 Track requested features in the [roadmap](docs/roadmap.md). Movement/reveal and color animation now have independent selections sharing one loop. Keep both settings in snapshots and project validation.
 
+- Machine modes / display palettes / Plus/4 TED drawing: follow [machine modes](docs/machine-modes.md). C128 80-col remains a separate follow-up.
 - C64 still/animation PRG and D64 export are implemented in `c64-export.js`. D64 packages the same player as one closed PRG on a standard 35-track disk. Preserve shared frame input, bounded memory, CPU-work checks, RUN/STOP exit, independent disk extraction and emulator tests. Representative full VICE/1541-II checks now pass on PAL/NTSC; physical hardware and broader animation performance remain follow-ups; see [C64 output](docs/c64-output.md).
-- Legacy shapes, the manufacturing checker, v1 imports, mixed Unicode text, and old single-effect color settings have been removed. The owner does not prioritize abandoned-format compatibility; keep the C64-only architecture simple.
+- Legacy shapes, the manufacturing checker, v1 imports, mixed Unicode text, and old single-effect color settings have been removed. The owner does not prioritize abandoned-format compatibility; keep the shared-glyph VIC family architecture simple unless machine-modes work explicitly widens it.
 - Color-aware text/data import formats.
 - Tile stamp, line/rectangle/fill tools, selection/move/duplicate and motif libraries.
 - Keyboard shortcuts, improved undo workflow, zoom, and optional grid guides.
