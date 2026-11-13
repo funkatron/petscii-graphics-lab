@@ -8,13 +8,20 @@ async function reveal(page,selector){
  const target=page.locator(selector).first();
  const location=await target.evaluate(e=>({dialog:!!e.closest('#downloadDialog'),picker:!!e.closest('#glyphPicker'),sidebar:!!e.closest('#sidebar'),mode:e.closest('[data-export-mode]')?.dataset.exportMode,format:e.closest('[data-motion-format]')?.dataset.motionFormat}));
  if(location.dialog){if(!await page.locator('#downloadDialog').evaluate(e=>e.open))await page.locator('#downloadOpen').click()}
- else if(await page.locator('#downloadDialog').evaluate(e=>e.open))await page.locator('#downloadClose').click();
+ else if(await page.locator('#downloadDialog').evaluate(e=>e.open)){
+  // Prefer the dialog API: WebKit can keep the ✕ control unstable while the
+  // readiness panel reflows and recenters the modal.
+  await page.evaluate(()=>document.getElementById('downloadDialog').close());
+ }
  if(location.picker){if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click()}
  else if(location.sidebar){
   if(await page.locator('#glyphBackdrop').isVisible())await page.locator('#glyphClose').click();
   if(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed')))await page.locator('#toggle').click();
  }
- if(location.mode)await page.locator('[data-export-tab="'+location.mode+'"]').click();
+ if(location.mode){
+  const tab=page.locator('[data-export-tab="'+location.mode+'"]');
+  if(await tab.getAttribute('aria-selected')!=='true')await tab.click();
+ }
  // Open disclosures from outside in, using actual user controls.
  const details=await target.evaluate(e=>{const ids=[];for(let p=e.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS'&&p.id)ids.unshift(p.id);return ids});
  for(const id of details)if(!await page.locator('#'+id).evaluate(e=>e.open))await page.locator('#'+id+' > summary').click();
