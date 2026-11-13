@@ -6,7 +6,8 @@ import {
  UI_THEMES,
  applyUiTheme,
  isUiThemeId,
- readStoredUiTheme
+ readStoredUiTheme,
+ uiThemeForMachine
 } from '../ui-themes.js';
 
 const storage=new Map();
@@ -52,4 +53,12 @@ test('readStoredUiTheme uses the preference key when valid',()=>{
  assert.equal(localStorage.getItem(UI_THEME_STORAGE_KEY),'plus4');
  assert.equal(readStoredUiTheme(),'plus4');
  storage.clear();
+});
+
+test('machines map to interface themes, defaulting to C64C',()=>{
+ assert.equal(uiThemeForMachine('c64'),'c64c');
+ assert.equal(uiThemeForMachine('c128'),'c128');
+ assert.equal(uiThemeForMachine('plus4'),'plus4');
+ assert.equal(uiThemeForMachine('unknown'),'c64c');
+ assert.equal(uiThemeForMachine(undefined),'c64c');
 });

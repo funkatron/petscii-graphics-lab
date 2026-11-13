@@ -18,11 +18,17 @@ function select(files, {full=false, motionOnly=false}={}) {
   if (changed(/^project-validation\.js$/)) {
     set.add('tests/c64-only.spec.cjs');
     set.add('tests/animation-controls.spec.cjs');
+    set.add('tests/machine-modes.spec.cjs');
   }
   if (changed(/^animation-frames\.js$/)) {
     set.add('tests/animation.spec.cjs');
     set.add('tests/intro-motion.spec.cjs');
     set.add('tests/depth-exports.spec.cjs');
+  }
+  // Machine modes drive chrome, palettes, Plus/4 inks and export gates from index.html.
+  if (changed(/^(machine-modes|plus4-colors)\.js$/)) {
+    set.add('tests/machine-modes.spec.cjs');
+    set.add('tests/ui-theme.spec.cjs');
   }
   if (changed(/^pointer-stroke\.js$/)) set.add('tests/layout.spec.cjs');
   if (changed(/^(typed-text|text-grid|glyph-families|c64-colors)\.js$/))

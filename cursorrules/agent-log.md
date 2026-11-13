@@ -40,3 +40,9 @@
 - Pixel sampling showed hardcoded C64C enclosure rules (header gradient, panel wells, stage wash) still painted ivory over theme tokens.
 - Tokenized those surfaces; Plus/4 header/sidebar now measure ~#373737/#333333.
 - Review shots in `docs/review-screenshots/pr95/` (desktop + iPad portrait/landscape).
+
+## Machine modes rebased (2026-11-12)
+
+- Branch `feature/machine-modes-rebased` on top of theme architecture.
+- Machine header owns chrome via `applyMachineChrome` + `uiThemeForMachine`; TED drawing, schema, animation, export gates ported.
+- Local browser suites deferred; unit 26 pass; push for GitHub Actions.

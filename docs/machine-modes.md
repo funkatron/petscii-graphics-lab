@@ -1,6 +1,6 @@
 # Machine modes and display palettes
 
-**Status:** Design contract (chrome seeds locked; product UI implementation follows).  
+**Status:** Design contract; product UI shipped (C64/C128/Plus4 machine modes). C128 80-col and TED text-grid remain follow-ups.  
 **Audience:** Maintainers and coding agents. Read this before changing machine, palette, chrome, or Plus/4 color behavior.
 
 For current drawing controls, see the [user guide](../README.md). For byte-level editor contracts, see the [maintainer reference](maintainer-reference.md). Track delivery on the [roadmap](roadmap.md).
@@ -174,4 +174,9 @@ Product owns the JS source of truth. Do not dual-write Python MCP machine tables
 
 ## Shipped behavior
 
-_None yet in product UI on main. Chrome seed table above is locked for implementation. Update this section when the product UI lands with test evidence._
+- Header **Machine** menu with C64 / C128 (40-col) / Plus/4 and VIC **Display palette** (Pepto / Colodore / VICE / RGB).
+- App chrome tokens via `applyMachineChrome()`; Plus/4 uses dark foreground on paper panels.
+- Plus/4 drawing uses TED indices `0–120`; entering/leaving Plus/4 remaps inks (undoable).
+- Contextual color-animation lists; C64 PRG/D64 and color text disabled in Plus/4 mode.
+- Unit: `tests/machine-modes.unit.mjs`, `tests/plus4-colors.unit.mjs`. Chromium Playwright: `tests/machine-modes.spec.cjs` + theme mapping coverage in `tests/ui-theme.spec.cjs` (run on GitHub Actions).
+- Machine appearance maps onto `data-ui-theme` (`c64`→`c64c`, `c128`, `plus4`); there is no separate Interface look control.

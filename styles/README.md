@@ -1,6 +1,6 @@
 # Editor styling and machine themes
 
-The editor stylesheet lives in [editor.css](editor.css), separate from application markup and rendering logic. Theme selection helpers live in [`ui-themes.js`](../ui-themes.js).
+The editor stylesheet lives in [editor.css](editor.css), separate from application markup and rendering logic. Theme helpers live in [`ui-themes.js`](../ui-themes.js); machine and palette state lives in [`machine-modes.js`](../machine-modes.js) (see [machine modes](../docs/machine-modes.md)).
 
 ## Responsibilities
 
@@ -13,12 +13,14 @@ The editor stylesheet lives in [editor.css](editor.css), separate from applicati
 
 | Attribute | Values | Meaning |
 | --- | --- | --- |
-| `html[data-ui-theme]` | `c64c` (default) · `c128` · `plus4` | Interface look only |
+| `html[data-machine]` | `c64` (default) · `c128` · `plus4` | Source of truth; set by Machine control |
+| `html[data-ui-theme]` | `c64c` (default) · `c128` · `plus4` | Mapped from `data-machine`; scopes the token sets below |
 
+- **Machine modes drive appearance.** The header **Machine** control sets `html[data-machine]` (`c64` · `c128` · `plus4`) and `applyMachineChrome()` writes the `--chrome-*` tokens. `index.html` then maps the machine to `data-ui-theme` via `uiThemeForMachine()`: `c64` → `c64c`, `c128` → `c128`, `plus4` → `plus4`. There is no separate Interface look control.
 - Default and missing values resolve to **C64C** — the existing warm ivory enclosure.
-- Preference key: `petscii-ui-theme` (device-local). Themes are **not** stored in v3 project JSON.
+- Preference key: `petscii-workspace-prefs` (device-local machine + display palette) replaces the old `petscii-ui-theme` key, which is no longer read. Machine and palette are stored in v3 project JSON (`machine`, `palette`); the mapped theme is derived, never stored.
 - Changing theme must not alter glyph IDs, cell inks, background index, animation settings, or export bytes.
-- Capability models (ROM maps, TED palette, native exporters) belong in later machine-mode work, not in these tokens.
+- Capability models (TED palette, ink conversion, native export gates) live in the machine-mode modules and `index.html`, not in these tokens. CSS only presents the selected machine.
 
 ### Token layers
 
@@ -48,12 +50,12 @@ The extracted stylesheet still contains historical overrides. Theme scopes overr
 2. Prefer token overrides over new per-theme selector trees.
 3. Preserve C64 pixel and export behavior; add capability tests before introducing non-C64 rendering.
 4. Compare iPad portrait, landscape, and desktop screenshots for Project, Download artwork, the drawing surface, and glyph picker when chrome changes.
-5. Keep appearance themes separate from future machine-capability modules.
+5. Keep appearance tokens separate from machine-capability logic: do not encode ink conversion, palettes or export gates in CSS.
 
 ## Shared form-control conventions
 
 Use the tokens in `editor.css` for all editor surfaces (sidebar, glyph picker,
-Project menu, Theme menu, popovers, and dialogs). Avoid native white form surfaces or isolated
+Project menu, Machine menu, popovers, and dialogs). Avoid native white form surfaces or isolated
 hex-color overrides for routine controls.
 
 | Element | Treatment | Token |

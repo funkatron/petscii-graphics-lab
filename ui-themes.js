@@ -7,6 +7,13 @@ export const UI_THEMES={
  plus4:{id:'plus4',label:'Commodore Plus/4',summary:'Plus/4'}
 };
 
+// Machine modes own appearance: each machine selects the matching interface look.
+export const MACHINE_UI_THEMES=Object.freeze({c64:'c64c',c128:'c128',plus4:'plus4'});
+
+export function uiThemeForMachine(machineId){
+ return Object.prototype.hasOwnProperty.call(MACHINE_UI_THEMES,machineId)?MACHINE_UI_THEMES[machineId]:DEFAULT_UI_THEME;
+}
+
 export function isUiThemeId(id){
  return typeof id==='string'&&Object.prototype.hasOwnProperty.call(UI_THEMES,id);
 }

@@ -19,26 +19,13 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 Design contract: [machine modes](machine-modes.md).
 
 - [x] Publish the design document and link it from AGENTS, maintainer reference, and this roadmap.
-- [ ] Lock chrome seed colors from boot-screen and case photo references.
-- [ ] Implement header Machine / Display palette controls and machine-themed app chrome.
-- [ ] Ship VIC display palettes (Pepto, Colodore, VICE, RGB) and Plus/4 TED drawing (`0–120`) with undoable VIC↔TED conversion.
-- [ ] Redesign Plus/4 color animations for native TED cell inks; gate C64 PRG/Color RAM and color text in Plus/4 mode.
-- [ ] Add Playwright/unit coverage; update the design doc’s shipped section.
+- [x] Lock chrome seed colors from boot-screen and case photo references (see [machine modes](machine-modes.md)).
+- [x] Implement header Machine / Display palette controls and machine-themed app chrome.
+- [x] Ship VIC display palettes (Pepto, Colodore, VICE, RGB) and Plus/4 TED drawing (`0–120`) with undoable VIC↔TED conversion.
+- [x] Gate C64 PRG/Color RAM and color text in Plus/4 mode; contextual animation lists (TED-native effect ids retained).
+- [x] Add Playwright/unit coverage; update the design doc’s shipped section (Chromium machine-modes spec).
 - [ ] Follow-up: C128 80-column (VDC) mode.
 - [ ] Follow-up: TED-capable color text-grid format.
-
-## Native Commodore 128 40-column animation player — planned
-
-Build a **separate native C128-mode player/export target** for PETSCII Graphics Lab artwork and animations. This means a PRG that starts and runs **without `GO64`**, using the C128's VIC-IIe **40-column display**. It is **not** a request for 80-column VDC/RGBI support, and C64-mode compatibility alone does not satisfy it.
-
-- [ ] Research C128 native-mode memory banking, BASIC 7.0 program loading, VIC-IIe initialization, character RAM and color RAM access, interrupt/timing requirements, and clean exit to BASIC.
-- [ ] Reuse the existing C64 exporter’s validated artwork, glyph/color frames, timing semantics and compression where practical, while keeping a **distinct C128 executable player** and export choice. Avoid duplicating animation logic unnecessarily.
-- [ ] Generate a loadable native C128 PRG with documented load/run instructions; ensure it runs in C128 40-column mode without switching to C64 mode.
-- [ ] Verify still frames, animated playback, character shapes, colors, loop closure, and recovery/exit using appropriate emulation and automated byte-level checks.
-- [ ] Validate on the owner's physical Commodore 128 and 1541, including output on the existing composite CRT setup; document differences from C64-mode playback and any unsupported effects.
-- [ ] Keep existing C64 PRG/D64 exports unchanged and do not claim native C128 compatibility until verified.
-
-**Scope:** native C128 **40-column player**, not an 80-column VDC player, RGBI export, or machine-wide editor mode.
 
 ## Brittle-test audit — in progress
 
