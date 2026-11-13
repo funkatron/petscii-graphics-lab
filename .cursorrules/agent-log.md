@@ -1,5 +1,9 @@
 # Agent log
 
+## 2026-11-13 — Extract injected CSS to shell.css
+
+**What:** Moved the runtime `createElement('style')` block from `index.html` into `styles/shell.css`, linked after `editor.css`. No visual change intended.
+
 ## 2026-11-13 — Wider sidebar for TED 8-across
 
 **What:** Desktop sidebar 276→300px; mid-width 260→280px; overlay/popover caps 310→320px so Plus/4 TED rows keep eight flush tiles. VIC 4×4 only gets slightly larger swatches.
