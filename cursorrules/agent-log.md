@@ -46,3 +46,10 @@
 - Branch `feature/machine-modes-rebased` on top of theme architecture.
 - Machine header owns chrome via `applyMachineChrome` + `uiThemeForMachine`; TED drawing, schema, animation, export gates ported.
 - Local browser suites deferred; unit 26 pass; push for GitHub Actions.
+
+## PR #96 CI fix (2026-11-12)
+
+- Unit: sine-scroll deepEqual failed because `animationCells` now includes `colorPalette`.
+- iPad portrait: `#import` / export-tab clicks never settled while readiness panel stuck on "Checking…"; `schedule()` bumped `revision` on every redraw and invalidated in-flight checks.
+- Fix: compare cells/inks (+ assert pepto-pal); debounce schedule without revision bump; only reschedule from redraw when data export tab is open.
+- Pushed `6468a5e` for GitHub Actions (no local Playwright).
