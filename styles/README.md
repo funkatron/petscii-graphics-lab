@@ -69,7 +69,7 @@ hex-color overrides for routine controls.
 
 **Rules**
 
-1. Preserve native semantics and accessible names. Text/number fields and selects should look editable; buttons should look pressable. Do not style color swatches, checkboxes, radio buttons, sliders, file inputs, or artwork pixels as ordinary text fields.
+1. Preserve native semantics and accessible names. Text/number fields and selects should look editable; ordinary action buttons should look pressable. Color swatches in `.color-grid` are flush tiles (no gaps, borders, or raised chrome) so dense palettes stay compact; do not restyle them as ordinary keys. Do not style checkboxes, radio buttons, sliders, file inputs, or artwork pixels as ordinary text fields.
 2. Do not use pure-white input backgrounds to signal editability. Keep hover, focus, pressed, disabled, and progress states distinguishable without relying on color alone.
 3. Use shared tokens rather than adding per-dialog color declarations. If a new control needs a distinct treatment, document why here and test it across the affected surfaces.
 4. Check iPad portrait, iPad landscape, and desktop screenshots, especially **Download artwork** before and during export. Automated browser checks do not replace real-device accessibility and touch checks.
