@@ -50,3 +50,30 @@ test('repeated project and artwork downloads survive panel navigation with ident
   expect(await download(page,'#png')).toEqual(png);
  }
 });
+
+test('capture Project panel and Download artwork export states',async({page},testInfo)=>{
+ test.setTimeout(60000);
+ await loadProject(page,project([160,0],2,1));
+ const capture=async name=>testInfo.attach(name,{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
+ await page.locator('#projectMenu>summary').click();
+ await expect(page.locator('#newProject')).toBeVisible();
+ await capture('project-panel-expanded');
+ await page.locator('#projectMenu>summary').click();
+ await page.locator('#downloadOpen').click();
+ await page.locator('#export-tab-motion').click();
+ await page.locator('#animationFormat').selectOption('video');
+ await capture('download-artwork-video-idle');
+ let release,started;
+ const gate=new Promise(resolve=>release=resolve);
+ const requested=new Promise(resolve=>started=resolve);
+ await page.route('**/video-export.js',async route=>{started();await gate;await route.continue()});
+ try{
+  await page.locator('#exportVideo').click();
+  await Promise.race([requested,new Promise(resolve=>setTimeout(resolve,5000))]);
+  await expect(page.locator('#cancelSheetDownload')).toBeVisible();
+  await capture('download-artwork-video-exporting');
+ }finally{
+  await page.locator('#cancelSheetDownload').click();
+  release();
+ }
+});
