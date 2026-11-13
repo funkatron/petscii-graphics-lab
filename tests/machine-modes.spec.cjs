@@ -70,7 +70,8 @@ test('header machine control switches chrome and persists machine in JSON',async
  expect(tedMetrics.columns).toBe(8);
  expect(tedMetrics.border).toBe('0px');
  expect(new Set(tedMetrics.rowTops).size).toBe(1);
- expect(tedMetrics.sidebarWidth).toBeGreaterThanOrEqual(299);
+ // Desktop is 300px; mid-width (e.g. iPad portrait) uses 280px — both keep TED 8-across.
+ expect(tedMetrics.sidebarWidth).toBeGreaterThanOrEqual(279);
  const saved=JSON.parse(await download(page,'#saveProject'));
  expect(saved.machine).toBe('plus4');
  expect(saved.colors.background).toBeGreaterThan(15);
