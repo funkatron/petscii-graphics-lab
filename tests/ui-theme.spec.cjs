@@ -45,6 +45,50 @@ test('default C64C look matches ivory baseline; machine switches map to themes w
   return Number(m[1])+Number(m[2])+Number(m[3]);
  });
  expect(plus4Header).toBeLessThan(220);
+
+ // Export status + glyph keys follow charcoal tokens (not ivory hex locks).
+ await page.locator('#downloadOpen').click();
+ await expect(page.locator('#downloadDialog')).toBeVisible();
+ const plus4Status=await page.evaluate(()=>{
+  const root=getComputedStyle(document.documentElement);
+  const status=getComputedStyle(document.querySelector('#downloadStatus'));
+  const badge=getComputedStyle(document.querySelector('#exportBadge'));
+  return {
+   textStatus:root.getPropertyValue('--text-status').trim(),
+   statusColor:status.color,
+   badgeColor:badge.color
+  };
+ });
+ expect(plus4Status.textStatus).toBe('#f0f0f0');
+ expect(plus4Status.statusColor).toMatch(/rgb\(\s*240,\s*240,\s*240\s*\)/);
+ expect(plus4Status.badgeColor).toMatch(/rgb\(\s*240,\s*240,\s*240\s*\)/);
+ await testInfo.attach('theme-plus4-download-'+testInfo.project.name,{
+  body:await page.screenshot({animations:'disabled',fullPage:true}),
+  contentType:'image/png'
+ });
+ await page.locator('#downloadClose').click();
+ if(await page.locator('#glyphPicker').isHidden()){
+  await page.locator('#glyphToggle').click();
+ }
+ await expect(page.locator('.glyph-picker .palette .glyph').first()).toBeVisible();
+ const plus4Glyph=await page.locator('.glyph-picker .palette .glyph').first().evaluate(el=>{
+  const root=getComputedStyle(document.documentElement);
+  const style=getComputedStyle(el);
+  const canvas=el.querySelector('canvas');
+  return {
+   keyToken:root.getPropertyValue('--glyph-key-bg').trim(),
+   backgroundImage:style.backgroundImage,
+   filter:canvas?getComputedStyle(canvas).filter:''
+  };
+ });
+ expect(plus4Glyph.keyToken).toContain('#4a4a4a');
+ expect(plus4Glyph.backgroundImage).toMatch(/linear-gradient/i);
+ expect(plus4Glyph.backgroundImage.toLowerCase()).toContain('rgb(74, 74, 74)');
+ expect(plus4Glyph.filter==='none'||plus4Glyph.filter==='').toBeTruthy();
+ await testInfo.attach('theme-plus4-glyphs-'+testInfo.project.name,{
+  body:await page.screenshot({animations:'disabled',fullPage:true}),
+  contentType:'image/png'
+ });
  await testInfo.attach('theme-plus4-'+testInfo.project.name,{
   body:await page.screenshot({animations:'disabled',fullPage:true}),
   contentType:'image/png'

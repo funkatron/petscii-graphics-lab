@@ -144,6 +144,24 @@ summary:focus-visible{outline:3px solid #6cddd0;outline-offset:-3px;border-radiu
  --panel-well:#f1eadc;--panel-well-border:#aaa294;--chrome-label:#35475a;
  --stage-wash-top:#e9e1d0;--stage-wash-mid:#d3c9b5;--stage-wash-bottom:#bcb29f;
  --theme-color:#d4cbb7;
+ /* Semantic roles (aliases → current C64C look). */
+ --surface-panel:var(--ui-panel-bg);--surface-well:var(--panel-well);--surface-field:var(--ui-field-bg);
+ --text:var(--ui-text);--text-muted:var(--case-muted);--text-status:var(--ui-heading);--text-on-accent:#fff9ee;
+ --select-bg:var(--ui-field-bg);--select-border:var(--ui-field-border);
+ --control-raised-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 #9b9589;
+ --sym-divider:#8d887e;--sym-divider-shine:#fff8e8;
+ --sym-summary-bg:#e6dfd1;--sym-summary-fg:#293a4c;--sym-summary-border:#99958e;
+ --sym-summary-on-bg:#f7e5d2;--sym-summary-on-fg:#843713;--sym-summary-on-border:#c76b3e;
+ --glyph-key-bg:linear-gradient(155deg,#fff9eb 0%,#eee5d2 72%,#d6cbb7 100%);
+ --glyph-key-bg-hover:#fff8e7;--glyph-key-border:#8f8a80;--glyph-key-border-hover:#5b7793;
+ --glyph-key-text:#24364c;--glyph-key-code:#485a6e;
+ --glyph-key-shadow:inset 1px 1px #fffdf5,inset -1px -1px #b9b09f,0 2px 0 #9d9587;
+ --glyph-key-selected-bg:var(--ui-selected-bg);--glyph-key-selected-border:#9b7a31;
+ --glyph-key-selected-text:#1b293a;
+ --glyph-key-selected-shadow:inset 1px 1px #fff1b5,inset -1px -1px #d5b85b,0 2px 0 #a38b4c;
+ --glyph-key-selected-code:var(--text-on-accent);
+ --glyph-rom-filter:invert(1);--glyph-rom-filter-selected:brightness(0) invert(1);
+ --pin-raised-shadow:0 2px 0 #a49b8c;
  color-scheme:light;
 }
 
@@ -181,6 +199,23 @@ html[data-ui-theme="c128"]{
  --panel-well:#e8e4da;--panel-well-border:#8a867c;--chrome-label:#333333;
  --stage-wash-top:#ddd8ce;--stage-wash-mid:#c5c0b4;--stage-wash-bottom:#b0aba0;
  --theme-color:#c5c0b4;
+ --surface-panel:var(--ui-panel-bg);--surface-well:var(--panel-well);--surface-field:var(--ui-field-bg);
+ --text:var(--ui-text);--text-muted:var(--case-muted);--text-status:var(--ui-heading);--text-on-accent:#f5f5f0;
+ --select-bg:var(--ui-field-bg);--select-border:var(--ui-field-border);
+ --control-raised-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 var(--ui-control-shadow);
+ --sym-divider:#8a867c;--sym-divider-shine:#ebe7de;
+ --sym-summary-bg:var(--ui-control-bg);--sym-summary-fg:var(--ui-text);--sym-summary-border:var(--ui-control-border);
+ --sym-summary-on-bg:var(--ui-selected-bg);--sym-summary-on-fg:var(--ui-selected-text);--sym-summary-on-border:var(--ui-selected-border);
+ --glyph-key-bg:linear-gradient(155deg,#f5f2ea 0%,#e0dcd2 72%,#c5c0b4 100%);
+ --glyph-key-bg-hover:#ebe7de;--glyph-key-border:#8a867c;--glyph-key-border-hover:#4a6a8a;
+ --glyph-key-text:#2a2a2a;--glyph-key-code:#555555;
+ --glyph-key-shadow:inset 1px 1px #f5f2ea,inset -1px -1px #9a968c,0 2px 0 #8a867c;
+ --glyph-key-selected-bg:var(--ui-selected-bg);--glyph-key-selected-border:var(--ui-selected-border);
+ --glyph-key-selected-text:var(--ui-selected-text);
+ --glyph-key-selected-shadow:inset 1px 1px #c8e0a8,inset -1px -1px #6a8a4a,0 2px 0 #5a7a3a;
+ --glyph-key-selected-code:var(--text-on-accent);
+ --glyph-rom-filter:invert(1);--glyph-rom-filter-selected:brightness(0) invert(1);
+ --pin-raised-shadow:0 2px 0 var(--ui-control-shadow);
  color-scheme:light;
 }
 
@@ -218,6 +253,24 @@ html[data-ui-theme="plus4"]{
  --panel-well:#333333;--panel-well-border:#6a6a6a;--chrome-label:#d0d0d0;
  --stage-wash-top:#3a3a3a;--stage-wash-mid:#2f2f2f;--stage-wash-bottom:#262626;
  --theme-color:#2f2f2f;
+ --surface-panel:var(--ui-panel-bg);--surface-well:var(--panel-well);--surface-field:var(--ui-field-bg);
+ --text:var(--ui-text);--text-muted:var(--case-muted);--text-status:var(--ui-heading);--text-on-accent:#fff9ee;
+ --select-bg:var(--ui-field-bg);--select-border:var(--ui-field-border);
+ --control-raised-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 var(--ui-control-shadow);
+ --sym-divider:#6a6a6a;--sym-divider-shine:#505050;
+ --sym-summary-bg:var(--ui-control-bg);--sym-summary-fg:var(--ui-text);--sym-summary-border:var(--ui-control-border);
+ --sym-summary-on-bg:var(--ui-selected-bg);--sym-summary-on-fg:var(--ui-selected-text);--sym-summary-on-border:var(--ui-selected-border);
+ --glyph-key-bg:linear-gradient(155deg,#5a5a5a 0%,#4a4a4a 72%,#3a3a3a 100%);
+ --glyph-key-bg-hover:#555555;--glyph-key-border:#6a6a6a;--glyph-key-border-hover:#8ab4d4;
+ --glyph-key-text:#f0f0f0;--glyph-key-code:#c0c0c0;
+ --glyph-key-shadow:inset 1px 1px #6a6a6a,inset -1px -1px #2a2a2a,0 2px 0 #1a1a1a;
+ --glyph-key-selected-bg:var(--ui-selected-bg);--glyph-key-selected-border:var(--ui-selected-border);
+ --glyph-key-selected-text:var(--ui-selected-text);
+ --glyph-key-selected-shadow:inset 1px 1px #e8a0c0,inset -1px -1px #8c3258,0 2px 0 #6a2848;
+ --glyph-key-selected-code:var(--text-on-accent);
+ /* Light ROM pixels on charcoal keys; invert only when selected (white on pink). */
+ --glyph-rom-filter:none;--glyph-rom-filter-selected:brightness(0) invert(1);
+ --pin-raised-shadow:0 2px 0 var(--ui-control-shadow);
  color-scheme:dark;
 }
 
@@ -258,9 +311,9 @@ dialog::backdrop{background:#0009}
 #resizePreview{max-height:110px}#downloadDimensions{margin-top:12px}
 .glyph canvas{background:#000!important}.glyph{color:#fff}
 #glyphPin{font-size:.75rem;padding:7px}
-#glyphPin{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;color:var(--ui-text);background:var(--ui-control-bg);border:1px solid var(--ui-control-border);border-radius:8px;box-shadow:0 2px 0 #a49b8c}
+#glyphPin{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;color:var(--ui-text);background:var(--ui-control-bg);border:1px solid var(--ui-control-border);border-radius:8px;box-shadow:var(--pin-raised-shadow)}
 #glyphPin svg{display:block;pointer-events:none}
-#glyphPin[aria-pressed=true]{background:#c94e1a!important;color:#fff!important;border-color:#8c3215!important;box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)}
+#glyphPin[aria-pressed=true]{background:var(--key-active)!important;color:var(--text-on-accent)!important;border-color:var(--key-active-edge)!important;box-shadow:inset 0 3px 6px #61240b70!important;transform:translateY(2px)}
 .picker-title h2{margin-right:auto}.glyph-picker.pinned{position:static;width:300px;border-radius:0;box-shadow:none;flex:none}
 #downloadPreview{width:100%;object-fit:contain}
 @media(max-width:800px){#saveStatus{display:none}.drawing-strip{gap:4px}.tool-label{display:none}.drawing-strip button{padding:8px 10px}}
@@ -321,7 +374,7 @@ header button,header select,header #projectMenu>summary,
 .sidebar select,.sidebar input[type=number],.sidebar input[type=text],
 .glyph-picker button:not(.glyph),.glyph-picker select{
  background:var(--ui-control-bg);color:var(--ui-text);border:1px solid var(--ui-control-border);
- box-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 #9b9589;
+ box-shadow:var(--control-raised-shadow);
 }
 header button:hover,.drawing-strip button:hover,.sidebar button:not(.color-grid button):hover,.glyph-picker button:hover{
  background:var(--ui-control-hover);border-color:var(--ui-focus-border);
@@ -340,13 +393,13 @@ header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
 .sidebar .group-body,.sidebar .field label,.glyph-picker .note,
 .sidebar .note,.glyph-picker h2,.sidebar legend{color:var(--ui-heading)}
 .sidebar .tool-group,.sidebar .animation-section,.sidebar .sidebar-section{
- background:#eee8db;border-color:#999388;
+ background:var(--surface-well);border-color:var(--panel-well-border);
 }
 .sidebar .tool-group>summary,.sidebar .animation-section legend,.sidebar .sidebar-section legend{
  color:var(--ui-heading);
 }
-.glyph-picker .glyph{background:#172840;color:#f9fbff;border-color:#66849f;box-shadow:none}
-.glyph-picker .glyph:hover{background:#263b58}
+.glyph-picker .glyph{background:var(--glyph-key-bg);color:var(--glyph-key-text);border-color:var(--glyph-key-border);box-shadow:none}
+.glyph-picker .glyph:hover{background:var(--glyph-key-bg-hover)}
 /* Keep swatches as pure color fills even under hardware-key chrome rules. */
 .color-grid button,.color-grid button:hover,.color-grid button:active,
 .sidebar .color-grid button,.sidebar .color-grid button:hover,
@@ -356,40 +409,47 @@ header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
 }
 
 
-/* Select menus should read as light hardware controls, including their option lists. */
+/* Select menus follow theme field tokens (inherit color-scheme from html theme). */
 select,header select,.sidebar select,.glyph-picker select,dialog select,
 .animation-section select,.sidebar-section select{
- color-scheme:light;
- background-color:#f5efe1;
+ color-scheme:inherit;
+ background-color:var(--select-bg);
  color:var(--ui-text);
- border:1px solid #858d91;
- box-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 #a69e90;
+ border:1px solid var(--select-border);
+ box-shadow:var(--control-raised-shadow);
 }
 select option,select optgroup{background:var(--ui-control-highlight);color:var(--ui-text)}
 select:hover,header select:hover,.sidebar select:hover,.glyph-picker select:hover,dialog select:hover{
  background-color:var(--ui-control-highlight);border-color:var(--ui-focus-border);
 }
-select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
+select:disabled{background-color:var(--ui-field-disabled-bg);color:var(--ui-field-disabled-text);opacity:1}
 
-/* C64C-inspired PETSCII keycaps; preserve picker size and authentic ROM pixels. */
+/* PETSCII keycaps: token-driven; C64C ivory / Plus/4 charcoal via --glyph-key-*. */
 .glyph-picker .palette .glyph{
- background:linear-gradient(155deg,#fff9eb 0%,#eee5d2 72%,#d6cbb7 100%);
- color:#24364c;border:1px solid #8f8a80;border-radius:6px;
- box-shadow:inset 1px 1px #fffdf5,inset -1px -1px #b9b09f,0 2px 0 #9d9587;
+ background:var(--glyph-key-bg);
+ color:var(--glyph-key-text);border:1px solid var(--glyph-key-border);border-radius:6px;
+ box-shadow:var(--glyph-key-shadow);
  padding:3px 3px 5px;min-height:44px;height:44px;
 }
 .glyph-picker .palette .glyph canvas{
  width:28px!important;height:28px!important;background:transparent!important;
- filter:invert(1); /* Black ROM canvas becomes ivory-white; white glyph pixels become black. */
+ filter:var(--glyph-rom-filter);
 }
-.glyph-picker .palette .glyph:hover{background:#fff8e7;border-color:#5b7793}
+.glyph-picker .palette .glyph:hover{background:var(--glyph-key-bg-hover);border-color:var(--glyph-key-border-hover)}
 .glyph-picker .palette .glyph.active,
 .glyph-picker .palette .glyph[aria-pressed=true]{
- background:var(--ui-selected-bg);color:#1b293a;border-color:#9b7a31;
- box-shadow:inset 1px 1px #fff1b5,inset -1px -1px #d5b85b,0 2px 0 #a38b4c;
+ background:var(--glyph-key-selected-bg);color:var(--glyph-key-selected-text);border-color:var(--glyph-key-selected-border);
+ box-shadow:var(--glyph-key-selected-shadow);
 }
-.glyph-picker .palette .glyph small{color:#485a6e;font-weight:700;right:3px;bottom:1px}
-.glyph-picker .palette .glyph:focus-visible{outline:3px solid #007e9c;outline-offset:2px}
+.glyph-picker .palette .glyph.active canvas,
+.glyph-picker .palette .glyph[aria-pressed=true] canvas{
+ filter:var(--glyph-rom-filter-selected);
+ mix-blend-mode:normal;
+}
+.glyph-picker .palette .glyph small{color:var(--glyph-key-code);font-weight:700;right:3px;bottom:1px}
+.glyph-picker .palette .glyph.active small,
+.glyph-picker .palette .glyph[aria-pressed=true] small{color:var(--glyph-key-selected-code)}
+.glyph-picker .palette .glyph:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:2px}
 
 
 /* Enclosure surfaces: panels, popovers, dialogs — token-driven for all themes. */
@@ -428,6 +488,34 @@ select:disabled{background-color:#e4ded2;color:#596372;opacity:1}
 .help-disclosure{border-color:var(--panel-well-border)}
 #downloadFigure{background:var(--ui-control-bg)}
 #downloadPreview,#resizePreview{background:repeating-conic-gradient(var(--panel-well-border) 0 25%,var(--ui-field-bg) 0 50%) 0/16px 16px}
+/* Status / export feedback — readable on every theme surface. */
+dialog .status,
+#downloadDialog #exportBadge,#downloadDialog #downloadStatus,
+#downloadDialog .motion-summary,#downloadDialog .note{
+ color:var(--text-status);
+}
+dialog .status{font-weight:600}
+dialog .status[role="status"]{min-height:1.2em}
+#downloadDialog #exportBadge{font-weight:700}
+dialog input:not([type=checkbox]):not([type=radio]):not([type=range]){
+ background:var(--surface-field);color:var(--text);border:1px solid var(--select-border);box-shadow:none;
+}
+dialog input:not([type=checkbox]):not([type=radio]):not([type=range]):focus{
+ outline:3px solid var(--ui-focus-border);outline-offset:1px;
+}
+/* Symmetry summary uses theme control tokens (geometry stays in injected layout helpers). */
+#symmetryMenu{border:0;border-radius:0;background:transparent}
+#symmetryMenu::before{
+ content:"";position:absolute;left:-9px;top:6px;bottom:6px;width:1px;
+ background:var(--sym-divider);box-shadow:1px 0 var(--sym-divider-shine);pointer-events:none;
+}
+#symmetryMenu>summary{
+ color:var(--sym-summary-fg);background:var(--sym-summary-bg);border:1px solid var(--sym-summary-border);
+}
+#symmetryMenu>summary.symmetry-on{
+ color:var(--sym-summary-on-fg);background:var(--sym-summary-on-bg);border-color:var(--sym-summary-on-border);
+ box-shadow:inset 0 0 0 1px var(--sym-summary-on-border);
+}
 
 
 /* Monitor surround, readable stage labels, and contextual help. */

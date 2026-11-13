@@ -88,46 +88,27 @@ Summary examples: `C64 · Pepto`, `Plus/4 · TED`.
 
 ## App chrome and contrast
 
-Set `data-machine="c64|c128|plus4"` on `document.documentElement` and drive the shell from CSS variables, for example:
+Set `data-machine="c64|c128|plus4"` on `document.documentElement`. Map to `data-ui-theme` (`c64`→`c64c`, `c128`, `plus4`) and let **CSS theme scopes** in `styles/editor.css` paint the shell. Semantic token roles are documented in [styles/README.md](../styles/README.md). Artwork brush colors stay on `--art-ink` / `--art-bg`.
 
-| Token | Role |
-| --- | --- |
-| `--chrome-bg` | App / stage wash |
-| `--chrome-panel` | Header, sidebar, strip, menus, dialogs |
-| `--chrome-panel-2` | Recessed wells / canvas frame outer |
-| `--chrome-border` | Dividers and control borders |
-| `--chrome-fg` | Primary UI text and icons |
-| `--chrome-muted` | Secondary notes / status |
-| `--chrome-accent` | Active / pressed emphasis |
-| `--art-ink` / `--art-bg` | Existing artwork brush variables |
+`applyMachineChrome()` only sets machine/palette data attributes (and clears any legacy inline `--chrome-*` paints). It does **not** drive live shell colors.
 
 ### Chrome reference research
 
-Before locking CSS seeds, collect:
-
-1. Boot / READY screen references (primary cue).
-2. Physical case and keyboard photos (secondary accent cue).
-3. Authoritative KERNAL / COLOR defaults when photos disagree.
+Boot / READY indices inform **drawing defaults** and case cues; physical case photos inform enclosure tokens.
 
 **Locked seed indices / chrome cues (implementation):**
 
-| Machine | Boot indices / TED | Case cue | Sources |
+| Machine | Boot indices / TED (drawing) | Case cue (UI shell) | Sources |
 | --- | --- | --- | --- |
-| C64 | Border 14 (light blue), background 6 (blue), text 14 | Beige–brown `#6b5428` | KERNAL `$0E`/`$06`; Pepto RGB via active display palette |
-| C128 (40-col) | Border 13 (light green), background 11 (dark gray), text 13 | Dark gray `#3a3a3a` | Cameron Kaiser / common 40-col description; C128 System Guide Appendix F (default text light green) |
-| Plus/4 | Ink 0; paper bg TED white L5 (`tedIndex(1,5)`); pink bezel TED pink L4 | Dark gray `#2f2f2f` | Plus/4 paper READY + pink border reports; TED exploratory RGB |
+| C64 | Border 14 (light blue), background 6 (blue), text 14 | Beige–brown case cue; ivory UI via `c64c` | KERNAL `$0E`/`$06`; Pepto RGB via active display palette |
+| C128 (40-col) | Border 13 (light green), background 11 (dark gray), text 13 | Cooler gray/beige UI via `c128` | Cameron Kaiser / common 40-col description; C128 System Guide Appendix F |
+| Plus/4 | Ink 0; paper bg TED white L5 (`tedIndex(1,5)`); pink border TED pink L4 | **Charcoal** UI `#2f2f2f` via `plus4` (light text) | TED READY paper is drawing default only; shell is charcoal, not paper panels |
 
-App chrome **evokes** these machines via CSS tokens resolved in `machine-modes.js` — it does not paste CRT READY banners into the header.
+App chrome **evokes** these machines via CSS tokens — it does not paste CRT READY banners into the header.
 
 ### Contrast strategy (iPad Safari)
 
-Primary target is iPad Safari. CSS `contrast-color()` is only available in Safari / iOS 26+, so it must not be the sole mechanism.
-
-1. On machine (and VIC palette) change, JavaScript resolves theme seeds and computes readable foregrounds with relative luminance, writing `--chrome-fg` / muted / border as concrete values.
-2. Prefer `color-mix()` (Safari iOS 16.2+) for hovers, pressed states, and border tints.
-3. Optional progressive enhancement with `@supports (color: contrast-color(red))` is fine; JS-computed tokens remain the source of truth.
-
-Do not rely on `color-scheme` alone for Plus/4. Explicit fg/bg pairs keep form controls and `currentColor` icons correct on paper-light chrome.
+Primary target is iPad Safari. Theme scopes set explicit `--text` / `--text-status` / field pairs and `color-scheme` per machine. Do not rely on `color-scheme` alone; Plus/4 charcoal uses light status and control text tokens.
 
 ## Color animation
 
@@ -148,11 +129,12 @@ With TED drawing, that bridge is wrong.
 
 Planned modules (names may match repo style when implemented):
 
-- `machine-modes.js` — machine ids/labels, chrome seeds, defaults, convert helpers, `applyMachineChrome()`.
+- `machine-modes.js` — machine ids/labels, case cues, defaults, convert helpers, `applyMachineChrome()` (data attributes).
 - `c64-colors.js` — Pepto + Colodore + VICE + RGB 16-color tables.
 - `plus4-colors.js` — TED drawing + animation source; keep `c64InkToTed`; add `tedInkToC64`.
 - `project-validation.js` — conditional ink ranges; optional `machine` / `palette`.
-- `index.html` — header controls, chrome tokens, machine-scoped swatches and animation lists.
+- `index.html` — header controls, machine-scoped swatches and animation lists; maps `data-ui-theme`.
+- `styles/editor.css` — shell paints under `html[data-ui-theme]`.
 - `animation-frames.js` — TED-native Plus/4 color passes and `ted-pal` tagging whenever `machine === 'plus4'`.
 
 Product owns the JS source of truth. Do not dual-write Python MCP machine tables unless a later sync is requested.
@@ -176,7 +158,7 @@ Product owns the JS source of truth. Do not dual-write Python MCP machine tables
 ## Shipped behavior
 
 - Header **Machine** menu with C64 / C128 (40-col) / Plus/4 and VIC **Display palette** (Pepto / Colodore / VICE / RGB).
-- App chrome tokens via `applyMachineChrome()`; Plus/4 uses dark foreground on paper panels.
+- Shell paints via CSS `data-ui-theme` scopes; Plus/4 shell is charcoal with light text (drawing defaults remain TED paper indices).
 - Plus/4 drawing uses TED indices `0–120`; entering/leaving Plus/4 remaps inks (undoable).
 - Contextual color-animation lists; C64 PRG/D64 and color text disabled in Plus/4 mode.
 - Unit: `tests/machine-modes.unit.mjs`, `tests/plus4-colors.unit.mjs`. Chromium Playwright: `tests/machine-modes.spec.cjs` + theme mapping coverage in `tests/ui-theme.spec.cjs` (run on GitHub Actions).

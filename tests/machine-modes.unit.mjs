@@ -8,7 +8,6 @@ import {
   getMachine,
   isValidInkForMachine,
   machineSummary,
-  resolveChromeTokens,
   tedInkToC64,
 } from '../machine-modes.js';
 import {c64InkToTed, tedIndex} from '../plus4-colors.js';
@@ -54,24 +53,35 @@ test('VIC↔TED conversion round-trips chroma cousins', () => {
   assert.equal(convertInk(tedIndex(6, 2), 'plus4', 'c128'), 6);
 });
 
-test('chrome tokens flip Plus/4 to dark foreground', () => {
-  const plus4 = resolveChromeTokens('plus4');
-  assert.equal(contrastingInk(plus4['--chrome-panel']), '#101010');
-  assert.equal(plus4['--chrome-fg'], '#101010');
-  const c64 = resolveChromeTokens('c64', 'pepto');
-  assert.equal(c64['--chrome-fg'], '#eef5fa');
+test('Plus/4 case cue is charcoal; contrastingInk still picks readable ink', () => {
+  assert.equal(getMachine('plus4').chrome.caseHex, '#2f2f2f');
+  assert.equal(contrastingInk('#ecece4'), '#101010');
+  assert.equal(contrastingInk('#2f2f2f'), '#eef5fa');
   assert.match(machineSummary('plus4', 'pepto'), /TED/);
   assert.match(machineSummary('c64', 'colodore'), /Colodore/);
 });
 
-test('applyMachineChrome sets data-machine', () => {
-  const root = {dataset: {}, style: {props: {}, setProperty(name, value) {
-    this.props[name] = value;
-  }}};
-  applyMachineChrome('c128', 'vice', root);
+test('applyMachineChrome sets data-machine and clears legacy chrome paints', () => {
+  const removed = [];
+  const root = {
+    dataset: {},
+    style: {
+      props: {'--chrome-fg': '#101010'},
+      setProperty(name, value) {
+        this.props[name] = value;
+      },
+      removeProperty(name) {
+        removed.push(name);
+        delete this.props[name];
+      },
+    },
+  };
+  const result = applyMachineChrome('c128', 'vice', root);
   assert.equal(root.dataset.machine, 'c128');
   assert.equal(root.dataset.palette, 'vice');
-  assert.ok(root.style.props['--chrome-accent']);
+  assert.deepEqual(result, {machine: 'c128', palette: 'vice'});
+  assert.ok(removed.includes('--chrome-fg'));
+  assert.equal(root.style.props['--chrome-fg'], undefined);
 });
 
 test('validation accepts Plus/4 TED inks and rejects them on C64', () => {
