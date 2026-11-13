@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-13 — Wider sidebar for TED 8-across
+
+**What:** Desktop sidebar 276→300px; mid-width 260→280px; overlay/popover caps 310→320px so Plus/4 TED rows keep eight flush tiles. VIC 4×4 only gets slightly larger swatches.
+
+**Touched:** `styles/editor.css`, `index.html`, `tests/machine-modes.spec.cjs`.
+
 ## 2026-11-13 — CSS chrome cleanup
 
 **What:** Token-first shell chrome under `html[data-ui-theme]`. Plus/4 charcoal locked; JS `applyMachineChrome()` no longer writes unused `--chrome-*` paints; dialog status / glyph keys / selects / symmetry use semantic tokens; ivory hex locks removed from injected `index.html` style.
