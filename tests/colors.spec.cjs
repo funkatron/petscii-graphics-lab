@@ -7,31 +7,6 @@ const pixel=(png,x,y)=>Array.from(png.data.subarray((y*png.width+x)*4,(y*png.wid
 async function choose(page,target,index){await ui(page,'#'+target+'Target');await ui(page,'#colorPalette button:nth-child('+(index+1)+')')}
 async function canvasPixels(page){return page.locator('#canvas').evaluate(c=>{const t=c.getContext('2d');return [.25,.75].map(x=>Array.from(t.getImageData(Math.floor(c.width*x),Math.floor(c.height*.5),1,1).data))})}
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
-test('ink palette tiles sit flush without chrome borders or gaps',async({page})=>{
- const metrics=await page.locator('#colorPalette').evaluate(grid=>{
-  const style=getComputedStyle(grid),btn=grid.querySelector('button'),button=getComputedStyle(btn);
-  const boxes=[...grid.querySelectorAll('button')].slice(0,2).map(b=>b.getBoundingClientRect());
-  return {
-   gap:style.gap,columnGap:style.columnGap,rowGap:style.rowGap,
-   border:button.borderTopWidth,radius:button.borderTopLeftRadius,
-   shadow:button.boxShadow,minHeight:button.minHeight,
-   abut:boxes.length===2?Math.abs(boxes[0].right-boxes[1].left)<0.5:false,
-  };
- });
- expect(metrics.gap).toBe('0px');
- expect(metrics.columnGap).toBe('0px');
- expect(metrics.rowGap).toBe('0px');
- expect(metrics.border).toBe('0px');
- expect(metrics.radius).toBe('0px');
- expect(metrics.shadow).toBe('none');
- expect(metrics.minHeight).toBe('0px');
- expect(metrics.abut).toBe(true);
- await page.locator('#inkQuick').click();
- await expect(page.locator('#quickInkPalette')).toBeVisible();
- const quickGap=await page.locator('#quickInkPalette').evaluate(g=>getComputedStyle(g).gap);
- expect(quickGap).toBe('0px');
- await page.keyboard.press('Escape');
-});
 test('all sixteen C64 swatches use documented RGB values and update bitmap previews and canvas',async({page})=>{
  await loadProject(page,project([160,''],2,1,{selectedGlyph:160}));await ui(page,'#inkTarget');await expect(page.locator('#colorPalette button')).toHaveCount(16);
  const swatches=await page.locator('#colorPalette button').evaluateAll(buttons=>buttons.map(b=>getComputedStyle(b).backgroundColor));expect(swatches).toEqual(hex.map((_,i)=>'rgb('+rgb(i).join(', ')+')'));

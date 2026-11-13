@@ -9,6 +9,31 @@ test.beforeEach(async({page})=>{
  await page.locator('.app[data-ready=true]').waitFor();
 });
 
+test('VIC ink palette tiles sit flush without chrome borders or gaps',async({page})=>{
+ const metrics=await page.locator('#colorPalette').evaluate(grid=>{
+  const style=getComputedStyle(grid),button=getComputedStyle(grid.querySelector('button'));
+  const boxes=[...grid.querySelectorAll('button')].slice(0,2).map(b=>b.getBoundingClientRect());
+  return {
+   gap:style.gap,columnGap:style.columnGap,rowGap:style.rowGap,
+   border:button.borderTopWidth,radius:button.borderTopLeftRadius,
+   shadow:button.boxShadow,minHeight:button.minHeight,
+   abut:boxes.length===2?Math.abs(boxes[0].right-boxes[1].left)<0.5:false,
+  };
+ });
+ expect(metrics.gap).toBe('0px');
+ expect(metrics.columnGap).toBe('0px');
+ expect(metrics.rowGap).toBe('0px');
+ expect(metrics.border).toBe('0px');
+ expect(metrics.radius).toBe('0px');
+ expect(metrics.shadow).toBe('none');
+ expect(metrics.minHeight).toBe('0px');
+ expect(metrics.abut).toBe(true);
+ await page.locator('#inkQuick').click();
+ await expect(page.locator('#quickInkPalette')).toBeVisible();
+ expect(await page.locator('#quickInkPalette').evaluate(g=>getComputedStyle(g).gap)).toBe('0px');
+ await page.keyboard.press('Escape');
+});
+
 test('header machine control switches chrome and persists machine in JSON',async({page})=>{
  await expect(page.locator('#machineMenu')).toBeVisible();
  await page.locator('#machineMenu > summary').click();
