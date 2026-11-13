@@ -18,6 +18,14 @@ test('header machine control switches chrome and persists machine in JSON',async
  expect(fg).toBe('#101010');
  await expect(page.locator('#displayPaletteField')).toBeHidden();
  await expect(page.locator('#colorPalette')).toHaveClass(/ted-grid/);
+ const tedMetrics=await page.locator('#colorPalette').evaluate(grid=>{
+  const style=getComputedStyle(grid),btn=getComputedStyle(grid.querySelector('button'));
+  return {count:grid.querySelectorAll('button').length,gap:style.gap,columns:style.gridTemplateColumns.split(' ').length,border:btn.borderTopWidth};
+ });
+ expect(tedMetrics.count).toBe(121);
+ expect(tedMetrics.gap).toBe('0px');
+ expect(tedMetrics.columns).toBe(8);
+ expect(tedMetrics.border).toBe('0px');
  const saved=JSON.parse(await download(page,'#saveProject'));
  expect(saved.machine).toBe('plus4');
  expect(saved.colors.background).toBeGreaterThan(15);

@@ -35,7 +35,22 @@ h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.08rem;l
 .layout{display:flex;flex:1;min-height:0;position:relative}
 .sidebar{width:276px;flex:none;overflow-y:auto;overscroll-behavior:contain;background:var(--case-surface);border-right:1px solid var(--case-edge);padding:10px;transition:width .2s ease,padding .2s ease;scrollbar-width:thin}
 .sidebar.closed{width:0;padding:0;border:0;overflow:hidden}
-.color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}.color-grid button{min-height:44px;border:2px solid #66768a;font-weight:bold}.color-grid button[aria-pressed=true]{outline:3px solid var(--case-text);outline-offset:1px}#inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{background:#176655;border-color:#77ddc4}.color-chip{display:inline-block;width:14px;height:14px;border:1px solid #95a4b4;border-radius:3px;vertical-align:middle;margin-right:4px}.color-name{display:block;font-size:.67rem;margin-top:3px}#glyphPreview{background:var(--art-bg)}.glyph{color:var(--art-ink)}
+/* Ink/background pickers are flush color tiles — not chrome buttons — so VIC and dense TED grids both read as one continuous palette. */
+.color-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:10px 0;border:1px solid var(--case-edge);border-radius:0;overflow:hidden;isolation:isolate}
+.color-grid button{
+ min-width:0;min-height:0;aspect-ratio:1;width:100%;height:auto;padding:0;margin:0;
+ border:0;border-radius:0;font-weight:700;font-size:.72rem;line-height:1;
+ box-shadow:none;transform:none;background-image:none;
+}
+.color-grid button:hover,.color-grid button:active,.color-grid button:focus-visible{
+ box-shadow:none;transform:none;filter:none;
+}
+.color-grid button[aria-pressed=true]{
+ outline:none;position:relative;z-index:1;
+ box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 4px #000;
+}
+.color-grid button:focus-visible{outline:2px solid var(--ui-focus-border);outline-offset:-2px;z-index:2}
+#inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{background:#176655;border-color:#77ddc4}.color-chip{display:inline-block;width:14px;height:14px;border:1px solid #95a4b4;border-radius:3px;vertical-align:middle;margin-right:4px}.color-name{display:block;font-size:.67rem;margin-top:3px}#glyphPreview{background:var(--art-bg)}.glyph{color:var(--art-ink)}
 .glyph-filter{display:flex;align-items:center;gap:6px;min-height:44px;flex:1}.glyph-filter input{flex:none}
 .glyph-family{grid-column:1/-1;font-size:.78rem;color:var(--case-text);margin:12px 0 3px;font-weight:600}
 .palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:5px;padding:2px}
@@ -219,7 +234,7 @@ button,select,.field input[type=number]{min-height:44px}
 .drawing-strip summary{padding:10px;list-style:none}
 #paint[aria-pressed=true],#erase[aria-pressed=true],#glyphPin[aria-pressed=true]{background:#176655;border-color:#77ddc4}
 #inkPopover{position:fixed;inset:auto;margin:0;width:min(310px,calc(100vw - 16px));max-height:calc(100dvh - 145px);overflow:auto;background:var(--case-surface);color:var(--case-text);border:1px solid var(--case-edge);border-radius:12px;padding:14px;box-shadow:0 10px 35px #0008}
-#inkPopover h2{font-size:.9rem;margin:0}#inkPopover .color-grid{margin-bottom:0}#inkPopover .color-grid button{min-height:48px;padding:6px;font-size:.72rem;line-height:1.15}#inkSelection{margin:8px 0 0}
+#inkPopover h2{font-size:.9rem;margin:0}#inkPopover .color-grid{margin-bottom:0}#inkPopover .color-grid button{font-size:.7rem}#inkSelection{margin:8px 0 0}
 #symmetryMenu{position:relative;border:1px solid var(--case-edge);border-radius:9px}
 .tool-popover{position:absolute;top:100%;right:0;background:var(--case-surface);border:1px solid var(--case-edge);padding:14px;width:210px;border-radius:9px;box-shadow:0 10px 30px #0008}
 #projectMenu>summary{list-style:none;border:1px solid var(--case-edge);border-radius:9px;padding:11px;font-size:.8rem}
@@ -308,10 +323,10 @@ header button,header select,header #projectMenu>summary,
  background:var(--ui-control-bg);color:var(--ui-text);border:1px solid var(--ui-control-border);
  box-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 #9b9589;
 }
-header button:hover,.drawing-strip button:hover,.sidebar button:hover,.glyph-picker button:hover{
+header button:hover,.drawing-strip button:hover,.sidebar button:not(.color-grid button):hover,.glyph-picker button:hover{
  background:var(--ui-control-hover);border-color:var(--ui-focus-border);
 }
-header button:active,.drawing-strip button:active,.sidebar button:active,.glyph-picker button:active{
+header button:active,.drawing-strip button:active,.sidebar button:not(.color-grid button):active,.glyph-picker button:active{
  box-shadow:inset 0 2px 3px #0002;transform:translateY(1px);
 }
 header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
@@ -332,7 +347,13 @@ header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
 }
 .glyph-picker .glyph{background:#172840;color:#f9fbff;border-color:#66849f;box-shadow:none}
 .glyph-picker .glyph:hover{background:#263b58}
-.color-grid button,.color-grid button:hover{box-shadow:none}
+/* Keep swatches as pure color fills even under hardware-key chrome rules. */
+.color-grid button,.color-grid button:hover,.color-grid button:active,
+.sidebar .color-grid button,.sidebar .color-grid button:hover,
+#inkPopover .color-grid button,#inkPopover .color-grid button:hover,
+#inkPopover .color-grid button:not([aria-pressed=true]):not(.active):not(:disabled){
+ background-image:none;border:0;border-radius:0;box-shadow:none;transform:none;
+}
 
 
 /* Select menus should read as light hardware controls, including their option lists. */
@@ -495,18 +516,18 @@ header #saveStatus,header .status,header .note{color:var(--chrome-label)}
  outline:3px solid var(--ui-focus-border);
  outline-offset:2px;
 }
-:is(.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover) button:not([aria-pressed=true]):not(.active):not(:disabled){
+:is(.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover) button:not(.color-grid button):not([aria-pressed=true]):not(.active):not(:disabled){
  background:var(--ui-control-bg);
  color:var(--ui-text);
  border-color:var(--ui-control-border);
 }
-:is(.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover) button:disabled{
+:is(.project-menu,.machine-menu,dialog,.tool-popover,#inkPopover) button:not(.color-grid button):disabled{
  background:var(--ui-field-disabled-bg);
  color:var(--ui-field-disabled-text);
  opacity:1;
 }
 
-/* Machine modes: Plus/4 TED picker is 1 black + 15 chroma x 8 luma swatches. */
-.color-grid.ted-grid{grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
-.color-grid.ted-grid button{min-width:0;padding:2px;overflow:hidden;font-size:.62rem;line-height:1.1}
-#inkPopover .color-grid.ted-grid button{font-size:.58rem;padding:2px}
+/* Machine modes: Plus/4 TED picker is 1 black + 15 chroma × 8 luma, flush like VIC. */
+.color-grid.ted-grid{grid-template-columns:repeat(8,minmax(0,1fr));gap:0}
+.color-grid.ted-grid button{overflow:hidden;font-size:.58rem}
+#inkPopover .color-grid.ted-grid button{font-size:.55rem}
