@@ -29,7 +29,7 @@ Design contract: [machine modes](machine-modes.md).
 - [ ] Follow-up: TED-capable color text-grid format.
 - [x] Follow-up: non-square cell aspect / **Cell shape** toggle (Square vs CRT proportion) for the editor and PNG/SVG/GIF/video. Native PRG/D64 unchanged. Design: [`.cursorrules/cell-aspect-toggle.md`](../.cursorrules/cell-aspect-toggle.md).
 - [x] Follow-up: lock C64↔TED glyph atlas diff (identity-by-slot; TED SHA + hardware-inverse). Findings: [`.cursorrules/c64-ted-glyph-diff.md`](../.cursorrules/c64-ted-glyph-diff.md). TED bank 1 is the authentic second 1 KB of the 2 KB chargen (not a 4 KB kernal extract).
-- [ ] Follow-up: repo-wide `MACHINE` / `INDEX_SPACE` literal cleanup.
+- [x] Follow-up: production code uses `MACHINE` / `isTedMachine` / `isVdcMachine`. Saved JSON, HTML option values, and the pre-module boot map stay the id strings.
 
 ## Brittle-test audit — in progress
 

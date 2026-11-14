@@ -7,6 +7,7 @@
 <title>PETSCII Graphics Lab</title>
 <script>
 // Early paint only: machine-modes.js re-applies chrome after load. Machine owns appearance.
+// Keys must match MACHINE / MACHINE_UI_THEMES. This script runs before modules load.
 (()=>{try{const m=JSON.parse(localStorage.getItem('petscii-workspace-prefs')||'null')?.machine;const themes={c64:'c64c',c128:'c128','c128-80':'c128',plus4:'plus4'};if(Object.hasOwn(themes,m)){document.documentElement.dataset.machine=m;document.documentElement.dataset.uiTheme=themes[m]}}catch{}})();
 </script>
 <link rel="stylesheet" href="./styles/editor.css">

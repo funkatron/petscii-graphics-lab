@@ -2,6 +2,7 @@ import {bonfireFrame, bonfireHeat, BONFIRE_COLORS} from './bonfire.js';
 import {spaceWarpFrame} from './space-warp.js';
 import {depthSurfaceFrame} from './depth-surfaces.js';
 import {solidMotionFrame, SOLID_EFFECTS} from './solid-motion.js';
+import {isTedMachine, isVdcMachine} from './machine-modes.js';
 import {DEPTH_EFFECTS, INTRO_MOTIONS, DIAGONAL_DIRECTIONS, normalizeAnimation} from './project-validation.js';
 import {
   PLUS4_COLOR_CYCLES,
@@ -620,9 +621,9 @@ export function animationCells(frame, source) {
   applyInversePass(colorPhase, normalized, cells);
   applyColorPass(colorPhase, normalized, cells, inks);
   let colorPalette = 'pepto-pal';
-  if (source.machine === 'plus4' || isPlus4ColorEffect(source.colorEffect)) {
+  if (isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect)) {
     colorPalette = 'ted-pal';
-  } else if (source.machine === 'c128-80') {
+  } else if (isVdcMachine(source.machine)) {
     colorPalette = 'vdc-pal';
   }
   return {

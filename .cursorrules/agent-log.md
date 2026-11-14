@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-14 — MACHINE id cleanup
+
+**What:** Production host checks use `MACHINE` and `isTedMachine` / `isVdcMachine`. Emitted ids are unchanged. HTML options, the pre-module boot map, and test fixtures stay the string ids.  
+**Touched:** `c64-export.js`, `plus4-export.js`, `c128-vdc-export.js`, `project-validation.js`, `animation-frames.js`, `ui-themes.js`, `index.html` comment, roadmap, machine-modes.
+
 ## 2026-11-14 — Cell shape Phase B (CRT rasters)
 
 **What:** PNG, SVG, GIF, video, ZIP frames, and the download preview use the same Square/CRT cell shape as the editor. VIC/TED CRT is 5×6; VDC is 5×12. Full-screen presets land on 400×300 and 800×600 at PNG scale 1. Native PRG/D64 stay square-cell.  
