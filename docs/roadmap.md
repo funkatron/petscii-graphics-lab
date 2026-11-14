@@ -28,7 +28,7 @@ Design contract: [machine modes](machine-modes.md).
 - [x] Application-like UI IA: System / Project / Editor header grouping and Machine persistence (see `.cursorrules/app-like-ui-ia.md`).
 - [ ] Follow-up: TED-capable color text-grid format.
 - [x] Follow-up: non-square cell aspect / **Cell shape** toggle (Square vs CRT proportion) for editor canvas. Native PRG/D64 unchanged; optional raster CRT match remains Phase B. Design: [`.cursorrules/cell-aspect-toggle.md`](../.cursorrules/cell-aspect-toggle.md).
-- [x] Follow-up: lock C64↔TED glyph atlas diff (identity-by-slot; TED SHA + hardware-inverse). Findings: [`.cursorrules/c64-ted-glyph-diff.md`](../.cursorrules/c64-ted-glyph-diff.md).
+- [x] Follow-up: lock C64↔TED glyph atlas diff (identity-by-slot; TED SHA + hardware-inverse). Findings: [`.cursorrules/c64-ted-glyph-diff.md`](../.cursorrules/c64-ted-glyph-diff.md). TED bank 1 is the authentic second 1 KB of the 2 KB chargen (not a 4 KB kernal extract).
 - [ ] Follow-up: repo-wide `MACHINE` / `INDEX_SPACE` literal cleanup.
 
 ## Brittle-test audit — in progress

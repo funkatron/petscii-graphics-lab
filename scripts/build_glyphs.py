@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Convert a user-supplied 4 KB character ROM into an SVG glyph sheet.
+"""Convert a user-supplied character ROM into an SVG glyph sheet.
 
 The input binary is never copied into the repository. Each symbol is an exact
 8x8 vector drawing, using one rectangle per contiguous horizontal pixel run.
 
 C64: pass characters.901225-01.bin (default output assets/c64-glyphs.svg).
+That file is 4 KB: bank 0 (uppercase/graphics) then bank 1 (lowercase/upper).
 
-Plus/4 TED: extract 4 KB from a 16 KB kernal dump at offset 0x1000 ($D000 image),
-e.g. kernal.318005-05.bin. Use --machine ted so codes 128–255 are synthesized as
-hardware inverses of 0–127 (default TED text mode with $FF07 bit7 clear). The raw
-ROM high half is not a soft-inverse table and must not be drawn as-is.
+Plus/4 TED: the kernal chargen image is only 2 KB at offset 0x1000 ($D000).
+The first 1 KB is the uppercase/graphics set; the second 1 KB is the
+lowercase/uppercase set (C=/Shift case switch / $FF13 half-page). Use
+--machine ted so each bank’s codes 128–255 are synthesized as hardware
+inverses of 0–127 (default TED text mode with $FF07 bit7 clear). Do not
+extract 4 KB from the kernal — bytes past the 2 KB chargen are KERNAL code.
 """
 import argparse
 import hashlib
@@ -19,36 +22,46 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('rom', type=Path)
 parser.add_argument('--machine', choices=('c64', 'ted'), default='c64')
 parser.add_argument('--kernal-offset', type=lambda s: int(s, 0), default=None,
-                    help='When set, read 4096 bytes from this offset inside a larger dump')
+                    help='When set, read the machine-sized chargen from this offset')
 parser.add_argument('--output', type=Path, default=None)
 args = parser.parse_args()
 
 raw = args.rom.read_bytes()
+chargen_bytes = 2048 if args.machine == 'ted' else 4096
+
 if args.kernal_offset is not None:
-    end = args.kernal_offset + 4096
+    end = args.kernal_offset + chargen_bytes
     if end > len(raw):
-        parser.error('kernal offset + 4096 exceeds file size')
-    data = bytearray(raw[args.kernal_offset:end])
-    source_note = f'{args.rom.name} offset {args.kernal_offset:#x}'
+        parser.error(f'kernal offset + {chargen_bytes} exceeds file size')
+    source = bytes(raw[args.kernal_offset:end])
+    source_note = f'{args.rom.name} offset {args.kernal_offset:#x} ({chargen_bytes} bytes)'
 else:
-    if len(raw) != 4096:
-        parser.error('Expected exactly 4096 bytes (or pass --kernal-offset)')
-    data = bytearray(raw)
+    if len(raw) != chargen_bytes:
+        parser.error(
+            f'Expected exactly {chargen_bytes} bytes for --machine {args.machine} '
+            '(or pass --kernal-offset)'
+        )
+    source = bytes(raw)
     source_note = args.rom.name
 
-source_sha = hashlib.sha256(bytes(data)).hexdigest()
+source_sha = hashlib.sha256(source).hexdigest()
 
 prefix = 'c64'
 title = 'C64 character glyphs: uppercase/graphics then lowercase/uppercase'
 if args.machine == 'ted':
     prefix = 'ted'
     title = 'Plus/4 TED character glyphs: uppercase/graphics then lowercase/uppercase'
-    # Default TED text mode uses hardware reverse for screen codes 128–255.
+    # TED ROM is 2 KB: two 1 KB case sets. Expand each to 256 codes via hardware XOR.
+    data = bytearray(4096)
     for bank in range(2):
+        low = source[bank * 1024:(bank + 1) * 1024]
         base = bank * 2048
+        data[base:base + 1024] = low
         for code in range(128):
             for row in range(8):
-                data[base + (code + 128) * 8 + row] = data[base + code * 8 + row] ^ 0xFF
+                data[base + (code + 128) * 8 + row] = low[code * 8 + row] ^ 0xFF
+else:
+    data = bytearray(source)
 
 display_sha = hashlib.sha256(bytes(data)).hexdigest()
 output = args.output
@@ -95,3 +108,5 @@ parts.extend(['</g>', '</svg>'])
 output.parent.mkdir(parents=True, exist_ok=True)
 output.write_text('\n'.join(parts) + '\n')
 print(f'Wrote 512 SVG symbols to {output}')
+print(f'Source SHA-256: {source_sha}')
+print(f'Display SHA-256: {display_sha}')
