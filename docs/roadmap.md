@@ -26,7 +26,7 @@ Design contract: [machine modes](machine-modes.md).
 - [x] Add Playwright/unit coverage; update the design doc’s shipped section (Chromium machine-modes spec).
 - [x] C128 80-column (VDC) editor + native PRG/D64 (`c128-vdc-export.js`).
 - [x] Application-like UI IA: System / Project / Editor header grouping and Machine persistence (see `.cursorrules/app-like-ui-ia.md`).
-- [ ] Follow-up: TED-capable color text-grid format.
+- [x] Follow-up: TED color text-grid. Plus/4 Include colors in text writes `PETSCII-GLYPHS` v3 (`00`–`78`). v1 and v2 files are unchanged. A v3 grid opened on VIC or VDC is remapped with `tedInkToC64`.
 - [x] Follow-up: non-square cell aspect / **Cell shape** toggle (Square vs CRT proportion) for the editor and PNG/SVG/GIF/video. Native PRG/D64 unchanged. Design: [`.cursorrules/cell-aspect-toggle.md`](../.cursorrules/cell-aspect-toggle.md).
 - [x] Follow-up: lock C64↔TED glyph atlas diff (identity-by-slot; TED SHA + hardware-inverse). Findings: [`.cursorrules/c64-ted-glyph-diff.md`](../.cursorrules/c64-ted-glyph-diff.md). TED bank 1 is the authentic second 1 KB of the 2 KB chargen (not a 4 KB kernal extract).
 - [x] Follow-up: production code uses `MACHINE` / `isTedMachine` / `isVdcMachine`. Saved JSON, HTML option values, and the pre-module boot map stay the id strings.

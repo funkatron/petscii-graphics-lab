@@ -123,9 +123,9 @@
 <button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note" id="c64ExportHelp">Runs on a standard C64 or emulator. Up to 40 × 25 cells, centered on screen. Uses the canvas background (also drives the border). Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
 <details class="help-disclosure" id="rawDataDetails"><summary>Raw bytes &amp; text</summary>
 <div class="row"><button id="text">Download text</button><button id="screenCodes">Glyph IDs (.bin)</button></div><button id="colorRam" class="full-width">Export color RAM (.bin)</button>
-<label class="glyph-filter"><input id="textColors" type="checkbox">Include colors in text</label><p class="note">Paste a labeled glyph grid below, then choose Import text. Color text also restores each cell’s ink and the background. Import is undoable. To open a <code>.txt</code> file from disk, use <strong>Project → Open text grid</strong>.</p>
+<label class="glyph-filter"><input id="textColors" type="checkbox">Include colors in text</label><p class="note">Paste a labeled glyph grid below, then choose Import text. Color text also restores each cell’s ink and the background. VIC and VDC use one hex digit (0–F). Plus/4 uses two-digit TED indices (00–78). Import is undoable. To open a <code>.txt</code> file from disk, use <strong>Project → Open text grid</strong>.</p>
 <textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div></details>
-<details class="help-disclosure"><summary>Data formats</summary><p class="note">Glyph IDs select one of 512 source atlas slots across both C64 character sets. Text uses PETSCII-GLYPHS with three-digit hexadecimal IDs. Include colors in text adds cell inks and the shared background; imports detect either format automatically. Binary uses two bytes per cell, little-endian, with FFFF for empty. These are not native screen-code or PETSCII bytes. Color RAM stores one ink index per cell. JSON keeps the complete artwork.</p></details>
+<details class="help-disclosure"><summary>Data formats</summary><p class="note">Glyph IDs select one of 512 source atlas slots across both C64 character sets. Text uses PETSCII-GLYPHS with three-digit hexadecimal IDs. Include colors in text adds cell inks and the shared background (one hex digit on VIC and VDC, two TED digits on Plus/4); imports detect the version automatically. Binary uses two bytes per cell, little-endian, with FFFF for empty. These are not native screen-code or PETSCII bytes. Color RAM stores one ink index per cell. JSON keeps the complete artwork.</p></details>
 </div></div>
 </div><figure id="downloadFigure"><canvas id="downloadPreview" aria-label="Artwork output preview"></canvas><figcaption id="downloadDimensions" class="note"></figcaption><p id="downloadDescription" class="note"></p></figure></div><div id="downloadStatus" class="status" role="status"></div><button id="cancelSheetDownload" hidden>Cancel export</button></dialog>
 <script>
@@ -295,7 +295,7 @@ function updateAnimationColorOptions(desired=$('animationColor').value){
  select.replaceChildren(...options.map(([value,label])=>new Option(label,value)));
  select.value=options.some(([value])=>value===desired)?desired:'none';
 }
-// Plus/4 cannot map TED inks to VIC color RAM, so native C64 outputs and nibble color text are gated.
+// Plus/4 cannot map TED inks to VIC color RAM, so that export stays VIC-only. Color text uses version 3 on Plus/4.
 // Keep download label state above updateNativeExportLabels (called during machine sync).
 const animationDownloadLabels={gif:'Download GIF',video:'Download video',zip:'Download frame ZIP',c64:'Download C64 program (.prg)'};
 function nativeHostLabel(){
@@ -327,12 +327,11 @@ function updateNativeExportLabels(){
  const docs=document.createElement('a');docs.href=docsHref;docs.target='_blank';docs.rel='noopener';docs.textContent='Loading instructions & limits';help.append(docs);
 }
 function updateNativeExportAvailability(){
- // Color RAM .bin stays VIC-only; native PRG/D64 for all machines; color text for VIC + VDC (0–F).
- const busy=!!animationExportTask,vic=isVicMachine(workspaceMachine),vdc=isVdcMachine(workspaceMachine);
+ // Color RAM .bin stays VIC-only. Color text is available on every machine; Plus/4 writes version 3.
+ const busy=!!animationExportTask,vic=isVicMachine(workspaceMachine);
  $('exportC64').disabled=busy;$('exportC64').title='';
  $('colorRam').disabled=!vic;$('colorRam').title=vic?'':'Unavailable outside VIC machines';
- const colorsCheck=$('textColors');colorsCheck.disabled=!(vic||vdc);colorsCheck.title=(vic||vdc)?'':'Unavailable in Plus/4 mode';
- if(!(vic||vdc)&&colorsCheck.checked){colorsCheck.checked=false;out.value=textGrid()}
+ const colorsCheck=$('textColors');colorsCheck.disabled=false;colorsCheck.title='';
  updateNativeExportLabels();
 }
 function refreshColumnOptions(){
@@ -572,7 +571,10 @@ function syncRasterScaleLabels(){
  }
 }
 function textGrid(){
- return formatTextGrid({columns:W,rows:H,grid,cellColors,colors,includeColors:$('textColors').checked&&(isVicMachine(workspaceMachine)||isVdcMachine(workspaceMachine))});
+ const includeColors=$('textColors').checked;
+ let colorDigits=1;
+ if(isTedMachine(workspaceMachine))colorDigits=2;
+ return formatTextGrid({columns:W,rows:H,grid,cellColors,colors,includeColors,colorDigits});
 }
 // Draw in backing-store pixels to avoid stale HiDPI transforms after WebKit canvas resizing.
 function renderGrid(cells,inks=cellColors,colorPalette='pepto-pal'){
@@ -1016,9 +1018,13 @@ $('textColors').onchange=()=>{out.value=textGrid()};
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(textGrid());setStatus('Text copied')}catch{setStatus('Select text to copy')}};
 function importTextGrid(text){
   const parsed=parseTextGrid(text,colors);
-  // Color text stores VIC nibbles (0-F). In Plus/4 they are remapped to TED; glyph-only text keeps the brush ink.
-  if(isTedMachine(workspaceMachine)&&/^\s*#?\s*PETSCII-GLYPHS\s+2\b/.test(text)){
-   parsed.cellColors=convertInkArray(parsed.cellColors,'c64','plus4');parsed.colors=convertColorsObject(parsed.colors,'c64','plus4');
+  const version2=/^\s*#?\s*PETSCII-GLYPHS\s+2\b/.test(text);
+  const version3=/^\s*#?\s*PETSCII-GLYPHS\s+3\b/.test(text);
+  // v2 is VIC/VDC nibbles. On Plus/4 those map onto TED. v3 is native TED; other machines map it back with the same lossy cousin used when leaving Plus/4.
+  if(isTedMachine(workspaceMachine)&&version2){
+   parsed.cellColors=convertInkArray(parsed.cellColors,MACHINE.C64,MACHINE.PLUS4);parsed.colors=convertColorsObject(parsed.colors,MACHINE.C64,MACHINE.PLUS4);
+  }else if(!isTedMachine(workspaceMachine)&&version3){
+   parsed.cellColors=convertInkArray(parsed.cellColors,MACHINE.PLUS4,MACHINE.C64);parsed.colors=convertColorsObject(parsed.colors,MACHINE.PLUS4,MACHINE.C64);
   }
   validateProject({format:'petscii-stencil-lab',version:3,machine:workspaceMachine,columns:parsed.columns,rows:parsed.rows,grid:parsed.grid,cellColors:parsed.cellColors,colors:parsed.colors});
   remember();W=parsed.columns;H=parsed.rows;grid=parsed.grid;cellColors=parsed.cellColors;setColors(parsed.colors);resetReplay();$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');

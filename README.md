@@ -386,7 +386,14 @@ To copy or download colors too, open **Download artwork → C64 data → Raw byt
 --:7 180:2
 ```
 
-Color indices run from `0` to `F` (0–15). Empty cells retain their ink index. Paste either version into the text box and choose **Import text**; the header determines the format, independently of the checkbox. Color text restores the background and cell inks, while leaving the brush ink unchanged. Glyph-only text uses the current brush ink and keeps the current background. One **Undo** restores the previous drawing. Use an editable JSON project to retain animation and replay settings.
+On VIC and VDC machines, color indices run from `0` to `F` (0–15). On Plus/4 the same checkbox writes version 3, with two hex digits from `00` to `78` (TED indices 0–120):
+
+```text
+# PETSCII-GLYPHS 3 2 1 50
+0A0:50 --:00
+```
+
+Empty cells retain their ink index. Paste any of these versions into the text box and choose **Import text**; the header determines the format, independently of the checkbox. A version 2 grid opened on Plus/4 is remapped onto TED. A version 3 grid opened on a VIC or VDC machine is remapped onto that machine’s 16-color palette. Color text restores the background and cell inks, while leaving the brush ink unchanged. Glyph-only text uses the current brush ink and keeps the current background. One **Undo** restores the previous drawing. Use an editable JSON project to retain animation and replay settings.
 
 An empty cell differs from a deliberately placed space glyph (ID `020` in hexadecimal). Import checks the whole document before changing the drawing. The older PETSCII-GRID format is unsupported.
 
