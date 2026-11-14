@@ -1,5 +1,13 @@
 # Agent log
 
+## 2026-11-13 — Native C128 player
+
+**What:** C128 machine downloads a native 40-col player (BASIC `$1C01` / SYS 7181), not GO64. Same VIC frame stream as C64; disables C128 IRQ editor VIC rewrites (`$D8`); mirrors `$D018`→`$0A2C`. UI tab renamed Native program; labels follow Machine. Bg still drives border.
+
+**Touched:** `c64-export.js`, `index.html`, `tests/c128-export.unit.mjs`, `docs/c64-output.md`, `docs/machine-modes.md`, `docs/maintainer-reference.md`.
+
+**Tested:** `node --test tests/c128-export.unit.mjs tests/machine-modes.unit.mjs` (pass; py65 still/emulate). Local Playwright skipped to limit RAM — rely on GitHub Actions.
+
 ## 2026-11-13 — TED palette row wrap
 
 **What:** Black was cell 1 of an 8-column TED grid, so each chroma×luma band shifted and wrapped. Black now spans row 1 alone (one tile wide); chroma rows stay L0–L7. Sidebar + Brush ink popover share `.ted-grid`.

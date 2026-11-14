@@ -49,13 +49,15 @@ Exploratory MCP chrome demos live under `agents/petscii-preview/` and are **not*
 ### C128 (40-col)
 
 - Same VIC indices and glyph sheet as C64.
-- Product difference is label, **app chrome**, New Project color defaults, and animation catalog scoping — not a separate exporter in the first ship.
+- Product difference is label, **app chrome**, New Project color defaults, animation catalog scoping, and a **native C128 player** (BASIC 7.0 at `$1C01`, 40-col VIC).
 
-### Native C64 export
+### Native VIC export (C64 / C128)
 
-- PRG/D64 remain available for `machine` `c64` or `c128` when all inks are `0–15` and size ≤ 40×25.
+- PRG/D64 available for `machine` `c64` or `c128` when all inks are `0–15` and size ≤ 40×25.
+- **C64:** load `$0801`, `10 SYS2061`.
+- **C128:** load `$1C01`, `10 SYS7181`, native 40-column mode (not GO64). Disables the IRQ screen-editor VIC rewrite (`$D8=$FF`) and mirrors `$D018` into `$0A2C`.
 - Hidden or disabled in Plus/4 mode (TED cannot map to VIC color RAM).
-- Keep current player behavior: `$D020` and `$D021` both use the shared background index (no separate border field yet).
+- Canvas background drives both `$D020` and `$D021` (no separate border field yet).
 
 ### Image exports vs editor chrome
 
@@ -154,7 +156,7 @@ Product owns the JS source of truth. Do not dual-write Python MCP machine tables
 2. TED-capable color text-grid format.
 3. Extra VIC presets (DeeKay, Frodo, CCS64, NTSC variants).
 4. Optional bezel in image exports; separate PRG border ink; MCP Python sync from JS.
-5. True Plus/4 native program export (if ever).
+5. Plus/4 native TED program export (PRG/D64; still, then animation).
 
 ## Shipped behavior
 

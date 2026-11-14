@@ -1,6 +1,14 @@
-# Run your artwork on a Commodore 64
+# Run your artwork on a Commodore 64 or 128
 
-Use **Download artwork → C64 data** to create a runnable still or animation. Choose a direct PRG program or a D64 virtual floppy disk.
+Use **Download artwork → Native program** to create a runnable still or animation. Choose a direct PRG program or a D64 virtual floppy disk.
+
+The **Machine** setting chooses the player:
+
+| Machine | Load address | Mode | Notes |
+| --- | --- | --- | --- |
+| Commodore 64 | `$0801` | C64 BASIC 2 | Standard C64 / emulator autostart |
+| Commodore 128 (40-col) | `$1C01` | **Native** C128 BASIC 7 | Use a **40-column** display (not 80-col VDC). Same VIC screen/color map as C64 |
+| Commodore Plus/4 | — | — | Not available yet (TED player is a separate follow-up) |
 
 The program includes a small player and your character/color data. Source-bank-0 artwork uses the C64’s own character ROM. Mixed-bank artwork embeds only its required patterns in a RAM character set, allowing lowercase and full graphics in the same picture.
 

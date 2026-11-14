@@ -66,6 +66,22 @@ function shareFrameBlocks(encoded){
 // Each frame: 16-bit 60 Hz duration, then changed repeated/literal runs.
 // [addressLo,addressHi,count,value]; count 0 means [length,...literalBytes] instead.
 // Address 0 ends a frame; duration 0 ends a loop; $FFFF redirects the stream. Frame zero initializes both planes once.
+function nativeHostLabel(machine='c64'){
+ return machine==='c128'?'C128':'C64';
+}
+function basicSysStub(origin){
+ // Link + line number + SYS + decimal entry + EOL + EOP. Digit count and entry must agree.
+ let digitCount=4;
+ for(let i=0;i<8;i++){
+  const stubLen=8+digitCount,entry=origin+stubLen,sys=String(entry);
+  if(sys.length===digitCount){
+   const digits=[...sys].map(c=>c.charCodeAt(0)),link=origin+6+digitCount;
+   return {stub:[(link&255),(link>>8),10,0,0x9e,...digits,0,0,0],entry};
+  }
+  digitCount=sys.length;
+ }
+ throw Error('Unable to build BASIC SYS stub');
+}
 export function createC64Program(input){
  let result=compileC64Program(input,true);
  // Sharing costs CPU time. Keep a previously viable unshared program when the
@@ -75,10 +91,10 @@ export function createC64Program(input){
   if(d.worstUpdateRatio<=1&&d.programBytes<=d.memoryLimit)result=fallback;
  }
  if(!input.analyze){
-  const d=result.diagnostics;
-  if(d.worstUpdateRatio>1)throw Error('This animation changes too much for this C64 playback speed. Choose a longer loop or simplify the drawing.');
+  const d=result.diagnostics,host=nativeHostLabel(input.machine);
+  if(d.worstUpdateRatio>1)throw Error('This animation changes too much for this '+host+' playback speed. Choose a longer loop or simplify the drawing.');
   // Keep the complete program below BASIC ROM ($A000).
-  if(d.programBytes>d.memoryLimit)throw Error('This animation exceeds the C64 player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
+  if(d.programBytes>d.memoryLimit)throw Error('This animation exceeds the '+host+' player’s memory budget. Use a smaller canvas, a simpler drawing, or a shorter loop.');
  }
  return result;
 }
@@ -101,12 +117,19 @@ export function createC64AdaptiveProgram(input){
  if(!input.analyze&&!fits(result)&&!(input.allowTimingOverrun&&memoryFits(result)))return createC64Program(input);
  return result;
 }
+export function createC128Program(input){
+ return createC64Program({...input,machine:'c128'});
+}
+export function createC128AdaptiveProgram(input){
+ return createC64AdaptiveProgram({...input,machine:'c128'});
+}
 // Explicit native API for measurement and regression checks.
 export function createC64RowProgram(input){
  const result=compileC64Program(input,false,true),d=result.diagnostics;
  if(!input.analyze){
-  if(d.worstUpdateRatio>1)throw Error('Native row rendering exceeds the estimated C64 timing budget.');
-  if(d.programBytes>d.memoryLimit)throw Error('Native row rendering exceeds the C64 player memory budget.');
+  const host=nativeHostLabel(input.machine);
+  if(d.worstUpdateRatio>1)throw Error('Native row rendering exceeds the estimated '+host+' timing budget.');
+  if(d.programBytes>d.memoryLimit)throw Error('Native row rendering exceeds the '+host+' player memory budget.');
  }
  return result;
 }
@@ -118,11 +141,13 @@ function buildPairDictionary(frames,ink){
  }
  return [...pairs];
 }
-function compileC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits},allowSharing,nativeRows=false,dictionary=null){
- if(!Number.isInteger(columns)||columns<1||columns>40||!Number.isInteger(rows)||rows<1||rows>25)throw Error('C64 programs support up to 40 columns × 25 rows. Resize the canvas first.');
- if(![0,1].includes(charset)||![background,ink].every(c=>Number.isInteger(c)&&c>=0&&c<16))throw Error('Invalid C64 display settings');
- if(!Number.isInteger(repetitions)||repetitions<0||repetitions>100)throw Error('C64 repetitions must be a whole number from 0 to 100 (0 loops continuously)');
- if(!Array.isArray(frames)||!frames.length)throw Error('No C64 frames to export');
+function compileC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits,machine='c64'},allowSharing,nativeRows=false,dictionary=null){
+ if(machine!=='c64'&&machine!=='c128')throw Error('Native VIC programs support C64 and C128 (40-col) only');
+ const c128=machine==='c128',host=nativeHostLabel(machine);
+ if(!Number.isInteger(columns)||columns<1||columns>40||!Number.isInteger(rows)||rows<1||rows>25)throw Error(host+' programs support up to 40 columns × 25 rows. Resize the canvas first.');
+ if(![0,1].includes(charset)||![background,ink].every(c=>Number.isInteger(c)&&c>=0&&c<16))throw Error('Invalid '+host+' display settings');
+ if(!Number.isInteger(repetitions)||repetitions<0||repetitions>100)throw Error(host+' repetitions must be a whole number from 0 to 100 (0 loops continuously)');
+ if(!Array.isArray(frames)||!frames.length)throw Error('No '+host+' frames to export');
  const custom=glyphBits!==undefined;
  // Keep the canvas fixed throughout playback; an odd spare cell goes right/bottom.
  const screenOffset=Math.floor((25-rows)/2)*40+Math.floor((40-columns)/2);
@@ -135,7 +160,7 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
    if(!Number.isInteger(g)||g<0||g>511)throw Error('Invalid unified glyph ID');
    if(codes.has(g))return codes.get(g);
    const rows=glyphBits.subarray(g*8,g*8+8),key=rows.join(',');let slot=patterns.get(key);
-   if(slot===undefined){slot=patterns.size;if(slot>=256)throw Error('C64 export supports 256 distinct patterns across the animation, including blank space. Use fewer different glyphs; image and video exports remain available.');patterns.set(key,slot);characterBytes.set(rows,slot*8)}
+   if(slot===undefined){slot=patterns.size;if(slot>=256)throw Error(host+' export supports 256 distinct patterns across the animation, including blank space. Use fewer different glyphs; image and video exports remain available.');patterns.set(key,slot);characterBytes.set(rows,slot*8)}
    codes.set(g,slot);return slot;
   })}));
  }
@@ -191,12 +216,12 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  let previousScreen,previousColors,firstScreen,firstColors,firstTicks,continuationOffset;
  let elapsed=0,previousTick=0,worstUpdateRatio=0;
  for(const frame of frames){
-  if(frame.cells.length!==columns*rows||frame.inks.length!==columns*rows)throw Error('Invalid C64 frame dimensions');
-  if(frame.cells.some(g=>g!==''&&(!Number.isInteger(g)||g<0||g>255)))throw Error('C64 programs require numeric screen codes from 0 to 255.');
-  if(frame.inks.some(c=>!Number.isInteger(c)||c<0||c>15))throw Error('Invalid C64 cell colors');
-  if(!Number.isFinite(frame.durationMs)||frame.durationMs<=0)throw Error('Invalid C64 frame timing');
+  if(frame.cells.length!==columns*rows||frame.inks.length!==columns*rows)throw Error('Invalid '+host+' frame dimensions');
+  if(frame.cells.some(g=>g!==''&&(!Number.isInteger(g)||g<0||g>255)))throw Error(host+' programs require numeric screen codes from 0 to 255.');
+  if(frame.inks.some(c=>!Number.isInteger(c)||c<0||c>15))throw Error('Invalid '+host+' cell colors');
+  if(!Number.isFinite(frame.durationMs)||frame.durationMs<=0)throw Error('Invalid '+host+' frame timing');
   elapsed+=frame.durationMs;const endTick=Math.round(elapsed*60/1000),ticks=endTick-previousTick;previousTick=endTick;
-  if(ticks<1||ticks>65534)throw Error('C64 frame duration is outside the supported range');
+  if(ticks<1||ticks>65534)throw Error(host+' frame duration is outside the supported range');
   stream.push(ticks&255,ticks>>8);
   const screen=Array(1000).fill(custom?0:32),colors=Array(1000).fill(ink);
   for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const i=y*columns+x,d=screenOffset+y*40+x;screen[d]=frame.cells[i]===''?(custom?0:32):frame.cells[i];colors[d]=frame.inks[i]}
@@ -225,16 +250,21 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  const {stream,streamBytes,usesPackedColors,packedSavings,worstUpdateRatio,previousTick,loopOffset,continuationOffset,continuationPointer,sharedBlockSavings,sharedPointers,sharedOffsets}=encoded;
  const usesSharedBlocks=sharedPointers.length>0;
  // Small label-aware emitter: operands/fixups are checked, including relative branch ranges.
- const origin=0x0801,bytes=[0x0b,0x08,10,0,0x9e,50,48,54,49,0,0,0],labels={},fixups=[];
+ // C64 BASIC at $0801; C128 native mode BASIC 7.0 at $1C01 (40-col VIC still at $0400/$D800).
+ const origin=c128?0x1c01:0x0801,{stub,entry}=basicSysStub(origin),bytes=[...stub],labels={},fixups=[];
+ if(entry!==origin+bytes.length)throw Error('BASIC SYS stub entry mismatch');
  const emit=(...b)=>bytes.push(...b),label=n=>{labels[n]=origin+bytes.length},word=n=>emit(n&255,n>>8),abs=(op,target)=>{emit(op);if(typeof target==='string'){fixups.push({at:bytes.length,target});word(0)}else word(target)},branch=(op,target)=>{emit(op);fixups.push({at:bytes.length,target,relative:true});emit(0)},immLabel=(op,target,high=false)=>{emit(op);fixups.push({at:bytes.length,target,byte:true,high});emit(0)};
- // Preserve the four scratch zero-page bytes and display registers; KERNAL IRQs stay enabled.
- const registers=[0xdd00,0xdd02,0xd011,0xd016,0xd018,0xd020,0xd021,0x00cc,0x0288];
+ // Preserve scratch ZP and display registers; KERNAL IRQs stay enabled.
+ // C128: also save editor VIC shadow ($0A2C) and $D8 (255 disables IRQ editor VIC rewrites).
+ const registers=[0xdd00,0xdd02,0xd011,0xd016,0xd018,0xd020,0xd021,0x00cc,0x0288,...(c128?[0x00d8,0x0a2c]:[])];
  for(let z=0xfb;z<=0xfe;z++)emit(0xa5,z,0x48);
  for(const address of registers){abs(0xad,address);emit(0x48)}
  emit(0xd8); // CLD: SYS callers should not leave decimal arithmetic enabled.
+ if(c128){emit(0xa9,255);abs(0x8d,0xd8)}
  abs(0xad,0xdd02);emit(0x09,3);abs(0x8d,0xdd02);
  abs(0xad,0xdd00);emit(custom?0x29:0x09,custom?0xfc:3);abs(0x8d,0xdd00); // RAM glyphs use VIC bank 3; ROM glyphs use bank 0.
- for(const [address,value] of [[0xd011,0x1b],[0xd016,8],[0xd018,custom?0x12:charset?0x17:0x15],[0xd020,background],[0xd021,background],[0xcc,1],[0x0288,custom?0xc4:4]]){emit(0xa9,value);abs(0x8d,address)}
+ const vicMem=custom?0x12:charset?0x17:0x15;
+ for(const [address,value] of [[0xd011,0x1b],[0xd016,8],[0xd018,vicMem],[0xd020,background],[0xd021,background],[0xcc,1],[0x0288,custom?0xc4:4],...(c128?[[0x0a2c,vicMem]]:[])]){emit(0xa9,value);abs(0x8d,address)}
  emit(0xa9,repetitions);abs(0x8d,'remaining');
  emit(0xa9,0);abs(0x8d,'started');
  immLabel(0xa9,'data');emit(0x85,0xfb);immLabel(0xa9,'data',true);emit(0x85,0xfc);abs(0x4c,'frame');
@@ -320,8 +350,8 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  }
  label('data');labels.loopData=labels.data+loopOffset;labels.continuation=labels.data+continuationOffset;fixups.push({at:bytes.length+continuationPointer,target:'continuation'});for(const [id,offset] of sharedOffsets.entries())labels['shared'+id]=labels.data+offset;for(const {at,id} of sharedPointers)fixups.push({at:bytes.length+at,target:'shared'+id});for(const byte of stream)emit(byte);
  // Resolve pointers after optional decoders have fixed the code/data layout.
- for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown C64 player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error('C64 branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
+ for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown '+host+' player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error(host+' branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
  // Host-side symbols let full-machine checks observe frames without changing the PRG.
- return {bytes:Uint8Array.from([1,8,...bytes]),diagnostics:{renderer:nativePlan?'native-rows':dictionary?'paired':'generic',nativeBytes,nativeRowKernels:nativePlan?.kernels.length??0,nativeFrameStates:nativePlan?.stateCount??0,programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,sharedBlockSavings,sharedBlockCount:sharedOffsets.length,sharedFrameReferences:sharedPointers.length,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry:0x080d,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
+ return {bytes:Uint8Array.from([origin&255,origin>>8,...bytes]),diagnostics:{machine,renderer:nativePlan?'native-rows':dictionary?'paired':'generic',nativeBytes,nativeRowKernels:nativePlan?.kernels.length??0,nativeFrameStates:nativePlan?.stateCount??0,programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,sharedBlockSavings,sharedBlockCount:sharedOffsets.length,sharedFrameReferences:sharedPointers.length,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }
 
