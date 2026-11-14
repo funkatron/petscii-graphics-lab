@@ -238,12 +238,18 @@ The built-in [C64 glyph sheet](../assets/c64-glyphs.svg) contains 512 symbols: `
 
 Shapes use integer rectangles covering horizontal runs of source pixels. There is no font substitution, tracing, smoothing, or generated inversion.
 
-The source was `characters.901225-01.bin` from the [Zimmers C64 firmware archive](https://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c64/).
+The C64 source was `characters.901225-01.bin` from the [Zimmers C64 firmware archive](https://www.zimmers.net/anonftp/pub/cbm/firmware/computers/c64/).
 
 ```text
-SHA-256 fd0d53b8480e86163ac98998976c72cc58d5dd8eb824ed7b829774e74213b420
+C64 display atlas SHA-256
+fd0d53b8480e86163ac98998976c72cc58d5dd8eb824ed7b829774e74213b420
 MD5     12a4202f5331d45af846af6c58fba946
+
+TED display atlas SHA-256 (hardware-inverse high halves baked in)
+1bc59062292b207e0e0cd6da35503a2334ff7dec462a7bc6aec021ddde16fed4
 ```
+
+Machine switch keeps **identity by atlas ID**; bank 0 graphics mostly match, bank 1 (and atlas 128) may differ in pixels. Locked diff: [`.cursorrules/c64-ted-glyph-diff.md`](../.cursorrules/c64-ted-glyph-diff.md) and `tests/ted-glyphs.unit.mjs`.
 
 The repository contains converted artwork at the project owner's request. The original ROM binary is excluded. Conversion retains ROM-derived shapes and does not establish a separate license for them.
 
@@ -257,7 +263,7 @@ python3 scripts/build_glyphs.py /path/to/characters.901225-01.bin
 python3 scripts/build_glyphs.py /path/to/kernal.318005-05.bin --machine ted --kernal-offset 0x1000
 ```
 
-This writes `assets/c64-glyphs.svg` or `assets/ted-glyphs.svg`. C64 tests reconstruct all 512 glyphs and compare the complete SHA-256, including the source's one-bit `@`/inverse-`@` difference in both banks.
+This writes `assets/c64-glyphs.svg` or `assets/ted-glyphs.svg`. C64 tests reconstruct all 512 glyphs and compare the complete SHA-256, including the source's one-bit `@`/inverse-`@` difference in both banks. TED unit tests lock the display SHA, hardware-inverse high halves, and the C64↔TED differing-ID set.
 
 ### Format and source references
 
