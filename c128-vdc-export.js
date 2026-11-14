@@ -19,14 +19,14 @@
  *     much longer than one jiffy (see the SEI note in the plane writer).
  */
 import {basicSysStub, createD64Disk, nativeMemoryLimit} from './c64-export.js';
+import {MACHINE} from './machine-modes.js';
 import {atlasIdToVdcCell, vdcAttr} from './vdc-colors.js';
 
 export {createD64Disk};
 
-const MACHINE = 'c128-80';
 const ORIGIN = 0x1c01;
 // C128 FRE(0) for bank-0 program text (banner 122365 includes bank 1 variables). VDC charset is not in bank 0.
-const MEMORY_LIMIT = nativeMemoryLimit('c128-80');
+const MEMORY_LIMIT = nativeMemoryLimit(MACHINE.C128_80);
 const VDC_COLUMNS = 80;
 const VDC_ROWS = 25;
 const VDC_CELLS = VDC_COLUMNS * VDC_ROWS;
@@ -604,7 +604,7 @@ function compileC128VdcProgram({
 
   const programBytes = bytes.length;
   const diagnostics = {
-    machine: MACHINE,
+    machine: MACHINE.C128_80,
     renderer: 'vdc',
     programBytes,
     memoryLimit: MEMORY_LIMIT,

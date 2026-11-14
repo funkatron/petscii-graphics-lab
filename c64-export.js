@@ -1,4 +1,5 @@
 import {planNativeRows,nativeFrameStream} from './c64-native-rows.js';
+import {MACHINE} from './machine-modes.js';
 
 // Standard 35-track D64, with one closed PRG and no appended error table.
 // Layout: https://vice-emu.sourceforge.io/vice_17.html (D64 disk image format).
@@ -66,22 +67,23 @@ function shareFrameBlocks(encoded){
 // Each frame: 16-bit 60 Hz duration, then changed repeated/literal runs.
 // [addressLo,addressHi,count,value]; count 0 means [length,...literalBytes] instead.
 // Address 0 ends a frame; duration 0 ends a loop; $FFFF redirects the stream. Frame zero initializes both planes once.
-function nativeHostLabel(machine='c64'){
- return machine==='c128'?'C128':'C64';
+function nativeHostLabel(machine=MACHINE.C64){
+ if(machine===MACHINE.C128)return 'C128';
+ return 'C64';
 }
 
 /** Program-byte ceiling matching boot / FRE(0) figures (excludes 2-byte PRG header). */
-export function nativeMemoryLimit(machine='c64',{custom=false}={}){
+export function nativeMemoryLimit(machine=MACHINE.C64,{custom=false}={}){
  // C64 blue screen: 38911 BASIC BYTES FREE ($A000 − $0801).
- if(machine==='c64')return 38911;
- if(machine==='c128'){
+ if(machine===MACHINE.C64)return 38911;
+ if(machine===MACHINE.C128){
   // Mixed-bank VIC path parks screen at $C400 / charset $C800 in the same growth range.
   if(custom)return 0xc400-0x1c01; // 43007
   // C128 FRE(0) on healthy hardware (bank-0 program text); banner 122365 is bank0+bank1.
   return 58109;
  }
- if(machine==='c128-80')return 58109;
- if(machine==='plus4')return 60671; // Plus/4 boot: 60671 BYTES FREE ($FD00 − $1001)
+ if(machine===MACHINE.C128_80)return 58109;
+ if(machine===MACHINE.PLUS4)return 60671; // Plus/4 boot: 60671 BYTES FREE ($FD00 − $1001)
  throw Error('Unknown native host for memory limit');
 }
 export function basicSysStub(origin){
@@ -133,10 +135,10 @@ export function createC64AdaptiveProgram(input){
  return result;
 }
 export function createC128Program(input){
- return createC64Program({...input,machine:'c128'});
+ return createC64Program({...input,machine:MACHINE.C128});
 }
 export function createC128AdaptiveProgram(input){
- return createC64AdaptiveProgram({...input,machine:'c128'});
+ return createC64AdaptiveProgram({...input,machine:MACHINE.C128});
 }
 // Explicit native API for measurement and regression checks.
 export function createC64RowProgram(input){
@@ -156,9 +158,9 @@ function buildPairDictionary(frames,ink){
  }
  return [...pairs];
 }
-function compileC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits,machine='c64'},allowSharing,nativeRows=false,dictionary=null){
- if(machine!=='c64'&&machine!=='c128')throw Error('Native VIC programs support C64 and C128 (40-col) only');
- const c128=machine==='c128',host=nativeHostLabel(machine);
+function compileC64Program({columns,rows,charset=0,background,ink,frames,repetitions=0,glyphBits,machine=MACHINE.C64},allowSharing,nativeRows=false,dictionary=null){
+ if(machine!==MACHINE.C64&&machine!==MACHINE.C128)throw Error('Native VIC programs support C64 and C128 (40-col) only');
+ const c128=machine===MACHINE.C128,host=nativeHostLabel(machine);
  if(!Number.isInteger(columns)||columns<1||columns>40||!Number.isInteger(rows)||rows<1||rows>25)throw Error(host+' programs support up to 40 columns × 25 rows. Resize the canvas first.');
  if(![0,1].includes(charset)||![background,ink].every(c=>Number.isInteger(c)&&c>=0&&c<16))throw Error('Invalid '+host+' display settings');
  if(!Number.isInteger(repetitions)||repetitions<0||repetitions>100)throw Error(host+' repetitions must be a whole number from 0 to 100 (0 loops continuously)');

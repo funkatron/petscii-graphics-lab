@@ -1,5 +1,5 @@
 import {isDisplayPaletteId} from './c64-colors.js';
-import {isMachineId, isValidInkForMachine, maxColumnsForMachine} from './machine-modes.js';
+import {MACHINE, isMachineId, isValidInkForMachine, maxColumnsForMachine} from './machine-modes.js';
 import {SOLID_EFFECTS} from './solid-motion.js';
 
 export const ANIMATION_CYCLES = [1, 2, 4, 8, 16];
@@ -60,9 +60,9 @@ const ALLOWED_SECONDS = [0.5, 1, 2, 4, 8, 12];
 const ALLOWED_SCALE = [1, 2, 4];
 const ALLOWED_BACKGROUNDS = ['dark', 'white', 'transparent'];
 
-function projectMachine(data, fallbackMachine = 'c64') {
+function projectMachine(data, fallbackMachine = MACHINE.C64) {
   if (data?.machine === undefined) {
-    return isMachineId(fallbackMachine) ? fallbackMachine : 'c64';
+    return isMachineId(fallbackMachine) ? fallbackMachine : MACHINE.C64;
   }
   return data.machine;
 }
@@ -276,7 +276,7 @@ function validateAnimationField(data) {
  * @param {{fallbackMachine?: string}} [options] When `data.machine` is missing, validate
  *   inks/dimensions against this host (workspace machine on open). Defaults to c64.
  */
-export function validateProject(data, {fallbackMachine = 'c64'} = {}) {
+export function validateProject(data, {fallbackMachine = MACHINE.C64} = {}) {
   if (!data || data.format !== 'petscii-stencil-lab' || data.version !== 3) {
     throw Error('Only version 3 unified glyph projects are supported');
   }
