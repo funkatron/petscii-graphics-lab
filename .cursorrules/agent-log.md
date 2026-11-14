@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-14 — VICE smoke for Plus/4 and C128 80-col
+
+**What:** Optional `npm run test:vice:hosts` autostarts one Plus/4 still and one C128 80-col still. It checks TED screen, attributes, and `$FF19`, or VDC screen and attributes, then pokes STKEY `$91` and expects `READY.`. The C64 `test:vice` suite is unchanged. Not part of browser CI.  
+**Touched:** `tests/vice-hosts.integration.mjs`, `package.json`, `docs/vice-validation.md`, `docs/c64-output.md`, `docs/machine-modes.md`, maintainer reference.
+
 ## 2026-11-14 — TED color text grid
 
 **What:** Plus/4 Include colors in text writes `PETSCII-GLYPHS` v3 with two-digit TED inks `00`–`78`. v1 and v2 files are unchanged. A v2 grid opened on Plus/4 still remaps onto TED. A v3 grid opened on VIC or VDC remaps with `tedInkToC64`. Color RAM stays VIC-only.  

@@ -53,7 +53,7 @@ Image resolution and export-background choices do not affect native program outp
 3. If it loads without starting, type `RUN` and press Return.
 4. Press the emulated **RUN/STOP** key to exit. The player clears the picture and returns to BASIC. For C128 80-col, exit restores the display mode that was active when RUN started (stay in 80-col if you started there; return to 40-col if you started there).
 
-VICE’s [startup documentation](https://vice-emu.sourceforge.io/vice_4.html) describes autostart. Representative C64 PRG/D64 loading, still pictures, and composite playback have passed full PAL/NTSC VICE checks. See [the validation setup and limits](vice-validation.md). Plus/4 (`xplus4`) and C128 80-col (`x128 -80col`) smoke checks remain manual follow-ups.
+VICE’s [startup documentation](https://vice-emu.sourceforge.io/vice_4.html) describes autostart. Representative C64 PRG/D64 loading, still pictures, and composite playback have passed full PAL/NTSC VICE checks. Plus/4 and C128 80-col stills have an optional smoke check (`npm run test:vice:hosts`) for screen memory and return to BASIC. See [the validation setup and limits](vice-validation.md).
 
 ### On physical hardware
 

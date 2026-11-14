@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "test": "playwright test",
-    "test:vice": "node --test --test-concurrency=1 tests/vice.integration.mjs"
+    "test:vice": "node --test --test-concurrency=1 tests/vice.integration.mjs",
+    "test:vice:hosts": "node --test --test-concurrency=1 tests/vice-hosts.integration.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",

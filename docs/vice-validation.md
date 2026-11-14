@@ -86,6 +86,39 @@ dos1541ii-251968-03.bin
 326c289c38753323d7e8167897447cf61ef35189d82eb8d75210ece949adda7c
 ```
 
+## Plus/4 and C128 80-col smoke
+
+Run this when the Plus/4 or C128 80-column player changes. It is separate from `npm run test:vice`, so the C64 suite still runs with only `x64sc` and the C64 ROMs.
+
+```sh
+VICE_EXECUTABLE=/path/to/x64sc \
+VICE_DATA_DIR=/path/to/vice/data \
+npm run test:vice:hosts
+```
+
+`xplus4` and `x128` are taken from the same directory as `x64sc`. Override them with `PLUS4_EXECUTABLE` and `C128_EXECUTABLE`. Missing emulator or ROM files fail with an explanation.
+
+| Relative path | Purpose |
+| --- | --- |
+| `PLUS4/kernal-318005-05.bin` | Plus/4 kernal. The 2 KB chargen at offset `0x1000` must match the TED atlas |
+| `PLUS4/basic-318006-01.bin` | Plus/4 BASIC |
+| `PLUS4/3plus1-317053-01.bin` | Function ROM low (`-functionlo`) |
+| `PLUS4/3plus1-317054-01.bin` | Function ROM high (`-functionhi`) |
+| `C128/kernal-318020-05.bin` | C128 kernal |
+| `C128/basiclo-318018-04.bin` | C128 BASIC low |
+| `C128/basichi-318019-04.bin` | C128 BASIC high |
+| `C128/chargen-390059-01.bin` | C128 character ROM |
+| `C128/kernal64-901227-03.bin` | C64-mode kernal, same image as the C64 suite |
+| `C128/basic64-901226-01.bin` | C64-mode BASIC, same image as the C64 suite |
+
+`xplus4` has no `-chargen` switch. The character generator is the 2 KB image at kernal offset `0x1000`. Its SHA-256 is `978c07ee0c9c30ad7fa2193e64e4196da8d10d614554132741f0033d1a0872a8`. The C128 chargen is pinned to the published SHA-1 of `390059-01`: `29ed066d513f2d5c09ff26d9166ba23c2afb2b3f`.
+
+Each scenario autostarts one still PRG and stops at the player’s host-only `debugSymbols`. The Plus/4 check compares TED screen RAM `$0C00`, attribute RAM `$0800`, and border `$FF19` for a ROM glyph, an empty cell, and TED ink 80. The C128 check starts with `-80col`, confirms `$D7` bit 7, and compares VDC screen `$0000` and attributes `$0800` through the monitor memspace whose name contains `vdc` (not CPU `$0400`).
+
+STOP is the same idea as the C64 suite. `$FFE1` must jump to `LDA $91` / `CMP #$7F`. The test pokes `$7F` into that flag. On the Plus/4 and the C128, `$91` is the published STKEY flag. This does not press a key. After exit, the screen must contain `READY.`. The C128 player must still be in 80-column mode.
+
+Out of scope for this smoke: display pixels, D64 loading, NTSC models, full-screen timing, and physical keys.
+
 ## What remains
 
 - Physical PAL/NTSC C64 playback, RUN/STOP key handling, and transfer to real storage devices.
