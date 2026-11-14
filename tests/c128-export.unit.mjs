@@ -4,14 +4,18 @@ import test from 'node:test';
 import {createC64Program,createC128Program,createC128AdaptiveProgram,createD64Disk} from '../c64-export.js';
 
 function emulate(bytes,options={}){
+ // Playwright CI installs py65 in /tmp/petscii-test-venv; the unit job may only have system python3.
+ // Prefer an existing interpreter that can import py65 — never stop on ENOENT for a missing venv path.
  const runners=[process.env.PETSCII_PY,'/tmp/petscii-test-venv/bin/python','python3'].filter(Boolean);
- let r;
+ let r,lastErr='';
  for(const py of runners){
   r=spawnSync(py,['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...bytes],...options}),encoding:'utf8',maxBuffer:8e6});
-  if(r.status===0||!(r.stderr||'').includes('No module named'))break;
+  if(r.status===0)return JSON.parse(r.stdout);
+  lastErr=(r.error&&r.error.message)||r.stderr||`status ${r.status}`;
+  if((r.stderr||'').includes('No module named')||r.error?.code==='ENOENT')continue;
+  break;
  }
- assert.equal(r.status,0,r.stderr);
- return JSON.parse(r.stdout);
+ assert.fail('py65 emulate failed: '+lastErr);
 }
 
 test('C128 native still loads at $1C01 and paints centered VIC cells',()=>{

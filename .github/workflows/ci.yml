@@ -61,7 +61,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      # c128-export.unit.mjs (and similar) execute PRGs with py65 via tests/c64-emulate.py
+      - name: Install py65
+        run: |
+          python3 -m venv /tmp/petscii-test-venv
+          /tmp/petscii-test-venv/bin/python -m pip install py65==1.2.0
+          echo "/tmp/petscii-test-venv/bin" >> "$GITHUB_PATH"
       - run: node --test tests/*.unit.mjs
+        env:
+          PETSCII_PY: /tmp/petscii-test-venv/bin/python
   playwright:
     needs: select
     if: needs.select.outputs.mode != 'none'
