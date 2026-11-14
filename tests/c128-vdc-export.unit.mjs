@@ -58,6 +58,7 @@ test('C128 VDC still loads at $1C01 with c128-80 diagnostics and a full D64', ()
   assert.equal(result.diagnostics.machine, 'c128-80');
   assert.equal(result.diagnostics.renderer, 'vdc');
   assert.equal(result.diagnostics.customCharset, false);
+  assert.equal(result.diagnostics.memoryLimit, 58109);
   assert.equal(result.frameCount, 1);
   assert.equal(createD64Disk(result.bytes, 'PICTURE').length, 174848);
 });

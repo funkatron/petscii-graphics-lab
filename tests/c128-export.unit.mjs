@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {createC64Program,createC128Program,createC128AdaptiveProgram,createD64Disk} from '../c64-export.js';
+import {createC64Program,createC128Program,createC128AdaptiveProgram,createD64Disk,nativeMemoryLimit} from '../c64-export.js';
 
 function emulate(bytes,options={}){
  // Playwright CI installs py65 in /tmp/petscii-test-venv; the unit job may only have system python3.
@@ -44,5 +44,25 @@ test('C64 default stub and load address stay unchanged',()=>{
  assert.equal(result.bytes[0]+(result.bytes[1]<<8),0x0801);
  assert.equal(String.fromCharCode(...result.bytes.slice(7,11)),'2061');
  assert.equal(result.diagnostics.machine,'c64');
+ assert.equal(result.diagnostics.memoryLimit,38911);
  assert.deepEqual([...result.bytes.slice(0,14)],[1,8,0x0b,0x08,10,0,0x9e,50,48,54,49,0,0,0]);
+});
+
+test('native memory limits match boot / FRE(0) and C128 custom-safe cap',()=>{
+ assert.equal(nativeMemoryLimit('c64'),38911);
+ assert.equal(nativeMemoryLimit('c128'),58109);
+ assert.equal(nativeMemoryLimit('c128',{custom:true}),43007);
+ assert.equal(nativeMemoryLimit('c128-80'),58109);
+ assert.equal(nativeMemoryLimit('plus4'),60671);
+ const c128Rom=createC128Program({columns:2,rows:1,background:11,ink:13,frames:[{cells:[160,''],inks:[1,6],durationMs:1000}],repetitions:1});
+ assert.equal(c128Rom.diagnostics.memoryLimit,58109);
+ const glyphBits=new Uint8Array(4096);
+ glyphBits[8]=0xff;
+ glyphBits[256*8+8]=0x0f;
+ const c128Custom=createC128Program({
+  columns:2,rows:1,background:11,ink:13,
+  frames:[{cells:[1,257],inks:[1,2],durationMs:1000}],
+  repetitions:1,glyphBits,
+ });
+ assert.equal(c128Custom.diagnostics.memoryLimit,43007);
 });

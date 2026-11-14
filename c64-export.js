@@ -69,6 +69,21 @@ function shareFrameBlocks(encoded){
 function nativeHostLabel(machine='c64'){
  return machine==='c128'?'C128':'C64';
 }
+
+/** Program-byte ceiling matching boot / FRE(0) figures (excludes 2-byte PRG header). */
+export function nativeMemoryLimit(machine='c64',{custom=false}={}){
+ // C64 blue screen: 38911 BASIC BYTES FREE ($A000 − $0801).
+ if(machine==='c64')return 38911;
+ if(machine==='c128'){
+  // Mixed-bank VIC path parks screen at $C400 / charset $C800 in the same growth range.
+  if(custom)return 0xc400-0x1c01; // 43007
+  // C128 FRE(0) on healthy hardware (bank-0 program text); banner 122365 is bank0+bank1.
+  return 58109;
+ }
+ if(machine==='c128-80')return 58109;
+ if(machine==='plus4')return 60671; // Plus/4 boot: 60671 BYTES FREE ($FD00 − $1001)
+ throw Error('Unknown native host for memory limit');
+}
 export function basicSysStub(origin){
  // Link + line number + SYS + decimal entry + EOL + EOP. Digit count and entry must agree.
  let digitCount=4;
@@ -352,6 +367,6 @@ function compileC64Program({columns,rows,charset=0,background,ink,frames,repetit
  // Resolve pointers after optional decoders have fixed the code/data layout.
  for(const f of fixups){const address=labels[f.target];if(address===undefined)throw Error('Unknown '+host+' player label');if(f.relative){const delta=address-(origin+f.at+1);if(delta< -128||delta>127)throw Error(host+' branch out of range');bytes[f.at]=delta&255}else if(f.byte)bytes[f.at]=f.high?address>>8:address&255;else{bytes[f.at]=address&255;bytes[f.at+1]=address>>8}}
  // Host-side symbols let full-machine checks observe frames without changing the PRG.
- return {bytes:Uint8Array.from([origin&255,origin>>8,...bytes]),diagnostics:{machine,renderer:nativePlan?'native-rows':dictionary?'paired':'generic',nativeBytes,nativeRowKernels:nativePlan?.kernels.length??0,nativeFrameStates:nativePlan?.stateCount??0,programBytes:bytes.length,memoryLimit:0xa000-origin,worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,sharedBlockSavings,sharedBlockCount:sharedOffsets.length,sharedFrameReferences:sharedPointers.length,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
+ return {bytes:Uint8Array.from([origin&255,origin>>8,...bytes]),diagnostics:{machine,renderer:nativePlan?'native-rows':dictionary?'paired':'generic',nativeBytes,nativeRowKernels:nativePlan?.kernels.length??0,nativeFrameStates:nativePlan?.stateCount??0,programBytes:bytes.length,memoryLimit:nativeMemoryLimit(machine,{custom}),worstUpdateRatio,playerBytes:labels.data-origin,packedColorSavings:packedSavings,sharedBlockSavings,sharedBlockCount:sharedOffsets.length,sharedFrameReferences:sharedPointers.length,streamBytes:{...streamBytes,framing:stream.length-streamBytes.characters-streamBytes.screen-streamBytes.color}},durationTicks:previousTick,frameCount:frames.length,debugSymbols:{entry,frameStart:labels.picture,frameReady:labels.frameReady,hold:labels.hold,exit:labels.exit}};
 }
 

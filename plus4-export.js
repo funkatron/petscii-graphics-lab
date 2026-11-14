@@ -9,7 +9,8 @@ import {tedToAttr} from './plus4-colors.js';
 export {createD64Disk};
 
 const ORIGIN = 0x1001;
-const MEMORY_LIMIT = 0x8000 - ORIGIN;
+// Plus/4 boot screen: 60671 BYTES FREE ($FD00 − $1001). RAM charset at $F000 sits above that top.
+const MEMORY_LIMIT = 60671;
 const CHARSET_RAM = 0xf000;
 const SCREEN = 0x0c00;
 const ATTRS = 0x0800;

@@ -242,5 +242,6 @@ The [UI review](ui-review.md#follow-ups-to-evaluate) tracks layout experiments. 
 New animation types take priority over this optional hardware feature.
 
 - [ ] Investigate an optional REU-aware export/player mode for larger animations, with expansion detection, loading and DMA transfers into main memory.
+- [ ] When designing expansion-aware players, also consider **C128 bank 1** (`FRE(1)` ≈ 64,256) via MMU banking. The C128 boot banner’s **122,365** is bank 0 + bank 1; today’s linear `$1C01` player only budgets bank-0 `FRE(0)` (58,109). Bank-1/REU capacity is optional and must not replace standard bank-0 exports.
 - [ ] Validate capacity, timing, glyph/color accuracy and RUN/STOP behavior in VICE with REU emulation before physical-hardware testing.
-- [ ] Keep standard C64 exports available. Extra RAM does not automatically extend the current player or remove every playback-speed limit.
+- [ ] Keep standard C64 / C128 bank-0 / Plus/4 exports available. Extra RAM does not automatically extend the current player or remove every playback-speed limit.
