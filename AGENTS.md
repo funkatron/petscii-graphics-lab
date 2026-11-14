@@ -99,7 +99,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 ## Current decisions to preserve
 
-- **Built-in artwork:** both banks and inverse slots come from `assets/c64-glyphs.svg`. Keep the original ROM binary out of the repository. There is no user-facing ROM import.
+- **Built-in artwork:** C64/C128 use `assets/c64-glyphs.svg`; Plus/4 uses `assets/ted-glyphs.svg`. Keep original ROM binaries out of the repository. There is no user-facing ROM import.
 - **Editable files:** v3 keeps the `petscii-stencil-lab` format identifier and numeric ID 0, with no global charset. Autosave uses `petscii-graphics-project-v3`. Earlier formats are unsupported by owner decision.
 - **Colors:** preserve one ink index per cell and one shared background. A brush color change affects future strokes. Recoloring the entire drawing is a separate undoable action. Planned multi-machine modes (C64 / C128 40-col / Plus/4 TED) and VIC display palettes are specified in [machine modes](docs/machine-modes.md); do not invent a conflicting schema while that work is in progress.
 - **Animation:** previews use derived frames and leave source artwork intact. The canvas is read-only during playing and paused previews; Return to drawing enables painting. Loop duration sets the whole timeline; independent movement/color rates repeat 1/2/4/8/16 times within it. Preview and all animation downloads share phase and sampling; warn instead of silently aliasing unsupported fast combinations. Videos support 1–100 complete loops.
