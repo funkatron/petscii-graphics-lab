@@ -24,8 +24,10 @@ Design contract: [machine modes](machine-modes.md).
 - [x] Ship VIC display palettes (Pepto, Colodore, VICE, RGB) and Plus/4 TED drawing (`0–120`) with undoable VIC↔TED conversion.
 - [x] Gate C64 PRG/Color RAM and color text in Plus/4 mode; contextual animation lists (TED-native effect ids retained).
 - [x] Add Playwright/unit coverage; update the design doc’s shipped section (Chromium machine-modes spec).
-- [ ] Follow-up: C128 80-column (VDC) mode.
+- [x] C128 80-column (VDC) editor + native PRG/D64 (`c128-vdc-export.js`).
 - [ ] Follow-up: TED-capable color text-grid format.
+- [ ] Follow-up: non-square cell aspect for canvas + raster exports.
+- [ ] Follow-up: repo-wide `MACHINE` / `INDEX_SPACE` literal cleanup.
 
 ## Brittle-test audit — in progress
 

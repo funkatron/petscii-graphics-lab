@@ -7,24 +7,26 @@ The **Machine** setting chooses the player:
 | Machine | Load address | Mode | Notes |
 | --- | --- | --- | --- |
 | Commodore 64 | `$0801` | C64 BASIC 2 | Standard C64 / emulator autostart |
-| Commodore 128 (40-col) | `$1C01` | **Native** C128 BASIC 7 | Use a **40-column** display (not 80-col VDC). Same VIC screen/color map as C64 |
+| Commodore 128 (40-col) | `$1C01` | **Native** C128 BASIC 7 | Use a **40-column** VIC display. Same VIC screen/color map as C64 |
+| Commodore 128 (80-col) | `$1C01` | **Native** C128 BASIC 7 + VDC | Forces 80-col for playback; restores the **pre-RUN** 40/80 mode on RUN/STOP. RGBI attributes; no VIC-style border ink |
 | Commodore Plus/4 | `$1001` | Plus/4 BASIC 3.5 | TED text mode; screen `$0C00`, attrs `$0800`; bg drives `$FF15` and border `$FF19` |
 
 The program includes a small 6502 player (tiny BASIC `SYS` stub) and your character/color data.
 
-- **C64 / C128:** bank-0 artwork uses the machine character ROM. Mixed-bank artwork embeds required patterns in a RAM character set.
+- **C64 / C128 40-col:** bank-0 artwork uses the machine character ROM. Mixed-bank artwork embeds required patterns in a RAM character set.
+- **C128 80-col:** paints VDC private RAM via `$D600`/`$D601`. Atlas reverse → attribute bit 6; alternate bank → bit 7. Mixed-bank artwork installs a padded 16-byte/glyph charset at VDC `$2000`. Background sets VDC register 26; VDC has no separate border ink like VIC `$D020`.
 - **Plus/4:** uses **TED character ROM** with hardware reverse (`$FF07` bit7 clear). Mixed uppercase/lowercase embeds TED patterns in a RAM charset at `$F000`. Stay in character mode (do not enable GRAPHIC/bitmap).
 
 ## Download a program
 
-1. Set **Machine** to C64, C128 (40-col), or Plus/4. Draw with that machine’s glyphs on a canvas no larger than **40 columns × 25 rows**.
+1. Set **Machine** to C64, C128 (40-col), C128 (80-col), or Plus/4. Draw with that machine’s glyphs. Canvas max is **40 × 25** except C128 80-col (**80 × 25**).
 2. For animation, open **☰ → Animation**. Choose **Movement / reveal**, **Color animation**, and **Loop duration**. Preview with **Play**.
 3. Open **Download artwork → Native program**.
 4. Under the host **program** control, choose **Still drawing** or **Selected animation**.
 5. For animation, set **repetitions**. **0** repeats continuously. **1–100** plays that many complete loops, then holds the last frame.
 6. Set **file format** to **Program (.prg)** or **Disk image (.d64)**, then use the Download button.
 
-Smaller drawings and animations are **centered** on the 40 × 25 screen. Placement uses whole character cells; an odd extra blank cell goes on the right or bottom. The entire canvas stays fixed throughout animation, including its empty cells. The rest of the screen is blank. The canvas background also becomes the border color (VIC `$D020` / TED `$FF19`).
+Smaller drawings and animations are **centered** on the host screen (40 × 25 VIC/TED, or 80 × 25 VDC). Placement uses whole character cells; an odd extra blank cell goes on the right or bottom. The entire canvas stays fixed throughout animation, including its empty cells. The rest of the screen is blank. On VIC and TED, the canvas background also becomes the border color (`$D020` / `$FF19`). On VDC 80-col there is no separate border ink—only the shared background.
 
 Image resolution and export-background choices do not affect native program output. Programs always use character cells, per-cell ink, and the canvas background.
 
@@ -32,12 +34,12 @@ Image resolution and export-background choices do not affect native program outp
 
 ### In VICE
 
-1. Start the matching emulator: **x64sc** (C64), **x128** in 40-col (C128), or **xplus4** (Plus/4).
+1. Start the matching emulator: **x64sc** (C64), **x128** (C128 40-col or `x128 -80col` for 80-col), or **xplus4** (Plus/4). Prefer VICE ≥ 3.7 for VDC work; assert the **VDC** window for 80-col, not VIC `$0400`.
 2. Use **File → Autostart disk/tape image** and select the downloaded `.prg` or `.d64`. Menu wording may vary by VICE interface.
 3. If it loads without starting, type `RUN` and press Return.
-4. Press the emulated **RUN/STOP** key to exit. The player clears the picture and returns to BASIC.
+4. Press the emulated **RUN/STOP** key to exit. The player clears the picture and returns to BASIC. For C128 80-col, exit restores the display mode that was active when RUN started (stay in 80-col if you started there; return to 40-col if you started there).
 
-VICE’s [startup documentation](https://vice-emu.sourceforge.io/vice_4.html) describes autostart. Representative C64 PRG/D64 loading, still pictures, and composite playback have passed full PAL/NTSC VICE checks. See [the validation setup and limits](vice-validation.md). Plus/4 (`xplus4`) smoke checks remain a manual follow-up.
+VICE’s [startup documentation](https://vice-emu.sourceforge.io/vice_4.html) describes autostart. Representative C64 PRG/D64 loading, still pictures, and composite playback have passed full PAL/NTSC VICE checks. See [the validation setup and limits](vice-validation.md). Plus/4 (`xplus4`) and C128 80-col (`x128 -80col`) smoke checks remain manual follow-ups.
 
 ### On physical hardware
 
@@ -73,7 +75,7 @@ Start from ordinary C64 BASIC. The first player does not target cartridge enviro
 | Still drawing | Original artwork, held until RUN/STOP |
 | Animation | Replay, scrolling, row/column waves, inverse, color effects, and their combinations |
 | Repetitions | Continuous, or 1–100 loops followed by a held final frame |
-| Canvas | 1–40 columns and 1–25 rows, centered on screen |
+| Canvas | 1–40 × 1–25 (VIC/TED) or 1–80 × 1–25 (C128 80-col), centered on screen |
 | Larger/unsupported drawings | Export stops with an explanation; it never silently crops |
 | Memory / speed | Export checks program size and estimated update work; simplify or slow the animation if rejected |
 

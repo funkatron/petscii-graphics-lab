@@ -60,8 +60,8 @@ export function parseTextGrid(text, defaultColors) {
   const grid = [];
   const cellColors = [];
 
-  if (columns < 1 || columns > 40 || rows < 1 || rows > 40) {
-    throw Error('Dimensions must be 1–40');
+  if (columns < 1 || columns > 80 || rows < 1 || rows > 40) {
+    throw Error('Dimensions must be 1–80 columns and 1–40 rows');
   }
   if (lines.length !== rows) {
     throw Error('Incorrect row count');

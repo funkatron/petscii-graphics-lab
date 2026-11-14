@@ -6,6 +6,8 @@
  * (especially TED lowercase) stay on the same ID on purpose.
  */
 
+import {MACHINE} from './machine-modes.js';
+
 /** @type {ReadonlyMap<number, number>} */
 const C64_TO_TED_EXCEPTIONS = Object.freeze(new Map());
 
@@ -39,8 +41,8 @@ export function convertGlyph(id, fromMachine, toMachine) {
   if (fromMachine === toMachine) {
     return id;
   }
-  const fromTed = fromMachine === 'plus4';
-  const toTed = toMachine === 'plus4';
+  const fromTed = fromMachine === MACHINE.PLUS4;
+  const toTed = toMachine === MACHINE.PLUS4;
   if (!fromTed && toTed) {
     return c64GlyphToTed(id);
   }

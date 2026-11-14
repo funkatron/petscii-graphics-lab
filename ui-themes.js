@@ -8,7 +8,8 @@ export const UI_THEMES={
 };
 
 // Machine modes own appearance: each machine selects the matching interface look.
-export const MACHINE_UI_THEMES=Object.freeze({c64:'c64c',c128:'c128',plus4:'plus4'});
+// Keys match MACHINE.* ids from machine-modes.js (full literal cleanup is a follow-up).
+export const MACHINE_UI_THEMES=Object.freeze({c64:'c64c',c128:'c128','c128-80':'c128',plus4:'plus4'});
 
 export function uiThemeForMachine(machineId){
  return Object.prototype.hasOwnProperty.call(MACHINE_UI_THEMES,machineId)?MACHINE_UI_THEMES[machineId]:DEFAULT_UI_THEME;

@@ -1,5 +1,13 @@
 # Agent log
 
+## 2026-11-13 — C128 80-col (VDC) editor + native player
+
+**What:** Machine `c128-80` with RGBI drawing (`vdc-colors.js`), 80×25 canvas, VIC↔VDC ink remap, C64 glyph atlas. Native PRG/D64 via `c128-vdc-export.js` (`$1C01`, VDC `$D600` handshake, restore pre-RUN 40/80 on STOP). `MACHINE` / `INDEX_SPACE` constants in `machine-modes.js` and new/touched 80-col paths; repo-wide literal cleanup and non-square cell aspect left as follow-ups.
+
+**Touched:** `vdc-colors.js`, `c128-vdc-export.js`, `machine-modes.js`, `glyph-map.js`, `ui-themes.js`, `project-validation.js`, `text-grid.js`, `animation-frames.js`, `index.html`, docs, `tests/vdc-colors.unit.mjs`, `tests/c128-vdc-export.unit.mjs`, `tests/machine-modes.unit.mjs`, `tests/machine-modes.spec.cjs`, `tests/ui-themes.unit.mjs`.
+
+**Tested:** `node --test` vdc-colors / c128-vdc-export / machine-modes / ui-themes (and related). Playwright Chromium via CI for machine-modes 80-col case. Manual VICE `x128 -80col` still open.
+
 ## 2026-11-13 — Plus/4 TED glyphs + native player
 
 **What:** Plus/4 mode draws with `assets/ted-glyphs.svg` (TED ROM + hardware-inverse high halves). VIC↔TED switch remaps inks and glyphs (`glyph-map.js`) in one undo. Native PRG/D64 via `plus4-export.js` (`$1001`, TED ROM path; RAM charset `@$F000` when mixed banks). `tedToAttr`/`attrToTed`. Color RAM `.bin` still VIC-only.
