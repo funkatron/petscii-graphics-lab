@@ -78,7 +78,7 @@ Summary examples: `C64 · Pepto`, `Plus/4 · TED`.
 ### Ink UI
 
 - VIC: flush 4×4 swatch tile grid (no gaps, borders, or chrome button styling), labels `0`–`F`, names from the active display palette.
-- Plus/4: flush TED picker — black plus 15 chroma × 8 luma (accessible names such as `Green L4`).
+- Plus/4: flush TED picker — black alone on the first row, then 15 chroma rows × 8 luma (`L0`–`L7`, names such as `Green L4`). Keeping black off the 8-wide band avoids shifting each chroma across two rows.
 - Selection uses an inset contrast ring on the tile; swatches stay edge-to-edge so denser palettes remain compact.
 
 ### New Project defaults
