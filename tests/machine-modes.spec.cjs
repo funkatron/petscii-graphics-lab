@@ -259,6 +259,9 @@ test('CRT cell shape stretches the editor canvas but leaves native PRG bytes unc
  await page.locator('#machineMenu > summary').click();
  await ui(page,'#workspaceCellAspect','selectOption','square');
  const squarePrg=await download(page,'#exportC64');
+ // Export leaves #downloadDialog open; close it before reopening Machine.
+ await page.keyboard.press('Escape');
+ await expect(page.locator('#downloadDialog')).not.toBeVisible();
  await page.locator('#machineMenu > summary').click();
  await ui(page,'#workspaceCellAspect','selectOption','crt');
  const crtPrg=await download(page,'#exportC64');
