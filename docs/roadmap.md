@@ -27,7 +27,7 @@ Design contract: [machine modes](machine-modes.md).
 - [x] C128 80-column (VDC) editor + native PRG/D64 (`c128-vdc-export.js`).
 - [x] Application-like UI IA: System / Project / Editor header grouping and Machine persistence (see `.cursorrules/app-like-ui-ia.md`).
 - [ ] Follow-up: TED-capable color text-grid format.
-- [ ] Follow-up: non-square cell aspect / **Cell shape** toggle (Square vs CRT proportion) for canvas (+ optional raster exports). Native PRG/D64 unchanged. Design: [`.cursorrules/cell-aspect-toggle.md`](../.cursorrules/cell-aspect-toggle.md).
+- [x] Follow-up: non-square cell aspect / **Cell shape** toggle (Square vs CRT proportion) for editor canvas. Native PRG/D64 unchanged; optional raster CRT match remains Phase B. Design: [`.cursorrules/cell-aspect-toggle.md`](../.cursorrules/cell-aspect-toggle.md).
 - [ ] Follow-up: repo-wide `MACHINE` / `INDEX_SPACE` literal cleanup.
 
 ## Brittle-test audit — in progress

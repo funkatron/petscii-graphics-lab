@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-14 — Cell shape Square / CRT (editor Phase A)
+
+**What:** `#workspaceCellAspect` in Machine menu; device pref; `fit()` uses VIC/TED 5∶6 or VDC 5∶12 for CRT. Native PRG/D64 and rasters unchanged.  
+**Touched:** `machine-modes.js`, `index.html`, machine-modes unit/spec, AGENTS/roadmap/machine-modes docs.
+
 ## 2026-11-14 — CI: py65 for c64/unified focused specs
 
 **What:** Focused runs that touch `tests/c64.spec.cjs` / `unified.spec.cjs` need py65; expand `PY65_SPECS` beyond the old export-only list.

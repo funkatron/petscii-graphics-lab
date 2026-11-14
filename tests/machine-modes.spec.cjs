@@ -242,3 +242,28 @@ test('Plus/4 animation exports stay TED-tagged and native Plus/4 program stays e
  await expect(page.locator('#exportC64')).toBeEnabled();
  await expect(page.locator('#exportGif')).toBeEnabled();
 });
+
+test('CRT cell shape stretches the editor canvas but leaves native PRG bytes unchanged',async({page})=>{
+ page.on('dialog',dialog=>dialog.accept());
+ await loadProject(page,baseProject([160,0],2,1,{cellColors:[2,14]}));
+ await ui(page,'#c64CanvasPreset');
+ await ui(page,'#applyResize');
+ await expect(page.locator('#dimensions')).toHaveText('40 × 25');
+ const box=()=>page.locator('#canvas').evaluate(el=>({h:el.clientHeight,styleH:el.style.height}));
+ const square=await box();
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceCellAspect','selectOption','crt');
+ await expect(page.locator('#machineSummary')).toContainText('CRT');
+ // CRT cells are shorter than square (5∶6), so a 40×25 fit grows taller in the frame.
+ await expect.poll(async()=>(await box()).h).toBeGreaterThan(square.h+20);
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceCellAspect','selectOption','square');
+ const squarePrg=await download(page,'#exportC64');
+ // Export leaves #downloadDialog open; close it before reopening Machine.
+ await page.keyboard.press('Escape');
+ await expect(page.locator('#downloadDialog')).not.toBeVisible();
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceCellAspect','selectOption','crt');
+ const crtPrg=await download(page,'#exportC64');
+ expect([...crtPrg]).toEqual([...squarePrg]);
+});
