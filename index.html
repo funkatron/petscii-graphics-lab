@@ -7,14 +7,14 @@
 <title>PETSCII Graphics Lab</title>
 <script>
 // Early paint only: machine-modes.js re-applies chrome after load. Machine owns appearance.
-(()=>{try{const m=JSON.parse(localStorage.getItem('petscii-workspace-prefs')||'null')?.machine;const themes={c64:'c64c',c128:'c128',plus4:'plus4'};if(Object.hasOwn(themes,m)){document.documentElement.dataset.machine=m;document.documentElement.dataset.uiTheme=themes[m]}}catch{}})();
+(()=>{try{const m=JSON.parse(localStorage.getItem('petscii-workspace-prefs')||'null')?.machine;const themes={c64:'c64c',c128:'c128','c128-80':'c128',plus4:'plus4'};if(Object.hasOwn(themes,m)){document.documentElement.dataset.machine=m;document.documentElement.dataset.uiTheme=themes[m]}}catch{}})();
 </script>
 <link rel="stylesheet" href="./styles/editor.css">
 <link rel="stylesheet" href="./styles/shell.css">
 </head>
 <body>
 <div class="app">
-<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><p class="note" id="machineHelp">Application setting for host chrome and color presentation. Artwork indices stay put when only the display palette changes.</p></div></details><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
+<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><p class="note" id="machineHelp">Application setting for host chrome and color presentation. Artwork indices stay put when only the display palette changes.</p></div></details><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
 <div class="row"><button id="openTextGrid">Open text grid</button></div><input id="textGridFile" type="file" accept=".txt,text/plain" hidden>
 <p class="note">Text grids replace the drawing and can be undone. Project files keep editable art and replay. Changes also autosave on this device.</p></fieldset>
 </div></details><span id="saveStatus" class="note" role="status">Saved on this device</span><button id="downloadOpen">Download artwork</button><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
@@ -24,7 +24,7 @@
 <details id="canvasDetails" class="tool-group"><summary>Canvas setup</summary><div class="group-body">
 <fieldset class="sidebar-section" id="canvasSizeGroup"><legend>Canvas size</legend>
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option selected>16</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option selected>16</option></select></div></div>
-<button id="c64CanvasPreset" type="button" class="full-width">C64 screen · 40 × 25</button>
+<button id="c64CanvasPreset" type="button" class="full-width">Full screen · 40 × 25</button>
 <div id="resizeDraft" hidden><p id="resizeSummary" class="note"></p><canvas id="resizePreview" aria-label="Resized drawing preview"></canvas><div class="row"><button id="applyResize">Apply size</button><button id="cancelResize">Cancel</button></div></div></fieldset><details id="drawingActions" class="help-disclosure"><summary>Whole drawing actions</summary><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div><button id="clear" class="full-width">Clear drawing</button></details>
 </div></details>
 <details id="colorDetails" class="tool-group"><summary>Colors <span id="colorSummary" class="summary-badge" aria-hidden="true"></span></summary><div class="group-body">
@@ -118,9 +118,11 @@ const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveV
 const {canvasCell,createPainter}=await import('./pointer-stroke.js');
 const {colorRGB,inkHex,paletteColors,isDisplayPaletteId}=await import('./c64-colors.js');
 const {PLUS4_COLORS,isPlus4ColorEffect,plus4Hex,tedIndex}=await import('./plus4-colors.js');
+const {VDC_COLORS,vdcHex}=await import('./vdc-colors.js');
 const {convertGlyph,convertGlyphArray}=await import('./glyph-map.js');
 const {
- MACHINES,applyMachineChrome,convertColorsObject,convertInkArray,getMachine,isTedMachine,isVicMachine,
+ MACHINE,MACHINES,INDEX_SPACE,applyMachineChrome,convertColorsObject,convertInkArray,getMachine,
+ isTedMachine,isVicMachine,isVdcMachine,maxColumnsForMachine,
  machineSummary,readWorkspacePrefs,writeWorkspacePrefs
 }=await import('./machine-modes.js');
 const {planTypedText}=await import('./typed-text.js');
@@ -131,10 +133,20 @@ const {SOLID_EFFECTS}=await import('./solid-motion.js');
 const {applyUiTheme,uiThemeForMachine}=await import('./ui-themes.js');
 const prefs=readWorkspacePrefs();
 let workspaceMachine=prefs.machine,workspacePalette=prefs.palette;
-const activeColorTable=()=>isTedMachine(workspaceMachine)?PLUS4_COLORS:paletteColors(workspacePalette);
-// 'ted-pal' tags frames/previews that carry TED indices; anything else uses the active VIC display palette.
+const activeColorTable=()=>{
+ if(isTedMachine(workspaceMachine))return PLUS4_COLORS;
+ if(isVdcMachine(workspaceMachine))return VDC_COLORS;
+ return paletteColors(workspacePalette);
+};
+const drawingPaletteTag=()=>{
+ if(isTedMachine(workspaceMachine))return 'ted-pal';
+ if(isVdcMachine(workspaceMachine))return 'vdc-pal';
+ return 'pepto-pal';
+};
+// Palette tags: ted-pal / vdc-pal / pepto-pal (and VIC displayPalette when VIC).
 const inkFill=(ink,colorPalette='pepto-pal')=>{
  if(colorPalette==='ted-pal'||isTedMachine(workspaceMachine))return plus4Hex(ink);
+ if(colorPalette==='vdc-pal'||isVdcMachine(workspaceMachine))return vdcHex(ink);
  return inkHex(ink,workspacePalette);
 };
 'use strict';
@@ -209,17 +221,18 @@ function makeSwatchButton(index,name,hex,{label,ariaLabel,pressed,onChoose}){
  return button;
 }
 function rebuildInkPalettes(){
- const table=activeColorTable(),ted=isTedMachine(workspaceMachine);
+ const table=activeColorTable(),ted=isTedMachine(workspaceMachine),vdc=isVdcMachine(workspaceMachine);
  $('colorPalette').classList.toggle('ted-grid',ted);$('quickInkPalette').classList.toggle('ted-grid',ted);
- $('colorPalette').setAttribute('aria-label',ted?'Plus/4 TED color palette':getMachine(workspaceMachine).shortLabel+' color palette');
+ const paletteLabel=ted?'Plus/4 TED color palette':vdc?'C128 VDC RGBI palette':getMachine(workspaceMachine).shortLabel+' color palette';
+ $('colorPalette').setAttribute('aria-label',paletteLabel);
  $('colorPalette').replaceChildren(...table.map(([name,hex],index)=>makeSwatchButton(index,name,hex,{
   label:ted?tedSwatchLabel(index):index.toString(16).toUpperCase(),
-  ariaLabel:(ted?'TED color '+index+': ':'C64 color '+index+': ')+name,
+  ariaLabel:(ted?'TED color '+index+': ':vdc?'VDC color '+index+': ':'C64 color '+index+': ')+name,
   pressed:colors[colorTarget]===index,
   onChoose:(i,n)=>{if(colors[colorTarget]===i)return;remember();setColors({...colors,[colorTarget]:i});drawPalette();redraw();setStatus(n+' '+colorTarget+' color selected');$('colorPalette').children[i].focus({preventScroll:true})}
  })));
  // The quick-ink popover only needs a rebuild when the machine or display palette changes.
- const quickKey=ted?'ted':workspacePalette;
+ const quickKey=ted?'ted':vdc?'vdc':workspacePalette;
  if($('quickInkPalette').dataset.key!==quickKey||$('quickInkPalette').children.length!==table.length){
   $('quickInkPalette').dataset.key=quickKey;
   $('quickInkPalette').replaceChildren(...table.map(([name,hex],index)=>{
@@ -269,11 +282,12 @@ function updateAnimationColorOptions(desired=$('animationColor').value){
 // Keep download label state above updateNativeExportLabels (called during machine sync).
 const animationDownloadLabels={gif:'Download GIF',video:'Download video',zip:'Download frame ZIP',c64:'Download C64 program (.prg)'};
 function nativeHostLabel(){
- if(workspaceMachine==='plus4')return 'Plus/4';
- if(workspaceMachine==='c128')return 'C128';
+ if(workspaceMachine===MACHINE.PLUS4)return 'Plus/4';
+ if(workspaceMachine===MACHINE.C128_80)return 'C128 80-col';
+ if(workspaceMachine===MACHINE.C128)return 'C128';
  return 'C64';
 }
-function nativeVicHost(){return workspaceMachine==='c128'?'C128':'C64'}
+function nativeVicHost(){return workspaceMachine===MACHINE.C128?'C128':'C64'}
 function updateNativeExportLabels(){
  const host=nativeHostLabel(),disk=$('c64Format').value==='d64',help=$('c64ExportHelp');
  const docsHref=help.querySelector('a')?.getAttribute('href')||'https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md';
@@ -286,6 +300,8 @@ function updateNativeExportLabels(){
  $('c64DiskHelp').textContent='Virtual 1541 disk containing PICTURE or ANIMATION for '+host+'. Attach as device 8, then LOAD "*",8,1 and RUN. The disk contains the same player as the PRG download.';
  if(host==='Plus/4'){
   help.textContent='Runs on a Commodore Plus/4 or emulator (BASIC at $1001). TED character ROM with hardware reverse; mixed banks include a RAM charset. Up to 40 × 25 cells, centered. Canvas background also drives the border. Press RUN/STOP to exit. ';
+ }else if(host==='C128 80-col'){
+  help.textContent='Runs on a Commodore 128 in 80-column VDC mode (BASIC at $1C01). Forces 80-col for playback and restores your prior 40/80 mode on RUN/STOP. RGBI attributes; up to 80 × 25 cells, centered. Press RUN/STOP to exit. ';
  }else if(host==='C128'){
   help.textContent='Runs in Commodore 128 native 40-column mode (BASIC at $1C01). Use a 40-col display. Up to 40 × 25 cells, centered. Canvas background also drives the border. Mixed glyphs include a RAM character set (up to 256 patterns). Press RUN/STOP to exit. ';
  }else{
@@ -294,57 +310,81 @@ function updateNativeExportLabels(){
  const docs=document.createElement('a');docs.href=docsHref;docs.target='_blank';docs.rel='noopener';docs.textContent='Loading instructions & limits';help.append(docs);
 }
 function updateNativeExportAvailability(){
- // Color RAM .bin stays VIC-only; native PRG/D64 is available for C64, C128, and Plus/4.
- const busy=!!animationExportTask,vic=isVicMachine(workspaceMachine);
+ // Color RAM .bin stays VIC-only; native PRG/D64 for all machines; color text for VIC + VDC (0–F).
+ const busy=!!animationExportTask,vic=isVicMachine(workspaceMachine),vdc=isVdcMachine(workspaceMachine);
  $('exportC64').disabled=busy;$('exportC64').title='';
- $('colorRam').disabled=!vic;$('colorRam').title=vic?'':'Unavailable in Plus/4 mode';
- const colorsCheck=$('textColors');colorsCheck.disabled=!vic;colorsCheck.title=vic?'':'Unavailable in Plus/4 mode';
- if(!vic&&colorsCheck.checked){colorsCheck.checked=false;out.value=textGrid()}
+ $('colorRam').disabled=!vic;$('colorRam').title=vic?'':'Unavailable outside VIC machines';
+ const colorsCheck=$('textColors');colorsCheck.disabled=!(vic||vdc);colorsCheck.title=(vic||vdc)?'':'Unavailable in Plus/4 mode';
+ if(!(vic||vdc)&&colorsCheck.checked){colorsCheck.checked=false;out.value=textGrid()}
  updateNativeExportLabels();
 }
+function refreshColumnOptions(){
+ const maxCols=maxColumnsForMachine(workspaceMachine),cols=$('columns'),prev=cols.value;
+ cols.innerHTML='';
+ for(let n=1;n<=maxCols;n++){const o=document.createElement('option');o.value=o.textContent=n;cols.appendChild(o)}
+ cols.value=String(Math.min(Number(prev)||W,maxCols));
+ const preset=$('c64CanvasPreset');
+ if(isVdcMachine(workspaceMachine)){preset.textContent='VDC screen · 80 × 25';preset.onclick=()=>{$('columns').value='80';$('rows').value='25';updateResizeDraft()}}
+ else{preset.textContent='Full screen · 40 × 25';preset.onclick=()=>{$('columns').value='40';$('rows').value='25';updateResizeDraft()}}
+}
+function cropCanvasToMachineLimits(){
+ const maxCols=maxColumnsForMachine(workspaceMachine);
+ if(W<=maxCols)return;
+ const nw=maxCols,nh=H,next=Array(nw*nh).fill(''),inks=Array(nw*nh).fill(colors.ink);
+ for(let y=0;y<nh;y++)for(let x=0;x<nw;x++){next[y*nw+x]=grid[y*W+x];inks[y*nw+x]=cellColors[y*W+x]}
+ grid=next;cellColors=inks;W=nw;resetReplay();$('columns').value=String(W);
+}
 function syncMachineControls(){
- const ted=isTedMachine(workspaceMachine);
+ const ted=isTedMachine(workspaceMachine),vdc=isVdcMachine(workspaceMachine);
  $('workspaceMachine').value=workspaceMachine;$('workspacePalette').value=workspacePalette;
- $('displayPaletteField').hidden=ted;
+ $('displayPaletteField').hidden=ted||vdc;
  $('machineSummary').textContent=machineSummary(workspaceMachine,workspacePalette);
- $('machineHelp').textContent=ted
-  ?'Plus/4 uses the TED character set and full TED drawing palette (121 colors). Native Plus/4 program/disk download is available; C64 color RAM export is not.'
-  :'Display palette changes how the same VIC color indices look. Switching to Plus/4 remaps inks and glyphs and can be undone.';
- $('colorsHelp').textContent=ted
-  ?'Ink sets the brush color. Each cell keeps its own ink; the background is shared. Plus/4 uses all 121 TED colors (chroma × luma).'
-  :'Ink sets the brush color. Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.';
+ if(ted){
+  $('machineHelp').textContent='Plus/4 uses the TED character set and full TED drawing palette (121 colors). Native Plus/4 program/disk download is available; C64 color RAM export is not.';
+  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. Plus/4 uses all 121 TED colors (chroma × luma).';
+ }else if(vdc){
+  $('machineHelp').textContent='C128 80-col uses VDC RGBI drawing colors (not Pepto) and the C64 glyph atlas. Canvas width up to 80. Native 80-col PRG/D64 download is available.';
+  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. C128 80-col uses 16 VDC RGBI colors.';
+ }else{
+  $('machineHelp').textContent='Display palette changes how the same VIC color indices look. Switching machines remaps inks (and glyphs when crossing TED) and can be undone.';
+  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.';
+ }
+ refreshColumnOptions();
  applyMachineAppearance();updateAnimationColorOptions();updateNativeExportAvailability();
 }
 function setWorkspacePalette(next){
- if(!isDisplayPaletteId(next)||isTedMachine(workspaceMachine)){syncMachineControls();return}
+ if(!isDisplayPaletteId(next)||isTedMachine(workspaceMachine)||isVdcMachine(workspaceMachine)){syncMachineControls();return}
  workspacePalette=next;writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});
  syncMachineControls();tileCache.clear();updateColorUI();drawPalette();redraw();autosave();setStatus('Display palette: '+workspacePalette);
 }
-const crossesIndexSpace=(from,to)=>isTedMachine(from)!==isTedMachine(to);
+const indexSpaceOf=id=>getMachine(id).indexSpace;
+const crossesIndexSpace=(from,to)=>indexSpaceOf(from)!==indexSpaceOf(to);
 const hasArtwork=()=>grid.some(g=>g!=='')||replayEvents.length>0;
-// Entering/leaving Plus/4 remaps inks and glyphs in one undoable step.
+// Crossing VIC / TED / VDC remaps inks (and glyphs for TED) in one undoable step.
 function setWorkspaceMachine(next,{recordHistory=true}={}){
  if(!MACHINES[next]||next===workspaceMachine){syncMachineControls();return}
  if(animationExportTask){setStatus('Finish or cancel the current export before changing machine');syncMachineControls();return}
  const from=workspaceMachine,to=next;
- if(crossesIndexSpace(from,to)&&hasArtwork()&&!confirm('Switch to '+getMachine(to).label+'? Colors remap between VIC (0–15) and TED (0–120). Glyphs map by character identity to that machine’s shapes. You can Undo to restore both.')){syncMachineControls();return}
+ const confirmMsg='Switch to '+getMachine(to).label+'? Color indices remap between VIC, TED, and VDC spaces as needed. Glyphs map by character identity when crossing Plus/4. Width may crop to the new machine limit. You can Undo to restore.';
+ if(crossesIndexSpace(from,to)&&hasArtwork()&&!confirm(confirmMsg)){syncMachineControls();return}
  if(recordHistory)remember();
  workspaceMachine=to;
  colors=convertColorsObject(colors,from,to);
  cellColors=convertInkArray(cellColors,from,to);
  replayBaseColors=convertInkArray(replayBaseColors,from,to);
  replayEventColors=convertInkArray(replayEventColors,from,to);
- if(crossesIndexSpace(from,to)){
+ if(from===MACHINE.PLUS4||to===MACHINE.PLUS4){
   glyph=convertGlyph(glyph,from,to);
   grid=convertGlyphArray(grid,from,to);
   replayBase=convertGlyphArray(replayBase,from,to);
   replayEvents=replayEvents.map(([i,g])=>[i,convertGlyph(g,from,to)]);
  }
+ cropCanvasToMachineLimits();
  // The current color effect may not exist in the new machine; drop it as part of the same undoable step.
  const effectIsTed=isPlus4ColorEffect($('animationColor').value);
  if(crossesIndexSpace(from,to)&&$('animationColor').value!=='none'&&effectIsTed!==isTedMachine(to))$('animationColor').value='none';
  writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});
- selectActiveRom();syncMachineControls();tileCache.clear();updateColorUI();updateAnimationOptions();updateSourceInfo();drawPalette();redraw();autosave();
+ selectActiveRom();syncMachineControls();tileCache.clear();updateColorUI();updateAnimationOptions();updateSourceInfo();drawPalette();fit();redraw();autosave();
  setStatus(getMachine(to).label+' mode');
 }
 $('workspaceMachine').onchange=()=>{setWorkspaceMachine($('workspaceMachine').value);$('machineMenu').open=false};
@@ -481,7 +521,7 @@ function fit(){
  redraw();
 }
 function textGrid(){
- return formatTextGrid({columns:W,rows:H,grid,cellColors,colors,includeColors:$('textColors').checked&&isVicMachine(workspaceMachine)});
+ return formatTextGrid({columns:W,rows:H,grid,cellColors,colors,includeColors:$('textColors').checked&&(isVicMachine(workspaceMachine)||isVdcMachine(workspaceMachine))});
 }
 // Draw in backing-store pixels to avoid stale HiDPI transforms after WebKit canvas resizing.
 function renderGrid(cells,inks=cellColors,colorPalette='pepto-pal'){
@@ -520,13 +560,15 @@ function updateDownloadPreview(){
  if(!$('downloadDialog').open)return;
  const motion=!$('export-motion').hidden,data=!$('export-data').hidden,moving=motion||(data&&$('c64Mode').value==='animation');
  $('downloadFigure').hidden=data&&!moving;if($('downloadFigure').hidden)return;
- const source=animationSource(),picture=moving?animationCells(animationPreview?animationFrame:0,source):{cells:grid,inks:cellColors,colorPalette:isTedMachine(workspaceMachine)?'ted-pal':'pepto-pal'};
+ const source=animationSource(),picture=moving?animationCells(animationPreview?animationFrame:0,source):{cells:grid,inks:cellColors,colorPalette:drawingPaletteTag()};
  const bg=data?colorHex('background'):motion?($('gifBackground').value==='transparent'&&$('animationFormat').value!=='video'?null:$('gifBackground').value==='white'?'#fff':colorHex('background')):stillBackground();
- let previewCells=picture.cells,previewInks=picture.inks,previewColumns=W,previewRows=H;const centered=data&&W<=40&&H<=25;
+ let previewCells=picture.cells,previewInks=picture.inks,previewColumns=W,previewRows=H;
+ const screenCols=isVdcMachine(workspaceMachine)?80:40;
+ const centered=data&&W<=screenCols&&H<=25;
  if(centered){
-  previewColumns=40;previewRows=25;previewCells=Array(1000).fill('');previewInks=Array(1000).fill(colors.ink);
-  const left=Math.floor((40-W)/2),top=Math.floor((25-H)/2);
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const from=y*W+x,to=(top+y)*40+left+x;previewCells[to]=picture.cells[from];previewInks[to]=picture.inks[from]}
+  previewColumns=screenCols;previewRows=25;previewCells=Array(screenCols*25).fill('');previewInks=Array(screenCols*25).fill(colors.ink);
+  const left=Math.floor((screenCols-W)/2),top=Math.floor((25-H)/2);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const from=y*W+x,to=(top+y)*screenCols+left+x;previewCells[to]=picture.cells[from];previewInks[to]=picture.inks[from]}
  }
  artworkPreview($('downloadPreview'),previewCells,previewInks,previewColumns,previewRows,bg,picture.colorPalette||'pepto-pal');
  const pixels=data?8:motion?8*Number($('gifScale').value):$('stillFormat').value==='svg'?16:16*Number($('pngScale').value),loops=motion&&$('animationFormat').value==='video'?Number($('videoRepeats').value):1;
@@ -627,7 +669,12 @@ function animationExportFrames(s){
 }
 function animationRaster({s,bits}){
  const cell=8*s.scale,width=s.W*cell,height=s.H*cell,tiles=new Map();
- const ted=isTedMachine(s.machine)||isPlus4ColorEffect(s.colorEffect),table=ted?PLUS4_COLORS:paletteColors(s.palette);
+ const ted=isTedMachine(s.machine)||isPlus4ColorEffect(s.colorEffect);
+ const vdc=isVdcMachine(s.machine);
+ let table;
+ if(ted)table=PLUS4_COLORS;
+ else if(vdc)table=VDC_COLORS;
+ else table=paletteColors(s.palette);
  const colors=[s.background==='white'?[255,255,255]:colorRGB(table[s.colors.background][1]),...table.map(([,hex])=>colorRGB(hex))];
  function tileFor(g){
   if(tiles.has(g))return tiles.get(g);const tile=new Uint8Array(cell*cell);
@@ -644,7 +691,7 @@ function animationRaster({s,bits}){
   }
   return indexed;
  }
- return {width,height,cell,colors,indexedFrame,ted};
+ return {width,height,cell,colors,indexedFrame,ted,vdc};
 }
 let animationExportTask=null;
 const animationDownloads={};
@@ -667,7 +714,7 @@ async function exportAnimation(kind){
  const label=kind==='gif'?'GIF':kind==='video'?'Video':'ZIP';
  const checkpoint=()=>{if(task.cancelled)throw Error('Export canceled')};
  try{
-  const {s}=snapshot,frames=animationExportFrames(s),repetitions=kind==='video'?s.videoRepeats:1,totalFrames=frames.length*repetitions,raster=animationRaster(snapshot),{width,height,colors,ted}=raster;
+  const {s}=snapshot,frames=animationExportFrames(s),repetitions=kind==='video'?s.videoRepeats:1,totalFrames=frames.length*repetitions,raster=animationRaster(snapshot),{width,height,colors,ted,vdc}=raster;
   let gif,addFile,zipChunks=[],pngCanvas,pngContext;
   if(kind==='gif'){
    const {GIFEncoder}=await import('./vendor/gifenc.esm.js');checkpoint();gif=GIFEncoder();
@@ -701,7 +748,10 @@ async function exportAnimation(kind){
   if(kind==='gif'){gif.finish();blob=new Blob([gif.bytes()],{type:'image/gif'})}
   else if(kind==='video'){setStatus('Finalizing video…');blob=await video.finish()}
   else{
-   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:2,effect:s.effect,...(SOLID_EFFECTS.includes(s.effect)?solidCameraSettings(s):{}),...(DEPTH_EFFECTS.includes(s.effect)?{depthTravel:s.depthTravel,depthWaveShape:s.depthWaveShape}:{}),colorEffect:s.colorEffect,waveLength:s.waveLength,colorWaveLength:s.colorWaveLength,wipePattern:s.wipePattern,motionCycles:s.motionCycles,colorCycles:s.colorCycles,scrollDirection:s.scrollDirection,waveDirection:s.waveDirection,waveShape:s.waveShape,waveAmplitude:s.waveAmplitude,colorWaveDirection:s.colorWaveDirection,colorWaveShape:s.colorWaveShape,colorWaveAmplitude:s.colorWaveAmplitude,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,glyphEncoding:'c64-atlas-id',background:s.background,colorPalette:ted?'ted-pal':'pepto-pal',...(ted?{}:{displayPalette:s.palette}),machine:s.machine,colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
+   let colorPalette='pepto-pal';
+   if(ted)colorPalette='ted-pal';
+   else if(vdc)colorPalette='vdc-pal';
+   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:2,effect:s.effect,...(SOLID_EFFECTS.includes(s.effect)?solidCameraSettings(s):{}),...(DEPTH_EFFECTS.includes(s.effect)?{depthTravel:s.depthTravel,depthWaveShape:s.depthWaveShape}:{}),colorEffect:s.colorEffect,waveLength:s.waveLength,colorWaveLength:s.colorWaveLength,wipePattern:s.wipePattern,motionCycles:s.motionCycles,colorCycles:s.colorCycles,scrollDirection:s.scrollDirection,waveDirection:s.waveDirection,waveShape:s.waveShape,waveAmplitude:s.waveAmplitude,colorWaveDirection:s.colorWaveDirection,colorWaveShape:s.colorWaveShape,colorWaveAmplitude:s.colorWaveAmplitude,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,glyphEncoding:'c64-atlas-id',background:s.background,colorPalette,...((ted||vdc)?{}:{displayPalette:s.palette}),machine:s.machine,colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
    addFile('timing.json',text.encode(JSON.stringify(manifest,null,2)+'\n'));
    addFile('project.json',text.encode(JSON.stringify(snapshot.project,null,2)+'\n'));
    addFile('README.txt',text.encode("PETSCII Graphics Lab: PNG animation frames\n\nSTART HERE\n1. Open frames/ to find the numbered PNG pictures in playback order.\n2. Keep timing.json with the pictures. It gives each frame's startMs\n   (start time) and durationMs (how long to show it), in milliseconds.\n3. To edit the artwork again, open project.json in PETSCII Graphics Lab.\n\nTIMING\nFrame durations can differ: do not assume a fixed frame rate.\nThe durationMs values add up to one complete loop.\nDrawing replay holds the finished picture for the last quarter of each replay cycle.\nLong replays use selected points from the recording, matching GIF export.\n\nWHAT THESE FILES ARE\nEach PNG is a complete picture without editing grid lines.\nThese are image frames for modern software, not runnable C64 programs.\nFor runnable C64 programs and binary data, see the C64 output guide.\n\nEditor: https://funkatron.github.io/petscii-graphics-lab/\nC64 guide: https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md\n"));
@@ -795,7 +845,6 @@ $('clear').onclick=()=>{remember();grid.fill('');cellColors.fill(colors.ink);res
 $('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1){grid[y*W+x]=glyph;cellColors[y*W+x]=colors.ink}resetReplay();redraw()};
 $('checker').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++){grid[y*W+x]=(x+y)%2?glyph:'';cellColors[y*W+x]=colors.ink}resetReplay();redraw()};
 function resize(){if(Number($('columns').value)===W&&Number($('rows').value)===H)return;remember();const nw=Number($('columns').value),nh=Number($('rows').value),next=Array(nw*nh).fill(''),inks=Array(nw*nh).fill(colors.ink);for(let y=0;y<Math.min(H,nh);y++)for(let x=0;x<Math.min(W,nw);x++){next[y*nw+x]=grid[y*W+x];inks[y*nw+x]=cellColors[y*W+x]}grid=next;cellColors=inks;W=nw;H=nh;resetReplay();fit()}
-$('c64CanvasPreset').onclick=()=>{$('columns').value='40';$('rows').value='25';updateResizeDraft()};
 $('columns').onchange=updateResizeDraft;$('rows').onchange=updateResizeDraft;$('applyResize').onclick=resize;$('cancelResize').onclick=()=>{$('columns').value=String(W);$('rows').value=String(H);updateResizeDraft()};
 $('toggle').onclick=()=>{
  const closed=$('sidebar').classList.toggle('closed');
@@ -849,7 +898,8 @@ function updateC64Format(){updateNativeExportLabels();$('c64DiskHelp').hidden=$(
 $('c64Format').onchange=updateC64Format;
 $('exportC64').onclick=async()=>{
  if(animationExportTask)return;
- const host=nativeHostLabel(),machine=workspaceMachine==='plus4'?'plus4':workspaceMachine==='c128'?'c128':'c64';
+ const host=nativeHostLabel();
+ const machine=workspaceMachine===MACHINE.PLUS4?MACHINE.PLUS4:workspaceMachine===MACHINE.C128_80?MACHINE.C128_80:workspaceMachine===MACHINE.C128?MACHINE.C128:MACHINE.C64;
  const moving=$('c64Mode').value==='animation',repetitions=moving?Number($('c64Repeats').value):1,format=$('c64Format').value,allowTimingOverrun=moving&&$('c64TimingOverride').checked&&c64TimingConsentKey===c64TimingKey();
  const outputLabel=format==='d64'?host+' disk':host+' program';
  let name;try{name=projectStem()}catch(e){setStatus(e.message);return}
@@ -864,24 +914,27 @@ $('exportC64').onclick=async()=>{
   if(moving&&animationPlan(s).warning)throw Error(animationPlan(s).warning);
   const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}];
   const needsGlyphBits=frames.some(f=>f.cells.some(g=>g>255));
-  let result;
-  if(machine==='plus4'){
-   const {createPlus4AdaptiveProgram,createD64Disk}=await import('./plus4-export.js');if(task.cancelled)throw Error('Export canceled');
-   result=createPlus4AdaptiveProgram({columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{})});
-   const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
-   const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:name+'-'+machine+'-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
-   animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?host+' disk ready':host+' program ready';setStatus(host+' '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.'+(allowTimingOverrun?' Timing warning overridden.':''));
+  let result,createD64Disk;
+  if(machine===MACHINE.PLUS4){
+   const mod=await import('./plus4-export.js');if(task.cancelled)throw Error('Export canceled');
+   createD64Disk=mod.createD64Disk;
+   result=mod.createPlus4AdaptiveProgram({columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{})});
+  }else if(machine===MACHINE.C128_80){
+   const mod=await import('./c128-vdc-export.js');if(task.cancelled)throw Error('Export canceled');
+   createD64Disk=mod.createD64Disk;
+   result=mod.createC128VdcAdaptiveProgram({columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{})});
   }else{
-   const {createC64AdaptiveProgram,createD64Disk}=await import('./c64-export.js');if(task.cancelled)throw Error('Export canceled');
-   result=createC64AdaptiveProgram({machine,columns:s.W,rows:s.H,charset:0,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{})});if(task.cancelled)throw Error('Export canceled');
-   const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
-   const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:name+'-'+machine+'-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
-   animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?host+' disk ready':host+' program ready';setStatus(host+' '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.'+(allowTimingOverrun?' Timing warning overridden.':''));
+   const mod=await import('./c64-export.js');if(task.cancelled)throw Error('Export canceled');
+   createD64Disk=mod.createD64Disk;
+   result=mod.createC64AdaptiveProgram({machine,columns:s.W,rows:s.H,charset:0,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{})});
   }
+  const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
+  const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:name+'-'+machine+'-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
+  animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?host+' disk ready':host+' program ready';setStatus(host+' '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.'+(allowTimingOverrun?' Timing warning overridden.':''));
  }catch(e){setStatus(host+' export failed: '+e.message)}
  finally{animationExportTask=null;for(const id of Object.values(animationDownloadButtons))$(id).disabled=false;updateNativeExportAvailability();$('exportC64').textContent=animationDownloadLabels.c64;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false;$('cancelSheetDownload').hidden=true}
 };
-$('colorRam').onclick=()=>{if(isTedMachine(workspaceMachine)){setStatus('Color RAM export is unavailable in Plus/4 mode');return}if(download('-c64-colors-'+W+'x'+H+'.bin',Uint8Array.from(cellColors),'application/octet-stream'))setStatus('Downloaded color RAM (one palette index per cell, row-major)')};
+$('colorRam').onclick=()=>{if(!isVicMachine(workspaceMachine)){setStatus('Color RAM export is only available for VIC machines (C64 / C128 40-col)');return}if(download('-c64-colors-'+W+'x'+H+'.bin',Uint8Array.from(cellColors),'application/octet-stream'))setStatus('Downloaded color RAM (one palette index per cell, row-major)')};
 $('screenCodes').onclick=()=>{
  const bytes=new Uint8Array(grid.length*2),view=new DataView(bytes.buffer);grid.forEach((g,i)=>view.setUint16(i*2,g===''?65535:g,true));
  if(download('-c64-glyph-ids-'+W+'x'+H+'.bin',bytes,'application/octet-stream'))setStatus('Downloaded glyph IDs (16-bit little-endian; FFFF = empty)');
@@ -1049,10 +1102,20 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  function argsFor(s,frames){
   const mixed=frames.some(f=>f.cells.some(g=>g>255));
   const base={columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,repetitions:s.c64Repetitions,...(mixed?{glyphBits:rom?.slice()}:{})};
-  if(workspaceMachine==='plus4')return base;
-  return {machine:workspaceMachine==='c128'?'c128':'c64',charset:0,...base};
+  if(workspaceMachine===MACHINE.PLUS4||workspaceMachine===MACHINE.C128_80)return base;
+  return {machine:workspaceMachine===MACHINE.C128?MACHINE.C128:MACHINE.C64,charset:0,...base};
  }
- async function check(){if(!$('downloadDialog').open||$('export-data').hidden)return;const mine=++revision;const override=$('c64TimingOverride'),overrideWrap=$('c64TimingOverrideWrap');if(c64TimingConsentKey!==c64TimingKey()){override.checked=false;c64TimingConsentKey=null}panel.textContent='Checking…';try{if(!rom)throw Error('Reload glyphs to check character patterns and export.');const host=nativeHostLabel(),ted=isTedMachine(workspaceMachine),s={...animationSource(),c64Repetitions:$('c64Mode').value==='animation'?Number($('c64Repeats').value):1},moving=$('c64Mode').value==='animation',warning=moving&&animationPlan(s).warning;if(warning){overrideWrap.hidden=true;panel.textContent='Needs adjustment: '+warning;return}const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}],patterns=new Set(['0,0,0,0,0,0,0,0']);for(const f of frames)for(const g of f.cells)if(g!==''&&rom)patterns.add(rom.subarray(g*8,g*8+8).join(','));const issues=[];if(s.W>40||s.H>25)issues.push('Canvas must fit within 40 × 25 cells. Resize with crop preview.');const mixed=frames.some(f=>f.cells.some(g=>g>255));if(mixed&&patterns.size>256)issues.push('Use fewer different glyph patterns: '+patterns.size+' required, 256 available including blank.');let result;if(!issues.length){if(ted){const {createPlus4AdaptiveProgram}=await import('./plus4-export.js');result=createPlus4AdaptiveProgram({...argsFor(s,frames),analyze:true,allowTimingOverrun:true})}else{const {createC64AdaptiveProgram}=await import('./c64-export.js');result=createC64AdaptiveProgram({...argsFor(s,frames),analyze:true,allowTimingOverrun:true})}const d=result.diagnostics;if(d.programBytes>d.memoryLimit)issues.push('Program memory exceeded. Reduce canvas size or simplify the movement/color effects; slowing alone may not help.');if(d.worstUpdateRatio>1)issues.push('Updates exceed the estimated playback budget. Increase loop duration or reduce the animated area.')}if(mine!==revision)return;const canOverride=result&&result.diagnostics.worstUpdateRatio>1&&result.diagnostics.programBytes<=result.diagnostics.memoryLimit;overrideWrap.hidden=!canOverride;if(!canOverride){override.checked=false;c64TimingConsentKey=null}panel.replaceChildren();const heading=document.createElement('strong');heading.textContent=issues.length?(canOverride&&override.checked?'Timing warning — download allowed':'Needs adjustment'):'Ready — exporter checks passed';panel.append(heading);for(const text of [host+' · '+s.W+' × '+s.H+' cells · '+patterns.size+' distinct patterns'+(mixed?' / 256 including blank':' (ROM-backed)'),...(result?[result.diagnostics.programBytes.toLocaleString()+' / '+result.diagnostics.memoryLimit.toLocaleString()+' program bytes','Worst update: '+Math.round(result.diagnostics.worstUpdateRatio*100)+'% of estimated timing budget (includes loop transition)']:[])]){const p=document.createElement('p');p.textContent=text;panel.append(p)}for(const message of issues){const p=document.createElement('p');p.textContent=message;panel.append(p)}if(result&&result.diagnostics.worstUpdateRatio>1){for(const seconds of [1,2,4,8,12].filter(v=>v>s.seconds)){const next={...s,seconds},ff=animationExportFrames(next).map(f=>({...animationCells(f.index,next),durationMs:f.durationMs}));try{if(ted){const {createPlus4AdaptiveProgram}=await import('./plus4-export.js');createPlus4AdaptiveProgram(argsFor(next,ff))}else{const {createC64AdaptiveProgram}=await import('./c64-export.js');createC64AdaptiveProgram(argsFor(next,ff))}const b=document.createElement('button');b.textContent='Apply tested '+seconds+'-second loop';b.onclick=()=>{remember();$('animationSeconds').value=String(seconds);updateAnimationOptions();redraw();schedule()};panel.append(b);break}catch{}}}}catch(e){if(mine===revision){overrideWrap.hidden=true;panel.textContent='Unable to check: '+e.message}}}
+ async function analyzeExport(args){
+  if(workspaceMachine===MACHINE.PLUS4){const {createPlus4AdaptiveProgram}=await import('./plus4-export.js');return createPlus4AdaptiveProgram({...args,analyze:true,allowTimingOverrun:true})}
+  if(workspaceMachine===MACHINE.C128_80){const {createC128VdcAdaptiveProgram}=await import('./c128-vdc-export.js');return createC128VdcAdaptiveProgram({...args,analyze:true,allowTimingOverrun:true})}
+  const {createC64AdaptiveProgram}=await import('./c64-export.js');return createC64AdaptiveProgram({...args,analyze:true,allowTimingOverrun:true});
+ }
+ async function tryExport(args){
+  if(workspaceMachine===MACHINE.PLUS4){const {createPlus4AdaptiveProgram}=await import('./plus4-export.js');return createPlus4AdaptiveProgram(args)}
+  if(workspaceMachine===MACHINE.C128_80){const {createC128VdcAdaptiveProgram}=await import('./c128-vdc-export.js');return createC128VdcAdaptiveProgram(args)}
+  const {createC64AdaptiveProgram}=await import('./c64-export.js');return createC64AdaptiveProgram(args);
+ }
+ async function check(){if(!$('downloadDialog').open||$('export-data').hidden)return;const mine=++revision;const override=$('c64TimingOverride'),overrideWrap=$('c64TimingOverrideWrap');if(c64TimingConsentKey!==c64TimingKey()){override.checked=false;c64TimingConsentKey=null}panel.textContent='Checking…';try{if(!rom)throw Error('Reload glyphs to check character patterns and export.');const host=nativeHostLabel(),maxCols=maxColumnsForMachine(workspaceMachine),s={...animationSource(),c64Repetitions:$('c64Mode').value==='animation'?Number($('c64Repeats').value):1},moving=$('c64Mode').value==='animation',warning=moving&&animationPlan(s).warning;if(warning){overrideWrap.hidden=true;panel.textContent='Needs adjustment: '+warning;return}const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}],patterns=new Set(['0,0,0,0,0,0,0,0']);for(const f of frames)for(const g of f.cells)if(g!==''&&rom)patterns.add(rom.subarray(g*8,g*8+8).join(','));const issues=[];if(s.W>maxCols||s.H>25)issues.push('Canvas must fit within '+maxCols+' × 25 cells. Resize with crop preview.');const mixed=frames.some(f=>f.cells.some(g=>g>255));if(mixed&&patterns.size>256)issues.push('Use fewer different glyph patterns: '+patterns.size+' required, 256 available including blank.');let result;if(!issues.length){result=await analyzeExport(argsFor(s,frames));const d=result.diagnostics;if(d.programBytes>d.memoryLimit)issues.push('Program memory exceeded. Reduce canvas size or simplify the movement/color effects; slowing alone may not help.');if(d.worstUpdateRatio>1)issues.push('Updates exceed the estimated playback budget. Increase loop duration or reduce the animated area.')}if(mine!==revision)return;const canOverride=result&&result.diagnostics.worstUpdateRatio>1&&result.diagnostics.programBytes<=result.diagnostics.memoryLimit;overrideWrap.hidden=!canOverride;if(!canOverride){override.checked=false;c64TimingConsentKey=null}panel.replaceChildren();const heading=document.createElement('strong');heading.textContent=issues.length?(canOverride&&override.checked?'Timing warning — download allowed':'Needs adjustment'):'Ready — exporter checks passed';panel.append(heading);for(const text of [host+' · '+s.W+' × '+s.H+' cells · '+patterns.size+' distinct patterns'+(mixed?' / 256 including blank':' (ROM-backed)'),...(result?[result.diagnostics.programBytes.toLocaleString()+' / '+result.diagnostics.memoryLimit.toLocaleString()+' program bytes','Worst update: '+Math.round(result.diagnostics.worstUpdateRatio*100)+'% of estimated timing budget (includes loop transition)']:[])]){const p=document.createElement('p');p.textContent=text;panel.append(p)}for(const message of issues){const p=document.createElement('p');p.textContent=message;panel.append(p)}if(result&&result.diagnostics.worstUpdateRatio>1){for(const seconds of [1,2,4,8,12].filter(v=>v>s.seconds)){const next={...s,seconds},ff=animationExportFrames(next).map(f=>({...animationCells(f.index,next),durationMs:f.durationMs}));try{await tryExport(argsFor(next,ff));const b=document.createElement('button');b.textContent='Apply tested '+seconds+'-second loop';b.onclick=()=>{remember();$('animationSeconds').value=String(seconds);updateAnimationOptions();redraw();schedule()};panel.append(b);break}catch{}}}}catch(e){if(mine===revision){overrideWrap.hidden=true;panel.textContent='Unable to check: '+e.message}}}
  // Debounce only. Do not rewrite the panel here: Clearing to "Checking…" on every
  // pulse recenters the modal on WebKit and makes dialog controls never settle.
  // Do not hook redraw either — ResizeObserver/fit redraw storms had the same effect.

@@ -2,16 +2,21 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {inkHex, isDisplayPaletteId, paletteColors} from '../c64-colors.js';
 import {
+  MACHINE,
+  INDEX_SPACE,
   applyMachineChrome,
   contrastingInk,
   convertInk,
   getMachine,
+  isVdcMachine,
   isValidInkForMachine,
   machineSummary,
+  maxColumnsForMachine,
   tedInkToC64,
 } from '../machine-modes.js';
 import {c64InkToTed, tedIndex} from '../plus4-colors.js';
 import {validateProject} from '../project-validation.js';
+import {vicInkToVdc, vdcInkToVic} from '../vdc-colors.js';
 
 const base = {
   format: 'petscii-stencil-lab',
@@ -36,6 +41,40 @@ test('C128 defaults use light green on dark gray', () => {
   assert.equal(machine.defaultInk, 13);
   assert.equal(machine.defaultBackground, 11);
   assert.equal(machine.borderIndex, 13);
+});
+
+test('C128 80-col is VDC RGBI with an 80-column cap', () => {
+  const machine = getMachine(MACHINE.C128_80);
+  assert.equal(machine.id, MACHINE.C128_80);
+  assert.equal(machine.indexSpace, INDEX_SPACE.VDC);
+  assert.equal(machine.maxColumns, 80);
+  assert.equal(maxColumnsForMachine(MACHINE.C128_80), 80);
+  assert.equal(maxColumnsForMachine(MACHINE.C64), 40);
+  assert.equal(isVdcMachine(MACHINE.C128_80), true);
+  assert.equal(isVdcMachine(MACHINE.C128), false);
+  assert.match(machineSummary(MACHINE.C128_80, 'pepto'), /RGBI/);
+  assert.equal(convertInk(14, MACHINE.C64, MACHINE.C128_80), vicInkToVdc(14));
+  assert.equal(convertInk(vicInkToVdc(14), MACHINE.C128_80, MACHINE.C64), vdcInkToVic(vicInkToVdc(14)));
+  validateProject({
+    ...base,
+    machine: MACHINE.C128_80,
+    columns: 80,
+    rows: 1,
+    grid: Array(80).fill(''),
+    cellColors: Array(80).fill(10),
+    colors: {ink: 10, background: 8},
+  });
+  assert.throws(
+    () => validateProject({
+      ...base,
+      machine: MACHINE.C64,
+      columns: 80,
+      rows: 1,
+      grid: Array(80).fill(''),
+      cellColors: Array(80).fill(1),
+    }),
+    /dimensions/,
+  );
 });
 
 test('Plus/4 defaults use TED paper indices', () => {

@@ -159,6 +159,29 @@ test('Plus/4 keeps native program, gates color RAM and color text; VIC controls 
  await expect(page.locator('#textColors')).toBeEnabled();
 });
 
+test('C128 80-col enables VDC width, RGBI drawing, and native download',async({page})=>{
+ page.on('dialog',dialog=>dialog.accept());
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceMachine','selectOption','c128-80');
+ await expect(page.locator('html')).toHaveAttribute('data-machine','c128-80');
+ await expect(page.locator('html')).toHaveAttribute('data-ui-theme','c128');
+ await expect(page.locator('html')).toHaveAttribute('data-palette','vdc');
+ await expect(page.locator('#displayPaletteField')).toBeHidden();
+ await expect(page.locator('#machineSummary')).toHaveText('C128-80 · RGBI');
+ await expect(page.locator('#c64CanvasPreset')).toHaveText('VDC screen · 80 × 25');
+ await page.locator('#c64CanvasPreset').click();
+ await expect(page.locator('#columns')).toHaveValue('80');
+ await expect(page.locator('#rows')).toHaveValue('25');
+ await page.locator('#applyResize').click();
+ await expect(page.locator('#dimensions')).toHaveText('80 × 25');
+ await page.locator('#downloadOpen').click();
+ await page.locator('#export-tab-data').click();
+ await expect(page.locator('#exportC64')).toBeEnabled();
+ await expect(page.locator('#exportC64')).toContainText('C128 80-col');
+ await expect(page.locator('#colorRam')).toBeDisabled();
+ await expect(page.locator('#textColors')).toBeEnabled();
+});
+
 test('Plus/4 animation exports stay TED-tagged and native Plus/4 program stays enabled',async({page})=>{
  page.on('dialog',dialog=>dialog.accept());
  await loadProject(page,fixture());

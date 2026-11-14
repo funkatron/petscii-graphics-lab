@@ -58,6 +58,7 @@ test('readStoredUiTheme uses the preference key when valid',()=>{
 test('machines map to interface themes, defaulting to C64C',()=>{
  assert.equal(uiThemeForMachine('c64'),'c64c');
  assert.equal(uiThemeForMachine('c128'),'c128');
+ assert.equal(uiThemeForMachine('c128-80'),'c128');
  assert.equal(uiThemeForMachine('plus4'),'plus4');
  assert.equal(uiThemeForMachine('unknown'),'c64c');
  assert.equal(uiThemeForMachine(undefined),'c64c');
