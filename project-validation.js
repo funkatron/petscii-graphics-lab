@@ -23,15 +23,38 @@ export const SOLID_CAMERA_VALUES = {
 };
 export const MOTION_EFFECTS = [
   'none', 'bonfire', 'replay', 'scroll-x', 'scroll-y', 'scroll-diagonal',
-  'wave', 'inverse', 'sine-scroll', 'ripple',
+  'wave', 'sine-scroll', 'ripple',
   ...DEPTH_EFFECTS,
   ...SOLID_EFFECTS,
   ...INTRO_MOTIONS,
 ];
 export const COLOR_EFFECTS = [
   'none', 'bonfire', 'raster-bars', 'plasma', 'color-cycle', 'color-wave', 'color-glow',
+  'inverse',
   'plus4-cycle', 'plus4-wave', 'plus4-glow', 'plus4-raster', 'plus4-plasma', 'plus4-bonfire',
 ];
+
+/**
+ * Move legacy motion `effect:'inverse'` into Color (`colorEffect:'inverse'`).
+ * When a color ramp was already set, keep that ramp and drop motion inverse.
+ */
+export function normalizeAnimation(animation) {
+  if (!animation || typeof animation !== 'object') {
+    return animation;
+  }
+  if (animation.effect !== 'inverse') {
+    return animation;
+  }
+  const next = {...animation, effect: 'none'};
+  if (next.colorEffect === undefined || next.colorEffect === 'none') {
+    next.colorEffect = 'inverse';
+    if (next.motionCycles !== undefined) {
+      next.colorCycles = next.motionCycles;
+    }
+    next.motionCycles = 1;
+  }
+  return next;
+}
 
 const ALLOWED_SECONDS = [0.5, 1, 2, 4, 8, 12];
 const ALLOWED_SCALE = [1, 2, 4];
@@ -177,10 +200,10 @@ function validateAnimationField(data) {
   if (data.animation === undefined) {
     return;
   }
-  const animation = data.animation;
-  if (!animation) {
+  if (!data.animation) {
     throw Error('Invalid animation settings');
   }
+  const animation = normalizeAnimation(data.animation);
 
   for (const [key, allowed] of Object.entries(SOLID_CAMERA_VALUES)) {
     if (animation[key] !== undefined && !allowed.includes(animation[key])) {

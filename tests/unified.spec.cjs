@@ -15,7 +15,7 @@ test('one palette exposes both alphabets while selection leaves existing mixed a
 test('PNG and inverse GIF pixels use each cell’s source bank, including new graphics',async({page})=>{
  await loadProject(page,project(ids,5,1));await ui(page,'#pngScale','selectOption','1');await ui(page,'#pngBg','selectOption','transparent');const png=PNG.sync.read(await download(page,'#png'));
  for(let c=0;c<ids.length;c++)for(let y=0;y<8;y++)for(let x=0;x<8;x++)expect(png.data[((y*2+1)*png.width+c*16+x*2+1)*4+3]>0).toBe(!!(rows(ids[c])[y]&(128>>x)));
- await ui(page,'#animationEffect','selectOption','inverse');await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','transparent');const gif=new GifReader(await download(page,'#exportGif'));
+ await loadProject(page,project(ids,5,1,{animation:{effect:'none',colorEffect:'inverse',seconds:1,scale:1,background:'transparent'}}));const gif=new GifReader(await download(page,'#exportGif'));
  expect(gif.numFrames()).toBe(2);for(let f=0;f<2;f++){const pixels=Buffer.alloc(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(f,pixels);for(let c=0;c<ids.length;c++)for(let y=0;y<8;y++)for(let x=0;x<8;x++)expect(pixels[(y*gif.width+c*8+x)*4+3]>0).toBe(!!(rows(ids[c]^(f*128))[y]&(128>>x)))}
 });
 test('mixed PRG runs from RAM glyphs and restores the machine after continuous animation',async({page})=>{

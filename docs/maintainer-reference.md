@@ -101,7 +101,7 @@ Canvas size and Paint colors use named sidebar fieldsets. Keep staged Apply/Canc
 
 - **Ripple.** `ripple` uses existing movement shape/height/length/cycles; hide cardinal direction and keep waveform visible. Sample 24 frames per cycle with a minimum of four under the shared budget. For destination (x,y), dx=x−(W−1)/2 and dy=y−(H−1)/2, radius=hypot(dx,dy), reach=max(1,hypot((W−1)/2,(H−1)/2)). Evaluate waveValue(shape, radius/reach × 50/length − motionPhase). Multiply by min(3,max(1,min(W,H)/4)) × 2 × amplitude/100, then inverse-map x+dx/radius×shift and y+dy/radius×shift with whole-cell rounding. Keep radius zero fixed; out-of-bounds samples are empty, with destination source ink retained. Move glyphs/inks together before color effects. Existing optional defaults apply, and all preview/download paths share these frames.
 
-- **Effects and playback.** The Animation section offers drawing replay, scrolling in four directions, row/column waves, inverse pulse, Sine scroller, Bouncing logo, Stretching logo, Starfield and Patterned wipe. Color options include Color cycle, Rainbow wave, Warm glow, Raster-style bars and Plasma field. Header Play/Pause remains accessible with collapsed tools. Playback is opt-in, pauses in hidden tabs, and is never restored as playing from JSON/autosave.
+- **Effects and playback.** The Animation section offers drawing replay, scrolling in four directions, row/column waves, Sine scroller, Bouncing logo, Stretching logo, Starfield and Patterned wipe. Color options include Color cycle, Rainbow wave, Warm glow, Raster-style bars, Plasma field and Inverse pulse (glyph XOR appearance; stacks with movement). Legacy `effect:'inverse'` loads migrate to `colorEffect:'inverse'`. Header Play/Pause remains accessible with collapsed tools. Playback is opt-in, pauses in hidden tabs, and is never restored as playing from JSON/autosave.
 
 - **Preview state.** Preview is derived from the original grid; never mutate artwork/history/text/autosave on animation ticks. The canvas is read-only throughout preview, including pause: ignore pointer down/move/up without changing artwork, replay, history, autosave, or playback. Starting playback cancels any held stroke and releases its capture. Structural edits stop preview first. Pause holds the preview; Return to drawing restores the original grid and explicitly enables painting.
 
@@ -120,7 +120,7 @@ These are per-cycle sampling targets. Independent cycle counts multiply those ta
 | Replay | 2–48 frames; sample long recordings across their full event order |
 | Wave rows / columns | Up to 24 frames |
 | Scroll | Up to one frame per cell along the scrolling axis |
-| Inverse pulse | Up to two states |
+| Inverse pulse (color) | Up to two appearance states |
 | Bouncing logo / Stretching logo / Patterned wipe | Up to 24 frames |
 | Starfield | Up to max(24, 3 × travel-axis length) frames |
 | Sine scroller / Plasma field | Up to max(24, travel-axis length) / 24 frames |
@@ -284,7 +284,9 @@ KERNAL call contracts: [STOP `$FFE1`](https://www.devili.iki.fi/Computers/Commod
 
 ## CI environment
 
-For a PR limited to motion rendering and small additions to existing motion controls, apply the `ci: motion only` label. CI runs one job each for Chromium, iPad landscape and iPad portrait, covering motion, preview, independent color and movement cycles, and exports. Depth geometry checks still run. Before labeling, confirm the focused list includes the specs for the affected behavior. Remove the label for broader UI or interaction changes. Unlabeled PRs, pushes to main and manual workflow runs use the full matrix.
+For a PR limited to motion rendering and small additions to existing motion controls, apply the `ci: motion only` label. CI runs one job each for Chromium, iPad landscape and iPad portrait, covering motion, preview, independent color and movement cycles, and exports. Depth geometry checks still run. Before labeling, confirm the focused list includes the specs for the affected behavior. Remove the label for broader UI or interaction changes.
+
+For a small animation/UI change that should not pull native py65 or video-decode suites (even when those test files appear in the diff), apply `ci: light`. It keeps the change-scoped selection but drops py65/ffmpeg-heavy specs, while still ensuring `tests/animation.spec.cjs` when the animation pipeline changes. Unlabeled PRs, pushes to main and manual workflow runs use the normal focused or full matrix.
 
 
 GitHub Actions uses the official `mcr.microsoft.com/playwright:v1.58.2-noble` image, matching the pinned npm package. Update both versions together. The image supplies browser builds and OS dependencies; installing them from the runner's slow Ubuntu mirror previously consumed the entire job deadline before tests began. FFmpeg and a Python virtual environment with `py65==1.2.0` provide independent export checks.

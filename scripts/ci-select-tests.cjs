@@ -18,12 +18,17 @@ const FFMPEG_SPECS = new Set([
   'tests/video.spec.cjs',
   'tests/wavelength.spec.cjs',
 ]);
-// Specs that execute native PRG/D64 with py65.
+// Specs that execute native PRG/D64 with py65 (tests/c64-emulate.py).
 const PY65_SPECS = new Set([
-  'tests/c64-export.spec.cjs',
+  'tests/c64.spec.cjs',
+  'tests/c64-centering.spec.cjs',
+  'tests/c64-decoder.spec.cjs',
+  'tests/c64-native.spec.cjs',
+  'tests/c64-packed.spec.cjs',
+  'tests/c64-paired.spec.cjs',
+  'tests/c64-shared.spec.cjs',
   'tests/d64.spec.cjs',
-  'tests/exports.spec.cjs',
-  'tests/project-naming.spec.cjs',
+  'tests/unified.spec.cjs',
 ]);
 function toolNeeds(result) {
   if (result.mode === 'full') return {ffmpeg: true, py65: true};
@@ -33,7 +38,7 @@ function toolNeeds(result) {
     py65: result.specs.some(spec => PY65_SPECS.has(spec)),
   };
 }
-function select(files, {full=false, motionOnly=false}={}) {
+function select(files, {full=false, motionOnly=false, light=false}={}) {
   if (full) return {mode:'full', specs:[]};
   if (motionOnly) return {mode:'focused', specs:['tests/sine-scroll.spec.cjs','tests/diagonal-scroll.spec.cjs','tests/demoscene.spec.cjs','tests/wavelength.spec.cjs','tests/solid-motion.spec.cjs','tests/space-warp.spec.cjs','tests/depth-exports.spec.cjs']};
   if (!files.length || files.every(file => file.startsWith('docs/') || file.endsWith('.md')))
@@ -74,13 +79,39 @@ function select(files, {full=false, motionOnly=false}={}) {
   }
   // Unknown source changes get a smoke check instead of silently passing.
   if (!set.size) set.add('tests/layout.spec.cjs');
-  return {mode:'focused',specs:[...set]};
+  let specs = [...set];
+  // ci: light — drop native-emulation and video-decode suites for small UI/animation PRs.
+  if (light) {
+    const heavy = new Set([
+      ...PY65_SPECS,
+      ...FFMPEG_SPECS,
+      'tests/intro-motion.spec.cjs',
+      'tests/depth-exports.spec.cjs',
+    ]);
+    specs = specs.filter(spec => !heavy.has(spec));
+    if (
+      changed(/^(animation-frames|project-validation)\.js$/)
+      || files.includes('tests/animation.spec.cjs')
+    ) {
+      if (!specs.includes('tests/animation.spec.cjs')) {
+        specs.push('tests/animation.spec.cjs');
+      }
+    }
+    if (!specs.length) {
+      specs = ['tests/layout.spec.cjs'];
+    }
+  }
+  return {mode:'focused',specs};
 }
 module.exports = {select, toolNeeds, FFMPEG_SPECS, PY65_SPECS};
 if (require.main === module) {
   const fs = require('node:fs');
   const files = fs.readFileSync(0,'utf8').split('\n').filter(Boolean);
-  const result = select(files,{full:process.env.FULL_REQUEST==='true',motionOnly:process.env.MOTION_ONLY==='true'});
+  const result = select(files,{
+    full:process.env.FULL_REQUEST==='true',
+    motionOnly:process.env.MOTION_ONLY==='true',
+    light:process.env.LIGHT_REQUEST==='true',
+  });
   const tools = toolNeeds(result);
   const out = process.env.GITHUB_OUTPUT;
   if (!out) throw new Error('GITHUB_OUTPUT is required');

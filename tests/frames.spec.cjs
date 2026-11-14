@@ -32,7 +32,7 @@ test('ZIP replay preserves recorded erasures, timing, source project and repeat 
 test('transparent PNG sequences retain both banks and verbatim inverse glyphs',async({page})=>{
  const svg=fs.readFileSync('assets/c64-glyphs.svg','utf8');
  for(const bank of [0,1]){
-  await loadProject(page,project([0,128,''],3,1,{charset:bank}));await ui(page,'#animationEffect','selectOption','inverse');await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','transparent');
+  await loadProject(page,project([0,128,''],3,1,{charset:bank,animation:{effect:'none',colorEffect:'inverse',seconds:1,scale:1,background:'transparent'}}));await ui(page,'#gifScale','selectOption','1');
   const s=unpack(await download(page,'#exportFrames'));expect(s.timing.glyphEncoding).toBe('c64-atlas-id');expect(s.timing.background).toBe('transparent');
   for(let f=0;f<2;f++)for(let cell=0;cell<2;cell++){
    const code=(cell*128)^(f*128),body=svg.match(new RegExp('<symbol id="c64-'+bank+'-'+code+'"[^>]*>([\\s\\S]*?)</symbol>'))[1];
