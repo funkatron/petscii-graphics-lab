@@ -1,5 +1,5 @@
 import {isDisplayPaletteId} from './c64-colors.js';
-import {isMachineId, isValidInkForMachine} from './machine-modes.js';
+import {isMachineId, isValidInkForMachine, maxColumnsForMachine} from './machine-modes.js';
 import {SOLID_EFFECTS} from './solid-motion.js';
 
 export const ANIMATION_CYCLES = [1, 2, 4, 8, 16];
@@ -81,7 +81,9 @@ function validateGrid(data) {
   if (!Number.isInteger(data.columns) || !Number.isInteger(data.rows)) {
     throw Error('Invalid dimensions');
   }
-  if (data.columns < 1 || data.columns > 40 || data.rows < 1 || data.rows > 40) {
+  const machine = projectMachine(data);
+  const maxColumns = maxColumnsForMachine(machine);
+  if (data.columns < 1 || data.columns > maxColumns || data.rows < 1 || data.rows > 40) {
     throw Error('Invalid dimensions');
   }
   const cellCount = data.columns * data.rows;
