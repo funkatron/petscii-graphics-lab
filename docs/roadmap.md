@@ -202,6 +202,7 @@ Show letters & numbers reveals both cases. There is no whole-drawing character-s
 - [x] Share one loop duration and frame calculation across preview, GIF, video, PNG frame ZIP, and C64 programs.
 - [x] Preserve source artwork, replay, project settings, and history.
 - [x] Test all nine movement/color combinations and exported pixels.
+- [ ] Move **Inverse pulse** from Movement / reveal into the Color animation section. It flips character appearance (normal ↔ inverse glyphs) without translating cells, so it fits color/appearance effects better than motion. Keep independent stacking with true movement effects; preserve project ids / migration for existing `inverse` saves.
 
 ## Shape animation effects — implemented
 
