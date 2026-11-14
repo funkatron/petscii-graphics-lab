@@ -57,13 +57,17 @@ test('header machine control switches chrome and persists machine in JSON',async
  if(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed')))await page.locator('#toggle').click();
  const tedMetrics=await page.locator('#colorPalette').evaluate(grid=>{
   const style=getComputedStyle(grid),btn=getComputedStyle(grid.querySelector('button'));
-  const firstRow=[...grid.querySelectorAll('button')].slice(0,8).map(b=>b.getBoundingClientRect());
+  const buttons=[...grid.querySelectorAll('button')];
+  const black=buttons[0].getBoundingClientRect();
+  // Tiles 2–9 are the first chroma row (White L0–L7); black sits alone above.
+  const chromaRow=buttons.slice(1,9).map(b=>b.getBoundingClientRect());
   return {
-   count:grid.querySelectorAll('button').length,
+   count:buttons.length,
    gap:style.gap,
    columns:style.gridTemplateColumns.split(' ').length,
    border:btn.borderTopWidth,
-   rowTops:firstRow.map(b=>Math.round(b.top)),
+   blackBottom:Math.round(black.bottom),
+   chromaRowTops:chromaRow.map(b=>Math.round(b.top)),
    sidebarWidth:document.querySelector('#sidebar').getBoundingClientRect().width,
   };
  });
@@ -71,7 +75,8 @@ test('header machine control switches chrome and persists machine in JSON',async
  expect(tedMetrics.gap).toBe('0px');
  expect(tedMetrics.columns).toBe(8);
  expect(tedMetrics.border).toBe('0px');
- expect(new Set(tedMetrics.rowTops).size).toBe(1);
+ expect(new Set(tedMetrics.chromaRowTops).size).toBe(1);
+ expect(tedMetrics.blackBottom).toBeLessThanOrEqual(tedMetrics.chromaRowTops[0]);
  // Desktop 300px; mid-width (iPad portrait) 280px; phone overlay up to 320px.
  expect(tedMetrics.sidebarWidth).toBeGreaterThanOrEqual(279);
  const saved=JSON.parse(await download(page,'#saveProject'));

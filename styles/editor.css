@@ -627,7 +627,11 @@ dialog details>summary:hover{color:var(--header-title)}
  opacity:1;
 }
 
-/* Machine modes: Plus/4 TED picker is 1 black + 15 chroma × 8 luma, flush like VIC. */
+/* Machine modes: Plus/4 TED picker is 1 black + 15 chroma × 8 luma, flush like VIC.
+   Black alone on row 1 so each chroma keeps a clean L0–L7 row (index 0 would otherwise shift every band). */
 .color-grid.ted-grid{grid-template-columns:repeat(8,minmax(0,1fr));gap:0}
+.color-grid.ted-grid>button:first-child{
+ grid-column:1/-1;width:12.5%;max-width:12.5%;justify-self:start;aspect-ratio:1;height:auto;
+}
 .color-grid.ted-grid button{overflow:hidden;font-size:.58rem}
 #inkPopover .color-grid.ted-grid button{font-size:.55rem}
