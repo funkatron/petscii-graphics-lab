@@ -18,12 +18,17 @@ const FFMPEG_SPECS = new Set([
   'tests/video.spec.cjs',
   'tests/wavelength.spec.cjs',
 ]);
-// Specs that execute native PRG/D64 with py65.
+// Specs that execute native PRG/D64 with py65 (tests/c64-emulate.py).
 const PY65_SPECS = new Set([
-  'tests/c64-export.spec.cjs',
+  'tests/c64.spec.cjs',
+  'tests/c64-centering.spec.cjs',
+  'tests/c64-decoder.spec.cjs',
+  'tests/c64-native.spec.cjs',
+  'tests/c64-packed.spec.cjs',
+  'tests/c64-paired.spec.cjs',
+  'tests/c64-shared.spec.cjs',
   'tests/d64.spec.cjs',
-  'tests/exports.spec.cjs',
-  'tests/project-naming.spec.cjs',
+  'tests/unified.spec.cjs',
 ]);
 function toolNeeds(result) {
   if (result.mode === 'full') return {ffmpeg: true, py65: true};

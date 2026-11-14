@@ -1,5 +1,9 @@
 # Agent log
 
+## 2026-11-14 — CI: py65 for c64/unified focused specs
+
+**What:** Focused runs that touch `tests/c64.spec.cjs` / `unified.spec.cjs` need py65; expand `PY65_SPECS` beyond the old export-only list.
+
 ## 2026-11-14 — Inverse pulse → Color animation
 
 **What:** Moved Inverse pulse from Movement into Color (`colorEffect:'inverse'`). Legacy `effect:'inverse'` migrates on load. Stacks with true movement; no longer stacks with other color ramps.  
