@@ -60,3 +60,24 @@ test('tool installs follow selected video and native specs',()=>{
   assert.deepEqual(toolNeeds(select(['README.md'],{full:true})),{ffmpeg:true,py65:true});
   assert.equal(toolNeeds(select(['README.md'],{motionOnly:true})).ffmpeg,true);
 });
+
+test('ci: light drops native and video suites but keeps animation coverage',()=>{
+  const files=[
+    'project-validation.js',
+    'animation-frames.js',
+    'index.html',
+    'tests/animation.spec.cjs',
+    'tests/c64.spec.cjs',
+    'tests/unified.spec.cjs',
+    'tests/cell-colors.spec.cjs',
+  ];
+  const light=select(files,{light:true});
+  assert.equal(light.mode,'focused');
+  assert.ok(light.specs.includes('tests/animation.spec.cjs'));
+  assert.ok(light.specs.includes('tests/layout.spec.cjs'));
+  assert.ok(!light.specs.includes('tests/c64.spec.cjs'));
+  assert.ok(!light.specs.includes('tests/unified.spec.cjs'));
+  assert.ok(!light.specs.includes('tests/animation-controls.spec.cjs'));
+  assert.ok(!light.specs.includes('tests/cell-colors.spec.cjs'));
+  assert.deepEqual(toolNeeds(light),{ffmpeg:false,py65:false});
+});

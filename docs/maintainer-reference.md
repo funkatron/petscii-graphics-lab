@@ -284,7 +284,9 @@ KERNAL call contracts: [STOP `$FFE1`](https://www.devili.iki.fi/Computers/Commod
 
 ## CI environment
 
-For a PR limited to motion rendering and small additions to existing motion controls, apply the `ci: motion only` label. CI runs one job each for Chromium, iPad landscape and iPad portrait, covering motion, preview, independent color and movement cycles, and exports. Depth geometry checks still run. Before labeling, confirm the focused list includes the specs for the affected behavior. Remove the label for broader UI or interaction changes. Unlabeled PRs, pushes to main and manual workflow runs use the full matrix.
+For a PR limited to motion rendering and small additions to existing motion controls, apply the `ci: motion only` label. CI runs one job each for Chromium, iPad landscape and iPad portrait, covering motion, preview, independent color and movement cycles, and exports. Depth geometry checks still run. Before labeling, confirm the focused list includes the specs for the affected behavior. Remove the label for broader UI or interaction changes.
+
+For a small animation/UI change that should not pull native py65 or video-decode suites (even when those test files appear in the diff), apply `ci: light`. It keeps the change-scoped selection but drops py65/ffmpeg-heavy specs, while still ensuring `tests/animation.spec.cjs` when the animation pipeline changes. Unlabeled PRs, pushes to main and manual workflow runs use the normal focused or full matrix.
 
 
 GitHub Actions uses the official `mcr.microsoft.com/playwright:v1.58.2-noble` image, matching the pinned npm package. Update both versions together. The image supplies browser builds and OS dependencies; installing them from the runner's slow Ubuntu mirror previously consumed the entire job deadline before tests began. FFmpeg and a Python virtual environment with `py65==1.2.0` provide independent export checks.
