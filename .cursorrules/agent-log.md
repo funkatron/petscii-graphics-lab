@@ -1,5 +1,22 @@
 # Agent log
 
+## 2026-11-13 — Plus/4 TED glyphs + native player
+
+**What:** Plus/4 mode draws with `assets/ted-glyphs.svg` (TED ROM + hardware-inverse high halves). VIC↔TED switch remaps inks and glyphs (`glyph-map.js`) in one undo. Native PRG/D64 via `plus4-export.js` (`$1001`, TED ROM path; RAM charset `@$F000` when mixed banks). `tedToAttr`/`attrToTed`. Color RAM `.bin` still VIC-only.
+
+**Touched:** `assets/ted-glyphs.svg`, `scripts/build_glyphs.py`, `glyph-map.js`, `plus4-export.js`, `plus4-colors.js`, `c64-export.js` (`basicSysStub` export), `index.html`, docs, `tests/glyph-map.unit.mjs`, `tests/plus4-export.unit.mjs`, `tests/machine-modes.spec.cjs`.
+
+**Tested:** `node --test` glyph-map / plus4-export / plus4-colors / machine-modes / c128-export (pass). Playwright via CI.
+
+## 2026-11-13 — Undo canvas redraw
+
+**Cause:** `restore()` called only `fit()`; `fit()` early-returns without `redraw()` when size/`W×H` unchanged (ResizeObserver guard from #96).  
+**Fix PR:** [#104](https://github.com/funkatron/petscii-graphics-lab/pull/104) — `fit();redraw();`. Plus/4 WIP also calls `selectActiveRom()` on restore.
+
+## 2026-11-13 — C128 80-col (VDC) research
+
+**Saved:** [c128-80col-research.md](./c128-80col-research.md). Recommend editor-first 80×25 + RGBI; reuse C64 atlas; native player later via `$D600` handshake. Open owner questions listed in that note.
+
 ## 2026-11-13 — Native C128 player
 
 **What:** C128 machine downloads a native 40-col player (BASIC `$1C01` / SYS 7181), not GO64. Same VIC frame stream as C64; disables C128 IRQ editor VIC rewrites (`$D8`); mirrors `$D018`→`$0A2C`. UI tab renamed Native program; labels follow Machine. Bg still drives border.

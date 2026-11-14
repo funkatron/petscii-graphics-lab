@@ -39,7 +39,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 ## Where the code lives
 
-- `index.html` contains the application’s HTML, CSS, and plain JavaScript; `assets/c64-glyphs.svg` supplies the built-in character artwork. Keep it usable from GitHub Pages without a backend.
+- `index.html` contains the application’s HTML, CSS, and plain JavaScript; `assets/c64-glyphs.svg` and `assets/ted-glyphs.svg` supply built-in character artwork (Machine selects which). Keep it usable from GitHub Pages without a backend.
 
 - `package.json`, `playwright.config.cjs`, `tests/*.spec.cjs`, and `.github/workflows/ci.yml` implement automated browser testing for Chromium and iPad WebKit in landscape and portrait.
 

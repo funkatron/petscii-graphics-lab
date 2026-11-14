@@ -11,9 +11,9 @@ Add application-level **Machine** and **Display palette** controls for:
 
 | Machine | Drawing colors | Glyphs (first ship) |
 | --- | --- | --- |
-| Commodore 64 | VIC indices `0–15` | Shared C64 atlas |
-| Commodore 128 (40-col) | VIC indices `0–15` | Same shared C64 atlas |
-| Commodore Plus/4 | TED indices `0–120` (full 121-color palette) | Same shared C64 atlas |
+| Commodore 64 | VIC indices `0–15` | C64 atlas (`assets/c64-glyphs.svg`) |
+| Commodore 128 (40-col) | VIC indices `0–15` | Same C64 atlas |
+| Commodore Plus/4 | TED indices `0–120` (full 121-color palette) | TED atlas (`assets/ted-glyphs.svg`; hardware-inverse high halves) |
 
 **Out of scope for the first implementation:** C128 80-column (VDC) mode, TED-capable color text-grid format, Plus/4 native program export, baking machine bezels into PNG/SVG/GIF.
 
@@ -43,7 +43,7 @@ Exploratory MCP chrome demos live under `agents/petscii-preview/` and are **not*
 ### Machine switch vs palette switch
 
 - Changing VIC **display palette** only: not undoable; cells unchanged; swatches and image RGB update.
-- Entering or leaving **Plus/4**: remaps brush, background, cell, and replay inks with `c64InkToTed` / `tedInkToC64` (chroma cousin; luma collapsed). That remap is **one undoable operation**. Glyphs stay put.
+- Entering or leaving **Plus/4**: remaps brush, background, cell, and replay inks with `c64InkToTed` / `tedInkToC64` (chroma cousin; luma collapsed), and remaps glyph IDs with `c64GlyphToTed` / `tedGlyphToC64` (identity by character slot by default). That remap is **one undoable operation**.
 - Confirm when crossing the VIC ↔ TED boundary.
 
 ### C128 (40-col)
@@ -147,22 +147,23 @@ Product owns the JS source of truth. Do not dual-write Python MCP machine tables
 | Path | Behavior |
 | --- | --- |
 | PNG / SVG / GIF / video / ZIP | VIC: display-palette RGB. Plus/4: TED RGB. ZIP `timing.json` must not hardcode `pepto-pal` when TED. |
-| Color RAM `.bin` and C64 PRG/D64 | Disabled in Plus/4 mode. |
+| Color RAM `.bin` | Disabled in Plus/4 mode (VIC-only). |
+| Native PRG/D64 | C64 / C128 (40-col) / Plus/4 (`plus4-export.js`, BASIC `$1001`, TED ROM or RAM charset). |
 | Text grid with colors | Current format is one hex nibble `0–F`. Disable “Include colors in text” in Plus/4; glyph-only text remains OK. |
 
 ## Follow-ups
 
-1. C128 80-column (VDC glyphs, 80×25, editor width limit today is 40).
+1. C128 80-column (VDC glyphs, 80×25, editor width limit today is 40). See `.cursorrules/c128-80col-research.md`.
 2. TED-capable color text-grid format.
 3. Extra VIC presets (DeeKay, Frodo, CCS64, NTSC variants).
 4. Optional bezel in image exports; separate PRG border ink; MCP Python sync from JS.
-5. Plus/4 native TED program export (PRG/D64; still, then animation).
+5. Full VICE `xplus4` smoke for Plus/4 native player (unit coverage exists today).
 
 ## Shipped behavior
 
 - Header **Machine** menu with C64 / C128 (40-col) / Plus/4 and VIC **Display palette** (Pepto / Colodore / VICE / RGB).
 - Shell paints via CSS `data-ui-theme` scopes; Plus/4 shell is charcoal with light text (drawing defaults remain TED paper indices).
-- Plus/4 drawing uses TED indices `0–120`; entering/leaving Plus/4 remaps inks (undoable).
-- Contextual color-animation lists; C64 PRG/D64 and color text disabled in Plus/4 mode.
+- Plus/4 drawing uses TED indices `0–120` and TED glyph atlas; entering/leaving Plus/4 remaps inks and glyphs (undoable).
+- Contextual color-animation lists; native PRG/D64 for C64 / C128 / Plus/4; color RAM `.bin` and color text disabled in Plus/4 mode.
 - Unit: `tests/machine-modes.unit.mjs`, `tests/plus4-colors.unit.mjs`. Chromium Playwright: `tests/machine-modes.spec.cjs` + theme mapping coverage in `tests/ui-theme.spec.cjs` (run on GitHub Actions).
 - Machine appearance maps onto `data-ui-theme` (`c64`→`c64c`, `c128`, `plus4`); there is no separate Interface look control.

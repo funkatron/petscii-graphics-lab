@@ -131,6 +131,32 @@ export function tedInkToC64(tedInk) {
   return Math.max(0, Math.min(15, chroma));
 }
 
+/**
+ * Pack a project TED index into a TED attribute / $FF15 / $FF19 byte.
+ * bit7 flash unused (0); bits6–4 luma; bits3–0 chroma.
+ */
+export function tedToAttr(ted) {
+  if (!Number.isInteger(ted) || ted <= 0) {
+    return 0;
+  }
+  if (ted > 120) {
+    throw Error('Invalid TED color index');
+  }
+  const chroma = Math.floor((ted - 1) / 8) + 1;
+  const luma = (ted - 1) % 8;
+  return ((luma & 7) << 4) | (chroma & 0x0f);
+}
+
+/** Unpack a TED attribute byte back to a project TED index. */
+export function attrToTed(attr) {
+  if (!Number.isInteger(attr) || attr < 0 || attr > 255) {
+    throw Error('Invalid TED attribute byte');
+  }
+  const chroma = attr & 0x0f;
+  const luma = (attr >> 4) & 7;
+  return tedIndex(chroma, luma);
+}
+
 /** Full TED set: black, then chroma 1–15 × luma 0–7. */
 export function fullTedPaletteRamp() {
   const ramp = [0];

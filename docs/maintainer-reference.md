@@ -233,7 +233,7 @@ Planned C64 / C128 / Plus/4 machine modes, VIC display-palette switching, TED dr
 
 ## Glyph provenance and rebuilding
 
-The built-in [glyph sheet](../assets/c64-glyphs.svg) contains 512 symbols: `c64-0-0` through `c64-1-255`. Each uses an 8×8 viewBox. The viewable sheet has 16 columns and 32 rows.
+The built-in [C64 glyph sheet](../assets/c64-glyphs.svg) contains 512 symbols: `c64-0-0` through `c64-1-255`. Each uses an 8×8 viewBox. The viewable sheet has 16 columns and 32 rows. Plus/4 mode uses [TED glyphs](../assets/ted-glyphs.svg) (`ted-0-0` … `ted-1-255`) with the same atlas ID layout; codes 128–255 are synthesized as hardware inverses of 0–127 (default TED text mode).
 
 Shapes use integer rectangles covering horizontal runs of source pixels. There is no font substitution, tracing, smoothing, or generated inversion.
 
@@ -252,9 +252,11 @@ You need Python 3 and a local 4 KB reference ROM. From the repository root, run:
 
 ```sh
 python3 scripts/build_glyphs.py /path/to/characters.901225-01.bin
+# Plus/4 TED (4 KB at kernal $D000 image = offset 0x1000 in a 16 KB dump):
+python3 scripts/build_glyphs.py /path/to/kernal.318005-05.bin --machine ted --kernal-offset 0x1000
 ```
 
-This writes `assets/c64-glyphs.svg`. Tests reconstruct all 512 glyphs and compare the complete SHA-256, including the source's one-bit `@`/inverse-`@` difference in both banks.
+This writes `assets/c64-glyphs.svg` or `assets/ted-glyphs.svg`. C64 tests reconstruct all 512 glyphs and compare the complete SHA-256, including the source's one-bit `@`/inverse-`@` difference in both banks.
 
 ### Format and source references
 

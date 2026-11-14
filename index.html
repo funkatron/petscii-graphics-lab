@@ -78,7 +78,7 @@
 
 <p><label><input id="showGlyphCodes" type="checkbox"> Show glyph codes (hex)</label></p>
 <p class="note" id="romInfo">Loading C64 glyphs…</p><button id="retryGlyphs" class="full-width" hidden>Reload C64 glyphs</button>
-<p class="note">Both character sets and inverse slots use authentic 8×8 C64 artwork. <a href="./assets/c64-glyphs.svg" target="_blank" rel="noopener">View SVG glyph sheet</a>.</p>
+<p class="note">Character sets follow the Machine setting: C64/C128 use the C64 sheet; Plus/4 uses TED glyphs (hardware-inverse high halves). <a href="./assets/c64-glyphs.svg" target="_blank" rel="noopener">C64 SVG</a> · <a href="./assets/ted-glyphs.svg" target="_blank" rel="noopener">TED SVG</a>.</p>
 </details></aside>
 </div></div>
 <dialog id="downloadDialog" aria-labelledby="downloadTitle"><div class="dialog-heading"><h2 id="downloadTitle">Download artwork</h2><button id="downloadClose" aria-label="Close downloads">✕</button></div><div class="download-layout"><div><div id="fileDetails"><div id="exportBadge" class="status" role="status"></div>
@@ -118,6 +118,7 @@ const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveV
 const {canvasCell,createPainter}=await import('./pointer-stroke.js');
 const {colorRGB,inkHex,paletteColors,isDisplayPaletteId}=await import('./c64-colors.js');
 const {PLUS4_COLORS,isPlus4ColorEffect,plus4Hex,tedIndex}=await import('./plus4-colors.js');
+const {convertGlyph,convertGlyphArray}=await import('./glyph-map.js');
 const {
  MACHINES,applyMachineChrome,convertColorsObject,convertInkArray,getMachine,isTedMachine,isVicMachine,
  machineSummary,readWorkspacePrefs,writeWorkspacePrefs
@@ -267,9 +268,14 @@ function updateAnimationColorOptions(desired=$('animationColor').value){
 // Plus/4 cannot map TED inks to VIC color RAM, so native C64 outputs and nibble color text are gated.
 // Keep download label state above updateNativeExportLabels (called during machine sync).
 const animationDownloadLabels={gif:'Download GIF',video:'Download video',zip:'Download frame ZIP',c64:'Download C64 program (.prg)'};
+function nativeHostLabel(){
+ if(workspaceMachine==='plus4')return 'Plus/4';
+ if(workspaceMachine==='c128')return 'C128';
+ return 'C64';
+}
 function nativeVicHost(){return workspaceMachine==='c128'?'C128':'C64'}
 function updateNativeExportLabels(){
- const host=nativeVicHost(),disk=$('c64Format').value==='d64',help=$('c64ExportHelp');
+ const host=nativeHostLabel(),disk=$('c64Format').value==='d64',help=$('c64ExportHelp');
  const docsHref=help.querySelector('a')?.getAttribute('href')||'https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md';
  $('export-tab-data').textContent='Native program';
  $('c64ModeLabel').textContent=host+' program';
@@ -278,17 +284,23 @@ function updateNativeExportLabels(){
  animationDownloadLabels.c64=disk?'Download '+host+' disk (.d64)':'Download '+host+' program (.prg)';
  if(!animationExportTask)$('exportC64').textContent=animationDownloadLabels.c64;
  $('c64DiskHelp').textContent='Virtual 1541 disk containing PICTURE or ANIMATION for '+host+'. Attach as device 8, then LOAD "*",8,1 and RUN. The disk contains the same player as the PRG download.';
- help.textContent=host==='C128'
-  ?'Runs in Commodore 128 native 40-column mode (BASIC at $1C01). Use a 40-col display. Up to 40 × 25 cells, centered. Canvas background also drives the border. Mixed glyphs include a RAM character set (up to 256 patterns). Press RUN/STOP to exit. '
-  :'Runs on a standard C64 or emulator. Up to 40 × 25 cells, centered on screen. Uses the canvas background (also drives the border). Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. ';
+ if(host==='Plus/4'){
+  help.textContent='Runs on a Commodore Plus/4 or emulator (BASIC at $1001). TED character ROM with hardware reverse; mixed banks include a RAM charset. Up to 40 × 25 cells, centered. Canvas background also drives the border. Press RUN/STOP to exit. ';
+ }else if(host==='C128'){
+  help.textContent='Runs in Commodore 128 native 40-column mode (BASIC at $1C01). Use a 40-col display. Up to 40 × 25 cells, centered. Canvas background also drives the border. Mixed glyphs include a RAM character set (up to 256 patterns). Press RUN/STOP to exit. ';
+ }else{
+  help.textContent='Runs on a standard C64 or emulator. Up to 40 × 25 cells, centered on screen. Uses the canvas background (also drives the border). Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. ';
+ }
  const docs=document.createElement('a');docs.href=docsHref;docs.target='_blank';docs.rel='noopener';docs.textContent='Loading instructions & limits';help.append(docs);
 }
 function updateNativeExportAvailability(){
- const allow=isVicMachine(workspaceMachine),busy=!!animationExportTask,title=allow?'':'Unavailable in Plus/4 mode';
- for(const id of ['exportC64','colorRam']){const el=$(id);el.disabled=!allow||(busy&&id==='exportC64');el.title=title}
- const colorsCheck=$('textColors');colorsCheck.disabled=!allow;colorsCheck.title=title;
- if(!allow&&colorsCheck.checked){colorsCheck.checked=false;out.value=textGrid()}
- if(allow)updateNativeExportLabels();
+ // Color RAM .bin stays VIC-only; native PRG/D64 is available for C64, C128, and Plus/4.
+ const busy=!!animationExportTask,vic=isVicMachine(workspaceMachine);
+ $('exportC64').disabled=busy;$('exportC64').title='';
+ $('colorRam').disabled=!vic;$('colorRam').title=vic?'':'Unavailable in Plus/4 mode';
+ const colorsCheck=$('textColors');colorsCheck.disabled=!vic;colorsCheck.title=vic?'':'Unavailable in Plus/4 mode';
+ if(!vic&&colorsCheck.checked){colorsCheck.checked=false;out.value=textGrid()}
+ updateNativeExportLabels();
 }
 function syncMachineControls(){
  const ted=isTedMachine(workspaceMachine);
@@ -296,8 +308,8 @@ function syncMachineControls(){
  $('displayPaletteField').hidden=ted;
  $('machineSummary').textContent=machineSummary(workspaceMachine,workspacePalette);
  $('machineHelp').textContent=ted
-  ?'Plus/4 uses the full TED drawing palette (121 colors). C64/C128 program, disk and color RAM downloads are unavailable in this mode.'
-  :'Display palette changes how the same VIC color indices look. Switching to Plus/4 remaps inks and can be undone.';
+  ?'Plus/4 uses the TED character set and full TED drawing palette (121 colors). Native Plus/4 program/disk download is available; C64 color RAM export is not.'
+  :'Display palette changes how the same VIC color indices look. Switching to Plus/4 remaps inks and glyphs and can be undone.';
  $('colorsHelp').textContent=ted
   ?'Ink sets the brush color. Each cell keeps its own ink; the background is shared. Plus/4 uses all 121 TED colors (chroma × luma).'
   :'Ink sets the brush color. Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.';
@@ -310,28 +322,35 @@ function setWorkspacePalette(next){
 }
 const crossesIndexSpace=(from,to)=>isTedMachine(from)!==isTedMachine(to);
 const hasArtwork=()=>grid.some(g=>g!=='')||replayEvents.length>0;
-// Entering/leaving Plus/4 remaps every ink in one undoable step; glyphs stay put.
+// Entering/leaving Plus/4 remaps inks and glyphs in one undoable step.
 function setWorkspaceMachine(next,{recordHistory=true}={}){
  if(!MACHINES[next]||next===workspaceMachine){syncMachineControls();return}
  if(animationExportTask){setStatus('Finish or cancel the current export before changing machine');syncMachineControls();return}
  const from=workspaceMachine,to=next;
- if(crossesIndexSpace(from,to)&&hasArtwork()&&!confirm('Switch to '+getMachine(to).label+'? Color indices are remapped between VIC (0–15) and TED (0–120) colors. Glyphs stay put. You can Undo to restore the previous colors.')){syncMachineControls();return}
+ if(crossesIndexSpace(from,to)&&hasArtwork()&&!confirm('Switch to '+getMachine(to).label+'? Colors remap between VIC (0–15) and TED (0–120). Glyphs map by character identity to that machine’s shapes. You can Undo to restore both.')){syncMachineControls();return}
  if(recordHistory)remember();
  workspaceMachine=to;
  colors=convertColorsObject(colors,from,to);
  cellColors=convertInkArray(cellColors,from,to);
  replayBaseColors=convertInkArray(replayBaseColors,from,to);
  replayEventColors=convertInkArray(replayEventColors,from,to);
+ if(crossesIndexSpace(from,to)){
+  glyph=convertGlyph(glyph,from,to);
+  grid=convertGlyphArray(grid,from,to);
+  replayBase=convertGlyphArray(replayBase,from,to);
+  replayEvents=replayEvents.map(([i,g])=>[i,convertGlyph(g,from,to)]);
+ }
  // The current color effect may not exist in the new machine; drop it as part of the same undoable step.
  const effectIsTed=isPlus4ColorEffect($('animationColor').value);
  if(crossesIndexSpace(from,to)&&$('animationColor').value!=='none'&&effectIsTed!==isTedMachine(to))$('animationColor').value='none';
  writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});
- syncMachineControls();tileCache.clear();updateColorUI();updateAnimationOptions();drawPalette();redraw();autosave();
+ selectActiveRom();syncMachineControls();tileCache.clear();updateColorUI();updateAnimationOptions();updateSourceInfo();drawPalette();redraw();autosave();
  setStatus(getMachine(to).label+' mode');
 }
 $('workspaceMachine').onchange=()=>{setWorkspaceMachine($('workspaceMachine').value);$('machineMenu').open=false};
 $('workspacePalette').onchange=()=>{setWorkspacePalette($('workspacePalette').value);$('machineMenu').open=false};
-let rom=null,saveTimer=null,initialized=false,videoRepeats=1;
+let rom=null,romC64=null,romTed=null,saveTimer=null,initialized=false,videoRepeats=1;
+function selectActiveRom(){rom=isTedMachine(workspaceMachine)?romTed:romC64}
 const PROJECT_KEY='petscii-graphics-project-v3';
 let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).fill(colors.ink),replayEventColors=[];
 let cellColors=Array(256).fill(colors.ink);
@@ -404,17 +423,22 @@ function drawPalette(){
 $('showAlphanumerics').onchange=drawPalette;
 
 function updateSourceInfo(){
- $('romInfo').textContent=rom?'Built-in C64 SVG glyphs active. Both character sets and inverse slots included.':'C64 glyphs unavailable; reload glyphs to use the authentic set.';
- $('retryGlyphs').hidden=!!rom;for(const id of ['paint','border','checker'])$(id).disabled=!rom;$('sourceBadge').textContent=rom?'C64':'Unavailable';if(!rom){$('glyphOptions').open=true;setGlyphPicker(true)}
+ const ted=isTedMachine(workspaceMachine);
+ const label=ted?'Plus/4 TED':'C64';
+ $('romInfo').textContent=rom
+  ?'Built-in '+label+' SVG glyphs active. Both character sets and inverse slots included.'
+  :label+' glyphs unavailable; reload glyphs to use the authentic set.';
+ $('retryGlyphs').hidden=!!rom;for(const id of ['paint','border','checker'])$(id).disabled=!rom;$('sourceBadge').textContent=rom?label:'Unavailable';if(!rom){$('glyphOptions').open=true;setGlyphPicker(true)}
 }
-async function loadBuiltinGlyphs(){
+async function loadGlyphSheet(url,prefix){
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),8000);let response;
- try{response=await fetch('./assets/c64-glyphs.svg',{signal:controller.signal})}finally{clearTimeout(timeout)}if(!response.ok)throw Error('Could not load built-in glyphs');
+ try{response=await fetch(url,{signal:controller.signal})}finally{clearTimeout(timeout)}
+ if(!response.ok)throw Error('Could not load '+prefix+' glyphs');
  const doc=new DOMParser().parseFromString(await response.text(),'image/svg+xml');
- if(doc.querySelector('parsererror')||doc.querySelectorAll('symbol').length!==512)throw Error('Invalid built-in glyph sheet');
+ if(doc.querySelector('parsererror')||doc.querySelectorAll('symbol').length!==512)throw Error('Invalid '+prefix+' glyph sheet');
  const bytes=new Uint8Array(4096);
  for(let bank=0;bank<2;bank++)for(let code=0;code<256;code++){
-  const symbol=doc.getElementById('c64-'+bank+'-'+code);if(!symbol)throw Error('Missing built-in glyph');
+  const symbol=doc.getElementById(prefix+'-'+bank+'-'+code);if(!symbol)throw Error('Missing '+prefix+' glyph');
   for(const rect of symbol.children){
    if(rect.localName!=='rect')throw Error('Unsupported glyph geometry');
    const [x,y,w,h]=['x','y','width','height'].map(a=>Number(rect.getAttribute(a)));
@@ -422,10 +446,15 @@ async function loadBuiltinGlyphs(){
    for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)bytes[bank*2048+code*8+yy]|=128>>xx;
   }
  }
- rom=bytes;tileCache.clear();
+ return bytes;
+}
+async function loadBuiltinGlyphs(){
+ romC64=await loadGlyphSheet('./assets/c64-glyphs.svg','c64');
+ romTed=await loadGlyphSheet('./assets/ted-glyphs.svg','ted');
+ selectActiveRom();tileCache.clear();
 }
 $('retryGlyphs').onclick=async()=>{
- try{await loadBuiltinGlyphs();if(typeof glyph!=='number')glyph=64;updateSourceInfo();drawPalette();redraw();setStatus('C64 glyphs loaded')}
+ try{await loadBuiltinGlyphs();if(typeof glyph!=='number')glyph=64;updateSourceInfo();drawPalette();redraw();setStatus((isTedMachine(workspaceMachine)?'Plus/4 TED':'C64')+' glyphs loaded')}
  catch(e){setStatus(e.message)}
 };
 // Last grid shape that fit() painted. Same CSS box can host 16×16 or 2×2; skip only
@@ -694,7 +723,11 @@ const undoStack=[],redoStack=[];
 function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),glyph,erasing,colors:{...colors},machine:workspaceMachine,palette:workspacePalette,symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
 function remember(){stopAnimation();selection=null;cancelToolDrag();updateToolPalette();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
+<<<<<<< HEAD
 function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;stopAnimation();workspaceMachine=MACHINES[state.machine]?state.machine:workspaceMachine;workspacePalette=isDisplayPaletteId(state.palette)?state.palette:workspacePalette;writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});syncMachineControls();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();redraw();historyButtons();}
+=======
+function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;stopAnimation();workspaceMachine=MACHINES[state.machine]?state.machine:workspaceMachine;workspacePalette=isDisplayPaletteId(state.palette)?state.palette:workspacePalette;writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});selectActiveRom();syncMachineControls();updateSourceInfo();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();redraw();historyButtons();}
+>>>>>>> 27f0729 (Add Plus/4 TED glyphs and native TED PRG/D64 player.)
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 const {paint,stroke}=createPainter({getW:()=>W,getH:()=>H,getSymmetry:()=>$('sym').value,getGlyph:()=>glyph,getErasing:()=>erasing,getInk:()=>colors.ink,onCell:(i,g,ink)=>{if(grid[i]!==g||cellColors[i]!==ink){grid[i]=g;cellColors[i]=ink;recordCell(i)}}});
@@ -820,8 +853,7 @@ function updateC64Format(){updateNativeExportLabels();$('c64DiskHelp').hidden=$(
 $('c64Format').onchange=updateC64Format;
 $('exportC64').onclick=async()=>{
  if(animationExportTask)return;
- if(isTedMachine(workspaceMachine)){setStatus('Native program and disk downloads are unavailable in Plus/4 mode');return}
- const host=nativeVicHost(),machine=workspaceMachine==='c128'?'c128':'c64';
+ const host=nativeHostLabel(),machine=workspaceMachine==='plus4'?'plus4':workspaceMachine==='c128'?'c128':'c64';
  const moving=$('c64Mode').value==='animation',repetitions=moving?Number($('c64Repeats').value):1,format=$('c64Format').value,allowTimingOverrun=moving&&$('c64TimingOverride').checked&&c64TimingConsentKey===c64TimingKey();
  const outputLabel=format==='d64'?host+' disk':host+' program';
  let name;try{name=projectStem()}catch(e){setStatus(e.message);return}
@@ -834,12 +866,22 @@ $('exportC64').onclick=async()=>{
  $('cancelAnimationExport').hidden=false;$('cancelSheetDownload').hidden=false;$('exportC64').textContent='Preparing '+outputLabel+'…';setStatus('Preparing '+outputLabel+'…');
  try{
   if(moving&&animationPlan(s).warning)throw Error(animationPlan(s).warning);
-  const {createC64AdaptiveProgram,createD64Disk}=await import('./c64-export.js');if(task.cancelled)throw Error('Export canceled');
   const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}];
-  const result=createC64AdaptiveProgram({machine,columns:s.W,rows:s.H,charset:0,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(frames.some(f=>f.cells.some(g=>g>255))?{glyphBits}:{})});if(task.cancelled)throw Error('Export canceled');
-  const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
-  const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:name+'-'+machine+'-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
-  animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?host+' disk ready':host+' program ready';setStatus(host+' '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.'+(allowTimingOverrun?' Timing warning overridden.':''));
+  const needsGlyphBits=frames.some(f=>f.cells.some(g=>g>255));
+  let result;
+  if(machine==='plus4'){
+   const {createPlus4AdaptiveProgram,createD64Disk}=await import('./plus4-export.js');if(task.cancelled)throw Error('Export canceled');
+   result=createPlus4AdaptiveProgram({columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{})});
+   const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
+   const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:name+'-'+machine+'-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
+   animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?host+' disk ready':host+' program ready';setStatus(host+' '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.'+(allowTimingOverrun?' Timing warning overridden.':''));
+  }else{
+   const {createC64AdaptiveProgram,createD64Disk}=await import('./c64-export.js');if(task.cancelled)throw Error('Export canceled');
+   result=createC64AdaptiveProgram({machine,columns:s.W,rows:s.H,charset:0,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{})});if(task.cancelled)throw Error('Export canceled');
+   const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
+   const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:name+'-'+machine+'-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
+   animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?host+' disk ready':host+' program ready';setStatus(host+' '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.'+(allowTimingOverrun?' Timing warning overridden.':''));
+  }
  }catch(e){setStatus(host+' export failed: '+e.message)}
  finally{animationExportTask=null;for(const id of Object.values(animationDownloadButtons))$(id).disabled=false;updateNativeExportAvailability();$('exportC64').textContent=animationDownloadLabels.c64;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false;$('cancelSheetDownload').hidden=true}
 };
@@ -1008,8 +1050,13 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  canvas.addEventListener('keydown',e=>{if(animationPreview)return;if(drawingTool==='text'&&textOrigin)cursor=textOrigin.slice();const dirs={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(dirs[e.key]){e.preventDefault();cursor=[Math.max(0,Math.min(W-1,cursor[0]+dirs[e.key][0])),Math.max(0,Math.min(H-1,cursor[1]+dirs[e.key][1]))];if(drawingTool==='text'){textOrigin=cursor.slice();updateTextUI()}redraw();toolOutline({x:cursor[0],y:cursor[1],w:1,h:1});canvas.setAttribute('aria-description','Column '+(cursor[0]+1)+', row '+(cursor[1]+1));return}if(drawingTool==='text'){if(e.key==='Enter'){e.preventDefault();textOrigin??=[Math.min(W-1,cursor[0]),Math.min(H-1,cursor[1])];updateTextUI();redraw();$('typedText').focus({preventScroll:true})}return}if(e.key!=='Enter'&&e.key!==' ')return;e.preventDefault();const r=canvas.getBoundingClientRect(),options={pointerId:1,pointerType:'pen',isPrimary:true,bubbles:true,cancelable:true,clientX:r.left+(cursor[0]+.5)*r.width/W,clientY:r.top+(cursor[1]+.5)*r.height/H};tapPoints=true;$('tapPoints').checked=true;canvas.dispatchEvent(new PointerEvent('pointerdown',options));canvas.dispatchEvent(new PointerEvent('pointerup',options))});
  for(const name of ['move','duplicate'])$(name+'Selection').onclick=()=>{drawingTool=name;tapPoints=true;$('tapPoints').checked=true;toolDrag={kind:name,data:selectionData(),offset:[0,0],start:[selection.x,selection.y],id:1,anchor:true};updateToolPalette();setStatus('Tap a destination, then release to '+name+'.')};
  const panel=document.createElement('section');panel.id='c64Readiness';panel.setAttribute('aria-label','C64 export readiness');$('c64TimingOverrideWrap').before(panel);let revision=0,timer;
- function argsFor(s,frames){return {machine:workspaceMachine==='c128'?'c128':'c64',columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,repetitions:s.c64Repetitions,...(frames.some(f=>f.cells.some(g=>g>255))?{glyphBits:rom?.slice()}:{})}}
- async function check(){if(!$('downloadDialog').open||$('export-data').hidden)return;const mine=++revision;const override=$('c64TimingOverride'),overrideWrap=$('c64TimingOverrideWrap');if(c64TimingConsentKey!==c64TimingKey()){override.checked=false;c64TimingConsentKey=null}panel.textContent='Checking…';try{if(!rom)throw Error('Reload C64 glyphs to check character patterns and export.');const host=nativeVicHost(),s={...animationSource(),c64Repetitions:$('c64Mode').value==='animation'?Number($('c64Repeats').value):1},moving=$('c64Mode').value==='animation',warning=moving&&animationPlan(s).warning;if(warning){overrideWrap.hidden=true;panel.textContent='Needs adjustment: '+warning;return}const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}],patterns=new Set(['0,0,0,0,0,0,0,0']);for(const f of frames)for(const g of f.cells)if(g!==''&&rom)patterns.add(rom.subarray(g*8,g*8+8).join(','));const issues=[];if(isTedMachine(workspaceMachine)||isPlus4ColorEffect(s.colorEffect))issues.push('Plus/4 mode and TED color animations cannot map to VIC color RAM or PRG/D64 export. Switch to C64 or C128 and a VIC color effect, or export GIF/PNG/video instead.');if(s.W>40||s.H>25)issues.push('Canvas must fit within 40 × 25 cells. Resize with crop preview.');const mixed=frames.some(f=>f.cells.some(g=>g>255));if(mixed&&patterns.size>256)issues.push('Use fewer different glyph patterns: '+patterns.size+' required, 256 available including blank.');const {createC64AdaptiveProgram}=await import('./c64-export.js');let result;if(!issues.length){result=createC64AdaptiveProgram({...argsFor(s,frames),analyze:true,allowTimingOverrun:true});const d=result.diagnostics;if(d.programBytes>d.memoryLimit)issues.push('Program memory exceeded. Reduce canvas size or simplify the movement/color effects; slowing alone may not help.');if(d.worstUpdateRatio>1)issues.push('Updates exceed the estimated playback budget. Increase loop duration or reduce the animated area.')}if(mine!==revision)return;const canOverride=result&&result.diagnostics.worstUpdateRatio>1&&result.diagnostics.programBytes<=result.diagnostics.memoryLimit;overrideWrap.hidden=!canOverride;if(!canOverride){override.checked=false;c64TimingConsentKey=null}panel.replaceChildren();const heading=document.createElement('strong');heading.textContent=issues.length?(canOverride&&override.checked?'Timing warning — download allowed':'Needs adjustment'):'Ready — exporter checks passed';panel.append(heading);for(const text of [host+' · '+s.W+' × '+s.H+' cells · '+patterns.size+' distinct patterns'+(mixed?' / 256 including blank':' (ROM-backed)'),...(result?[result.diagnostics.programBytes.toLocaleString()+' / '+result.diagnostics.memoryLimit.toLocaleString()+' program bytes','Worst update: '+Math.round(result.diagnostics.worstUpdateRatio*100)+'% of estimated timing budget (includes loop transition)']:[])]){const p=document.createElement('p');p.textContent=text;panel.append(p)}for(const message of issues){const p=document.createElement('p');p.textContent=message;panel.append(p)}if(result&&result.diagnostics.worstUpdateRatio>1){for(const seconds of [1,2,4,8,12].filter(v=>v>s.seconds)){const next={...s,seconds},ff=animationExportFrames(next).map(f=>({...animationCells(f.index,next),durationMs:f.durationMs}));try{createC64AdaptiveProgram(argsFor(next,ff));const b=document.createElement('button');b.textContent='Apply tested '+seconds+'-second loop';b.onclick=()=>{remember();$('animationSeconds').value=String(seconds);updateAnimationOptions();redraw();schedule()};panel.append(b);break}catch{}}}}catch(e){if(mine===revision){overrideWrap.hidden=true;panel.textContent='Unable to check: '+e.message}}}
+ function argsFor(s,frames){
+  const mixed=frames.some(f=>f.cells.some(g=>g>255));
+  const base={columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,repetitions:s.c64Repetitions,...(mixed?{glyphBits:rom?.slice()}:{})};
+  if(workspaceMachine==='plus4')return base;
+  return {machine:workspaceMachine==='c128'?'c128':'c64',charset:0,...base};
+ }
+ async function check(){if(!$('downloadDialog').open||$('export-data').hidden)return;const mine=++revision;const override=$('c64TimingOverride'),overrideWrap=$('c64TimingOverrideWrap');if(c64TimingConsentKey!==c64TimingKey()){override.checked=false;c64TimingConsentKey=null}panel.textContent='Checking…';try{if(!rom)throw Error('Reload glyphs to check character patterns and export.');const host=nativeHostLabel(),ted=isTedMachine(workspaceMachine),s={...animationSource(),c64Repetitions:$('c64Mode').value==='animation'?Number($('c64Repeats').value):1},moving=$('c64Mode').value==='animation',warning=moving&&animationPlan(s).warning;if(warning){overrideWrap.hidden=true;panel.textContent='Needs adjustment: '+warning;return}const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}],patterns=new Set(['0,0,0,0,0,0,0,0']);for(const f of frames)for(const g of f.cells)if(g!==''&&rom)patterns.add(rom.subarray(g*8,g*8+8).join(','));const issues=[];if(s.W>40||s.H>25)issues.push('Canvas must fit within 40 × 25 cells. Resize with crop preview.');const mixed=frames.some(f=>f.cells.some(g=>g>255));if(mixed&&patterns.size>256)issues.push('Use fewer different glyph patterns: '+patterns.size+' required, 256 available including blank.');let result;if(!issues.length){if(ted){const {createPlus4AdaptiveProgram}=await import('./plus4-export.js');result=createPlus4AdaptiveProgram({...argsFor(s,frames),analyze:true,allowTimingOverrun:true})}else{const {createC64AdaptiveProgram}=await import('./c64-export.js');result=createC64AdaptiveProgram({...argsFor(s,frames),analyze:true,allowTimingOverrun:true})}const d=result.diagnostics;if(d.programBytes>d.memoryLimit)issues.push('Program memory exceeded. Reduce canvas size or simplify the movement/color effects; slowing alone may not help.');if(d.worstUpdateRatio>1)issues.push('Updates exceed the estimated playback budget. Increase loop duration or reduce the animated area.')}if(mine!==revision)return;const canOverride=result&&result.diagnostics.worstUpdateRatio>1&&result.diagnostics.programBytes<=result.diagnostics.memoryLimit;overrideWrap.hidden=!canOverride;if(!canOverride){override.checked=false;c64TimingConsentKey=null}panel.replaceChildren();const heading=document.createElement('strong');heading.textContent=issues.length?(canOverride&&override.checked?'Timing warning — download allowed':'Needs adjustment'):'Ready — exporter checks passed';panel.append(heading);for(const text of [host+' · '+s.W+' × '+s.H+' cells · '+patterns.size+' distinct patterns'+(mixed?' / 256 including blank':' (ROM-backed)'),...(result?[result.diagnostics.programBytes.toLocaleString()+' / '+result.diagnostics.memoryLimit.toLocaleString()+' program bytes','Worst update: '+Math.round(result.diagnostics.worstUpdateRatio*100)+'% of estimated timing budget (includes loop transition)']:[])]){const p=document.createElement('p');p.textContent=text;panel.append(p)}for(const message of issues){const p=document.createElement('p');p.textContent=message;panel.append(p)}if(result&&result.diagnostics.worstUpdateRatio>1){for(const seconds of [1,2,4,8,12].filter(v=>v>s.seconds)){const next={...s,seconds},ff=animationExportFrames(next).map(f=>({...animationCells(f.index,next),durationMs:f.durationMs}));try{if(ted){const {createPlus4AdaptiveProgram}=await import('./plus4-export.js');createPlus4AdaptiveProgram(argsFor(next,ff))}else{const {createC64AdaptiveProgram}=await import('./c64-export.js');createC64AdaptiveProgram(argsFor(next,ff))}const b=document.createElement('button');b.textContent='Apply tested '+seconds+'-second loop';b.onclick=()=>{remember();$('animationSeconds').value=String(seconds);updateAnimationOptions();redraw();schedule()};panel.append(b);break}catch{}}}}catch(e){if(mine===revision){overrideWrap.hidden=true;panel.textContent='Unable to check: '+e.message}}}
  // Debounce only. Do not rewrite the panel here: Clearing to "Checking…" on every
  // pulse recenters the modal on WebKit and makes dialog controls never settle.
  // Do not hook redraw either — ResizeObserver/fit redraw storms had the same effect.
