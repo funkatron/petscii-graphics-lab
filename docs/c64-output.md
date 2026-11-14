@@ -11,6 +11,20 @@ The **Machine** setting chooses the player:
 | Commodore 128 (80-col) | `$1C01` | **Native** C128 BASIC 7 + VDC | Forces 80-col for playback; restores the **pre-RUN** 40/80 mode on RUN/STOP. RGBI attributes; no VIC-style border ink |
 | Commodore Plus/4 | `$1001` | Plus/4 BASIC 3.5 | TED text mode; screen `$0C00`, attrs `$0800`; bg drives `$FF15` and border `$FF19` |
 
+### Program memory budgets
+
+Export readiness compares program payload size (excluding the 2-byte PRG load header) to the free BASIC program space you see on real hardware:
+
+| Machine | Budget (bytes) | Matches |
+| --- | ---: | --- |
+| Commodore 64 | **38,911** | Boot: `38911 BASIC BYTES FREE` |
+| Commodore 128 (40-col), ROM glyphs | **58,109** | `PRINT FRE(0)` (bank 0 program text) |
+| Commodore 128 (40-col), mixed-bank / custom charset | **43,007** | Stays below VIC screen `$C400` used by that player path |
+| Commodore 128 (80-col) | **58,109** | Same `FRE(0)`; VDC charset is not in bank 0 |
+| Commodore Plus/4 | **60,671** | Boot: `60671 BYTES FREE` |
+
+The C128 power-on banner **`122365 BYTES FREE`** is a static total of bank 0 + bank 1. Bank 1 (`FRE(1)` ≈ 64,256) holds BASIC variables and needs MMU banking; today’s linear player does not use it. Optional C128 bank-1 / REU-class capacity is a future expansion track (see the roadmap).
+
 The program includes a small 6502 player (tiny BASIC `SYS` stub) and your character/color data.
 
 - **C64 / C128 40-col:** bank-0 artwork uses the machine character ROM. Mixed-bank artwork embeds required patterns in a RAM character set.
