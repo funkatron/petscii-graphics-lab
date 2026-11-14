@@ -46,7 +46,7 @@ Exploratory MCP chrome demos live under `agents/petscii-preview/` and are **not*
 ### Machine switch vs palette switch
 
 - Changing VIC **display palette** only: not undoable; cells unchanged; swatches and image RGB update.
-- Entering or leaving **Plus/4**: remaps brush, background, cell, and replay inks with `c64InkToTed` / `tedInkToC64` (chroma cousin; luma collapsed), and remaps glyph IDs with `c64GlyphToTed` / `tedGlyphToC64` (identity by character slot by default). That remap is **one undoable operation**.
+- Entering or leaving **Plus/4**: remaps brush, background, cell, and replay inks with `c64InkToTed` / `tedInkToC64` (chroma cousin; luma collapsed), and remaps glyph IDs with `c64GlyphToTed` / `tedGlyphToC64` (**identity by character slot**). Pixel redesigns (especially TED bank 1 / text set) stay on the same ID; see [C64↔TED glyph diff](../.cursorrules/c64-ted-glyph-diff.md). That remap is **one undoable operation**.
 - Confirm when crossing the VIC ↔ TED boundary.
 
 ### C128 (40-col)
