@@ -1,4 +1,4 @@
-# Run your artwork on a Commodore 64 or 128
+# Run your artwork on a Commodore 64, 128, or Plus/4
 
 Use **Download artwork → Native program** to create a runnable still or animation. Choose a direct PRG program or a D64 virtual floppy disk.
 
@@ -8,35 +8,38 @@ The **Machine** setting chooses the player:
 | --- | --- | --- | --- |
 | Commodore 64 | `$0801` | C64 BASIC 2 | Standard C64 / emulator autostart |
 | Commodore 128 (40-col) | `$1C01` | **Native** C128 BASIC 7 | Use a **40-column** display (not 80-col VDC). Same VIC screen/color map as C64 |
-| Commodore Plus/4 | — | — | Not available yet (TED player is a separate follow-up) |
+| Commodore Plus/4 | `$1001` | Plus/4 BASIC 3.5 | TED text mode; screen `$0C00`, attrs `$0800`; bg drives `$FF15` and border `$FF19` |
 
-The program includes a small player and your character/color data. Source-bank-0 artwork uses the C64’s own character ROM. Mixed-bank artwork embeds only its required patterns in a RAM character set, allowing lowercase and full graphics in the same picture.
+The program includes a small 6502 player (tiny BASIC `SYS` stub) and your character/color data.
+
+- **C64 / C128:** bank-0 artwork uses the machine character ROM. Mixed-bank artwork embeds required patterns in a RAM character set.
+- **Plus/4:** uses **TED character ROM** with hardware reverse (`$FF07` bit7 clear). Mixed uppercase/lowercase embeds TED patterns in a RAM charset at `$F000`. Stay in character mode (do not enable GRAPHIC/bitmap).
 
 ## Download a program
 
-1. Draw with authentic C64 glyphs on a canvas no larger than **40 columns × 25 rows**.
+1. Set **Machine** to C64, C128 (40-col), or Plus/4. Draw with that machine’s glyphs on a canvas no larger than **40 columns × 25 rows**.
 2. For animation, open **☰ → Animation**. Choose **Movement / reveal**, **Color animation**, and **Loop duration**. Preview with **Play**.
-3. Open **Download artwork → C64 data**.
-4. Under **C64 program**, choose **Still drawing** or **Selected animation**.
-5. For animation, set **C64 repetitions**. **0** repeats continuously. **1–100** plays that many complete loops, then holds the last frame.
-6. Set **C64 file format** to **Program (.prg)** or **Disk image (.d64)**, then use the Download button.
+3. Open **Download artwork → Native program**.
+4. Under the host **program** control, choose **Still drawing** or **Selected animation**.
+5. For animation, set **repetitions**. **0** repeats continuously. **1–100** plays that many complete loops, then holds the last frame.
+6. Set **file format** to **Program (.prg)** or **Disk image (.d64)**, then use the Download button.
 
-Smaller drawings and animations are **centered** on the 40 × 25 C64 screen. Placement uses whole character cells; an odd extra blank cell goes on the right or bottom. The entire canvas stays fixed throughout animation, including its empty cells. The rest of the screen is blank. The canvas background also becomes the C64 border color.
+Smaller drawings and animations are **centered** on the 40 × 25 screen. Placement uses whole character cells; an odd extra blank cell goes on the right or bottom. The entire canvas stays fixed throughout animation, including its empty cells. The rest of the screen is blank. The canvas background also becomes the border color (VIC `$D020` / TED `$FF19`).
 
-Image resolution and export-background choices do not affect C64 output. A C64 program always uses character cells, per-cell ink, and the canvas background.
+Image resolution and export-background choices do not affect native program output. Programs always use character cells, per-cell ink, and the canvas background.
 
 ## Load and run it
 
 ### In VICE
 
-1. Start a standard C64 emulation.
+1. Start the matching emulator: **x64sc** (C64), **x128** in 40-col (C128), or **xplus4** (Plus/4).
 2. Use **File → Autostart disk/tape image** and select the downloaded `.prg` or `.d64`. Menu wording may vary by VICE interface.
 3. If it loads without starting, type `RUN` and press Return.
 4. Press the emulated **RUN/STOP** key to exit. The player clears the picture and returns to BASIC.
 
-VICE’s [startup documentation](https://vice-emu.sourceforge.io/vice_4.html) describes autostart. Representative PRG/D64 loading, still pictures, and composite playback have passed full PAL/NTSC VICE checks. See [the validation setup and limits](vice-validation.md).
+VICE’s [startup documentation](https://vice-emu.sourceforge.io/vice_4.html) describes autostart. Representative C64 PRG/D64 loading, still pictures, and composite playback have passed full PAL/NTSC VICE checks. See [the validation setup and limits](vice-validation.md). Plus/4 (`xplus4`) smoke checks remain a manual follow-up.
 
-### On a physical C64
+### On physical hardware
 
 Transfer the `.prg` using your storage device’s normal workflow. For a disk drive or compatible device using device number 8, a typical BASIC command is:
 
@@ -45,7 +48,7 @@ LOAD "PICTURE",8,1
 RUN
 ```
 
-Replace `PICTURE` with the filename as your device displays it. Device-specific menus and transfer tools can differ.
+Replace `PICTURE` with the filename as your device displays it. Device-specific menus and transfer tools can differ. Use a Plus/4 or C16 for Plus/4 programs; C64/C128 players are not interchangeable with TED.
 
 ### Use a D64 virtual disk
 
@@ -154,6 +157,17 @@ A normal C64 screen has 40 cells per row and 25 rows. The player maps editor IDs
 Mixed-bank programs instead select VIC bank 3, screen memory `$C400`, character patterns `$C800`, and `$D018=$12`. The character set is built once from all sampled frames and stays fixed throughout playback. The exporter reserves one blank slot and refuses an over-limit animation instead of silently dropping shapes.
 
 See Commodore’s [screen/color memory description](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_3/page_101.html), [character memory table](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_3/page_104.html), and [background example](https://www.devili.iki.fi/Computers/Commodore/C64/Programmers_Reference/Chapter_3/page_117.html).
+
+### Plus/4 TED display memory
+
+| Display data | Address | Contents |
+| --- | --- | --- |
+| Screen characters | `$0C00` | 1,000 screen codes |
+| Attributes | `$0800` | 1,000 chroma+luma bytes (`tedToAttr`) |
+| Background / border | `$FF15` / `$FF19` | Same attr as canvas background |
+| Char ROM / RAM | `$FF12` bit2, `$FF13` | ROM upper `$D000` / lower `$D400`, or RAM charset `$F000` |
+
+Default text mode keeps `$FF07` bit7 clear so screen codes 128–255 are hardware-reversed. Mixed-bank exports install a 2 KB TED pattern table at `$F000`. Player scratch uses ZP `$D8+` and jiffy `$A5` (not C64 `$FB` / `$A2`).
 
 ### Raw data is not screen memory
 

@@ -146,10 +146,10 @@ test('machine maps to the interface theme and drives contextual animation colors
  expect(vic).not.toContain('plus4-cycle');
 });
 
-test('Plus/4 gates C64 program, color RAM and color text; export controls return to C64 normally',async({page})=>{
+test('Plus/4 keeps native program, gates color RAM and color text; VIC controls return on C64',async({page})=>{
  await page.locator('#machineMenu > summary').click();
  await ui(page,'#workspaceMachine','selectOption','plus4');
- await expect(page.locator('#exportC64')).toBeDisabled();
+ await expect(page.locator('#exportC64')).toBeEnabled();
  await expect(page.locator('#colorRam')).toBeDisabled();
  await expect(page.locator('#textColors')).toBeDisabled();
  await page.locator('#machineMenu > summary').click();
@@ -159,7 +159,7 @@ test('Plus/4 gates C64 program, color RAM and color text; export controls return
  await expect(page.locator('#textColors')).toBeEnabled();
 });
 
-test('Plus/4 animation exports stay TED-tagged and native C64 export stays disabled afterwards',async({page})=>{
+test('Plus/4 animation exports stay TED-tagged and native Plus/4 program stays enabled',async({page})=>{
  page.on('dialog',dialog=>dialog.accept());
  await loadProject(page,fixture());
  await page.locator('#machineMenu > summary').click();
@@ -167,6 +167,6 @@ test('Plus/4 animation exports stay TED-tagged and native C64 export stays disab
  const zip=new AdmZip(await download(page,'#exportFrames'));
  const timing=JSON.parse(zip.readAsText('timing.json'));
  expect(timing).toMatchObject({colorPalette:'ted-pal',machine:'plus4'});
- await expect(page.locator('#exportC64')).toBeDisabled();
+ await expect(page.locator('#exportC64')).toBeEnabled();
  await expect(page.locator('#exportGif')).toBeEnabled();
 });

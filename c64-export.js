@@ -69,7 +69,7 @@ function shareFrameBlocks(encoded){
 function nativeHostLabel(machine='c64'){
  return machine==='c128'?'C128':'C64';
 }
-function basicSysStub(origin){
+export function basicSysStub(origin){
  // Link + line number + SYS + decimal entry + EOL + EOP. Digit count and entry must agree.
  let digitCount=4;
  for(let i=0;i<8;i++){
