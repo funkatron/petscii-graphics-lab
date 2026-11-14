@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-14 — Cell aspect / CRT proportion toggle research
+
+**What:** Exploration only — square vs CRT cell shape for editor (and optional exports). VIC/TED **5∶6**, VDC **5∶12**; control in `#machineMenu`; device pref; default square.  
+**Saved:** [cell-aspect-toggle.md](./cell-aspect-toggle.md). Linked from `docs/roadmap.md`.
+
 ## 2026-11-14 — Application-like UI IA implementation
 
 **What:** System/Project/Editor header groups; sidebar “Editor settings”; Machine persistence (missing → keep current; New Project writes current); import cross-links; compact save status; Animation settings from preview banner.  
