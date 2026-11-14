@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-14 — CI: install FFmpeg when video specs are focused
+
+**What:** Focused Playwright could select `animation-controls` (via `project-validation.js`) without installing `ffprobe`/`ffmpeg`. Selector now emits `ffmpeg`/`py65` tool flags; workflow installs them separately.  
+**Touched:** `scripts/ci-select-tests.cjs`, `.github/workflows/ci.yml`, `tests/ci-selection.unit.mjs`.
+
 ## 2026-11-14 — Cell aspect: PRG stays hardware-true
 
 **What:** Owner: do **not** change aspect ratio in native PRG/D64. Cell shape is editor (+ optional raster) only.  

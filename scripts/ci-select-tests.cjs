@@ -1,6 +1,38 @@
 #!/usr/bin/env node
 // Pure change-scope selector. No GitHub API access or side effects.
 const path = require('node:path');
+// Specs that decode MP4/WebM via tests/video-utils.cjs (ffprobe/ffmpeg).
+const FFMPEG_SPECS = new Set([
+  'tests/animation-controls.spec.cjs',
+  'tests/cell-colors.spec.cjs',
+  'tests/color-animation.spec.cjs',
+  'tests/colors.spec.cjs',
+  'tests/composite.spec.cjs',
+  'tests/cycles.spec.cjs',
+  'tests/demoscene.spec.cjs',
+  'tests/depth-exports.spec.cjs',
+  'tests/intro-motion.spec.cjs',
+  'tests/plasma.spec.cjs',
+  'tests/ripple.spec.cjs',
+  'tests/unified.spec.cjs',
+  'tests/video.spec.cjs',
+  'tests/wavelength.spec.cjs',
+]);
+// Specs that execute native PRG/D64 with py65.
+const PY65_SPECS = new Set([
+  'tests/c64-export.spec.cjs',
+  'tests/d64.spec.cjs',
+  'tests/exports.spec.cjs',
+  'tests/project-naming.spec.cjs',
+]);
+function toolNeeds(result) {
+  if (result.mode === 'full') return {ffmpeg: true, py65: true};
+  if (result.mode === 'none') return {ffmpeg: false, py65: false};
+  return {
+    ffmpeg: result.specs.some(spec => FFMPEG_SPECS.has(spec)),
+    py65: result.specs.some(spec => PY65_SPECS.has(spec)),
+  };
+}
 function select(files, {full=false, motionOnly=false}={}) {
   if (full) return {mode:'full', specs:[]};
   if (motionOnly) return {mode:'focused', specs:['tests/sine-scroll.spec.cjs','tests/diagonal-scroll.spec.cjs','tests/demoscene.spec.cjs','tests/wavelength.spec.cjs','tests/solid-motion.spec.cjs','tests/space-warp.spec.cjs','tests/depth-exports.spec.cjs']};
@@ -44,12 +76,13 @@ function select(files, {full=false, motionOnly=false}={}) {
   if (!set.size) set.add('tests/layout.spec.cjs');
   return {mode:'focused',specs:[...set]};
 }
-module.exports = {select};
+module.exports = {select, toolNeeds, FFMPEG_SPECS, PY65_SPECS};
 if (require.main === module) {
   const fs = require('node:fs');
   const files = fs.readFileSync(0,'utf8').split('\n').filter(Boolean);
   const result = select(files,{full:process.env.FULL_REQUEST==='true',motionOnly:process.env.MOTION_ONLY==='true'});
+  const tools = toolNeeds(result);
   const out = process.env.GITHUB_OUTPUT;
   if (!out) throw new Error('GITHUB_OUTPUT is required');
-  fs.appendFileSync(out,`mode=${result.mode}\nspecs=${result.specs.join(' ')}\n`);
+  fs.appendFileSync(out,`mode=${result.mode}\nspecs=${result.specs.join(' ')}\nffmpeg=${tools.ffmpeg}\npy65=${tools.py65}\n`);
 }

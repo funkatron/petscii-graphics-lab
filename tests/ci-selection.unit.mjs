@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import selector from '../scripts/ci-select-tests.cjs';
-const {select}=selector;
+const {select,toolNeeds}=selector;
 test('documentation-only changes skip browser and unit jobs',()=>{
   assert.deepEqual(select(['README.md','docs/roadmap.md']),{mode:'none',specs:[]});
 });
@@ -46,4 +46,15 @@ test('machine-mode modules select machine and theme browser workflows',()=>{
     assert.ok(specs.includes('tests/ui-theme.spec.cjs'),module);
   }
   assert.ok(select(['project-validation.js']).specs.includes('tests/machine-modes.spec.cjs'));
+});
+
+test('tool installs follow selected video and native specs',()=>{
+  assert.deepEqual(toolNeeds(select(['README.md'])),{ffmpeg:false,py65:false});
+  assert.deepEqual(toolNeeds(select(['index.html'])),{ffmpeg:false,py65:false});
+  assert.equal(toolNeeds(select(['project-validation.js'])).ffmpeg,true);
+  assert.equal(toolNeeds(select(['project-validation.js'])).py65,false);
+  assert.equal(toolNeeds(select(['tests/video.spec.cjs'])).ffmpeg,true);
+  assert.equal(toolNeeds(select(['tests/d64.spec.cjs'])).py65,true);
+  assert.deepEqual(toolNeeds(select(['README.md'],{full:true})),{ffmpeg:true,py65:true});
+  assert.equal(toolNeeds(select(['README.md'],{motionOnly:true})).ffmpeg,true);
 });
