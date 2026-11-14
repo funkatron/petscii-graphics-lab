@@ -146,17 +146,43 @@ test('machine maps to the interface theme and drives contextual animation colors
  expect(vic).not.toContain('plus4-cycle');
 });
 
-test('Plus/4 keeps native program, gates color RAM and color text; VIC controls return on C64',async({page})=>{
+test('Plus/4 keeps native program and gates color RAM; color text stays available',async({page})=>{
  await page.locator('#machineMenu > summary').click();
  await ui(page,'#workspaceMachine','selectOption','plus4');
  await expect(page.locator('#exportC64')).toBeEnabled();
  await expect(page.locator('#colorRam')).toBeDisabled();
- await expect(page.locator('#textColors')).toBeDisabled();
+ await expect(page.locator('#textColors')).toBeEnabled();
  await page.locator('#machineMenu > summary').click();
  await ui(page,'#workspaceMachine','selectOption','c64');
  await expect(page.locator('#exportC64')).toBeEnabled();
  await expect(page.locator('#colorRam')).toBeEnabled();
  await expect(page.locator('#textColors')).toBeEnabled();
+});
+
+test('Plus/4 color text writes version 3 and restores a TED ink above 15',async({page})=>{
+ page.on('dialog',dialog=>dialog.accept());
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceMachine','selectOption','plus4');
+ await expect(page.locator('#textColors')).toBeEnabled();
+ await ui(page,'#textColors','check');
+ await expect(page.locator('#output')).toHaveValue(/^# PETSCII-GLYPHS 3 /);
+ await ui(page,'#output','fill','# PETSCII-GLYPHS 3 2 1 50\n0A0:50 --:00');
+ await ui(page,'#import');
+ await expect(page.locator('#status')).toContainText('Imported text');
+ const saved=JSON.parse(await download(page,'#saveProject'));
+ expect(saved.machine).toBe('plus4');
+ expect(saved.grid).toEqual([160,'']);
+ expect(saved.cellColors).toEqual([80,0]);
+ expect(saved.colors.background).toBe(80);
+});
+
+test('a version 3 text grid imported on C64 collapses TED inks to VIC',async({page})=>{
+ await ui(page,'#output','fill','# PETSCII-GLYPHS 3 1 1 50\n0A0:50');
+ await ui(page,'#import');
+ const saved=JSON.parse(await download(page,'#saveProject'));
+ expect(saved.machine).toBe('c64');
+ expect(saved.cellColors).toEqual([10]);
+ expect(saved.colors.background).toBe(10);
 });
 
 test('header exposes System Project and Download groups; sidebar is editor settings',async({page})=>{

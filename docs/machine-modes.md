@@ -1,6 +1,6 @@
 # Machine modes and display palettes
 
-**Status:** Design contract; product UI shipped for C64 / C128 (40-col) / C128 (80-col VDC) / Plus/4. TED color text-grid remains a follow-up.  
+**Status:** Design contract; product UI shipped for C64 / C128 (40-col) / C128 (80-col VDC) / Plus/4, including Plus/4 color text (`PETSCII-GLYPHS` v3).  
 **Audience:** Maintainers and coding agents. Read this before changing machine, palette, chrome, or Plus/4 color behavior.
 
 For current drawing controls, see the [user guide](../README.md). For byte-level editor contracts, see the [maintainer reference](maintainer-reference.md). Track delivery on the [roadmap](roadmap.md).
@@ -16,7 +16,7 @@ Add application-level **Machine** and **Display palette** controls for:
 | Commodore 128 (80-col) | VDC RGBI indices `0–15` (`vdc-colors.js`) | Same C64 atlas (KERNAL copies VIC patterns into VDC) |
 | Commodore Plus/4 | TED indices `0–120` (full 121-color palette) | TED atlas (`assets/ted-glyphs.svg`; hardware-inverse high halves) |
 
-**Still follow-ups:** TED-capable color text-grid format; baking machine bezels into PNG/SVG/GIF. Production host checks use `MACHINE` / `isTedMachine` / `isVdcMachine`. Saved ids stay `'c64'`, `'c128'`, `'c128-80'`, and `'plus4'`.
+**Still follow-ups:** baking machine bezels into PNG/SVG/GIF. Production host checks use `MACHINE` / `isTedMachine` / `isVdcMachine`. Saved ids stay `'c64'`, `'c128'`, `'c128-80'`, and `'plus4'`.
 
 **Cell shape** (Square / CRT, device pref in the Machine menu) stretches the editor and PNG/SVG/GIF/video. VIC/TED cells are 5∶6; VDC cells are 5∶12. Square is the default and keeps today’s pixel grid. Native PRG/D64 ignore the toggle.
 
@@ -154,23 +154,22 @@ Product owns the JS source of truth. Do not dual-write Python MCP machine tables
 | PNG / SVG / GIF / video / ZIP | VIC: display-palette RGB. Plus/4: TED RGB. C128 80-col: RGBI (`vdc-pal`). ZIP `timing.json` must not hardcode `pepto-pal` when TED/VDC. |
 | Color RAM `.bin` | VIC-only (C64 / C128 40-col). Disabled in Plus/4 and C128 80-col. |
 | Native PRG/D64 | C64 / C128 40-col (`c64-export.js`) / C128 80-col (`c128-vdc-export.js`, BASIC `$1C01`, VDC handshake) / Plus/4 (`plus4-export.js`, BASIC `$1001`). |
-| Text grid with colors | Hex nibble `0–F` means VIC ink on VIC machines and RGBI on C128 80-col. Disabled in Plus/4; glyph-only text remains OK. |
+| Text grid with colors | VIC and VDC: version 2, one hex ink `0–F`. Plus/4: version 3, two-digit TED indices `00`–`78`. A pasted v2 grid on Plus/4 remaps onto TED; a pasted v3 grid on VIC or VDC remaps with `tedInkToC64`. |
 
 ## Follow-ups
 
-1. TED-capable color text-grid format.
-2. Non-square cell aspect for canvas + raster exports (all machines; most visible at 80-col). See plan note in `.cursorrules/c128-80col-research.md`.
-3. Repo-wide `MACHINE` / `INDEX_SPACE` literal cleanup (constants already used in machine-modes and new 80-col paths).
-4. Extra VIC presets (DeeKay, Frodo, CCS64, NTSC variants).
-5. Optional bezel in image exports; separate PRG border ink; MCP Python sync from JS.
-6. Full VICE `xplus4` / `x128 -80col` smoke for native players (unit coverage exists today).
+1. Non-square cell aspect for canvas + raster exports (all machines; most visible at 80-col). See plan note in `.cursorrules/c128-80col-research.md`.
+2. Repo-wide `MACHINE` / `INDEX_SPACE` literal cleanup (constants already used in machine-modes and new 80-col paths).
+3. Extra VIC presets (DeeKay, Frodo, CCS64, NTSC variants).
+4. Optional bezel in image exports; separate PRG border ink; MCP Python sync from JS.
+5. Full VICE `xplus4` / `x128 -80col` smoke for native players (unit coverage exists today).
 
 ## Shipped behavior
 
 - Header **Machine** menu with C64 / C128 (40-col) / C128 (80-col) / Plus/4 and VIC **Display palette** (Pepto / Colodore / VICE / RGB; hidden for TED and VDC).
 - Shell paints via CSS `data-ui-theme` scopes; Plus/4 shell is charcoal with light text (drawing defaults remain TED paper indices); C128 80-col reuses the C128 shell theme with RGBI drawing colors.
 - Plus/4 drawing uses TED indices `0–120` and TED glyph atlas; C128 80-col uses RGBI `0–15` and the C64 glyph atlas up to **80 × 25**; crossing VIC / TED / VDC remaps inks (and glyphs for TED) undoably.
-- Contextual color-animation lists; native PRG/D64 for all four machines; color RAM `.bin` VIC-only; color text enabled for VIC and VDC.
+- Contextual color-animation lists; native PRG/D64 for all four machines; color RAM `.bin` VIC-only; color text on every machine. Plus/4 writes `PETSCII-GLYPHS` v3 (`00`–`78`). VIC and VDC stay on v2.
 - Unit: `tests/machine-modes.unit.mjs`, `tests/plus4-colors.unit.mjs`, `tests/vdc-colors.unit.mjs`, `tests/c128-vdc-export.unit.mjs`. Chromium Playwright: `tests/machine-modes.spec.cjs` + theme mapping coverage in `tests/ui-theme.spec.cjs` (run on GitHub Actions).
 - Machine appearance maps onto `data-ui-theme` (`c64`→`c64c`, `c128` / `c128-80`→`c128`, `plus4`); there is no separate Interface look control.
 - Editor cells remain square for now; aspect-ratio UI is a tracked follow-up.

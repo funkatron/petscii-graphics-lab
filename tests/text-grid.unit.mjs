@@ -46,6 +46,41 @@ test('formatTextGrid v2 preserves per-cell ink and background', () => {
   assert.equal(parsed.colors.ink, 3);
 });
 
+test('formatTextGrid v3 round-trips a TED ink above 15', () => {
+  const grid = [160, ''];
+  const cellColors = [80, 0];
+  const colors = {ink: 1, background: 80};
+  const text = formatTextGrid({
+    columns: 2,
+    rows: 1,
+    grid,
+    cellColors,
+    colors,
+    includeColors: true,
+    colorDigits: 2,
+  });
+  assert.equal(text, '# PETSCII-GLYPHS 3 2 1 50\n0A0:50 --:00');
+  const parsed = parseTextGrid(text, {ink: 3, background: 6});
+  assert.deepEqual(parsed.grid, grid);
+  assert.deepEqual(parsed.cellColors, cellColors);
+  assert.equal(parsed.colors.background, 80);
+  assert.equal(parsed.colors.ink, 3);
+});
+
+test('parseTextGrid rejects a TED ink above 120 and keeps v2 as one nibble', () => {
+  assert.throws(
+    () => parseTextGrid('# PETSCII-GLYPHS 3 1 1 00\n000:79', defaults),
+    /TED ink must be 00–78/,
+  );
+  assert.throws(
+    () => parseTextGrid('# PETSCII-GLYPHS 3 1 1 79\n000:00', defaults),
+    /TED ink must be 00–78/,
+  );
+  const parsed = parseTextGrid('# PETSCII-GLYPHS 2 1 1 F\n0A0:A', defaults);
+  assert.deepEqual(parsed.cellColors, [10]);
+  assert.equal(parsed.colors.background, 15);
+});
+
 test('parseTextGrid rejects malformed headers and grids', () => {
   assert.throws(() => parseTextGrid('hello', defaults), /PETSCII-GLYPHS/);
   assert.throws(

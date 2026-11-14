@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-14 — TED color text grid
+
+**What:** Plus/4 Include colors in text writes `PETSCII-GLYPHS` v3 with two-digit TED inks `00`–`78`. v1 and v2 files are unchanged. A v2 grid opened on Plus/4 still remaps onto TED. A v3 grid opened on VIC or VDC remaps with `tedInkToC64`. Color RAM stays VIC-only.  
+**Touched:** `text-grid.js`, `index.html`, `tests/text-grid.unit.mjs`, `tests/machine-modes.spec.cjs`, machine-modes, maintainer reference, roadmap, README.
+
 ## 2026-11-14 — MACHINE id cleanup
 
 **What:** Production host checks use `MACHINE` and `isTedMachine` / `isVdcMachine`. Emitted ids are unchanged. HTML options, the pre-module boot map, and test fixtures stay the string ids.  
