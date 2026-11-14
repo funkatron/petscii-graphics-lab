@@ -25,6 +25,7 @@ test('Plus/4 still loads at $1001 with SYS stub and D64 packaging', () => {
   assert.equal(result.bytes[0] + (result.bytes[1] << 8), 0x1001);
   assert.equal(result.diagnostics.machine, 'plus4');
   assert.equal(result.diagnostics.customCharset, false);
+  assert.equal(result.diagnostics.memoryLimit, 60671);
   assert.equal(String.fromCharCode(...result.bytes.slice(7, 11)), '4109');
   assert.equal(result.debugSymbols.entry, 4109);
   assert.equal(createD64Disk(result.bytes, 'PICTURE').length, 174848);
@@ -71,6 +72,7 @@ test('Plus/4 animation with TED glyphBits builds a custom charset program', () =
     glyphBits,
   });
   assert.equal(result.diagnostics.customCharset, true);
+  assert.equal(result.diagnostics.memoryLimit, 60671);
   assert.equal(result.frameCount, 2);
   assert.ok(result.diagnostics.programBytes <= result.diagnostics.memoryLimit);
 });
