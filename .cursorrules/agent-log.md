@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-14 — Cell shape Phase B (CRT rasters)
+
+**What:** PNG, SVG, GIF, video, ZIP frames, and the download preview use the same Square/CRT cell shape as the editor. VIC/TED CRT is 5×6; VDC is 5×12. Full-screen presets land on 400×300 and 800×600 at PNG scale 1. Native PRG/D64 stay square-cell.  
+**Touched:** `index.html`, machine-modes spec, AGENTS, machine-modes, roadmap, cell-aspect brief.
+
 ## 2026-11-14 — Memory DRY + TED bank‑1 authenticity + readiness smoke
 
 **What:** TED atlas rebuilt from authentic **2 KB** kernal chargen (1 KB upper + 1 KB lower; HW inverse per bank). Prior 4 KB extract had pulled KERNAL into bank 1. `plus4-export` / `c128-vdc-export` import `nativeMemoryLimit()`. Readiness smoke asserts Plus/4 `60,671` and C128 80-col `58,109` in the download panel. Glyph helper stays in `tests/`.  

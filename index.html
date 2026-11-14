@@ -20,7 +20,7 @@
 <div class="app-title"><h1>PETSCII Graphics Lab</h1></div>
 </div>
 <div class="header-system" role="group" aria-label="System">
-<details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><div class="field"><label for="workspaceCellAspect">Cell shape</label><select id="workspaceCellAspect"><option value="square">Square cells</option><option value="crt">CRT proportion</option></select></div><p class="note" id="machineHelp">System setting for the host computer, editor chrome, and VIC display RGB. Cell inks stay put when only the display palette changes. Drawing colors live under Colors. Cell shape affects the editor canvas only — native programs stay hardware-true.</p></div></details>
+<details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><div class="field"><label for="workspaceCellAspect">Cell shape</label><select id="workspaceCellAspect"><option value="square">Square cells</option><option value="crt">CRT proportion</option></select></div><p class="note" id="machineHelp">System setting for the host computer, editor chrome, and VIC display RGB. Cell inks stay put when only the display palette changes. Drawing colors live under Colors. Cell shape applies to the editor and to PNG, SVG, GIF, and video. Native programs stay hardware-true.</p></div></details>
 </div>
 <div class="header-project" role="group" aria-label="Project">
 <details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
@@ -356,16 +356,18 @@ function syncMachineControls(){
  $('workspaceMachine').value=workspaceMachine;$('workspacePalette').value=workspacePalette;$('workspaceCellAspect').value=workspaceCellAspect;
  $('displayPaletteField').hidden=ted||vdc;
  $('machineSummary').textContent=machineSummary(workspaceMachine,workspacePalette,workspaceCellAspect);
+ const cellShapeNote=' Cell shape (Square or CRT) applies to the editor and to PNG, SVG, GIF, and video. Native programs stay hardware-true.';
  if(ted){
-  $('machineHelp').textContent='System host: Plus/4 uses the TED character set and full TED drawing palette (121 colors). Native Plus/4 program/disk download is available; C64 color RAM export is not.';
+  $('machineHelp').textContent='System host: Plus/4 uses the TED character set and full TED drawing palette (121 colors). Native Plus/4 program/disk download is available; C64 color RAM export is not.'+cellShapeNote;
   $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. Plus/4 uses all 121 TED colors (chroma × luma). Display palette is hidden in this mode.';
  }else if(vdc){
-  $('machineHelp').textContent='System host: C128 80-col uses VDC RGBI drawing colors (not Pepto) and the C64 glyph atlas. Canvas width up to 80. Native 80-col PRG/D64 download is available.';
+  $('machineHelp').textContent='System host: C128 80-col uses VDC RGBI drawing colors (not Pepto) and the C64 glyph atlas. Canvas width up to 80. Native 80-col PRG/D64 download is available.'+cellShapeNote;
   $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. C128 80-col uses 16 VDC RGBI colors. Display palette is under Machine on VIC hosts only.';
  }else{
-  $('machineHelp').textContent='System host: Display palette changes how the same VIC color indices look. Switching machines remaps inks (and glyphs when crossing Plus/4) and can be undone.';
+  $('machineHelp').textContent='System host: Display palette changes how the same VIC color indices look. Switching machines remaps inks (and glyphs when crossing Plus/4) and can be undone.'+cellShapeNote;
   $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. VIC RGB look (Pepto / Colodore / VICE / RGB) is chosen under Machine → Display palette — not here.';
  }
+ syncRasterScaleLabels();
  refreshColumnOptions();
  applyMachineAppearance();updateAnimationColorOptions();updateNativeExportAvailability();
 }
@@ -434,7 +436,7 @@ function romRects(code,x,y,pixel){
 const tileCache=new Map();
 // Glyph picker tiles use the machine's lightest neutral on black: VIC white (1) or TED white at maximum luma.
 const glyphTileInk=()=>isTedMachine(workspaceMachine)?tedIndex(1,7):1;
-function romCanvasGlyph(target,code,x,y,s,ink=colors.ink,colorPalette='pepto-pal'){
+function romCanvasGlyph(target,code,x,y,s,ink=colors.ink,colorPalette='pepto-pal',destH){
  const rows=romGlyphRows(code);if(!rows)return;
  const key=code+':'+ink+':'+colorPalette;
  let tile=tileCache.get(key);
@@ -444,7 +446,8 @@ function romCanvasGlyph(target,code,x,y,s,ink=colors.ink,colorPalette='pepto-pal
   for(let r=0;r<8;r++)for(let b=0;b<8;b++)if(rows[r]&(0x80>>b))t.fillRect(b,r,1,1);
   tileCache.set(key,tile);
  }
- target.imageSmoothingEnabled=false;target.drawImage(tile,0,0,8,8,x,y,s,s);
+ const height=destH===undefined?s:destH;
+ target.imageSmoothingEnabled=false;target.drawImage(tile,0,0,8,8,x,y,s,height);
 }
 function glyphCatalog(){
  const fingerprint=id=>rom.subarray(id*8,id*8+8).join(',');
@@ -544,6 +547,29 @@ function fit(){
  fittedGridKey=gridKey;
  redraw();
 }
+// Square cells stay 8×scale (stills pass 2×pngScale so they remain 16×pngScale).
+// CRT cells are aw×scale by ah×scale (VIC/TED 5×6, VDC 5×12).
+function exportCellSize(machine,aspect,scale){
+ const safeScale=Number.isInteger(scale)&&scale>0?scale:1;
+ const units=cellAspectUnits(machine,aspect);
+ const pixel=aspect===CELL_ASPECT.CRT?safeScale:8*safeScale;
+ return {cellW:units.aw*pixel,cellH:units.ah*pixel};
+}
+function syncRasterScaleLabels(){
+ const crt=workspaceCellAspect===CELL_ASPECT.CRT;
+ for(const option of $('pngScale').options){
+  const n=Number(option.value);
+  if(!crt){option.textContent=(16*n)+' px/cell';continue}
+  const cell=exportCellSize(workspaceMachine,CELL_ASPECT.CRT,2*n);
+  option.textContent=cell.cellW+' × '+cell.cellH+' px/cell';
+ }
+ for(const option of $('gifScale').options){
+  const n=Number(option.value);
+  if(!crt){option.textContent=(8*n)+' px/cell';continue}
+  const cell=exportCellSize(workspaceMachine,CELL_ASPECT.CRT,n);
+  option.textContent=cell.cellW+' × '+cell.cellH+' px/cell';
+ }
+}
 function textGrid(){
  return formatTextGrid({columns:W,rows:H,grid,cellColors,colors,includeColors:$('textColors').checked&&(isVicMachine(workspaceMachine)||isVdcMachine(workspaceMachine))});
 }
@@ -575,10 +601,10 @@ function renderGrid(cells,inks=cellColors,colorPalette='pepto-pal'){
   }else if(typeof g==='number'){ctx.strokeStyle='#ffb4c1';ctx.strokeRect(xx+cellW*.2,yy+cellH*.2,cellW*.6,cellH*.6)}
  }
 }
-function artworkPreview(target,cells,inks,cols,rows,background,colorPalette='pepto-pal'){
- target.width=cols*8;target.height=rows*8;const c=target.getContext('2d');c.clearRect(0,0,target.width,target.height);
+function artworkPreview(target,cells,inks,cols,rows,background,colorPalette='pepto-pal',cellW=8,cellH=8){
+ target.width=cols*cellW;target.height=rows*cellH;const c=target.getContext('2d');c.clearRect(0,0,target.width,target.height);
  if(background){c.fillStyle=background;c.fillRect(0,0,target.width,target.height)}
- cells.forEach((g,i)=>{const x=i%cols*8,y=Math.floor(i/cols)*8;if(typeof g==='number')romCanvasGlyph(c,g,x,y,8,inks[i],colorPalette);});
+ cells.forEach((g,i)=>{const x=i%cols*cellW,y=Math.floor(i/cols)*cellH;if(typeof g==='number')romCanvasGlyph(c,g,x,y,cellW,inks[i],colorPalette,cellH);});
 }
 function updateDownloadPreview(){
  if(!$('downloadDialog').open)return;
@@ -594,9 +620,16 @@ function updateDownloadPreview(){
   const left=Math.floor((screenCols-W)/2),top=Math.floor((25-H)/2);
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){const from=y*W+x,to=(top+y)*screenCols+left+x;previewCells[to]=picture.cells[from];previewInks[to]=picture.inks[from]}
  }
- artworkPreview($('downloadPreview'),previewCells,previewInks,previewColumns,previewRows,bg,picture.colorPalette||'pepto-pal');
- const pixels=data?8:motion?8*Number($('gifScale').value):$('stillFormat').value==='svg'?16:16*Number($('pngScale').value),loops=motion&&$('animationFormat').value==='video'?Number($('videoRepeats').value):1;
- $('downloadDimensions').textContent=(moving?'Animation':'Drawing')+' · '+previewColumns*pixels+' × '+previewRows*pixels+' pixels'+(centered?' · '+W+' × '+H+' cells centered':'')+(moving?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
+ let previewScale=2*Number($('pngScale').value);
+ if(data)previewScale=1;
+ else if(motion)previewScale=Number($('gifScale').value);
+ else if($('stillFormat').value==='svg')previewScale=2;
+ const previewCell=exportCellSize(workspaceMachine,workspaceCellAspect,previewScale);
+ // Thumbnail stays one scale unit (square 8×8, CRT 5×6 or 5×12). The caption uses the export size.
+ const thumb=exportCellSize(workspaceMachine,workspaceCellAspect,1);
+ artworkPreview($('downloadPreview'),previewCells,previewInks,previewColumns,previewRows,bg,picture.colorPalette||'pepto-pal',thumb.cellW,thumb.cellH);
+ const loops=motion&&$('animationFormat').value==='video'?Number($('videoRepeats').value):1;
+ $('downloadDimensions').textContent=(moving?'Animation':'Drawing')+' · '+previewColumns*previewCell.cellW+' × '+previewRows*previewCell.cellH+' pixels'+(centered?' · '+W+' × '+H+' cells centered':'')+(moving?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
  $('downloadDescription').textContent=moving?'Use Play preview to watch the selected animation here.':'Original drawing, without editing grid lines.';
 }
 function updateResizeDraft(){
@@ -684,7 +717,7 @@ function animationExportSnapshot(){
  const warning=animationPlan(s).warning;if(warning)throw Error(warning);
  if(!rom&&numeric)throw Error('Reload C64 glyphs before exporting animation');
  if(s.grid.every(g=>g==='')&&!s.events.length)throw Error('Draw something first, then export an animation');
- return {s,bits:rom?.slice(),project:projectData(),name:projectStem()};
+ return {s,bits:rom?.slice(),project:projectData(),name:projectStem(),cellAspect:workspaceCellAspect};
 }
 function animationExportFrames(s){
  let elapsed=0;return Array.from({length:animationCount(s)},(_,index)=>{
@@ -692,8 +725,10 @@ function animationExportFrames(s){
   return {index,startMs,durationMs:Math.round(elapsed/10)*10-startMs};
  });
 }
-function animationRaster({s,bits}){
- const cell=8*s.scale,width=s.W*cell,height=s.H*cell,tiles=new Map();
+function animationRaster({s,bits,cellAspect}){
+ const aspect=isCellAspectId(cellAspect)?cellAspect:CELL_ASPECT.SQUARE;
+ const {cellW,cellH}=exportCellSize(s.machine,aspect,s.scale);
+ const width=s.W*cellW,height=s.H*cellH,tiles=new Map();
  const ted=isTedMachine(s.machine)||isPlus4ColorEffect(s.colorEffect);
  const vdc=isVdcMachine(s.machine);
  let table;
@@ -702,21 +737,29 @@ function animationRaster({s,bits}){
  else table=paletteColors(s.palette);
  const colors=[s.background==='white'?[255,255,255]:colorRGB(table[s.colors.background][1]),...table.map(([,hex])=>colorRGB(hex))];
  function tileFor(g){
-  if(tiles.has(g))return tiles.get(g);const tile=new Uint8Array(cell*cell);
+  if(tiles.has(g))return tiles.get(g);const tile=new Uint8Array(cellW*cellH);
   if(typeof g==='number'){
    const rows=bits.subarray(g*8,g*8+8);
-   for(let y=0;y<cell;y++)for(let x=0;x<cell;x++)tile[y*cell+x]=rows[Math.floor(y/s.scale)]&(128>>Math.floor(x/s.scale))?1:0;
+   for(let y=0;y<cellH;y++){
+    const srcY=Math.floor(y*8/cellH);
+    for(let x=0;x<cellW;x++){
+     const srcX=Math.floor(x*8/cellW);
+     tile[y*cellW+x]=rows[srcY]&(128>>srcX)?1:0;
+    }
+   }
   }
   tiles.set(g,tile);return tile;
  }
  function indexedFrame(index){
   const {cells,inks}=animationCells(index,s),indexed=new Uint8Array(width*height);
   for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++)if(cells[y*s.W+x]!==''){
-   const tile=tileFor(cells[y*s.W+x]);for(let row=0;row<cell;row++)for(let col=0;col<cell;col++)if(tile[row*cell+col])indexed[(y*cell+row)*width+x*cell+col]=inks[y*s.W+x]+1;
+   const tile=tileFor(cells[y*s.W+x]);
+   for(let row=0;row<cellH;row++)for(let col=0;col<cellW;col++)if(tile[row*cellW+col])indexed[(y*cellH+row)*width+x*cellW+col]=inks[y*s.W+x]+1;
   }
   return indexed;
  }
- return {width,height,cell,colors,indexedFrame,ted,vdc};
+ const cell=cellW===cellH?cellW:{width:cellW,height:cellH};
+ return {width,height,cell,cellW,cellH,colors,indexedFrame,ted,vdc};
 }
 let animationExportTask=null;
 const animationDownloads={};
@@ -728,7 +771,7 @@ async function exportAnimation(kind){
  if(animationExportTask)return;
  if(kind==='video'&&!validVideoRepeats(Number($('videoRepeats').value))){setStatus('Video repetitions must be a whole number from 1 to 100');$('videoRepeats').focus();return}
  let snapshot;try{snapshot=animationExportSnapshot()}catch(e){setStatus(e.message);return}
- const key=JSON.stringify({project:snapshot.project,name:snapshot.name}),cached=animationDownloads[kind];
+ const key=JSON.stringify({project:snapshot.project,name:snapshot.name,cellAspect:snapshot.cellAspect}),cached=animationDownloads[kind];
  if(cached?.key===key){downloadReadyFile(cached);$('exportBadge').textContent=(kind==='gif'?'GIF':kind==='video'?'Video':'ZIP')+' ready';setStatus('Download requested. Tap '+animationDownloadLabels[kind]+' again if needed.');return}
  const button=$(animationDownloadButtons[kind]);
  const task={cancelled:false};animationExportTask=task;
@@ -882,18 +925,21 @@ function download(suffix,txt,type){let name;try{name=projectStem()+suffix}catch(
 $('text').onclick=()=>download('.txt',textGrid(),'text/plain;charset=utf-8');
 function makeSvg(foreground=colorHex('ink'),background=colorHex('background')){
  if(!rom&&grid.some(g=>typeof g==='number'))throw Error('Glyph data unavailable; reload C64 glyphs before exporting artwork');
+ const {cellW,cellH}=exportCellSize(workspaceMachine,workspaceCellAspect,2);
  const parts=[];
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const g=grid[y*W+x],fill=inkFill(cellColors[y*W+x]);
-  if(typeof g==='number'&&rom)parts.push('<g fill="'+fill+'" transform="translate('+(x*16)+' '+(y*16)+') scale(2)">'+romRects(g,0,0,1)+'</g>');
+  if(typeof g==='number'&&rom)parts.push('<g fill="'+fill+'" transform="translate('+(x*cellW)+' '+(y*cellH)+') scale('+(cellW/8)+' '+(cellH/8)+')">'+romRects(g,0,0,1)+'</g>');
  }
+ const svgW=W*cellW,svgH=H*cellH;
  const bg=background?'<rect width="100%" height="100%" fill="'+background+'"/>':'';
- return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W*16+' '+H*16+'" width="'+W*16+'" height="'+H*16+'">'+bg+'<g fill="'+foreground+'">'+parts.join('')+'</g></svg>';
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+svgW+' '+svgH+'" width="'+svgW+'" height="'+svgH+'">'+bg+'<g fill="'+foreground+'">'+parts.join('')+'</g></svg>';
 }
 function stillBackground(){const bg=$('pngBg').value;return bg==='transparent'?null:bg==='canvas'?colorHex('background'):bg}
 $('svg').onclick=()=>{try{download('.svg',makeSvg(undefined,stillBackground()),'image/svg+xml')}catch(e){setStatus(e.message)}};
 $('png').onclick=async()=>{
  const button=$('png'),scale=Number($('pngScale').value),exportW=W,exportH=H;
+ const stillCell=exportCellSize(workspaceMachine,workspaceCellAspect,2);
  let markup,name;try{name=projectStem();markup=makeSvg(undefined,stillBackground())}catch(e){setStatus(e.message);return}
  const blob=new Blob([markup],{type:'image/svg+xml;charset=utf-8'});
  const url=URL.createObjectURL(blob);
@@ -903,7 +949,7 @@ $('png').onclick=async()=>{
   const loaded=new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('Could not render SVG'));});
   image.src=url;await loaded;
   const bmp=document.createElement('canvas');
-  bmp.width=exportW*16*scale;bmp.height=exportH*16*scale;
+  bmp.width=exportW*stillCell.cellW*scale;bmp.height=exportH*stillCell.cellH*scale;
   const c=bmp.getContext('2d');
   c.imageSmoothingEnabled=false;
   c.drawImage(image,0,0,bmp.width,bmp.height);

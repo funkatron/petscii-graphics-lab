@@ -53,7 +53,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - Dragging a finger/stylus across the canvas must paint every crossed cell (interpolate between samples). Keep pointer capture and suppress page scrolling **only inside the active drawing region**; ordinary scrolling elsewhere should work.
 
-- Canvas should scale to maximize the available bounding box while keeping the full grid visible. Default **Cell shape** is square cells; optional **CRT proportion** (Machine menu, device pref) uses VIC/TED 5∶6 or VDC 5∶12 cell quads for the editor canvas only. Native PRG/D64 and raster exports ignore Cell shape. Resizing or collapsing controls must not clear artwork.
+- Canvas should scale to maximize the available bounding box while keeping the full grid visible. Default **Cell shape** is square cells; optional **CRT proportion** (Machine menu, device pref) uses VIC/TED 5∶6 or VDC 5∶12 cell quads for the editor canvas and for PNG, SVG, GIF, and video. Native PRG/D64 ignore Cell shape. Resizing or collapsing controls must not clear artwork.
 
 - Keep settings in a compact, collapsible left sidebar. Compact drawing icons use 38 px targets with accessible names and grouped Undo/Redo; contextual help opens on tap. Glyph selection lives in its own panel, reached from an always-visible drawing-strip Glyphs button. Dock it on wide screens (1200px+); use an overlay on smaller screens. Never nest the palette scroll box inside the settings scroller.
 

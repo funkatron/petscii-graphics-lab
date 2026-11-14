@@ -62,7 +62,7 @@ Partial grids use the same per-machine cell aspect so cells match CRT look even 
 | **Default** | **Square cells** (opt-in CRT; valuable especially at 80×25) |
 | **Persistence** | Device pref in `petscii-workspace-prefs` (`cellAspect: 'square' \| 'crt'`). Not project JSON / undo. |
 | **Machine coupling** | One toggle; ratio follows active Machine (VIC/TED → 5∶6, VDC → 5∶12). |
-| **Exports** | **Phase A:** editor canvas only. **Phase B (optional):** PNG/SVG/GIF/video may match CRT cells. **Native PRG/D64: out of scope forever for this feature** — no aspect stretch, no geometry change. |
+| **Exports** | **Shipped:** editor canvas and PNG/SVG/GIF/video follow Cell shape. Square keeps the old pixel grid. **Native PRG/D64: out of scope forever** — no aspect stretch, no geometry change. |
 
 ---
 
@@ -97,4 +97,4 @@ Partial grids use the same per-machine cell aspect so cells match CRT look even 
 
 ---
 
-**Verdict:** Hard constraint is `fit()` (and square raster-export paths until Phase B). Painting and hit-testing already tolerate non-square cells. Put **Cell shape** in `#machineMenu`, device prefs, default square, **5∶6** (VIC/TED) and **5∶12** (VDC) for CRT mode. **PRG/D64 stay square-cell / hardware-authentic and ignore the toggle.**
+**Verdict:** Painting and hit-testing already tolerate non-square cells. **Cell shape** lives in `#machineMenu`, device prefs, default square, **5∶6** (VIC/TED) and **5∶12** (VDC). Editor and raster exports follow it. **PRG/D64 stay square-cell / hardware-authentic and ignore the toggle.**
