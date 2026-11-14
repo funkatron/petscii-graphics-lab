@@ -67,6 +67,10 @@ function select(files, {full=false, motionOnly=false, light=false}={}) {
     set.add('tests/machine-modes.spec.cjs');
     set.add('tests/ui-theme.spec.cjs');
   }
+  // Native exporters feed readiness memory ceilings shown in the download panel.
+  if (changed(/^(c64-export|plus4-export|c128-vdc-export)\.js$/)) {
+    set.add('tests/machine-modes.spec.cjs');
+  }
   if (changed(/^pointer-stroke\.js$/)) set.add('tests/layout.spec.cjs');
   if (changed(/^(typed-text|text-grid|glyph-families|c64-colors)\.js$/))
     set.add('tests/c64-only.spec.cjs');

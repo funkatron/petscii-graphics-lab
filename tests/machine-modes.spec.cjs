@@ -243,6 +243,26 @@ test('Plus/4 animation exports stay TED-tagged and native Plus/4 program stays e
  await expect(page.locator('#exportGif')).toBeEnabled();
 });
 
+test('download readiness shows host memory ceilings for Plus/4 and C128 80-col',async({page})=>{
+ page.on('dialog',dialog=>dialog.accept());
+ await loadProject(page,fixture());
+ const panel=page.locator('#c64Readiness');
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceMachine','selectOption','plus4');
+ await ui(page,'#c64Mode','selectOption','still');
+ await expect(panel).toContainText('Ready — exporter checks passed');
+ await expect(panel).toContainText('Plus/4 ·');
+ await expect(panel).toContainText('/ 60,671 program bytes');
+ // Close the modal before Machine chrome — open dialog intercepts header clicks.
+ await page.evaluate(()=>document.getElementById('downloadDialog').close());
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceMachine','selectOption','c128-80');
+ await ui(page,'#c64Mode','selectOption','still');
+ await expect(panel).toContainText('Ready — exporter checks passed');
+ await expect(panel).toContainText('C128 80-col ·');
+ await expect(panel).toContainText('/ 58,109 program bytes');
+});
+
 test('CRT cell shape stretches the editor canvas but leaves native PRG bytes unchanged',async({page})=>{
  page.on('dialog',dialog=>dialog.accept());
  await loadProject(page,baseProject([160,0],2,1,{cellColors:[2,14]}));

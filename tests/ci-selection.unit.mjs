@@ -16,7 +16,9 @@ test('test-only changes run modified browser tests',()=>{
   assert.deepEqual(select(['tests/colors.spec.cjs']),{mode:'focused',specs:['tests/colors.spec.cjs']});
 });
 test('unknown source and security workflow changes never bypass checks',()=>{
-  assert.equal(select(['c64-export.js']).mode,'focused');
+  assert.ok(select(['c64-export.js']).specs.includes('tests/machine-modes.spec.cjs'));
+  assert.ok(select(['plus4-export.js']).specs.includes('tests/machine-modes.spec.cjs'));
+  assert.ok(select(['c128-vdc-export.js']).specs.includes('tests/machine-modes.spec.cjs'));
   assert.deepEqual(select(['.github/workflows/security.yml']),{mode:'focused',specs:['tests/layout.spec.cjs']});
 });
 test('full validation overrides all other selections',()=>{
