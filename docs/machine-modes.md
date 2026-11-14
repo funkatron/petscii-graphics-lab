@@ -16,7 +16,9 @@ Add application-level **Machine** and **Display palette** controls for:
 | Commodore 128 (80-col) | VDC RGBI indices `0–15` (`vdc-colors.js`) | Same C64 atlas (KERNAL copies VIC patterns into VDC) |
 | Commodore Plus/4 | TED indices `0–120` (full 121-color palette) | TED atlas (`assets/ted-glyphs.svg`; hardware-inverse high halves) |
 
-**Still follow-ups:** TED-capable color text-grid format; baking machine bezels into PNG/SVG/GIF; optional CRT match for raster exports (editor **Cell shape** Square/CRT shipped — VIC/TED 5∶6, VDC 5∶12; native PRG/D64 ignore it); repo-wide cleanup of bare `'c64'` / `'c128'` / `'plus4'` literals onto `MACHINE` / `INDEX_SPACE` constants (new 80-col paths already prefer the constants).
+**Still follow-ups:** TED-capable color text-grid format; baking machine bezels into PNG/SVG/GIF; repo-wide cleanup of bare `'c64'` / `'c128'` / `'plus4'` literals onto `MACHINE` / `INDEX_SPACE` constants (new 80-col paths already prefer the constants).
+
+**Cell shape** (Square / CRT, device pref in the Machine menu) stretches the editor and PNG/SVG/GIF/video. VIC/TED cells are 5∶6; VDC cells are 5∶12. Square is the default and keeps today’s pixel grid. Native PRG/D64 ignore the toggle.
 
 Exploratory MCP chrome demos live under `agents/petscii-preview/` and are **not** the product contract. Prefer this document.
 
