@@ -20,7 +20,7 @@
 <div class="app-title"><h1>PETSCII Graphics Lab</h1></div>
 </div>
 <div class="header-system" role="group" aria-label="System">
-<details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><p class="note" id="machineHelp">System setting for the host computer, editor chrome, and VIC display RGB. Cell inks stay put when only the display palette changes. Drawing colors live under Colors.</p></div></details>
+<details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><div class="field"><label for="workspaceCellAspect">Cell shape</label><select id="workspaceCellAspect"><option value="square">Square cells</option><option value="crt">CRT proportion</option></select></div><p class="note" id="machineHelp">System setting for the host computer, editor chrome, and VIC display RGB. Cell inks stay put when only the display palette changes. Drawing colors live under Colors. Cell shape affects the editor canvas only — native programs stay hardware-true.</p></div></details>
 </div>
 <div class="header-project" role="group" aria-label="Project">
 <details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
@@ -137,8 +137,8 @@ const {PLUS4_COLORS,isPlus4ColorEffect,plus4Hex,tedIndex}=await import('./plus4-
 const {VDC_COLORS,vdcHex}=await import('./vdc-colors.js');
 const {convertGlyph,convertGlyphArray}=await import('./glyph-map.js');
 const {
- MACHINE,MACHINES,INDEX_SPACE,applyMachineChrome,convertColorsObject,convertInkArray,getMachine,
- isTedMachine,isVicMachine,isVdcMachine,maxColumnsForMachine,
+ MACHINE,MACHINES,INDEX_SPACE,CELL_ASPECT,applyMachineChrome,convertColorsObject,convertInkArray,getMachine,
+ isTedMachine,isVicMachine,isVdcMachine,isCellAspectId,maxColumnsForMachine,cellAspectUnits,
  machineSummary,readWorkspacePrefs,writeWorkspacePrefs
 }=await import('./machine-modes.js');
 const {planTypedText}=await import('./typed-text.js');
@@ -148,7 +148,7 @@ const {BONFIRE_COLORS}=await import('./bonfire.js');
 const {SOLID_EFFECTS}=await import('./solid-motion.js');
 const {applyUiTheme,uiThemeForMachine}=await import('./ui-themes.js');
 const prefs=readWorkspacePrefs();
-let workspaceMachine=prefs.machine,workspacePalette=prefs.palette;
+let workspaceMachine=prefs.machine,workspacePalette=prefs.palette,workspaceCellAspect=prefs.cellAspect;
 const activeColorTable=()=>{
  if(isTedMachine(workspaceMachine))return PLUS4_COLORS;
  if(isVdcMachine(workspaceMachine))return VDC_COLORS;
@@ -350,11 +350,12 @@ function cropCanvasToMachineLimits(){
  for(let y=0;y<nh;y++)for(let x=0;x<nw;x++){next[y*nw+x]=grid[y*W+x];inks[y*nw+x]=cellColors[y*W+x]}
  grid=next;cellColors=inks;W=nw;resetReplay();$('columns').value=String(W);
 }
+function prefsPayload(){return{machine:workspaceMachine,palette:workspacePalette,cellAspect:workspaceCellAspect}}
 function syncMachineControls(){
  const ted=isTedMachine(workspaceMachine),vdc=isVdcMachine(workspaceMachine);
- $('workspaceMachine').value=workspaceMachine;$('workspacePalette').value=workspacePalette;
+ $('workspaceMachine').value=workspaceMachine;$('workspacePalette').value=workspacePalette;$('workspaceCellAspect').value=workspaceCellAspect;
  $('displayPaletteField').hidden=ted||vdc;
- $('machineSummary').textContent=machineSummary(workspaceMachine,workspacePalette);
+ $('machineSummary').textContent=machineSummary(workspaceMachine,workspacePalette,workspaceCellAspect);
  if(ted){
   $('machineHelp').textContent='System host: Plus/4 uses the TED character set and full TED drawing palette (121 colors). Native Plus/4 program/disk download is available; C64 color RAM export is not.';
   $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. Plus/4 uses all 121 TED colors (chroma × luma). Display palette is hidden in this mode.';
@@ -370,8 +371,13 @@ function syncMachineControls(){
 }
 function setWorkspacePalette(next){
  if(!isDisplayPaletteId(next)||isTedMachine(workspaceMachine)||isVdcMachine(workspaceMachine)){syncMachineControls();return}
- workspacePalette=next;writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});
+ workspacePalette=next;writeWorkspacePrefs(prefsPayload());
  syncMachineControls();tileCache.clear();updateColorUI();drawPalette();redraw();autosave();setStatus('Display palette: '+workspacePalette);
+}
+function setWorkspaceCellAspect(next){
+ if(!isCellAspectId(next)){syncMachineControls();return}
+ workspaceCellAspect=next;writeWorkspacePrefs(prefsPayload());
+ syncMachineControls();fit();setStatus(next===CELL_ASPECT.CRT?'Cell shape: CRT proportion':'Cell shape: Square cells');
 }
 const indexSpaceOf=id=>getMachine(id).indexSpace;
 const crossesIndexSpace=(from,to)=>indexSpaceOf(from)!==indexSpaceOf(to);
@@ -399,12 +405,13 @@ function setWorkspaceMachine(next,{recordHistory=true}={}){
  // The current color effect may not exist in the new machine; drop it as part of the same undoable step.
  const effectIsTed=isPlus4ColorEffect($('animationColor').value);
  if(crossesIndexSpace(from,to)&&$('animationColor').value!=='none'&&effectIsTed!==isTedMachine(to))$('animationColor').value='none';
- writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});
+ writeWorkspacePrefs(prefsPayload());
  selectActiveRom();syncMachineControls();tileCache.clear();updateColorUI();updateAnimationOptions();updateSourceInfo();drawPalette();fit();redraw();autosave();
  setStatus(getMachine(to).label+' mode');
 }
 $('workspaceMachine').onchange=()=>{setWorkspaceMachine($('workspaceMachine').value);$('machineMenu').open=false};
 $('workspacePalette').onchange=()=>{setWorkspacePalette($('workspacePalette').value);$('machineMenu').open=false};
+$('workspaceCellAspect').onchange=()=>{setWorkspaceCellAspect($('workspaceCellAspect').value);$('machineMenu').open=false};
 let rom=null,romC64=null,romTed=null,saveTimer=null,initialized=false,videoRepeats=1;
 function selectActiveRom(){rom=isTedMachine(workspaceMachine)?romTed:romC64}
 const PROJECT_KEY='petscii-graphics-project-v3';
@@ -519,13 +526,14 @@ let fittedGridKey='';
 function fit(){
  const r=frame.getBoundingClientRect();
  const availableW=Math.max(20,r.width-22),availableH=Math.max(20,r.height-22);
- const nextUnit=Math.max(1,Math.min(availableW/W,availableH/H));
+ const {aw,ah}=cellAspectUnits(workspaceMachine,workspaceCellAspect);
+ const scale=Math.max(1,Math.min(availableW/(W*aw),availableH/(H*ah)));
  // Integer CSS pixels: float style strings can oscillate and re-trigger ResizeObserver.
- const width=Math.round(W*nextUnit),height=Math.round(H*nextUnit),dpr=Math.min(devicePixelRatio||1,3);
+ const width=Math.round(W*aw*scale),height=Math.round(H*ah*scale),dpr=Math.min(devicePixelRatio||1,3);
  const styleW=width+'px',styleH=height+'px';
  const pixelWidth=Math.round(width*dpr),pixelHeight=Math.round(height*dpr);
  const unchangedSize=canvas.style.width===styleW&&canvas.style.height===styleH&&canvas.width===pixelWidth&&canvas.height===pixelHeight;
- const gridKey=W+'x'+H;
+ const gridKey=W+'x'+H+'x'+workspaceCellAspect+'x'+workspaceMachine;
  unit=width/W;
  if(!unchangedSize){
   canvas.style.width=styleW;canvas.style.height=styleH;
@@ -791,7 +799,7 @@ const undoStack=[],redoStack=[];
 function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),glyph,erasing,colors:{...colors},machine:workspaceMachine,palette:workspacePalette,symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
 function remember(){stopAnimation();selection=null;cancelToolDrag();updateToolPalette();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
-function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;stopAnimation();workspaceMachine=MACHINES[state.machine]?state.machine:workspaceMachine;workspacePalette=isDisplayPaletteId(state.palette)?state.palette:workspacePalette;writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});selectActiveRom();syncMachineControls();updateSourceInfo();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();redraw();historyButtons();}
+function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;stopAnimation();workspaceMachine=MACHINES[state.machine]?state.machine:workspaceMachine;workspacePalette=isDisplayPaletteId(state.palette)?state.palette:workspacePalette;writeWorkspacePrefs(prefsPayload());selectActiveRom();syncMachineControls();updateSourceInfo();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();redraw();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 const {paint,stroke}=createPainter({getW:()=>W,getH:()=>H,getSymmetry:()=>$('sym').value,getGlyph:()=>glyph,getErasing:()=>erasing,getInk:()=>colors.ink,onCell:(i,g,ink)=>{if(grid[i]!==g||cellColors[i]!==ink){grid[i]=g;cellColors[i]=ink;recordCell(i)}}});
@@ -992,7 +1000,7 @@ function applyProject(data){
  // Missing machine/palette: keep the current workspace host (do not force C64 / Pepto).
  if(MACHINES[data.machine])workspaceMachine=data.machine;
  if(isDisplayPaletteId(data.palette))workspacePalette=data.palette;
- writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});
+ writeWorkspacePrefs(prefsPayload());
  syncMachineControls();
  // Projects may omit colors; fall back to the machine's boot defaults.
  setColors(data.colors??{ink:getMachine(workspaceMachine).defaultInk,background:getMachine(workspaceMachine).defaultBackground});W=data.columns;H=data.rows;grid=[...data.grid];cellColors=data.cellColors?.slice()??Array(grid.length).fill(colors.ink);if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice());replayBaseColors=data.drawingReplay.baseColors?.slice()??Array(grid.length).fill(colors.ink);replayEventColors=data.drawingReplay.eventColors?.slice()??Array(replayEvents.length).fill(colors.ink)}else resetReplay();setAnimationSettings(data.animation);$('columns').value=String(W);$('rows').value=String(H);

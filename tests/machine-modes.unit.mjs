@@ -4,14 +4,19 @@ import {inkHex, isDisplayPaletteId, paletteColors} from '../c64-colors.js';
 import {
   MACHINE,
   INDEX_SPACE,
+  CELL_ASPECT,
   applyMachineChrome,
+  cellAspectUnits,
   contrastingInk,
   convertInk,
   getMachine,
+  isCellAspectId,
   isVdcMachine,
   isValidInkForMachine,
   machineSummary,
   maxColumnsForMachine,
+  readWorkspacePrefs,
+  writeWorkspacePrefs,
   tedInkToC64,
 } from '../machine-modes.js';
 import {c64InkToTed, tedIndex} from '../plus4-colors.js';
@@ -98,6 +103,42 @@ test('Plus/4 case cue is charcoal; contrastingInk still picks readable ink', () 
   assert.equal(contrastingInk('#2f2f2f'), '#eef5fa');
   assert.match(machineSummary('plus4', 'pepto'), /TED/);
   assert.match(machineSummary('c64', 'colodore'), /Colodore/);
+  assert.match(machineSummary('c64', 'pepto', CELL_ASPECT.CRT), /CRT/);
+});
+
+test('cell aspect units are square by default and CRT by index space', () => {
+  assert.equal(isCellAspectId('square'), true);
+  assert.equal(isCellAspectId('crt'), true);
+  assert.equal(isCellAspectId('wide'), false);
+  assert.deepEqual(cellAspectUnits(MACHINE.C64, CELL_ASPECT.SQUARE), {aw: 1, ah: 1});
+  assert.deepEqual(cellAspectUnits(MACHINE.C64, CELL_ASPECT.CRT), {aw: 5, ah: 6});
+  assert.deepEqual(cellAspectUnits(MACHINE.PLUS4, CELL_ASPECT.CRT), {aw: 5, ah: 6});
+  assert.deepEqual(cellAspectUnits(MACHINE.C128_80, CELL_ASPECT.CRT), {aw: 5, ah: 12});
+});
+
+test('workspace prefs round-trip cellAspect with square default', () => {
+  const memory = globalThis.localStorage;
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem(key) {
+      return store.has(key) ? store.get(key) : null;
+    },
+    setItem(key, value) {
+      store.set(key, String(value));
+    },
+    removeItem(key) {
+      store.delete(key);
+    },
+  };
+  try {
+    assert.equal(readWorkspacePrefs().cellAspect, CELL_ASPECT.SQUARE);
+    writeWorkspacePrefs({machine: MACHINE.C64, palette: 'pepto', cellAspect: CELL_ASPECT.CRT});
+    assert.equal(readWorkspacePrefs().cellAspect, CELL_ASPECT.CRT);
+    writeWorkspacePrefs({machine: MACHINE.C64, palette: 'pepto', cellAspect: 'nope'});
+    assert.equal(readWorkspacePrefs().cellAspect, CELL_ASPECT.SQUARE);
+  } finally {
+    globalThis.localStorage = memory;
+  }
 });
 
 test('applyMachineChrome sets data-machine and clears legacy chrome paints', () => {

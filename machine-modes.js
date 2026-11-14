@@ -33,6 +33,32 @@ export const MACHINE_IDS = Object.freeze([
 ]);
 export const WORKSPACE_PREFS_KEY = 'petscii-workspace-prefs';
 
+/** Editor canvas cell shape (device pref). Native PRG/D64 ignore this. */
+export const CELL_ASPECT = Object.freeze({
+  SQUARE: 'square',
+  CRT: 'crt',
+});
+
+export function isCellAspectId(value) {
+  return value === CELL_ASPECT.SQUARE || value === CELL_ASPECT.CRT;
+}
+
+/**
+ * Aspect units for fit(): square is 1×1; CRT matches ~4:3 full text screens
+ * (VIC/TED 5∶6, VDC 5∶12).
+ * @returns {{aw: number, ah: number}}
+ */
+export function cellAspectUnits(machineId, cellAspect = CELL_ASPECT.SQUARE) {
+  if (!isCellAspectId(cellAspect) || cellAspect === CELL_ASPECT.SQUARE) {
+    return {aw: 1, ah: 1};
+  }
+  const space = getMachine(machineId).indexSpace;
+  if (space === INDEX_SPACE.VDC) {
+    return {aw: 5, ah: 12};
+  }
+  return {aw: 5, ah: 6};
+}
+
 function rgbToHex([r, g, b]) {
   const byte = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
   return `#${byte(r)}${byte(g)}${byte(b)}`;
@@ -262,19 +288,21 @@ export function readWorkspacePrefs() {
     if (isTedMachine(machine)) {
       palette = isDisplayPaletteId(saved?.palette) ? saved.palette : 'pepto';
     }
-    return {machine, palette};
+    const cellAspect = isCellAspectId(saved?.cellAspect) ? saved.cellAspect : CELL_ASPECT.SQUARE;
+    return {machine, palette, cellAspect};
   } catch {
-    return {machine: MACHINE.C64, palette: 'pepto'};
+    return {machine: MACHINE.C64, palette: 'pepto', cellAspect: CELL_ASPECT.SQUARE};
   }
 }
 
-export function writeWorkspacePrefs({machine, palette}) {
+export function writeWorkspacePrefs({machine, palette, cellAspect}) {
   try {
     localStorage.setItem(
       WORKSPACE_PREFS_KEY,
       JSON.stringify({
         machine: isMachineId(machine) ? machine : MACHINE.C64,
         palette: isDisplayPaletteId(palette) ? palette : 'pepto',
+        cellAspect: isCellAspectId(cellAspect) ? cellAspect : CELL_ASPECT.SQUARE,
       }),
     );
   } catch {
@@ -282,15 +310,20 @@ export function writeWorkspacePrefs({machine, palette}) {
   }
 }
 
-export function machineSummary(machineId, paletteId) {
+export function machineSummary(machineId, paletteId, cellAspect = CELL_ASPECT.SQUARE) {
   const machine = getMachine(machineId);
+  let base;
   if (machine.indexSpace === INDEX_SPACE.TED) {
-    return `${machine.shortLabel} · TED`;
+    base = `${machine.shortLabel} · TED`;
+  } else if (machine.indexSpace === INDEX_SPACE.VDC) {
+    base = `${machine.shortLabel} · RGBI`;
+  } else {
+    const palette = isDisplayPaletteId(paletteId) ? paletteId : 'pepto';
+    const labels = {pepto: 'Pepto', colodore: 'Colodore', vice: 'VICE', rgb: 'RGB'};
+    base = `${machine.shortLabel} · ${labels[palette]}`;
   }
-  if (machine.indexSpace === INDEX_SPACE.VDC) {
-    return `${machine.shortLabel} · RGBI`;
+  if (cellAspect === CELL_ASPECT.CRT) {
+    return `${base} · CRT`;
   }
-  const palette = isDisplayPaletteId(paletteId) ? paletteId : 'pepto';
-  const labels = {pepto: 'Pepto', colodore: 'Colodore', vice: 'VICE', rgb: 'RGB'};
-  return `${machine.shortLabel} · ${labels[palette]}`;
+  return base;
 }
