@@ -2,7 +2,7 @@ import {bonfireFrame, bonfireHeat, BONFIRE_COLORS} from './bonfire.js';
 import {spaceWarpFrame} from './space-warp.js';
 import {depthSurfaceFrame} from './depth-surfaces.js';
 import {solidMotionFrame, SOLID_EFFECTS} from './solid-motion.js';
-import {DEPTH_EFFECTS, INTRO_MOTIONS, DIAGONAL_DIRECTIONS} from './project-validation.js';
+import {DEPTH_EFFECTS, INTRO_MOTIONS, DIAGONAL_DIRECTIONS, normalizeAnimation} from './project-validation.js';
 import {
   PLUS4_COLOR_CYCLES,
   c64InkToTed,
@@ -85,6 +85,9 @@ export function effectCycles(source) {
 
 function colorStepsFor(source) {
   const family = colorFamily(source.colorEffect);
+  if (family === 'inverse') {
+    return 2;
+  }
   const ramp = COLOR_CYCLES[source.colorEffect];
   if (family === 'bonfire') {
     // Keep a dense fire timeline; never shorter than the ramp itself.
@@ -125,9 +128,6 @@ function samplesPerMotionCycle(source) {
   }
   if (source.effect === 'scroll-x' || source.effect === 'scroll-y') {
     return horizontal ? source.W : source.H;
-  }
-  if (source.effect === 'inverse') {
-    return 2;
   }
   if (source.effect === 'sine-scroll') {
     if (DIAGONAL_DIRECTIONS.includes(direction)) {
@@ -176,6 +176,7 @@ function minimumFrameCount(source, motionCycles, colorSteps, colorCycles) {
 }
 
 export function animationPlan(source) {
+  source = normalizeAnimation(source);
   const colorSteps = colorStepsFor(source);
   const {motion, color} = effectCycles(source);
   const frameBudget = Math.floor(source.seconds * 1000 / FRAME_BUDGET_MS);
@@ -209,6 +210,7 @@ export function animationCount(source) {
 }
 
 export function animationDelay(frameIndex, source) {
+  source = normalizeAnimation(source);
   const frameCount = animationCount(source);
   const motionOnlyReplay =
     source.effect === 'replay'
@@ -465,14 +467,26 @@ function applyGridMotion(frame, phase, source, cells, inks) {
         }
       }
 
-      let glyph = source.grid[sampleY * source.W + sampleX];
-      if (source.effect === 'inverse' && Math.floor(phase * 2) && glyph !== '') {
-        glyph = glyph ^ 128;
-      }
+      const glyph = source.grid[sampleY * source.W + sampleX];
       const destination = y * source.W + x;
       cells[destination] = glyph;
       inks[destination] = source.inks[sampleY * source.W + sampleX];
     }
+  }
+}
+
+function applyInversePass(colorPhase, source, cells) {
+  if (source.colorEffect !== 'inverse') {
+    return;
+  }
+  if (!Math.floor(colorPhase * 2)) {
+    return;
+  }
+  for (let index = 0; index < cells.length; index++) {
+    if (cells[index] === '') {
+      continue;
+    }
+    cells[index] = cells[index] ^ 128;
   }
 }
 
@@ -559,50 +573,52 @@ function applyColorPass(colorPhase, source, cells, inks) {
 }
 
 export function animationCells(frame, source) {
-  const frameCount = animationCount(source);
-  const cycles = effectCycles(source);
+  const normalized = normalizeAnimation(source);
+  const frameCount = animationCount(normalized);
+  const cycles = effectCycles(normalized);
   const phase = cyclePhase(frame, frameCount, cycles.motion);
   const colorPhase = cyclePhase(frame, frameCount, cycles.color);
 
-  const cells = source.effect === 'replay'
-    ? source.base.slice()
-    : Array(source.W * source.H).fill('');
-  const inks = source.effect === 'replay'
-    ? source.baseColors.slice()
-    : source.inks.slice();
+  const cells = normalized.effect === 'replay'
+    ? normalized.base.slice()
+    : Array(normalized.W * normalized.H).fill('');
+  const inks = normalized.effect === 'replay'
+    ? normalized.baseColors.slice()
+    : normalized.inks.slice();
 
-  if (source.effect === 'replay') {
-    const motionOnly = source.colorEffect === 'none' && cycles.motion === 1;
+  if (normalized.effect === 'replay') {
+    const motionOnly = normalized.colorEffect === 'none' && cycles.motion === 1;
     const progress = motionOnly ? frame / (frameCount - 1) : Math.min(1, phase / 0.75);
-    const eventsToShow = Math.floor(progress * source.events.length);
+    const eventsToShow = Math.floor(progress * normalized.events.length);
     for (let j = 0; j < eventsToShow; j++) {
-      const [cellIndex, glyph] = source.events[j];
+      const [cellIndex, glyph] = normalized.events[j];
       cells[cellIndex] = glyph;
-      inks[cellIndex] = source.eventColors[j];
+      inks[cellIndex] = normalized.eventColors[j];
     }
-  } else if (source.effect === 'bonfire') {
-    const picture = bonfireFrame(phase, source);
+  } else if (normalized.effect === 'bonfire') {
+    const picture = bonfireFrame(phase, normalized);
     cells.splice(0, cells.length, ...picture.cells);
     inks.splice(0, inks.length, ...picture.inks);
-  } else if (SOLID_EFFECTS.includes(source.effect)) {
-    const picture = solidMotionFrame(phase, source);
+  } else if (SOLID_EFFECTS.includes(normalized.effect)) {
+    const picture = solidMotionFrame(phase, normalized);
     cells.splice(0, cells.length, ...picture.cells);
     inks.splice(0, inks.length, ...picture.inks);
-  } else if (DEPTH_EFFECTS.includes(source.effect)) {
-    const picture = source.effect === 'space-warp'
-      ? spaceWarpFrame(phase, source)
-      : depthSurfaceFrame(phase, source);
+  } else if (DEPTH_EFFECTS.includes(normalized.effect)) {
+    const picture = normalized.effect === 'space-warp'
+      ? spaceWarpFrame(phase, normalized)
+      : depthSurfaceFrame(phase, normalized);
     cells.splice(0, cells.length, ...picture.cells);
     inks.splice(0, inks.length, ...picture.inks);
-  } else if (INTRO_MOTIONS.includes(source.effect)) {
-    const picture = introMotionFrame(phase, source);
+  } else if (INTRO_MOTIONS.includes(normalized.effect)) {
+    const picture = introMotionFrame(phase, normalized);
     cells.splice(0, cells.length, ...picture.cells);
     inks.splice(0, inks.length, ...picture.inks);
   } else {
-    applyGridMotion(frame, phase, source, cells, inks);
+    applyGridMotion(frame, phase, normalized, cells, inks);
   }
 
-  applyColorPass(colorPhase, source, cells, inks);
+  applyInversePass(colorPhase, normalized, cells);
+  applyColorPass(colorPhase, normalized, cells, inks);
   let colorPalette = 'pepto-pal';
   if (source.machine === 'plus4' || isPlus4ColorEffect(source.colorEffect)) {
     colorPalette = 'ted-pal';

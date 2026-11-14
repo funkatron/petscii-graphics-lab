@@ -208,7 +208,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Patterned wipe** | Reveal, hold, then hide the drawing. Choose Wipe direction and a Diagonal, Checkerboard or Blinds pattern. |
 | **Plasma field** | Intersecting color waves flow across occupied cells. Color → Direction, Waveform, Height and Cycles / loop shape the field; Sine is the starting waveform. Glyphs and the shared background stay unchanged. |
 | **Raster-style bars** | Blue/cyan/white bands move across occupied cells. Color → Direction, Waveform and Height shape the bands. Empty cells and the shared background stay unchanged. |
-| **Inverse pulse** | C64 glyphs alternate with their inverse slots. |
+| **Inverse pulse** | Under **Color animation**: glyphs alternate with their inverse slots. Stacks with movement (for example Scroll + Inverse pulse). |
 | **Color cycle** | Each cell cycles through all 16 inks, starting with its original color. |
 | **Rainbow wave** | Bands of eight C64 colors change the ink. Choose a cardinal or diagonal direction and a waveform. Glyphs remain stationary with **Still drawing**. |
 | **Bonfire** | Build rising, tapering flames using the drawing’s glyphs and inks as texture. Even one painted cell supplies the texture; empty drawings stay empty. Pair with Bonfire colors for a fire palette. |

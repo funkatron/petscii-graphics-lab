@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-14 — Inverse pulse → Color animation
+
+**What:** Moved Inverse pulse from Movement into Color (`colorEffect:'inverse'`). Legacy `effect:'inverse'` migrates on load. Stacks with true movement; no longer stacks with other color ramps.  
+**Touched:** `project-validation.js`, `animation-frames.js`, `index.html`, animation/c64/unified/frames/cell-colors tests, roadmap/README/maintainer-reference.
+
 ## 2026-11-14 — CI: install FFmpeg when video specs are focused
 
 **What:** Focused Playwright could select `animation-controls` (via `project-validation.js`) without installing `ffprobe`/`ffmpeg`. Selector now emits `ffmpeg`/`py65` tool flags; workflow installs them separately.  

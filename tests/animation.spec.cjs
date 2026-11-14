@@ -43,8 +43,18 @@ test('scroll GIF wraps cells and encodes loop duration and selected resolution',
  for(let f=0;f<4;f++)for(let x=0;x<4;x++)expect(rgbaAt(g,f,x*16+8,8)).toEqual(x===(4-f)%4?ink:dark);
 });
 test('inverse GIF uses actual reverse glyphs and preserves empty cells',async({page})=>{
- await loadProject(page,project([160,''],2,1));await ui(page,'#animationEffect','selectOption','inverse');await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','transparent');
+ await loadProject(page,project([160,''],2,1,{animation:{effect:'none',colorEffect:'inverse',seconds:1,scale:1,background:'transparent'}}));await ui(page,'#gifScale','selectOption','1');
  const g=decoded(await download(page,'#exportGif'));expect(g.r.numFrames()).toBe(2);expect(rgbaAt(g,0,4,4)).toEqual(ink);expect(rgbaAt(g,1,4,4)[3]).toBe(0);for(const f of [0,1])expect(rgbaAt(g,f,12,4)[3]).toBe(0);
+});
+test('scroll stacks with inverse pulse under Color animation',async({page})=>{
+ await loadProject(page,project([160,'','',''],4,1,{animation:{effect:'scroll-x',colorEffect:'inverse',seconds:1,scale:1,background:'transparent'}}));
+ await expect(page.locator('#animationEffect')).toHaveValue('scroll');
+ await expect(page.locator('#animationColor')).toHaveValue('inverse');
+ const g=decoded(await download(page,'#exportGif'));expect(g.r.numFrames()).toBe(4);
+ for(let f=0;f<4;f++)for(let x=0;x<4;x++){
+  const on=x===(4-f)%4,inverted=f>=2,pixel=rgbaAt(g,f,x*8+4,4);
+  if(on&&!inverted)expect(pixel).toEqual(ink);else expect(pixel[3]).toBe(0);
+ }
 });
 test('every effect exports and authentic glyphs render on a white background',async({page})=>{
  await loadProject(page,project([160,'','',''],2,2,{selectedGlyph:160}));await ui(page,'#gifScale','selectOption','1');await ui(page,'#gifBackground','selectOption','white');
@@ -74,7 +84,7 @@ test('undoing project import restores its animation settings and replay',async({
  const before=JSON.parse(await download(page,'#saveProject'));
  await loadProject(page,project([81],1,1,{animation:{effect:'inverse',seconds:1,scale:1,background:'dark'}}));
  await ui(page,'#undo');const restored=JSON.parse(await download(page,'#saveProject'));expect(restored.animation).toEqual(before.animation);expect(restored.drawingReplay).toEqual(before.drawingReplay);expect(restored.grid).toEqual(before.grid);
- await ui(page,'#redo');await expect(page.locator('#animationEffect')).toHaveValue('inverse');
+ await ui(page,'#redo');await expect(page.locator('#animationEffect')).toHaveValue('none');await expect(page.locator('#animationColor')).toHaveValue('inverse');
 });
 test('GIF export is a snapshot even when the canvas is edited during encoder loading',async({page})=>{
  await loadProject(page,project([160,'',''],3,1));await ui(page,'#animationEffect','selectOption','scroll');await ui(page,'#gifScale','selectOption','1');
