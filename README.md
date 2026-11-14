@@ -30,10 +30,13 @@ To share a picture instead, choose **Download artwork → Image → Download PNG
 
 ## Find a control
 
-The drawing strip stays visible when settings are hidden. Tap **☰** to show or hide settings and give the canvas more space.
+The drawing strip stays visible when settings are hidden. Tap **☰** to show or hide **editor settings** and give the canvas more space.
+
+Controls are grouped like an application: **Machine** (system host) · **Project** (editable file) · **Download** / **Play** (outputs and preview) · strip tools · sidebar editor settings.
 
 | You want to… | Use |
 | --- | --- |
+| Choose the host computer or VIC display look | **Machine** |
 | Choose a shape | **Glyphs** |
 | Change the brush color | **Ink** |
 | Draw or erase | **Paint** / **Eraser** |
@@ -42,9 +45,10 @@ The drawing strip stays visible when settings are hidden. Tap **☰** to show or
 | Reverse or restore an edit | **Undo** / **Redo** |
 | Change canvas dimensions | **☰ → Canvas setup** |
 | Change the shared background | **☰ → Colors → Background** |
-| Choose an animation | **☰ → Animation** |
+| Choose an animation | **☰ → Animation** (or **Play**, then open Animation settings) |
 | Keep or open editable artwork | **Project** |
-| Download a still, animation, or C64 data | **Download artwork** |
+| Open a pasted or `.txt` glyph grid | **Project → Open text grid**, or paste under **Download artwork → Raw bytes & text** |
+| Download a still, animation, or native program | **Download artwork** |
 
 ## Choose glyphs
 

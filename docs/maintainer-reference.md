@@ -12,9 +12,10 @@ For drawing instructions, start with the [user guide](../README.md).
 | Preview, replay, GIF, ZIP, or video | [Animation and export](#animation-and-export) |
 | Download buttons and cached files | [Download actions](#download-actions) |
 | Animated colors | [Color cycling](#color-cycling) |
-| Panels, controls, or resizing | [Workspace navigation](#workspace-navigation) |
+| Panels, controls, or resizing | [Workspace navigation](#workspace-navigation); [UI review — where controls belong](ui-review.md#where-controls-belong) |
 | Brush and cell colors | [C64 colors](#c64-colors) |
 | Machine modes, display palettes, Plus/4 TED, chrome | [Machine modes design](machine-modes.md) |
+| Application chrome layers (System / Project / Editor) | [UI review](ui-review.md#where-controls-belong); [`.cursorrules/app-like-ui-ia.md`](../.cursorrules/app-like-ui-ia.md) |
 | Source data and rebuilding glyphs | [Glyph provenance](#glyph-provenance-and-rebuilding) |
 
 ## Terms used here

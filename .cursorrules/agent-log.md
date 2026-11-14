@@ -1,5 +1,30 @@
 # Agent log
 
+## 2026-11-14 — CI: install FFmpeg when video specs are focused
+
+**What:** Focused Playwright could select `animation-controls` (via `project-validation.js`) without installing `ffprobe`/`ffmpeg`. Selector now emits `ffmpeg`/`py65` tool flags; workflow installs them separately.  
+**Touched:** `scripts/ci-select-tests.cjs`, `.github/workflows/ci.yml`, `tests/ci-selection.unit.mjs`.
+
+## 2026-11-14 — Cell aspect: PRG stays hardware-true
+
+**What:** Owner: do **not** change aspect ratio in native PRG/D64. Cell shape is editor (+ optional raster) only.  
+**Updated:** [cell-aspect-toggle.md](./cell-aspect-toggle.md), `docs/roadmap.md`.
+
+## 2026-11-14 — Cell aspect / CRT proportion toggle research
+
+**What:** Exploration only — square vs CRT cell shape for editor (and optional exports). VIC/TED **5∶6**, VDC **5∶12**; control in `#machineMenu`; device pref; default square.  
+**Saved:** [cell-aspect-toggle.md](./cell-aspect-toggle.md). Linked from `docs/roadmap.md`.
+
+## 2026-11-14 — Application-like UI IA implementation
+
+**What:** System/Project/Editor header groups; sidebar “Editor settings”; Machine persistence (missing → keep current; New Project writes current); import cross-links; compact save status; Animation settings from preview banner.  
+**Docs:** `docs/ui-review.md`, README Find a control, `docs/machine-modes.md` Persistence, roadmap, maintainer-reference. Brief: [app-like-ui-ia.md](./app-like-ui-ia.md).
+
+## 2026-11-14 — Application-like UI IA exploration
+
+**What:** Exploration only — map chrome to System / Project / Editor / Modal layers; placement recs; open product questions; phased IA PRs.  
+**Saved:** [app-like-ui-ia.md](./app-like-ui-ia.md).
+
 ## 2026-11-13 — C128 80-col (VDC) editor + native player
 
 **What:** Machine `c128-80` with RGBI drawing (`vdc-colors.js`), 80×25 canvas, VIC↔VDC ink remap, C64 glyph atlas. Native PRG/D64 via `c128-vdc-export.js` (`$1C01`, VDC `$D600` handshake, restore pre-RUN 40/80 on STOP). `MACHINE` / `INDEX_SPACE` constants in `machine-modes.js` and new/touched 80-col paths; repo-wide literal cleanup and non-square cell aspect left as follow-ups.

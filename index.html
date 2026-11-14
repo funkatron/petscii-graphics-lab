@@ -14,13 +14,29 @@
 </head>
 <body>
 <div class="app">
-<header><button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide tools">☰</button><div class="app-title"><h1>PETSCII Graphics Lab</h1></div><details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><p class="note" id="machineHelp">Application setting for host chrome and color presentation. Artwork indices stay put when only the display palette changes.</p></div></details><details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
+<header>
+<div class="header-brand" role="group" aria-label="App">
+<button id="toggle" aria-expanded="true" aria-controls="sidebar" title="Show or hide editor settings">☰</button>
+<div class="app-title"><h1>PETSCII Graphics Lab</h1></div>
+</div>
+<div class="header-system" role="group" aria-label="System">
+<details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><p class="note" id="machineHelp">System setting for the host computer, editor chrome, and VIC display RGB. Cell inks stay put when only the display palette changes. Drawing colors live under Colors.</p></div></details>
+</div>
+<div class="header-project" role="group" aria-label="Project">
+<details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
 <div class="row"><button id="openTextGrid">Open text grid</button></div><input id="textGridFile" type="file" accept=".txt,text/plain" hidden>
-<p class="note">Text grids replace the drawing and can be undone. Project files keep editable art and replay. Changes also autosave on this device.</p></fieldset>
-</div></details><span id="saveStatus" class="note" role="status">Saved on this device</span><button id="downloadOpen">Download artwork</button><button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button></header>
+<p class="note">Text grids replace the drawing and can be undone. You can also paste a grid under <strong>Download artwork → Raw bytes &amp; text</strong>. Project files keep editable art and replay. Changes also autosave on this device.</p></fieldset>
+</div></details>
+<span id="saveStatus" class="note" role="status" data-state="saved" title="Saved on this device"><span class="save-status-full">Saved on this device</span><span class="save-status-compact" aria-hidden="true">Saved</span></span>
+</div>
+<div class="header-actions" role="group" aria-label="Download and preview">
+<button id="downloadOpen">Download artwork</button>
+<button id="quickPlay" aria-label="Play animation" aria-pressed="false" title="Play or pause animation">▶</button>
+</div>
+</header>
 <div class="drawing-strip" role="toolbar" aria-label="Drawing controls"><button id="glyphToggle" aria-expanded="false" aria-controls="glyphPicker" title="Choose a glyph"><canvas id="glyphPreview" width="24" height="24" aria-hidden="true"></canvas><span>Glyphs</span></button><button id="inkQuick" aria-label="Choose ink color" popovertarget="inkPopover" aria-controls="inkPopover"><span id="inkChip" class="color-chip"></span><span class="tool-label">Ink</span></button><button id="paint" aria-pressed="true">Paint</button><button id="erase" aria-pressed="false">Eraser</button><details id="symmetryMenu"><summary aria-label="Symmetry options" id="symmetrySummary">↔<span class="tool-label" id="symmetryLabel"> Symmetry</span><span class="symmetry-chevron" aria-hidden="true">⌄</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div>
 </div></details><button id="undo" aria-label="Undo" disabled>↶<span class="tool-label"> Undo</span></button><button id="redo" aria-label="Redo" disabled>↷<span class="tool-label"> Redo</span></button></div><section id="inkPopover" popover="auto" aria-labelledby="inkTitle"><div class="dialog-heading"><h2 id="inkTitle">Brush ink</h2><button id="inkClose" popovertarget="inkPopover" popovertargetaction="hide" aria-label="Close ink palette">✕</button></div><p id="inkSelection" class="note"></p><p class="note">For your next strokes. Existing cells keep their colors.</p><div id="quickInkPalette" class="color-grid" role="group" aria-label="Brush ink colors"></div></section><div class="layout">
-<aside id="sidebar" class="sidebar" aria-label="Drawing tools">
+<aside id="sidebar" class="sidebar" aria-label="Editor settings">
 <details id="canvasDetails" class="tool-group"><summary>Canvas setup</summary><div class="group-body">
 <fieldset class="sidebar-section" id="canvasSizeGroup"><legend>Canvas size</legend>
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option selected>16</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option selected>16</option></select></div></div>
@@ -66,7 +82,7 @@
 </div></details></aside>
 <main class="stage">
 <div class="stagebar"><span id="dimensions">16 × 16</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
-<div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="returnDrawing">Return to drawing</button></div><div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
+<div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="editAnimationFromPreview" type="button">Animation settings</button><button id="returnDrawing">Return to drawing</button></div><div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
 <div class="task-progress"><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
 <aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
@@ -106,7 +122,7 @@
 <button id="exportC64" class="full-width">Download C64 program (.prg)</button><p class="note" id="c64ExportHelp">Runs on a standard C64 or emulator. Up to 40 × 25 cells, centered on screen. Uses the canvas background (also drives the border). Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. <a href="https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md" target="_blank" rel="noopener">Loading instructions &amp; limits</a>.</p>
 <details class="help-disclosure" id="rawDataDetails"><summary>Raw bytes &amp; text</summary>
 <div class="row"><button id="text">Download text</button><button id="screenCodes">Glyph IDs (.bin)</button></div><button id="colorRam" class="full-width">Export color RAM (.bin)</button>
-<label class="glyph-filter"><input id="textColors" type="checkbox">Include colors in text</label><p class="note">Paste a labeled glyph grid below, then choose Import text. Color text also restores each cell’s ink and the background. Import is undoable.</p>
+<label class="glyph-filter"><input id="textColors" type="checkbox">Include colors in text</label><p class="note">Paste a labeled glyph grid below, then choose Import text. Color text also restores each cell’s ink and the background. Import is undoable. To open a <code>.txt</code> file from disk, use <strong>Project → Open text grid</strong>.</p>
 <textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div></details>
 <details class="help-disclosure"><summary>Data formats</summary><p class="note">Glyph IDs select one of 512 source atlas slots across both C64 character sets. Text uses PETSCII-GLYPHS with three-digit hexadecimal IDs. Include colors in text adds cell inks and the shared background; imports detect either format automatically. Binary uses two bytes per cell, little-endian, with FFFF for empty. These are not native screen-code or PETSCII bytes. Color RAM stores one ink index per cell. JSON keeps the complete artwork.</p></details>
 </div></div>
@@ -188,7 +204,7 @@ function selectExportTab(tab){
 for(const tab of exportTabs){tab.onclick=()=>selectExportTab(tab);tab.onkeydown=e=>{let index=exportTabs.indexOf(tab);if(e.key==='ArrowRight')index=(index+1)%3;else if(e.key==='ArrowLeft')index=(index+2)%3;else if(e.key==='Home')index=0;else if(e.key==='End')index=2;else return;e.preventDefault();selectExportTab(exportTabs[index]);exportTabs[index].focus()}}
 $('stillFormat').onchange=()=>{const svg=$('stillFormat').value==='svg';$('png').hidden=svg;$('svg').hidden=!svg;$('pngResolution').hidden=svg;updateDownloadPreview()};
 $('animationFormat').onchange=()=>{for(const group of document.querySelectorAll('[data-motion-format]'))group.hidden=group.dataset.motionFormat!==$('animationFormat').value};
-$('editAnimation').onclick=()=>{$('downloadDialog').close();$('sidebar').classList.remove('closed');$('toggle').setAttribute('aria-expanded','true');$('animationDetails').open=true;$('animationEffect').focus();$('animationDetails').scrollIntoView({block:'nearest'})};
+$('editAnimation').onclick=()=>openAnimationSettings();
 function validVideoRepeats(n){return Number.isInteger(n)&&n>=1&&n<=100}
 function updateVideoDuration(){
  const count=Number($('videoRepeats').value),seconds=Number($('animationSeconds').value);
@@ -340,14 +356,14 @@ function syncMachineControls(){
  $('displayPaletteField').hidden=ted||vdc;
  $('machineSummary').textContent=machineSummary(workspaceMachine,workspacePalette);
  if(ted){
-  $('machineHelp').textContent='Plus/4 uses the TED character set and full TED drawing palette (121 colors). Native Plus/4 program/disk download is available; C64 color RAM export is not.';
-  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. Plus/4 uses all 121 TED colors (chroma × luma).';
+  $('machineHelp').textContent='System host: Plus/4 uses the TED character set and full TED drawing palette (121 colors). Native Plus/4 program/disk download is available; C64 color RAM export is not.';
+  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. Plus/4 uses all 121 TED colors (chroma × luma). Display palette is hidden in this mode.';
  }else if(vdc){
-  $('machineHelp').textContent='C128 80-col uses VDC RGBI drawing colors (not Pepto) and the C64 glyph atlas. Canvas width up to 80. Native 80-col PRG/D64 download is available.';
-  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. C128 80-col uses 16 VDC RGBI colors.';
+  $('machineHelp').textContent='System host: C128 80-col uses VDC RGBI drawing colors (not Pepto) and the C64 glyph atlas. Canvas width up to 80. Native 80-col PRG/D64 download is available.';
+  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. C128 80-col uses 16 VDC RGBI colors. Display palette is under Machine on VIC hosts only.';
  }else{
-  $('machineHelp').textContent='Display palette changes how the same VIC color indices look. Switching machines remaps inks (and glyphs when crossing TED) and can be undone.';
-  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.';
+  $('machineHelp').textContent='System host: Display palette changes how the same VIC color indices look. Switching machines remaps inks (and glyphs when crossing Plus/4) and can be undone.';
+  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. VIC RGB look (Pepto / Colodore / VICE / RGB) is chosen under Machine → Display palette — not here.';
  }
  refreshColumnOptions();
  applyMachineAppearance();updateAnimationColorOptions();updateNativeExportAvailability();
@@ -649,6 +665,7 @@ function toggleAnimation(){
 $('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
  for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Ready to draw')}else toggleAnimation()};
 $('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
+$('editAnimationFromPreview').onclick=()=>openAnimationSettings();
 for(const id of [...Object.keys(SOLID_CAMERA_VALUES),'depthWaveShape','depthTravel','animationEffect','animationColor','animationSeconds','animationCycles','animationColorCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude','waveLength','colorWaveLength','wipePattern'])$(id).onchange=()=>{if(id==='animationColor'&&['raster-bars','plus4-raster'].includes($('animationColor').value))$('colorWaveDirection').value='up';if(id==='animationColor'&&['plasma','plus4-plasma'].includes($('animationColor').value)){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
 for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseAnimation()});
@@ -961,15 +978,22 @@ $('textGridFile').onchange=async e=>{
  finally{input.value=''}
 };
 function projectData(){return {format:'petscii-stencil-lab',version:3,machine:workspaceMachine,palette:workspacePalette,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()}}}
-function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()));$('saveStatus').textContent='Saved on this device';$('saveStatus').dataset.state='saved';$('saveFailure').hidden=true}catch{$('saveStatus').textContent='Not saved — download a project backup';$('saveStatus').dataset.state='failed';$('saveFailure').hidden=false;setStatus('Autosave unavailable; download JSON to keep your work')}}
+function setSaveStatus(state,fullText,compactText){
+ const el=$('saveStatus');
+ el.dataset.state=state;
+ el.title=fullText;
+ el.querySelector('.save-status-full').textContent=fullText;
+ el.querySelector('.save-status-compact').textContent=compactText;
+}
+function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()));setSaveStatus('saved','Saved on this device','Saved');$('saveFailure').hidden=true}catch{setSaveStatus('failed','Not saved — download a project backup','Error');$('saveFailure').hidden=false;setStatus('Autosave unavailable; download JSON to keep your work')}}
 function applyProject(data){
  stopAnimation();
- // Missing machine/palette on older v3 files mean C64 + Pepto.
- workspaceMachine=MACHINES[data.machine]?data.machine:'c64';
- workspacePalette=isDisplayPaletteId(data.palette)?data.palette:'pepto';
+ // Missing machine/palette: keep the current workspace host (do not force C64 / Pepto).
+ if(MACHINES[data.machine])workspaceMachine=data.machine;
+ if(isDisplayPaletteId(data.palette))workspacePalette=data.palette;
  writeWorkspacePrefs({machine:workspaceMachine,palette:workspacePalette});
  syncMachineControls();
- // Projects may omit colors; fall back to the machine's boot defaults (C64: light blue on blue).
+ // Projects may omit colors; fall back to the machine's boot defaults.
  setColors(data.colors??{ink:getMachine(workspaceMachine).defaultInk,background:getMachine(workspaceMachine).defaultBackground});W=data.columns;H=data.rows;grid=[...data.grid];cellColors=data.cellColors?.slice()??Array(grid.length).fill(colors.ink);if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice());replayBaseColors=data.drawingReplay.baseColors?.slice()??Array(grid.length).fill(colors.ink);replayEventColors=data.drawingReplay.eventColors?.slice()??Array(replayEvents.length).fill(colors.ink)}else resetReplay();setAnimationSettings(data.animation);$('columns').value=String(W);$('rows').value=String(H);
  glyph=Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=511?data.selectedGlyph:64;
  erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';drawPalette();fit();
@@ -1023,10 +1047,19 @@ $('projectFile').onchange=async e=>{
  const file=e.target.files&&e.target.files[0];if(!file)return;
  try{
   const data=JSON.parse(await file.text());
-  validateProject(data);remember();applyProject(data);setStatus(grid.some(g=>typeof g==='number')&&!rom?'Project loaded: reload C64 glyphs to render screen codes':'Project loaded');
+  validateProject(data,{fallbackMachine:workspaceMachine});remember();applyProject(data);setStatus(grid.some(g=>typeof g==='number')&&!rom?'Project loaded: reload C64 glyphs to render screen codes':'Project loaded');
  }catch(err){setStatus('Load failed: '+err.message)}
  e.target.value='';
 };
+function openAnimationSettings(){
+ $('downloadDialog').close();
+ $('sidebar').classList.remove('closed');
+ $('toggle').setAttribute('aria-expanded','true');
+ $('toggle').textContent='✕';
+ $('animationDetails').open=true;
+ $('animationEffect').focus({preventScroll:true});
+ $('animationDetails').scrollIntoView({block:'nearest'});
+}
 // Layout changes can resize the drawing region while observers are being delivered.
 // Fit on the next animation frame to avoid writing layout during that delivery.
 let fitRAF=null;
@@ -1128,7 +1161,7 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
 // Do not autosave until the glyph asset and existing draft have been restored.
 $('sidebar').inert=true;$('glyphPicker').inert=true;$('glyphToggle').disabled=true;canvas.style.pointerEvents='none';
 try{await loadBuiltinGlyphs();glyph=64;updateSourceInfo()}catch{updateSourceInfo();setStatus('C64 glyphs unavailable. Reload glyphs to resume drawing.')}
-try{const saved=JSON.parse(localStorage.getItem(PROJECT_KEY));if(saved){validateProject(saved);applyProject(saved);setStatus('Autosaved project restored'+(!rom&&grid.some(g=>typeof g==='number')?'; reload C64 glyphs to render codes':''))}}catch{setStatus('Saved draft could not be restored; load a JSON backup')}
+try{const saved=JSON.parse(localStorage.getItem(PROJECT_KEY));if(saved){validateProject(saved,{fallbackMachine:workspaceMachine});applyProject(saved);setStatus('Autosaved project restored'+(!rom&&grid.some(g=>typeof g==='number')?'; reload C64 glyphs to render codes':''))}}catch{setStatus('Saved draft could not be restored; load a JSON backup')}
 $('showAlphanumerics').checked=false;syncMachineControls();updateAnimationOptions();updateColorUI();initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
 })();
 </script></body>

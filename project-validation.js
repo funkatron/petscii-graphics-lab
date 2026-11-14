@@ -37,9 +37,9 @@ const ALLOWED_SECONDS = [0.5, 1, 2, 4, 8, 12];
 const ALLOWED_SCALE = [1, 2, 4];
 const ALLOWED_BACKGROUNDS = ['dark', 'white', 'transparent'];
 
-function projectMachine(data) {
+function projectMachine(data, fallbackMachine = 'c64') {
   if (data?.machine === undefined) {
-    return 'c64';
+    return isMachineId(fallbackMachine) ? fallbackMachine : 'c64';
   }
   return data.machine;
 }
@@ -248,12 +248,19 @@ function validateAnimationField(data) {
   }
 }
 
-export function validateProject(data) {
+/**
+ * @param {object} data
+ * @param {{fallbackMachine?: string}} [options] When `data.machine` is missing, validate
+ *   inks/dimensions against this host (workspace machine on open). Defaults to c64.
+ */
+export function validateProject(data, {fallbackMachine = 'c64'} = {}) {
   if (!data || data.format !== 'petscii-stencil-lab' || data.version !== 3) {
     throw Error('Only version 3 unified glyph projects are supported');
   }
   validateMachineFields(data);
-  validateColorsField(data);
+  const effectiveMachine = projectMachine(data, fallbackMachine);
+  const view = data.machine !== undefined ? data : {...data, machine: effectiveMachine};
+  validateColorsField(view);
   if (data.glyphSource !== undefined && data.glyphSource !== 'builtin') {
     throw Error('Only built-in C64 glyph projects are supported');
   }
@@ -266,7 +273,7 @@ export function validateProject(data) {
   if (data.charset !== undefined) {
     throw Error('Whole-drawing character sets are no longer supported');
   }
-  validateGrid(data);
-  validateDrawingReplay(data);
+  validateGrid(view);
+  validateDrawingReplay(view);
   validateAnimationField(data);
 }

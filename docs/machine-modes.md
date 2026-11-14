@@ -36,10 +36,12 @@ Exploratory MCP chrome demos live under `agents/petscii-preview/` and are **not*
 
 ### Persistence
 
-- Optional v3 project fields: `machine` (`c64` | `c128` | `c128-80` | `plus4`, default `c64`) and `palette` (`pepto` | `colodore` | `vice` | `rgb`, default `pepto`).
-- Missing fields on existing v3 files mean `c64` + `pepto`.
-- Also store last Machine + Palette in a small device preference key (for example `petscii-workspace-prefs`) for New Project / fresh sessions.
-- Reject unknown `machine` / `palette` values atomically. Color range validation **depends on** `machine` (VIC `0–15` vs TED `0–120`).
+- Optional v3 project fields: `machine` (`c64` | `c128` | `c128-80` | `plus4`) and `palette` (`pepto` | `colodore` | `vice` | `rgb`).
+- **When present**, project `machine` / `palette` are authoritative on open (with existing VIC↔TED↔VDC remap / confirm / Undo rules).
+- **When `machine` is missing**, keep the **current** workspace machine (do not force `c64`). Same for a missing `palette`: keep the current display palette.
+- **New Project** keeps the current machine and writes `machine` / `palette` into the new project JSON.
+- Device preference key `petscii-workspace-prefs` seeds Machine + Palette on a **fresh session**; changing Machine in the UI still updates those prefs.
+- Reject unknown `machine` / `palette` values atomically. Color range validation **depends on** the effective machine (VIC/VDC `0–15` vs TED `0–120`).
 
 ### Machine switch vs palette switch
 
