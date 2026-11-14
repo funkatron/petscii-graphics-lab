@@ -3,14 +3,14 @@
  * Default path uses TED character ROM with hardware reverse ($FF07 bit7 clear).
  * Mixed-bank artwork installs a RAM charset built from TED glyphBits at $F000.
  */
-import {basicSysStub, createD64Disk} from './c64-export.js';
+import {basicSysStub, createD64Disk, nativeMemoryLimit} from './c64-export.js';
 import {tedToAttr} from './plus4-colors.js';
 
 export {createD64Disk};
 
 const ORIGIN = 0x1001;
 // Plus/4 boot screen: 60671 BYTES FREE ($FD00 − $1001). RAM charset at $F000 sits above that top.
-const MEMORY_LIMIT = 60671;
+const MEMORY_LIMIT = nativeMemoryLimit('plus4');
 const CHARSET_RAM = 0xf000;
 const SCREEN = 0x0c00;
 const ATTRS = 0x0800;

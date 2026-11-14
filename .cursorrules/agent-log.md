@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-14 — Memory DRY + TED bank‑1 authenticity + readiness smoke
+
+**What:** TED atlas rebuilt from authentic **2 KB** kernal chargen (1 KB upper + 1 KB lower; HW inverse per bank). Prior 4 KB extract had pulled KERNAL into bank 1. `plus4-export` / `c128-vdc-export` import `nativeMemoryLimit()`. Readiness smoke asserts Plus/4 `60,671` and C128 80-col `58,109` in the download panel. Glyph helper stays in `tests/`.  
+**Touched:** `scripts/build_glyphs.py`, `assets/ted-glyphs.svg`, `tests/ted-glyphs.unit.mjs`, `tests/glyph-svg-bits.mjs`, `.cursorrules/c64-ted-glyph-diff.md`, `plus4-export.js`, `c128-vdc-export.js`, `tests/machine-modes.spec.cjs`, `scripts/ci-select-tests.cjs`, maintainer-reference / roadmap.
+
 ## 2026-11-14 — Cell shape Square / CRT (editor Phase A)
 
 **What:** `#workspaceCellAspect` in Machine menu; device pref; `fit()` uses VIC/TED 5∶6 or VDC 5∶12 for CRT. Native PRG/D64 and rasters unchanged.  

@@ -18,7 +18,7 @@
  *   - Literal runs are capped at 128 bytes so interrupts are never masked for
  *     much longer than one jiffy (see the SEI note in the plane writer).
  */
-import {basicSysStub, createD64Disk} from './c64-export.js';
+import {basicSysStub, createD64Disk, nativeMemoryLimit} from './c64-export.js';
 import {atlasIdToVdcCell, vdcAttr} from './vdc-colors.js';
 
 export {createD64Disk};
@@ -26,7 +26,7 @@ export {createD64Disk};
 const MACHINE = 'c128-80';
 const ORIGIN = 0x1c01;
 // C128 FRE(0) for bank-0 program text (banner 122365 includes bank 1 variables). VDC charset is not in bank 0.
-const MEMORY_LIMIT = 58109;
+const MEMORY_LIMIT = nativeMemoryLimit('c128-80');
 const VDC_COLUMNS = 80;
 const VDC_ROWS = 25;
 const VDC_CELLS = VDC_COLUMNS * VDC_ROWS;

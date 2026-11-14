@@ -66,8 +66,15 @@ export function differingAtlasIds(a, b) {
 /**
  * Expected C64↔TED differing atlas IDs for the shipped sheets.
  * Bank 0 matches except atlas 128 (C64 soft-inverse @ quirk vs TED XOR).
- * Bank 1 (256–511) is TED’s alternate set — same slots, different pixels.
+ * Bank 1 mostly shares the lowercase alphabet; a small set of punctuation /
+ * graphics slots (and their hardware inverses) differ, plus atlas 384 for the
+ * same soft-inverse @ quirk on the lowercase bank.
  */
 export function expectedC64TedDifferingIds() {
-  return [128, ...Array.from({length: 256}, (_, i) => 256 + i)];
+  return [
+    128,
+    258, 259, 260, 261, 262, 264, 265, 266, 267, 268, 269, 275, 276, 277, 279, 281,
+    384,
+    386, 387, 388, 389, 390, 392, 393, 394, 395, 396, 397, 403, 404, 405, 407, 409,
+  ];
 }
