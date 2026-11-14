@@ -305,7 +305,7 @@ button,select,.field input[type=number]{min-height:44px}
 .project-menu .row:has(>button[hidden]){display:none}
 .project-name{display:flex;align-items:center;gap:6px}.project-name input{flex:1;width:0}.project-name span{font-size:.8rem;flex:none}
 .project-menu fieldset{min-width:0;margin:0 0 12px;padding:10px;border:1px solid var(--case-edge);border-radius:8px}.project-menu fieldset:last-child{margin-bottom:0}.project-menu legend{font-size:.8rem;font-weight:700}.project-menu input{box-sizing:border-box;max-width:100%;min-width:0}.project-menu .row{flex-direction:column}.project-menu .save-hint{font-size:.72rem;line-height:1.4;margin:6px 0}
-#saveStatus{max-width:145px;font-size:.68rem}
+#saveStatus{max-width:160px;font-size:.68rem}
 .preview-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--stage-caption);font-size:.8rem}
 .preview-banner button{font-size:.75rem}
 .task-progress:has(button[hidden]){display:none}
@@ -326,7 +326,7 @@ dialog::backdrop{background:#0009}
 #glyphPin[aria-pressed=true]{background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);box-shadow:var(--key-pressed-shadow);transform:translateY(2px)}
 .picker-title h2{margin-right:auto}.glyph-picker.pinned{position:static;width:300px;border-radius:0;box-shadow:none;flex:none}
 #downloadPreview{width:100%;object-fit:contain}
-@media(max-width:800px){#saveStatus{display:none}.drawing-strip{gap:4px}.tool-label{display:none}.drawing-strip button{padding:8px 10px}}
+@media(max-width:800px){.drawing-strip{gap:4px}.tool-label{display:none}.drawing-strip button{padding:8px 10px}}
 @media(max-width:600px){#downloadOpen{font-size:.76rem;padding:8px}#projectMenu>summary{padding:11px 7px}.download-layout{grid-template-columns:1fr;gap:0}#downloadFigure{order:-1;margin:10px 0}#downloadPreview{max-height:120px}#downloadDescription{display:none}#quickPlay{min-width:44px;padding:8px}.drawing-strip{padding:6px 5px}#glyphToggle{padding:7px}#glyphToggle span{display:none}#inkQuick{padding:8px}#inkChip{margin:0}.app-title .subtitle{display:none}}
 
 .animation-section,.sidebar-section{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:0 0 8px;padding:6px;border:1px solid var(--case-edge);border-radius:8px;min-width:0}

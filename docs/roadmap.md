@@ -25,6 +25,7 @@ Design contract: [machine modes](machine-modes.md).
 - [x] Gate C64 PRG/Color RAM and color text in Plus/4 mode; contextual animation lists (TED-native effect ids retained).
 - [x] Add Playwright/unit coverage; update the design doc’s shipped section (Chromium machine-modes spec).
 - [x] C128 80-column (VDC) editor + native PRG/D64 (`c128-vdc-export.js`).
+- [ ] Application-like UI IA: System / Project / Editor header grouping and Machine persistence (see `.cursorrules/app-like-ui-ia.md`).
 - [ ] Follow-up: TED-capable color text-grid format.
 - [ ] Follow-up: non-square cell aspect for canvas + raster exports.
 - [ ] Follow-up: repo-wide `MACHINE` / `INDEX_SPACE` literal cleanup.

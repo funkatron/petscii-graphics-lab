@@ -13,3 +13,14 @@ test('rejects legacy charset field',()=>{
 test('rejects invalid animation effect',()=>{
  assert.throws(()=>validateProject({...base,animation:{effect:'color-wave',seconds:2,scale:2,background:'dark'}}),/animation settings/);
 });
+
+test('missing machine validates inks against fallbackMachine',()=>{
+ const tedInks={
+  ...base,
+  cellColors:[0,80,0,80],
+  colors:{ink:0,background:80},
+ };
+ assert.throws(()=>validateProject(tedInks),/colors|cell/);
+ assert.doesNotThrow(()=>validateProject(tedInks,{fallbackMachine:'plus4'}));
+ assert.doesNotThrow(()=>validateProject(base));
+});

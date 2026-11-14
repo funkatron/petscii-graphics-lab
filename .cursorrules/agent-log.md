@@ -1,5 +1,15 @@
 # Agent log
 
+## 2026-11-14 — Application-like UI IA implementation
+
+**What:** System/Project/Editor header groups; sidebar “Editor settings”; Machine persistence (missing → keep current; New Project writes current); import cross-links; compact save status; Animation settings from preview banner.  
+**Docs:** `docs/ui-review.md`, README Find a control, `docs/machine-modes.md` Persistence, roadmap, maintainer-reference. Brief: [app-like-ui-ia.md](./app-like-ui-ia.md).
+
+## 2026-11-14 — Application-like UI IA exploration
+
+**What:** Exploration only — map chrome to System / Project / Editor / Modal layers; placement recs; open product questions; phased IA PRs.  
+**Saved:** [app-like-ui-ia.md](./app-like-ui-ia.md).
+
 ## 2026-11-13 — C128 80-col (VDC) editor + native player
 
 **What:** Machine `c128-80` with RGBI drawing (`vdc-colors.js`), 80×25 canvas, VIC↔VDC ink remap, C64 glyph atlas. Native PRG/D64 via `c128-vdc-export.js` (`$1C01`, VDC `$D600` handshake, restore pre-RUN 40/80 on STOP). `MACHINE` / `INDEX_SPACE` constants in `machine-modes.js` and new/touched 80-col paths; repo-wide literal cleanup and non-square cell aspect left as follow-ups.

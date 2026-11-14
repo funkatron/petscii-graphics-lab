@@ -6,8 +6,47 @@
 button,select,.field input[type=number]{min-height:38px;font-size:.875rem;padding:6px 9px}
 .color-grid button{min-height:0;padding:0;border:0;border-radius:0;box-shadow:none;transform:none}
 .drawing-strip{justify-content:flex-start;gap:8px;padding:6px 10px;flex-wrap:wrap;align-items:center;column-gap:6px}
-header{height:auto;min-height:61px;flex-wrap:wrap;align-items:center;column-gap:8px}
+header{height:auto;min-height:61px;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:6px}
 header .app-title{flex-basis:0}
+header .header-brand,
+header .header-system,
+header .header-project,
+header .header-actions{
+ display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;
+}
+header .header-system{
+ margin-inline-start:4px;
+ padding-inline-start:10px;
+ border-inline-start:1px solid color-mix(in srgb,var(--case-seam) 70%,transparent);
+}
+header .header-project{
+ margin-inline-start:4px;
+ padding-inline-start:10px;
+ border-inline-start:1px solid color-mix(in srgb,var(--case-seam) 70%,transparent);
+}
+header .header-actions{
+ margin-inline-start:auto;
+ padding-inline-start:10px;
+ border-inline-start:1px solid color-mix(in srgb,var(--case-seam) 70%,transparent);
+}
+header #saveStatus{
+ display:inline-flex;align-items:center;gap:0;max-width:160px;
+}
+header #saveStatus .save-status-compact{display:none}
+@media(max-width:800px){
+ header #saveStatus{display:inline-flex;max-width:none}
+ header #saveStatus .save-status-full{display:none}
+ header #saveStatus .save-status-compact{
+  display:inline-flex;align-items:center;min-height:28px;padding:0 8px;border-radius:999px;
+  font-size:.7rem;font-weight:650;letter-spacing:.02em;
+  border:1px solid var(--header-control-border,var(--case-seam));
+  background:var(--header-control-bg,transparent);
+  color:var(--header-control-fg,var(--case-text));
+ }
+ header #saveStatus[data-state=failed] .save-status-compact{
+  border-color:#b44;background:#4a1e1e;color:#ffe8e8;
+ }
+}
 .text-entry{flex:none;max-height:35%;overflow:auto;border:1px solid var(--panel-well-border);border-radius:9px;padding:8px}
 .text-entry textarea{min-height:48px;max-height:90px;font:1rem/1.3 ui-monospace,monospace;resize:vertical}
 .text-entry .row{align-items:center;margin:4px 0 0}
@@ -121,7 +160,6 @@ dialog button[hidden]{display:none!important}
  .sidebar{position:static;width:280px;box-shadow:none}
  .sidebar.closed{width:0;padding:0;visibility:hidden}
  .app-title h1{font-size:.95rem}
- #saveStatus{display:none}
 }
 @media(max-width:600px){
  .drawing-strip{gap:4px}

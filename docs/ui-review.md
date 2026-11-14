@@ -39,16 +39,24 @@ The review aimed to preserve:
 
 ## Where controls belong
 
-| Location | Contents |
-| --- | --- |
-| Header | Project menu, device-save status, Download artwork, Play/Pause |
-| Drawing strip | Selected glyph, ink, Paint/Eraser, symmetry, Undo/Redo |
-| Main workspace | Canvas, dimensions, preview state, Return to drawing |
-| Glyph panel | Families, recents, favorites, letter toggle, character options |
-| Settings sidebar | Canvas setup, colors, animation effect and duration, help |
-| Download panel | Output type, format, options, preview, dimensions/timing, Download |
+Controls follow outer→inner application layers. Exploration notes: [`.cursorrules/app-like-ui-ia.md`](../.cursorrules/app-like-ui-ia.md).
 
-The drawing strip stays in place as panels open. Navigation changes do not edit artwork or start playback.
+| Layer | Location | Contents |
+| --- | --- | --- |
+| **System** | Header Machine menu | Host computer (C64 / C128 40-col / C128 80-col / Plus/4) and VIC Display palette. System-level chrome: changes capabilities, glyphs, export paths, and shell theme. |
+| **Project** | Header Project menu + save status | New / Open / Save / Share, project name, Open text grid, device autosave status |
+| **Editor quick** | Header Download + Play | Download artwork (outputs); Play/Pause animation preview |
+| **Editor tools** | Drawing strip | Selected glyph, ink, Paint/Eraser and other tools, symmetry, Undo/Redo |
+| **Editor panels** | Sidebar (editor settings) | Canvas setup, colors (cell ink/background), animation effect and duration, help |
+| **Editor focus** | Main workspace | Canvas, dimensions, preview state, Return to drawing |
+| **Editor material** | Glyph panel | Families, recents, favorites, letter toggle, character options |
+| **Transient / modal** | Download dialog, ink popover, help popovers | Output type, format, options, preview, dimensions/timing, Download; raw bytes & paste import |
+
+Header visual clusters: `[☰ title] [Machine] | [Project + save status] | [Download] [Play]`.
+
+**Machine persistence:** the Machine control stays system-level in the header. The v3 project `machine` / `palette` fields are authoritative when present. Opening a project **without** `machine` keeps the current host (does not force C64). New Project keeps the current machine and writes it into the new file. Device prefs seed a fresh browser session.
+
+The drawing strip stays in place as panels open. Navigation changes do not edit artwork or start playback. Display palette (under Machine) remaps VIC RGB presentation; Colors sidebar edits cell ink and shared background.
 
 ## Keep these interaction rules
 

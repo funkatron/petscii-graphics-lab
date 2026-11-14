@@ -159,6 +159,54 @@ test('Plus/4 keeps native program, gates color RAM and color text; VIC controls 
  await expect(page.locator('#textColors')).toBeEnabled();
 });
 
+test('header exposes System Project and Download groups; sidebar is editor settings',async({page})=>{
+ await expect(page.locator('header .header-system')).toHaveAttribute('aria-label','System');
+ await expect(page.locator('header .header-project')).toHaveAttribute('aria-label','Project');
+ await expect(page.locator('header .header-actions')).toHaveAttribute('aria-label','Download and preview');
+ await expect(page.locator('#sidebar')).toHaveAttribute('aria-label','Editor settings');
+ await expect(page.locator('#machineMenu')).toBeVisible();
+ await expect(page.locator('#projectMenu')).toBeVisible();
+ await expect(page.locator('#downloadOpen')).toBeVisible();
+ await expect(page.locator('#quickPlay')).toBeVisible();
+ await expect(page.locator('#saveStatus .save-status-full')).toBeAttached();
+ await expect(page.locator('#saveStatus .save-status-compact')).toBeAttached();
+});
+
+test('opening a project without machine keeps the current host',async({page})=>{
+ page.on('dialog',dialog=>dialog.accept());
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceMachine','selectOption','c128');
+ await expect(page.locator('html')).toHaveAttribute('data-machine','c128');
+ const legacy={format:'petscii-stencil-lab',version:3,columns:2,rows:1,grid:[160,''],cellColors:[13,11],colors:{ink:13,background:11},selectedGlyph:160};
+ await loadProject(page,legacy);
+ await expect(page.locator('html')).toHaveAttribute('data-machine','c128');
+ const saved=JSON.parse(await download(page,'#saveProject'));
+ expect(saved.machine).toBe('c128');
+});
+
+test('New Project keeps the current machine in the saved file',async({page})=>{
+ page.on('dialog',dialog=>dialog.accept());
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceMachine','selectOption','c128');
+ await page.locator('#projectMenu > summary').click();
+ await ui(page,'#newProject');
+ const saved=JSON.parse(await download(page,'#saveProject'));
+ expect(saved.machine).toBe('c128');
+ expect(saved.columns).toBe(16);
+});
+
+test('preview banner opens Animation settings without new tabs',async({page})=>{
+ await loadProject(page,fixture());
+ await ui(page,'#animationDetails');
+ await ui(page,'#animationEffect','selectOption','scroll');
+ await ui(page,'#quickPlay');
+ await expect(page.locator('#previewBanner')).toBeVisible();
+ await page.locator('#editAnimationFromPreview').click();
+ await expect(page.locator('#animationDetails')).toHaveJSProperty('open',true);
+ await expect(page.locator('#sidebar')).not.toHaveClass(/closed/);
+ await expect(page.locator('#animationEffect')).toBeFocused();
+});
+
 test('C128 80-col enables VDC width, RGBI drawing, and native download',async({page})=>{
  page.on('dialog',dialog=>dialog.accept());
  await page.locator('#machineMenu > summary').click();
