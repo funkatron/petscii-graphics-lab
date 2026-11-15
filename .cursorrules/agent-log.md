@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-15 — Preview tools use the home-built Node 24
+
+**What:** Node bridges and project validation call `~/build/node24/node-v*/out/Release/node` (v24.22.2) when that binary is present. `PGL_NODE` overrides it. `run-mcp.sh` puts that directory first on `PATH`. The older Cursor-agent pin is no longer the fallback.  
+**Tested:** `find_node()` prints the Release binary and `v24.22.2`. Drawing and MCP smoke tests passed (6).
+
 ## 2026-11-15 — PETSCII preview MCP in the repo
 
 **What:** `agents/petscii-preview` is tracked so someone else can paint, render, and export. The virtualenv and `out/` stay ignored. `.cursor/mcp.json` starts `run-mcp.sh`. The drawing skill is `.cursor/skills/petscii-draw`.  

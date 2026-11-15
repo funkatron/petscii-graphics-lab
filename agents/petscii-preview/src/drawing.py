@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from node_bridge import find_node
+
 TOOL_STATE_NAME = 'tool-state.json'
 HISTORY_NAME = 'history.json'
 LAB_ROOT = Path(__file__).resolve().parents[3]
@@ -61,7 +63,7 @@ def _validate(path: Path) -> dict[str, Any]:
         "catch (error) { console.log(JSON.stringify({ok:false, error:String(error.message || error)})); }"
     )
     result = subprocess.run(
-        ['node', '--input-type=module', '-e', script, str(path)],
+        [find_node(), '--input-type=module', '-e', script, str(path)],
         cwd=LAB_ROOT,
         capture_output=True,
         text=True,
