@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-15 — Declare the package as an ES module
+
+**What:** `package.json` now has `"type": "module"`. The `.js` sources already use `import`/`export`, and CommonJS stays in `.cjs`. Node 24 validates without the line, then warns and reparses. The declaration matches the files.  
+**Touched:** `package.json`.
+
 ## 2026-11-15 — PETSCII shading glyphs in the drawing skill
 
 **What:** The drawing skill now says a finished picture shades with glyphs, not a field of solid 160. Checker 102 is the mid tone, diagonals 77 and 78 brush a slope, halves and quarters are the steps toward black, and a region repeats one of those. The RoboCop profile was repainted that way through the preview MCP.  
