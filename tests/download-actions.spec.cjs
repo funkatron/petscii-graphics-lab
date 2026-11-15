@@ -23,7 +23,7 @@ test('animation export shows progress bar and mirrored status in the dialog',asy
  await expect(page.locator('#exportProgressWrap')).toBeVisible();
  await expect(page.locator('#downloadStatus')).toContainText(/Preparing GIF/);
  await expect(page.locator('#stageExportStatus')).toContainText(/Preparing GIF/);
- await page.locator('#cancelAnimationExport').click();release();
+ await ui(page,'#cancelSheetDownload');release();
  await expect(page.locator('#exportBadge')).toHaveText('Canceled');
  await expect(page.locator('#exportProgressWrap')).toBeHidden();
 });
