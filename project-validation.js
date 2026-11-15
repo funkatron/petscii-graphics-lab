@@ -1,6 +1,7 @@
 import {isDisplayPaletteId} from './c64-colors.js';
 import {MACHINE, isMachineId, isValidInkForMachine, maxColumnsForMachine} from './machine-modes.js';
 import {SOLID_EFFECTS} from './solid-motion.js';
+import {SCREEN_LOOKS} from './screen-look.js';
 
 export const ANIMATION_CYCLES = [1, 2, 4, 8, 16];
 export const DEPTH_EFFECTS = ['space-warp', 'perspective-floor', 'curved-road', 'tunnel-flight'];
@@ -324,4 +325,7 @@ export function validateProject(data, {fallbackMachine = MACHINE.C64} = {}) {
   validateGrid(view);
   validateDrawingReplay(view);
   validateAnimationField(data);
+  if (data.screen !== undefined && !SCREEN_LOOKS.includes(data.screen)) {
+    throw Error('Invalid screen look');
+  }
 }

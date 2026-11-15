@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-14 — Screen look
+
+**What:** Colors → Screen is None, Monitor, Television, Green, or Amber. Monitor and television keep the painted colors, with a thin scanline, a small glow, and a slight red/blue shift. Green and amber are one phosphor: luminance becomes that color, with the same scanline and glow and no color shift. The canvas and PNG, GIF, video, and frame ZIP use it. SVG, PRG, and D64 stay clean.  
+**Tested:** `node --test tests/screen-look.unit.mjs`. None is unchanged, the scanline stays readable, television fringes farther than monitor, green and amber hit their phosphor peaks, a brighter ink stays brighter, a one-color tube does not split red and blue, and PRG/D64 bytes ignore the setting. Chromium `tests/screen-look.spec.cjs`: Monitor darkens a glyph row on the canvas, the project saves `monitor`, and the PRG matches Screen set to None.  
+**Touched:** `screen-look.js`, `index.html`, `project-validation.js`, README, roadmap, maintainer reference, `tests/screen-look.unit.mjs`.
+
 ## 2026-11-14 — Backdrop and Parallax
 
 **What:** Backdrop (`field` / `plus4-field`) steps the shared background on the color-cycle or warm-glow ramp, forward or reverse, with a border lead of 0, 1, 2, or 4. C128 80-col keeps the border equal to the background. Parallax groups cells by ink or glyph, with spread and same/opposite travel. Preview, GIF, video, and ZIP use the animated fill. Native PRG/D64 still write one background. Roadmap puts new animations and shaders first and parks the case frame under REU.  

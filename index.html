@@ -47,7 +47,7 @@
 <details id="colorDetails" class="tool-group"><summary>Colors <span id="colorSummary" class="summary-badge" aria-hidden="true"></span></summary><div class="group-body">
 <fieldset class="sidebar-section" id="paintColorsGroup"><legend>Paint colors</legend>
 <div class="row"><button id="inkTarget" aria-pressed="true">Ink<span id="inkName" class="color-name"></span></button><button id="backgroundTarget" aria-pressed="false">Background<span id="backgroundName" class="color-name"></span></button></div>
-<div id="colorPalette" class="color-grid" role="group" aria-label="C64 color palette"></div><button id="swapColors" class="full-width">Swap brush / background</button></fieldset><details id="recolorDetails" class="help-disclosure"><summary>Whole drawing color</summary><button id="recolorDrawing" class="full-width">Recolor entire drawing</button></details><p class="note" id="colorsHelp">Ink sets the brush color. Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.</p></div></details>
+<div id="colorPalette" class="color-grid" role="group" aria-label="C64 color palette"></div><button id="swapColors" class="full-width">Swap brush / background</button></fieldset><details id="recolorDetails" class="help-disclosure"><summary>Whole drawing color</summary><button id="recolorDrawing" class="full-width">Recolor entire drawing</button></details><fieldset class="sidebar-section" id="screenGroup"><legend>Screen</legend><div class="field"><label for="screenLook">Look</label><select id="screenLook" aria-label="Screen look"><option value="none" selected>None</option><option value="monitor">Monitor</option><option value="tv">Television</option><option value="green">Green</option><option value="amber">Amber</option></select></div><p class="note">Thin scanlines and a little phosphor. Monitor and television keep color, with a slight color edge. Green and amber are one phosphor. PNG, GIF, video, and frame ZIP match the canvas. SVG, PRG, and disk images stay clean.</p></fieldset><p class="note" id="colorsHelp">Ink sets the brush color. Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.</p></div></details>
 <details id="animationDetails" class="tool-group"><summary>Animation</summary><div class="group-body">
 <fieldset class="animation-section" id="animationTimeline"><legend>Timeline &amp; preview</legend>
 <div class="field"><label for="animationSeconds">Loop duration</label><select id="animationSeconds"><option value="0.5">½ second</option><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="4">4 seconds</option><option value="8">8 seconds</option><option value="12">12 seconds</option></select></div>
@@ -148,6 +148,7 @@ const {planTypedText}=await import('./typed-text.js');
 const {graphicsCode,buildGlyphCatalog,familyGlyphCodes}=await import('./glyph-families.js');
 const {formatTextGrid,parseTextGrid,TEXT_GRID_MAX_BYTES}=await import('./text-grid.js');
 const {BONFIRE_COLORS}=await import('./bonfire.js');
+const {SCREEN_LOOKS,shadeScreenImage,shadeRgba,quantizeShaded}=await import('./screen-look.js');
 const {SOLID_EFFECTS}=await import('./solid-motion.js');
 const {applyUiTheme,uiThemeForMachine}=await import('./ui-themes.js');
 const prefs=readWorkspacePrefs();
@@ -279,6 +280,7 @@ function updateColorUI(){
 function setColors(value){colors={ink:value.ink,background:value.background};tileCache.clear();updateColorUI()}
 for(const key of ['ink','background'])$(key+'Target').onclick=()=>{colorTarget=key;updateColorUI()};
 $('swapColors').onclick=()=>{if(colors.ink===colors.background)return;remember();setColors({ink:colors.background,background:colors.ink});drawPalette();redraw();setStatus('Brush and background swapped')};
+$('screenLook').onchange=()=>{redraw();updateDownloadPreview();autosave();const look=$('screenLook').value;let label='Screen look off';if(look==='monitor')label='Monitor screen';if(look==='tv')label='Television screen';if(look==='green')label='Green monitor';if(look==='amber')label='Amber monitor';setStatus(label)};
 $('recolorDrawing').onclick=()=>{if(!grid.some((g,i)=>g!==''&&cellColors[i]!==colors.ink))return;remember();for(let i=0;i<grid.length;i++)if(grid[i]!==''&&cellColors[i]!==colors.ink){cellColors[i]=colors.ink;recordCell(i)}redraw();setStatus('Drawing recolored with brush ink')};
 
 const VIC_COLOR_EFFECTS=[['none','Original colors'],['color-cycle','Color cycle'],['color-wave','Rainbow wave'],['color-glow','Warm glow'],['field','Backdrop'],['raster-bars','Raster-style bars'],['plasma','Plasma field'],['bonfire','Bonfire colors'],['inverse','Inverse pulse']];
@@ -606,11 +608,20 @@ function renderGrid(cells,inks=cellColors,colorPalette='pepto-pal'){
    }
   }else if(typeof g==='number'){ctx.strokeStyle='#ffb4c1';ctx.strokeRect(xx+cellW*.2,yy+cellH*.2,cellW*.6,cellH*.6)}
  }
+ paintScreen(ctx,canvas,cellW/8,cellH/8);
 }
-function artworkPreview(target,cells,inks,cols,rows,background,colorPalette='pepto-pal',cellW=8,cellH=8){
+function paintScreen(context,target,pixelWidth,pixelHeight){
+ const look=$('screenLook').value;
+ if(look==='none')return;
+ const image=context.getImageData(0,0,target.width,target.height);
+ shadeScreenImage(image,look,pixelWidth,pixelHeight);
+ context.putImageData(image,0,0);
+}
+function artworkPreview(target,cells,inks,cols,rows,background,colorPalette='pepto-pal',cellW=8,cellH=8,shade=false){
  target.width=cols*cellW;target.height=rows*cellH;const c=target.getContext('2d');c.clearRect(0,0,target.width,target.height);
  if(background){c.fillStyle=background;c.fillRect(0,0,target.width,target.height)}
  cells.forEach((g,i)=>{const x=i%cols*cellW,y=Math.floor(i/cols)*cellH;if(typeof g==='number')romCanvasGlyph(c,g,x,y,cellW,inks[i],colorPalette,cellH);});
+ if(shade)paintScreen(c,target,cellW/8,cellH/8);
 }
 function updateDownloadPreview(){
  if(!$('downloadDialog').open)return;
@@ -634,7 +645,7 @@ function updateDownloadPreview(){
  const previewCell=exportCellSize(workspaceMachine,workspaceCellAspect,previewScale);
  // Thumbnail stays one scale unit (square 8×8, CRT 5×6 or 5×12). The caption uses the export size.
  const thumb=exportCellSize(workspaceMachine,workspaceCellAspect,1);
- artworkPreview($('downloadPreview'),previewCells,previewInks,previewColumns,previewRows,bg,picture.colorPalette||'pepto-pal',thumb.cellW,thumb.cellH);
+ artworkPreview($('downloadPreview'),previewCells,previewInks,previewColumns,previewRows,bg,picture.colorPalette||'pepto-pal',thumb.cellW,thumb.cellH,!data);
  const loops=motion&&$('animationFormat').value==='video'?Number($('videoRepeats').value):1;
  $('downloadDimensions').textContent=(moving?'Animation':'Drawing')+' · '+previewColumns*previewCell.cellW+' × '+previewRows*previewCell.cellH+' pixels'+(centered?' · '+W+' × '+H+' cells centered':'')+(moving?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
  let description=moving?'Use Play preview to watch the selected animation here.':'Original drawing, without editing grid lines.';
@@ -644,6 +655,11 @@ function updateDownloadPreview(){
   else if(lead===1)description+=' Border is 1 step ahead.';
   else description+=' Border is '+lead+' steps ahead.';
  }
+ if(!data&&$('screenLook').value==='monitor')description+=' Monitor screen: thin scanlines, a little phosphor, and a slight color edge.';
+ if(!data&&$('screenLook').value==='tv')description+=' Television screen: softer glow and a little more color bleed.';
+ if(!data&&$('screenLook').value==='green')description+=' Green monitor: one phosphor. Bright inks stay bright, and the original hues are gone.';
+ if(!data&&$('screenLook').value==='amber')description+=' Amber monitor: one phosphor. Bright inks stay bright, and the original hues are gone.';
+ if(!data&&$('screenLook').value!=='none'&&!moving&&$('stillFormat').value==='svg')description+=' SVG stays the clean drawing.';
  $('downloadDescription').textContent=description;
 }
 function updateResizeDraft(){
@@ -825,11 +841,21 @@ async function exportAnimation(kind){
    }
   }
   for(let repetition=0;repetition<repetitions;repetition++)for(const frame of frames){
-   checkpoint();const indexed=raster.indexedFrame(frame.index),palette=raster.paletteFor(frame.index);
-   if(kind==='gif')gif.writeFrame(indexed,width,height,{palette,delay:frame.durationMs,repeat:0,dispose:2,transparent:s.background==='transparent',transparentIndex:0});
+   checkpoint();const indexed=raster.indexedFrame(frame.index),palette=raster.paletteFor(frame.index),look=snapshot.project.screen||'none';
+   if(kind==='gif'){
+    if(look==='none')gif.writeFrame(indexed,width,height,{palette,delay:frame.durationMs,repeat:0,dispose:2,transparent:s.background==='transparent',transparentIndex:0});
+    else{
+     const rgba=new Uint8ClampedArray(indexed.length*4);
+     for(let i=0;i<indexed.length;i++){const color=palette[indexed[i]],offset=i*4;rgba[offset]=color[0];rgba[offset+1]=color[1];rgba[offset+2]=color[2];rgba[offset+3]=s.background==='transparent'&&!indexed[i]?0:255}
+     const shaded=shadeRgba(rgba,width,height,look,raster.cellW/8,raster.cellH/8);
+     const gifFrame=quantizeShaded(shaded,width,height);
+     gif.writeFrame(gifFrame.indexed,width,height,{palette:gifFrame.palette,delay:frame.durationMs,repeat:0,dispose:2,transparent:s.background==='transparent',transparentIndex:0});
+    }
+   }
    else{
     const image=pngContext.createImageData(width,height);
     for(let i=0;i<indexed.length;i++){const color=palette[indexed[i]],offset=i*4;image.data[offset]=color[0];image.data[offset+1]=color[1];image.data[offset+2]=color[2];image.data[offset+3]=kind==='zip'&&s.background==='transparent'&&!indexed[i]?0:255}
+    if(look!=='none')shadeScreenImage(image,look,raster.cellW/8,raster.cellH/8);
     pngContext.putImageData(image,0,0);
     if(kind==='video'){await video.add({...frame,startMs:repetition*s.seconds*1000+frame.startMs});checkpoint()}
     else{
@@ -848,7 +874,7 @@ async function exportAnimation(kind){
    let colorPalette='pepto-pal';
    if(ted)colorPalette='ted-pal';
    else if(vdc)colorPalette='vdc-pal';
-   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:2,effect:s.effect,...(SOLID_EFFECTS.includes(s.effect)?solidCameraSettings(s):{}),...(DEPTH_EFFECTS.includes(s.effect)?{depthTravel:s.depthTravel,depthWaveShape:s.depthWaveShape}:{}),colorEffect:s.colorEffect,waveLength:s.waveLength,colorWaveLength:s.colorWaveLength,wipePattern:s.wipePattern,parallaxGroup:s.parallaxGroup,parallaxSpread:s.parallaxSpread,parallaxTravel:s.parallaxTravel,fieldRamp:s.fieldRamp,fieldDirection:s.fieldDirection,fieldLead:s.fieldLead,motionCycles:s.motionCycles,colorCycles:s.colorCycles,scrollDirection:s.scrollDirection,waveDirection:s.waveDirection,waveShape:s.waveShape,waveAmplitude:s.waveAmplitude,colorWaveDirection:s.colorWaveDirection,colorWaveShape:s.colorWaveShape,colorWaveAmplitude:s.colorWaveAmplitude,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,glyphEncoding:'c64-atlas-id',background:s.background,colorPalette,...((ted||vdc)?{}:{displayPalette:s.palette}),machine:s.machine,colors:{...s.colors},loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
+   const text=new TextEncoder(),manifest={format:'petscii-animation-frames',version:2,effect:s.effect,...(SOLID_EFFECTS.includes(s.effect)?solidCameraSettings(s):{}),...(DEPTH_EFFECTS.includes(s.effect)?{depthTravel:s.depthTravel,depthWaveShape:s.depthWaveShape}:{}),colorEffect:s.colorEffect,waveLength:s.waveLength,colorWaveLength:s.colorWaveLength,wipePattern:s.wipePattern,parallaxGroup:s.parallaxGroup,parallaxSpread:s.parallaxSpread,parallaxTravel:s.parallaxTravel,fieldRamp:s.fieldRamp,fieldDirection:s.fieldDirection,fieldLead:s.fieldLead,motionCycles:s.motionCycles,colorCycles:s.colorCycles,scrollDirection:s.scrollDirection,waveDirection:s.waveDirection,waveShape:s.waveShape,waveAmplitude:s.waveAmplitude,colorWaveDirection:s.colorWaveDirection,colorWaveShape:s.colorWaveShape,colorWaveAmplitude:s.colorWaveAmplitude,width,height,columns:s.W,rows:s.H,pixelsPerCell:raster.cell,glyphEncoding:'c64-atlas-id',background:s.background,colorPalette,...((ted||vdc)?{}:{displayPalette:s.palette}),machine:s.machine,colors:{...s.colors},screen:snapshot.project.screen||'none',loop:true,durationMs:s.seconds*1000,sourceProject:'project.json',frames:frames.map(({file,startMs,durationMs})=>({file,startMs,durationMs}))};
    addFile('timing.json',text.encode(JSON.stringify(manifest,null,2)+'\n'));
    addFile('project.json',text.encode(JSON.stringify(snapshot.project,null,2)+'\n'));
    addFile('README.txt',text.encode("PETSCII Graphics Lab: PNG animation frames\n\nSTART HERE\n1. Open frames/ to find the numbered PNG pictures in playback order.\n2. Keep timing.json with the pictures. It gives each frame's startMs\n   (start time) and durationMs (how long to show it), in milliseconds.\n3. To edit the artwork again, open project.json in PETSCII Graphics Lab.\n\nTIMING\nFrame durations can differ: do not assume a fixed frame rate.\nThe durationMs values add up to one complete loop.\nDrawing replay holds the finished picture for the last quarter of each replay cycle.\nLong replays use selected points from the recording, matching GIF export.\n\nWHAT THESE FILES ARE\nEach PNG is a complete picture without editing grid lines.\nThese are image frames for modern software, not runnable C64 programs.\nFor runnable C64 programs and binary data, see the C64 output guide.\n\nEditor: https://funkatron.github.io/petscii-graphics-lab/\nC64 guide: https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md\n"));
@@ -982,6 +1008,8 @@ $('png').onclick=async()=>{
   const c=bmp.getContext('2d');
   c.imageSmoothingEnabled=false;
   c.drawImage(image,0,0,bmp.width,bmp.height);
+  const look=$('screenLook').value;
+  if(look!=='none'){const pixels=c.getImageData(0,0,bmp.width,bmp.height);shadeScreenImage(pixels,look,stillCell.cellW*scale/8,stillCell.cellH*scale/8);c.putImageData(pixels,0,0)}
   const pngBlob=await new Promise((resolve,reject)=>bmp.toBlob(b=>b?resolve(b):reject(new Error('PNG encoding failed')),'image/png'));
   const pngUrl=URL.createObjectURL(pngBlob);
   const a=document.createElement('a');a.href=pngUrl;a.download=name+'-'+bmp.width+'x'+bmp.height+'.png';
@@ -1065,7 +1093,7 @@ $('textGridFile').onchange=async e=>{
  }catch(err){setStatus('Import failed: '+err.message)}
  finally{input.value=''}
 };
-function projectData(){return {format:'petscii-stencil-lab',version:3,machine:workspaceMachine,palette:workspacePalette,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()}}}
+function projectData(){return {format:'petscii-stencil-lab',version:3,machine:workspaceMachine,palette:workspacePalette,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},screen:$('screenLook').value,animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()}}}
 function setSaveStatus(state,fullText,compactText){
  const el=$('saveStatus');
  el.dataset.state=state;
@@ -1082,7 +1110,7 @@ function applyProject(data){
  writeWorkspacePrefs(prefsPayload());
  syncMachineControls();
  // Projects may omit colors; fall back to the machine's boot defaults.
- setColors(data.colors??{ink:getMachine(workspaceMachine).defaultInk,background:getMachine(workspaceMachine).defaultBackground});W=data.columns;H=data.rows;grid=[...data.grid];cellColors=data.cellColors?.slice()??Array(grid.length).fill(colors.ink);if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice());replayBaseColors=data.drawingReplay.baseColors?.slice()??Array(grid.length).fill(colors.ink);replayEventColors=data.drawingReplay.eventColors?.slice()??Array(replayEvents.length).fill(colors.ink)}else resetReplay();setAnimationSettings(data.animation);$('columns').value=String(W);$('rows').value=String(H);
+ setColors(data.colors??{ink:getMachine(workspaceMachine).defaultInk,background:getMachine(workspaceMachine).defaultBackground});W=data.columns;H=data.rows;grid=[...data.grid];cellColors=data.cellColors?.slice()??Array(grid.length).fill(colors.ink);if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice());replayBaseColors=data.drawingReplay.baseColors?.slice()??Array(grid.length).fill(colors.ink);replayEventColors=data.drawingReplay.eventColors?.slice()??Array(replayEvents.length).fill(colors.ink)}else resetReplay();setAnimationSettings(data.animation);$('screenLook').value=SCREEN_LOOKS.includes(data.screen)?data.screen:'none';$('columns').value=String(W);$('rows').value=String(H);
  glyph=Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=511?data.selectedGlyph:64;
  erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';drawPalette();fit();
 }

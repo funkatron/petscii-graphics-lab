@@ -9,7 +9,7 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 ## Current priorities
 
 1. **New animation types:** Backdrop and Parallax are the current effects. Keep prioritizing additional creative effects over C64 capacity optimization and memory-expansion support.
-2. **Canvas shaders:** compare approaches before implementation. Image and animation exports should match the preview. PRG/D64 stay shader-free. See [Canvas shaders](#canvas-shaders--exploration).
+2. **Canvas shaders:** the screen look is our own Monitor, Television, Green, and Amber treatment. Raster exports match the canvas. SVG, PRG, and D64 stay clean. See [Canvas shaders](#canvas-shaders--exploration).
 3. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
 4. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
 5. **Machine modes / display palettes:** C64, C128 (40-col), C128 80-col, and Plus/4 are shipped. Extra VIC palettes (DeeKay, Frodo, CCS64, Pepto NTSC) stay later. See [machine modes](machine-modes.md).
@@ -59,7 +59,7 @@ See the [audit findings and remaining work](test-reliability-audit.md).
 
 ## Canvas shaders — exploration
 
-A shader is a visual effect applied over the rendered canvas. Explore quick ways to choose and apply optional effects while preserving the editable glyphs and cell colors.
+A shader is a visual effect applied over the rendered canvas. The shipped screen look is drawn here, not taken from a preset pack. Monitor is the sharper color tube. Television is a little softer, with more phosphor and color bleed. Green and amber are one-color phosphors: brightness follows the ink, and the hue is replaced. Defaults stay off, so an existing picture is unchanged until the look is chosen.
 
 - [ ] Compare approaches for applying shader presets with a small number of controls, including preview performance on phones and iPads.
 - [ ] Include the selected effect in image and animation exports, matching the canvas preview. Evaluate raster output and how SVG should handle effects.
