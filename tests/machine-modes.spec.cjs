@@ -366,8 +366,11 @@ test('raster export offers larger cell sizes and labels CRT pixels',async({page}
  await page.locator('#downloadOpen').click();
  await expect(page.locator('#pngScale option[value="16"]')).toHaveText('256 px/cell');
  await expect(page.locator('#gifScale option[value="8"]')).toHaveText('64 px/cell');
+ await page.keyboard.press('Escape');
+ await expect(page.locator('#downloadDialog')).not.toBeVisible();
  await page.locator('#machineMenu > summary').click();
  await ui(page,'#workspaceCellAspect','selectOption','crt');
- await expect(page.locator('#pngScale option[value="16"]')).toHaveText('320 × 384 px/cell');
- await expect(page.locator('#gifScale option[value="8"]')).toHaveText('160 × 192 px/cell');
+ await page.locator('#downloadOpen').click();
+ await expect(page.locator('#pngScale option[value="16"]')).toHaveText('160 × 192 px/cell');
+ await expect(page.locator('#gifScale option[value="8"]')).toHaveText('40 × 48 px/cell');
 });
