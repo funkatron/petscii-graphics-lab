@@ -14,6 +14,11 @@ test('rejects invalid animation effect',()=>{
  assert.throws(()=>validateProject({...base,animation:{effect:'color-wave',seconds:2,scale:2,background:'dark'}}),/animation settings/);
 });
 
+test('accepts animation scale up to 8 px/cell',()=>{
+ assert.doesNotThrow(()=>validateProject({...base,animation:{effect:'replay',seconds:2,scale:8,background:'dark'}}));
+ assert.throws(()=>validateProject({...base,animation:{effect:'replay',seconds:2,scale:16,background:'dark'}}),/animation settings/);
+});
+
 test('accepts inverse as a color effect and migrates legacy motion inverse',()=>{
  assert.doesNotThrow(()=>validateProject({...base,animation:{effect:'none',colorEffect:'inverse',seconds:1,scale:1,background:'dark'}}));
  assert.doesNotThrow(()=>validateProject({...base,animation:{effect:'inverse',seconds:1,scale:1,background:'dark'}}));
