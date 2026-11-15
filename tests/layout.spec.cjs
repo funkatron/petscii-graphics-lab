@@ -1,5 +1,12 @@
 const {test,expect,loadProject,project,download}=require('./helpers.cjs');
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
+test('editor shows the release version in the header and project menu',async({page})=>{
+ const {APP_VERSION}=await import('../app-version.js');
+ const label='Version '+APP_VERSION;
+ await expect(page.locator('#appVersion')).toHaveText(label);
+ await page.locator('#projectMenu').click();
+ await expect(page.locator('#editorVersion')).toHaveText(label);
+});
 test('compact disclosures and export tabs expose every format without changing artwork',async({page})=>{
  await loadProject(page,project([160,0],2,1));const before=await page.locator('#output').inputValue();
  for(const id of ['animationDetails','canvasDetails','helpDetails'])await expect(page.locator('#'+id)).not.toHaveAttribute('open','');

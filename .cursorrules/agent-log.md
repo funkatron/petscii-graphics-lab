@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-15 — Expanded animation cycle speed selectors
+
+**What:** Movement and Color cycle selects now offer 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, and 16× per loop from shared `ANIMATION_CYCLES`. UI options are built at startup; validation and MCP export metadata follow the same list. Editor release **0.28.0** (`app-version.js` + `package.json`) shows as **Version 0.28.0** in the header and Project menu.  
+**Tested:** `node --test tests/project-validation.unit.mjs tests/app-version.unit.mjs`; `tests/cycles.spec.cjs` (Chromium).  
+**Touched:** `project-validation.js`, `app-version.js`, `package.json`, `index.html`, `README.md`, `docs/maintainer-reference.md`, `AGENTS.md`, `tests/cycles.spec.cjs`, `tests/project-validation.unit.mjs`, `tests/layout.spec.cjs`, `tests/app-version.unit.mjs`.
+
 ## 2026-11-15 — Animation export progress bar and frame counter
 
 **What:** GIF, video, and frame-ZIP exports again show `Rendering …: n / total` in the download dialog plus a themed progress bar. The stage mirrors the same text and bar when the download panel is closed. `setStatus` no longer clears `#downloadStatus` during an active export (regression from the download-dialog split).  

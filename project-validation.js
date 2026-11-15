@@ -3,7 +3,7 @@ import {MACHINE, isMachineId, isValidInkForMachine, maxColumnsForMachine} from '
 import {SOLID_EFFECTS} from './solid-motion.js';
 import {SCREEN_LOOKS} from './screen-look.js';
 
-export const ANIMATION_CYCLES = [1, 2, 4, 8, 16];
+export const ANIMATION_CYCLES = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16];
 export const DEPTH_EFFECTS = ['space-warp', 'perspective-floor', 'curved-road', 'tunnel-flight'];
 export const INTRO_MOTIONS = ['logo-bounce', 'logo-stretch', 'starfield', 'wipe'];
 export const WIPE_PATTERNS = ['diagonal', 'checkerboard', 'blinds'];

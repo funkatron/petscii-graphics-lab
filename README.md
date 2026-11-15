@@ -180,7 +180,7 @@ Controls are grouped into **Timeline & preview**, **Movement**, and **Color**. R
 2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
 3. Set the direction and waveform controls that appear for your selected effects.
 4. Choose **Loop duration**, the length of the complete timeline: half a second to 12 seconds.
-5. Set **Movement cycles per loop** and **Color cycles per loop** independently: **1×, 2×, 4×, 8×, or 16×**. More cycles make that effect faster without changing the overall loop duration.
+5. Set **Movement cycles per loop** and **Color cycles per loop** independently from **1× through 16×** (1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16). More cycles make that effect faster without changing the overall loop duration.
 6. Press **Play**, or use **▶** in the header.
 
 **Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
