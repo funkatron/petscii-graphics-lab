@@ -7,7 +7,18 @@ export const ANIMATION_CYCLES = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16];
 export const DEPTH_EFFECTS = ['space-warp', 'perspective-floor', 'curved-road', 'tunnel-flight'];
 export const INTRO_MOTIONS = ['logo-bounce', 'logo-stretch', 'starfield', 'wipe'];
 export const WIPE_PATTERNS = ['diagonal', 'checkerboard', 'blinds'];
-export const FIELD_RAMPS = ['cycle', 'glow'];
+/** Backdrop walks the shared background along these ramps (`cycle`/`glow` are legacy ids). */
+export const FIELD_RAMPS = [
+  'cycle', 'glow', 'color-wave', 'raster-bars', 'plasma', 'bonfire',
+];
+export const FIELD_RAMP_LABELS = {
+  cycle: 'Color cycle',
+  glow: 'Warm glow',
+  'color-wave': 'Rainbow wave',
+  'raster-bars': 'Raster-style bars',
+  plasma: 'Plasma field',
+  bonfire: 'Bonfire colors',
+};
 export const FIELD_DIRECTIONS = ['forward', 'reverse'];
 export const FIELD_LEADS = [0, 1, 2, 4];
 export const PARALLAX_GROUPS = ['ink', 'glyph'];

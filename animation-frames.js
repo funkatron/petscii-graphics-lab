@@ -45,19 +45,35 @@ function colorFamily(effect) {
   return effect;
 }
 
-function fieldBaseRamp(source) {
+function fieldRampCycleKey(source) {
   const rampName = source.fieldRamp ?? 'cycle';
   const ted = isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect);
-  if (ted && rampName === 'glow') {
-    return COLOR_CYCLES['plus4-glow'];
+  const vicByRamp = {
+    cycle: 'color-cycle',
+    glow: 'color-glow',
+    'color-wave': 'color-wave',
+    'raster-bars': 'raster-bars',
+    plasma: 'plasma',
+    bonfire: 'bonfire',
+  };
+  const vicKey = vicByRamp[rampName] ?? rampName;
+  if (!ted) {
+    return vicKey;
   }
-  if (ted) {
-    return COLOR_CYCLES['plus4-cycle'];
-  }
-  if (rampName === 'glow') {
-    return COLOR_CYCLES['color-glow'];
-  }
-  return COLOR_CYCLES['color-cycle'];
+  const tedByVic = {
+    'color-cycle': 'plus4-cycle',
+    'color-glow': 'plus4-glow',
+    'color-wave': 'plus4-wave',
+    'raster-bars': 'plus4-raster',
+    plasma: 'plus4-plasma',
+    bonfire: 'plus4-bonfire',
+  };
+  return tedByVic[vicKey] ?? 'plus4-cycle';
+}
+
+function fieldBaseRamp(source) {
+  const key = fieldRampCycleKey(source);
+  return COLOR_CYCLES[key] ?? COLOR_CYCLES['color-cycle'];
 }
 
 function fieldSequence(source) {

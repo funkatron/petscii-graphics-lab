@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-15 — Backdrop ramp palette expansion (0.29.0)
+
+**What:** Backdrop **Ramp** can step the shared background through every color-animation palette except Backdrop and Inverse: color cycle, warm glow, rainbow wave, raster bars, plasma, bonfire (`FIELD_RAMPS`). Plus/4 maps to the matching TED ramps. Release **0.29.0**.  
+**Tested:** `node --test tests/backdrop-parallax.unit.mjs`; `tests/backdrop-parallax.spec.cjs` (Chromium).  
+**Touched:** `project-validation.js`, `animation-frames.js`, `index.html`, `README.md`, `docs/maintainer-reference.md`, `tests/backdrop-parallax.*`, `app-version.js`, `package.json`.
+
 ## 2026-11-15 — Expanded animation cycle speed selectors
 
 **What:** Movement and Color cycle selects now offer 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, and 16× per loop from shared `ANIMATION_CYCLES`. UI options are built at startup; validation and MCP export metadata follow the same list. Editor release **0.28.0** (`app-version.js` + `package.json`) shows as **Version 0.28.0** in the header and Project menu.  

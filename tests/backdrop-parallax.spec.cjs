@@ -31,7 +31,9 @@ test('backdrop and parallax knobs persist and leave the drawing unchanged',async
  await waitForPreviewAdvance(page);
  await ui(page,'#quickPlay');
  expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(art.grid);
- for(const [key,value] of [['fieldLead',3],['parallaxSpread',3],['fieldRamp','plasma']]){
+ await ui(page,'#fieldRamp','selectOption','Plasma field');
+ expect(JSON.parse(await download(page,'#saveProject')).animation.fieldRamp).toBe('plasma');
+ for(const [key,value] of [['fieldLead',3],['parallaxSpread',3],['fieldRamp','field'],['fieldRamp','inverse']]){
   await loadProject(page,{...saved,animation:{...saved.animation,[key]:value}});
   await expect(page.locator('#status')).toContainText('Load failed');
   expect(JSON.parse(await download(page,'#saveProject')).animation[key]).not.toBe(value);
