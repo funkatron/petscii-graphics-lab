@@ -12,6 +12,34 @@ test('artwork and output changes regenerate the file instead of downloading stal
  await ui(page,'#gifScale','selectOption','1');const small=await download(page,'#exportGif');expect(new GifReader(small).width).toBe(16);expect(small).not.toEqual(red);await ui(page,'#animationColor','selectOption','color-cycle');expect(new GifReader(await download(page,'#exportGif')).numFrames()).toBe(16);
 });
 test('download progress restores the same button after cancellation or an encoder error',async({page})=>{
- let release,requested;const gate=new Promise(r=>release=r),started=new Promise(r=>requested=r);await page.route('**/vendor/gifenc.esm.js',async route=>{requested();await gate;await route.abort()});await ui(page,'#exportGif');await started;await expect(page.locator('#exportGif')).toHaveText('Preparing GIF…');await expect(page.locator('#exportGif')).toBeDisabled();await ui(page,'#cancelAnimationExport');release();await expect(page.locator('#status')).toHaveText('Animation export canceled');await expect(page.locator('#exportGif')).toHaveText('Download GIF');await expect(page.locator('#exportGif')).toBeEnabled();await expect(page.locator('#exportGif')).not.toHaveAttribute('data-download-url',/./);
+ let release,requested;const gate=new Promise(r=>release=r),started=new Promise(r=>requested=r);await page.route('**/vendor/gifenc.esm.js',async route=>{requested();await gate;await route.abort()});await ui(page,'#exportGif');await requested;await expect(page.locator('#exportGif')).toHaveText('Preparing GIF…');await expect(page.locator('#exportGif')).toBeDisabled();await ui(page,'#cancelAnimationExport');release();await expect(page.locator('#status')).toHaveText('Animation export canceled');await expect(page.locator('#exportGif')).toHaveText('Download GIF');await expect(page.locator('#exportGif')).toBeEnabled();await expect(page.locator('#exportGif')).not.toHaveAttribute('data-download-url',/./);
  await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#exportGif');await expect(page.locator('#status')).toContainText('GIF export failed');await expect(page.locator('#exportGif')).toHaveText('Download GIF');await expect(page.locator('#exportGif')).toBeEnabled();
+});
+
+test('animation export shows frame counter and progress bar in the dialog',async({page})=>{
+ await ui(page,'#animationSeconds','selectOption','4');
+ await ui(page,'#animationFormat','selectOption','frames');
+ const progress=page.waitForFunction(()=>{
+  const wrap=document.querySelector('#exportProgressWrap');
+  const t=document.querySelector('#downloadStatus')?.textContent||'';
+  return wrap&&!wrap.hidden&&/Rendering PNG frames: \d+ \/ \d+/.test(t);
+ });
+ const done=download(page,'#exportFrames');
+ await progress;
+ await expect(page.locator('#stageExportStatus')).toContainText(/Rendering PNG frames:/);
+ await done;
+ await expect(page.locator('#exportProgressWrap')).toBeHidden();
+});
+test('stage shows export progress when the download dialog is closed',async({page})=>{
+ let release,started;const gate=new Promise(r=>release=r),loading=new Promise(r=>started=r);
+ await page.route('**/video-export.js',async route=>{started();await gate;await route.continue()});
+ await ui(page,'#animationFormat','selectOption','video');
+ await ui(page,'#exportVideo');await loading;
+ await expect(page.locator('#cancelAnimationExport')).toBeVisible();
+ await page.locator('#downloadClose').click();
+ await expect(page.locator('#stageExportProgressWrap')).toBeVisible();
+ await expect(page.locator('#stageExportStatus')).toContainText(/Preparing video/);
+ await page.locator('#cancelAnimationExport').click();release();
+ await expect(page.locator('#exportBadge')).toHaveText('Canceled');
+ await expect(page.locator('#stageExportProgressWrap')).toBeHidden();
 });

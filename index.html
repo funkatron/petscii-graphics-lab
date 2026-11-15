@@ -86,7 +86,7 @@
 <main class="stage">
 <div class="stagebar"><span id="dimensions">16 × 16</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
 <div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="editAnimationFromPreview" type="button">Animation settings</button><button id="returnDrawing">Return to drawing</button></div><div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
-<div class="task-progress"><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
+<div class="task-progress"><div id="stageExportProgressWrap" class="export-progress-wrap" hidden><progress id="stageExportProgress" class="export-progress" max="100" value="0" aria-label="Animation export progress"></progress><span id="stageExportStatus" class="export-progress-label status" aria-live="polite"></span></div><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
 <aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
 <div class="picker-heading"><div class="picker-title"><h2>Glyphs</h2><button id="glyphPin" aria-pressed="false" aria-label="Pin glyph picker" title="Keep glyph picker open"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5-4 1-3 4 1 4-2 2-5-5-5 7 3-9-3-3 2-2 4 1 4-3 1-4Z"/></svg></button><button id="glyphClose" aria-label="Close glyph picker">✕</button></div>
@@ -100,7 +100,7 @@
 <p class="note">Character sets follow the Machine setting: C64/C128 use the C64 sheet; Plus/4 uses TED glyphs (hardware-inverse high halves). <a href="./assets/c64-glyphs.svg" target="_blank" rel="noopener">C64 SVG</a> · <a href="./assets/ted-glyphs.svg" target="_blank" rel="noopener">TED SVG</a>.</p>
 </details></aside>
 </div></div>
-<dialog id="downloadDialog" aria-labelledby="downloadTitle"><div class="dialog-heading"><h2 id="downloadTitle">Download artwork</h2><button id="downloadClose" aria-label="Close downloads">✕</button></div><div class="download-layout"><div><div id="fileDetails"><div id="exportBadge" class="status" role="status"></div>
+<dialog id="downloadDialog" aria-labelledby="downloadTitle"><div class="dialog-heading"><h2 id="downloadTitle">Download artwork</h2><button id="downloadClose" aria-label="Close downloads">✕</button></div><div class="download-layout"><div><div id="fileDetails"><div id="exportBadge" class="status" role="status"></div><div id="exportProgressWrap" class="export-progress-wrap" hidden><progress id="exportProgress" class="export-progress" max="100" value="0" aria-label="Animation export progress"></progress></div>
 <div id="exportTabs" class="export-tabs" role="tablist" aria-label="Export mode">
 <button id="export-tab-still" role="tab" aria-selected="true" aria-controls="export-still" tabindex="0" data-export-tab="still">Image</button>
 <button id="export-tab-motion" role="tab" aria-selected="false" aria-controls="export-motion" tabindex="-1" data-export-tab="motion">Animation</button>
@@ -129,7 +129,7 @@
 <textarea id="output" aria-label="Text composition"></textarea><div class="row"><button id="copy">Copy text</button><button id="import">Import text</button></div></details>
 <details class="help-disclosure"><summary>Data formats</summary><p class="note">Glyph IDs select one of 512 source atlas slots across both C64 character sets. Text uses PETSCII-GLYPHS with three-digit hexadecimal IDs. Include colors in text adds cell inks and the shared background (one hex digit on VIC and VDC, two TED digits on Plus/4); imports detect the version automatically. Binary uses two bytes per cell, little-endian, with FFFF for empty. These are not native screen-code or PETSCII bytes. Color RAM stores one ink index per cell. JSON keeps the complete artwork.</p></details>
 </div></div>
-</div><figure id="downloadFigure"><canvas id="downloadPreview" aria-label="Artwork output preview"></canvas><figcaption id="downloadDimensions" class="note"></figcaption><p id="downloadDescription" class="note"></p></figure></div><div id="downloadStatus" class="status" role="status"></div><button id="cancelSheetDownload" hidden>Cancel export</button></dialog>
+</div><figure id="downloadFigure"><canvas id="downloadPreview" aria-label="Artwork output preview"></canvas><figcaption id="downloadDimensions" class="note"></figcaption><p id="downloadDescription" class="note"></p></figure></div><div id="downloadStatus" class="status" role="status" aria-live="polite"></div><button id="cancelSheetDownload" hidden>Cancel export</button></dialog>
 <script>
 (async()=>{
 const {validateProject,normalizeAnimation,ANIMATION_CYCLES,DEPTH_EFFECTS,INTRO_MOTIONS,WIPE_PATTERNS,WAVE_AMPLITUDES,WAVE_LENGTHS,WAVE_SHAPES,WAVE_DIRECTIONS,DIAGONAL_DIRECTIONS,COLOR_WAVE_DIRECTIONS,SOLID_CAMERA_VALUES}=await import('./project-validation.js');
@@ -425,7 +425,7 @@ let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).f
 let cellColors=Array(256).fill(colors.ink);
 let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0;
 let W=16,H=16,grid=Array(256).fill(''),glyph=64,erasing=false,painting=false,last=null,pointer=null,unit=20;
-function setStatus(s){$('status').textContent=s;/* The export badge owns dialog progress; avoid a second competing status line. */$('downloadStatus').textContent=''}
+function setStatus(s){$('status').textContent=s;if(!animationExportTask)$('downloadStatus').textContent=s}
 function romGlyphRows(code){
  if(!rom||!Number.isInteger(code)||code<0||code>511)return null;
  // The C64 4KB ROM has two 2048-byte sets, each with 256 8-byte glyphs.
@@ -809,9 +809,18 @@ function animationRaster({s,bits,cellAspect}){
 let animationExportTask=null;
 const animationDownloads={};
 const animationDownloadButtons={gif:'exportGif',video:'exportVideo',zip:'exportFrames',c64:'exportC64'};
+const exportProgressLabel={gif:'GIF',video:'video',zip:'PNG frames'};
+function exportProgressBars(){return [$('exportProgress'),$('stageExportProgress')]}
+function setExportProgressBars(percent,indeterminate){for(const bar of exportProgressBars()){if(!bar)continue;if(indeterminate){bar.removeAttribute('value');bar.classList.add('export-progress-indeterminate')}else{bar.classList.remove('export-progress-indeterminate');bar.max=100;bar.value=percent}}}
+function showExportProgress(show){$('exportProgressWrap').hidden=!show;$('stageExportProgressWrap').hidden=!show;if(!show){$('downloadStatus').textContent='';$('stageExportStatus').textContent='';setExportProgressBars(0,false)}}
+function mirrorExportProgress(text,current,total,indeterminate){$('downloadStatus').textContent=text;$('stageExportStatus').textContent=text;$('status').textContent=text;let percent=0;if(!indeterminate&&total>0)percent=Math.min(100,Math.round(current/total*100));setExportProgressBars(percent,indeterminate)}
+function beginExportProgress(kind){$('exportBadge').textContent='Working…';showExportProgress(true);const label=exportProgressLabel[kind]||'animation';mirrorExportProgress('Preparing '+label+'…',0,0,true)}
+function setExportFrameProgress(kind,current,total){const label=exportProgressLabel[kind]||'animation';mirrorExportProgress('Rendering '+label+': '+current+' / '+total,current,total,false)}
+function setExportPhase(message,indeterminate=true){mirrorExportProgress(message,0,0,indeterminate)}
+function endExportProgress(){showExportProgress(false)}
 function downloadReadyFile(file){const a=document.createElement('a');a.href=file.url;a.download=file.name;document.body.append(a);a.click();a.remove()}
 
-$('cancelAnimationExport').onclick=()=>{if(animationExportTask){animationExportTask.cancelled=true;$('cancelAnimationExport').disabled=true;Promise.resolve(animationExportTask.stop?.()).catch(()=>{});setStatus('Canceling animation export…')}};
+$('cancelAnimationExport').onclick=()=>{if(animationExportTask){animationExportTask.cancelled=true;$('cancelAnimationExport').disabled=true;Promise.resolve(animationExportTask.stop?.()).catch(()=>{});setExportPhase('Canceling animation export…')}};
 async function exportAnimation(kind){
  if(animationExportTask)return;
  if(kind==='video'&&!validVideoRepeats(Number($('videoRepeats').value))){setStatus('Video repetitions must be a whole number from 1 to 100');$('videoRepeats').focus();return}
@@ -822,7 +831,7 @@ async function exportAnimation(kind){
  const task={cancelled:false};animationExportTask=task;
  button.textContent='Preparing '+(kind==='gif'?'GIF':kind==='video'?'video':'frame ZIP')+'…';
  for(const id of ['exportGif','exportFrames','exportVideo','exportC64'])$(id).disabled=true;
- $('cancelAnimationExport').hidden=false;$('cancelSheetDownload').hidden=false;$('exportBadge').textContent='Working…';setStatus(kind==='gif'?'Rendering animated GIF…':kind==='video'?'Preparing video encoder…':'Rendering PNG frames…');
+ $('cancelAnimationExport').hidden=false;$('cancelSheetDownload').hidden=false;beginExportProgress(kind);
  let zip,video;
  const label=kind==='gif'?'GIF':kind==='video'?'Video':'ZIP';
  const checkpoint=()=>{if(task.cancelled)throw Error('Export canceled')};
@@ -864,12 +873,12 @@ async function exportAnimation(kind){
     frame.file='frames/frame-'+String(frame.index+1).padStart(4,'0')+'.png';addFile(frame.file,bytes);
     }
    }
-   setStatus('Rendering '+(kind==='gif'?'GIF':kind==='video'?'video':'PNG frames')+': '+(repetition*frames.length+frame.index+1)+' / '+totalFrames);
+   setExportFrameProgress(kind,repetition*frames.length+frame.index+1,totalFrames);
    await new Promise(resolve=>setTimeout(resolve,0));
   }
   checkpoint();let blob;
   if(kind==='gif'){gif.finish();blob=new Blob([gif.bytes()],{type:'image/gif'})}
-  else if(kind==='video'){setStatus('Finalizing video…');blob=await video.finish()}
+  else if(kind==='video'){setExportPhase('Finalizing video…');blob=await video.finish()}
   else{
    let colorPalette='pepto-pal';
    if(ted)colorPalette='ted-pal';
@@ -888,7 +897,7 @@ async function exportAnimation(kind){
   button.dataset.downloadUrl=url;button.dataset.downloadName=name;downloadReadyFile(file);
   $('exportBadge').textContent=label+' ready';setStatus(label+' ready: '+totalFrames+' frames · '+width+' × '+height+(kind==='video'?' · '+repetitions+' '+(repetitions===1?'loop':'loops')+' · '+Number((s.seconds*repetitions).toFixed(2))+' s':'')+'. Tap '+animationDownloadLabels[kind]+' again if the download did not start.');
  }catch(e){$('exportBadge').textContent=task.cancelled?'Canceled':'Failed';setStatus(task.cancelled?'Animation export canceled':(kind==='zip'?'Frame ZIP':label)+' export failed: '+e.message)}
- finally{try{await video?.cancel()}catch{}zip?.terminate();animationExportTask=null;button.textContent=animationDownloadLabels[kind];for(const id of ['exportGif','exportFrames','exportVideo','exportC64'])$(id).disabled=false;updateNativeExportAvailability();$('cancelAnimationExport').hidden=true;$('cancelSheetDownload').hidden=true;$('cancelAnimationExport').disabled=false}
+ finally{endExportProgress();try{await video?.cancel()}catch{}zip?.terminate();animationExportTask=null;button.textContent=animationDownloadLabels[kind];for(const id of ['exportGif','exportFrames','exportVideo','exportC64'])$(id).disabled=false;updateNativeExportAvailability();$('cancelAnimationExport').hidden=true;$('cancelSheetDownload').hidden=true;$('cancelAnimationExport').disabled=false}
 }
 $('exportGif').onclick=()=>exportAnimation('gif');
 $('exportFrames').onclick=()=>exportAnimation('zip');
