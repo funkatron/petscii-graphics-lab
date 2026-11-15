@@ -360,3 +360,14 @@ test('CRT rasters match full-screen presets and square PNG stays 16 px/cell',asy
  const vdcPng=PNG.sync.read(await download(page,'#png'));
  expect([vdcPng.width,vdcPng.height]).toEqual([800,600]);
 });
+
+test('raster export offers larger cell sizes and labels CRT pixels',async({page})=>{
+ await loadProject(page,baseProject([160],1,1));
+ await page.locator('#downloadOpen').click();
+ await expect(page.locator('#pngScale option[value="16"]')).toHaveText('256 px/cell');
+ await expect(page.locator('#gifScale option[value="8"]')).toHaveText('64 px/cell');
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceCellAspect','selectOption','crt');
+ await expect(page.locator('#pngScale option[value="16"]')).toHaveText('320 × 384 px/cell');
+ await expect(page.locator('#gifScale option[value="8"]')).toHaveText('160 × 192 px/cell');
+});

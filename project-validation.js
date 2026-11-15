@@ -65,7 +65,7 @@ export function normalizeAnimation(animation) {
 }
 
 const ALLOWED_SECONDS = [0.5, 1, 2, 4, 8, 12];
-const ALLOWED_SCALE = [1, 2, 4];
+const ALLOWED_SCALE = [1, 2, 4, 8];
 const ALLOWED_BACKGROUNDS = ['dark', 'white', 'transparent'];
 
 function projectMachine(data, fallbackMachine = MACHINE.C64) {
