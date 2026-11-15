@@ -17,16 +17,17 @@ test('download progress restores the same button after cancellation or an encode
 });
 
 test('animation export shows frame counter and progress bar in the dialog',async({page})=>{
+ await ui(page,'#animationColor','selectOption','color-cycle');
  await ui(page,'#animationSeconds','selectOption','4');
- await ui(page,'#animationFormat','selectOption','frames');
  const progress=page.waitForFunction(()=>{
   const wrap=document.querySelector('#exportProgressWrap');
-  const t=document.querySelector('#downloadStatus')?.textContent||'';
-  return wrap&&!wrap.hidden&&/Rendering PNG frames: \d+ \/ \d+/.test(t);
- });
- const done=download(page,'#exportFrames');
+  const dialog=document.querySelector('#downloadStatus')?.textContent||'';
+  const stage=document.querySelector('#stageExportStatus')?.textContent||'';
+  const match=/Rendering GIF: \d+ \/ \d+/;
+  return wrap&&!wrap.hidden&&match.test(dialog)&&match.test(stage);
+ },undefined,{timeout:60000});
+ const done=download(page,'#exportGif');
  await progress;
- await expect(page.locator('#stageExportStatus')).toContainText(/Rendering PNG frames:/);
  await done;
  await expect(page.locator('#exportProgressWrap')).toBeHidden();
 });

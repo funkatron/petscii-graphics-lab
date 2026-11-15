@@ -832,7 +832,7 @@ async function exportAnimation(kind){
  button.textContent='Preparing '+(kind==='gif'?'GIF':kind==='video'?'video':'frame ZIP')+'…';
  for(const id of ['exportGif','exportFrames','exportVideo','exportC64'])$(id).disabled=true;
  $('cancelAnimationExport').hidden=false;$('cancelSheetDownload').hidden=false;beginExportProgress(kind);
- let zip,video;
+ let zip,video,videoReleased=false;
  const label=kind==='gif'?'GIF':kind==='video'?'Video':'ZIP';
  const checkpoint=()=>{if(task.cancelled)throw Error('Export canceled')};
  try{
@@ -878,7 +878,7 @@ async function exportAnimation(kind){
   }
   checkpoint();let blob;
   if(kind==='gif'){gif.finish();blob=new Blob([gif.bytes()],{type:'image/gif'})}
-  else if(kind==='video'){setExportPhase('Finalizing video…');blob=await video.finish()}
+  else if(kind==='video'){setExportPhase('Finalizing video…');blob=await video.finish();videoReleased=true}
   else{
    let colorPalette='pepto-pal';
    if(ted)colorPalette='ted-pal';
@@ -897,7 +897,7 @@ async function exportAnimation(kind){
   button.dataset.downloadUrl=url;button.dataset.downloadName=name;downloadReadyFile(file);
   $('exportBadge').textContent=label+' ready';setStatus(label+' ready: '+totalFrames+' frames · '+width+' × '+height+(kind==='video'?' · '+repetitions+' '+(repetitions===1?'loop':'loops')+' · '+Number((s.seconds*repetitions).toFixed(2))+' s':'')+'. Tap '+animationDownloadLabels[kind]+' again if the download did not start.');
  }catch(e){$('exportBadge').textContent=task.cancelled?'Canceled':'Failed';setStatus(task.cancelled?'Animation export canceled':(kind==='zip'?'Frame ZIP':label)+' export failed: '+e.message)}
- finally{endExportProgress();try{await video?.cancel()}catch{}zip?.terminate();animationExportTask=null;button.textContent=animationDownloadLabels[kind];for(const id of ['exportGif','exportFrames','exportVideo','exportC64'])$(id).disabled=false;updateNativeExportAvailability();$('cancelAnimationExport').hidden=true;$('cancelSheetDownload').hidden=true;$('cancelAnimationExport').disabled=false}
+ finally{endExportProgress();if(video&&!videoReleased){try{await video.cancel()}catch{}}zip?.terminate();animationExportTask=null;button.textContent=animationDownloadLabels[kind];for(const id of ['exportGif','exportFrames','exportVideo','exportC64'])$(id).disabled=false;updateNativeExportAvailability();$('cancelAnimationExport').hidden=true;$('cancelSheetDownload').hidden=true;$('cancelAnimationExport').disabled=false}
 }
 $('exportGif').onclick=()=>exportAnimation('gif');
 $('exportFrames').onclick=()=>exportAnimation('zip');
