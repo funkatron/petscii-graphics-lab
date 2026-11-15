@@ -292,6 +292,8 @@ Image backgrounds can use the canvas color, white, black, or transparency. Anima
 
 GIF, video, and frame ZIP share resolution choices of 8, 16, or 32 pixels per cell. PNG frames preserve exact pixels; video compression may slightly change colors and edges.
 
+**Colors → Screen** can show the picture on a monitor, a television, a green monitor, or an amber monitor. Monitor and television keep the painted colors, with thin scanlines, a little phosphor, and a slight color edge. Green and amber are one phosphor: a bright ink stays bright and a dark ink stays dark, and the original hues are gone. None leaves the picture alone. PNG, GIF, video, and frame ZIP match that choice. SVG, PRG, and disk images stay the clean drawing.
+
 ### Video repetitions
 
 In **Animation → Video (MP4 / WebM)**, set **Video repetitions (total loops)**. One plays once; the maximum is 100.
