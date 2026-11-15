@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 PY="$ROOT/.venv/bin/python"
 if [[ ! -x "$PY" ]]; then
   echo "Create the preview environment first:" >&2
-  echo "  python3 -m venv $ROOT/.venv && $ROOT/.venv/bin/pip install -r $ROOT/requirements.txt" >&2
+  echo "  $ROOT/setup-venv.sh" >&2
   exit 1
 fi
 exec "$PY" "$ROOT/src/server.py"

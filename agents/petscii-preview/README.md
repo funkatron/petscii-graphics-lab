@@ -7,8 +7,7 @@ Glyph art always comes from `assets/c64-glyphs.svg`.
 ## Setup
 
 ```bash
-python3 -m venv agents/petscii-preview/.venv
-agents/petscii-preview/.venv/bin/pip install -r agents/petscii-preview/requirements.txt
+agents/petscii-preview/setup-venv.sh
 node agents/petscii-preview/make_pgl_examples.mjs
 ```
 
