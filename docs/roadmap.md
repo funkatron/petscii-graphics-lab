@@ -8,11 +8,12 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 
 ## Current priorities
 
-1. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
-2. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
-3. **New animation types:** prioritize additional creative effects over C64 capacity optimization and memory-expansion support; continue the demoscene-inspired effects below.
-4. **Machine modes / display palettes:** C64, C128 (40-col), and Plus/4 with VIC palette switching and full TED drawing — see [machine modes](machine-modes.md).
-5. **Animation and C64 follow-ups — lower priority:** current animation behavior meets the owner’s needs. Keep further capacity optimization, broader PAL/NTSC VICE validation and physical C64/storage checks as follow-ups; revisit when a concrete need or playback issue arises.
+1. **New animation types:** Backdrop and Parallax are the current effects. Keep prioritizing additional creative effects over C64 capacity optimization and memory-expansion support.
+2. **Canvas shaders:** compare approaches before implementation. Image and animation exports should match the preview. PRG/D64 stay shader-free. See [Canvas shaders](#canvas-shaders--exploration).
+3. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
+4. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
+5. **Machine modes / display palettes:** C64, C128 (40-col), C128 80-col, and Plus/4 are shipped. Extra VIC palettes (DeeKay, Frodo, CCS64, Pepto NTSC) stay later. See [machine modes](machine-modes.md).
+6. **Animation and C64 follow-ups — lower priority:** further capacity optimization, broader PAL/NTSC VICE validation, and physical C64/storage checks. Revisit when a concrete need or playback issue arises.
 
 ## Machine modes and display palettes — design in progress
 
@@ -121,6 +122,8 @@ See the [depth-effects plan](depth-effects.md) for artwork mapping, projection, 
 - [x] Add movement-wave amplitude (the waveform’s “height”) choices of **10%, 25%, 50%, 75%, and 100%**. Scale displacement only; keep direction, waveform, timing and canvas dimensions independent. At 100%, use twice the earlier displacement range; 50% matches that earlier range.
 - [x] Add independent Color wave height percentages to Rainbow wave for every waveform; preserve the full color sequence at 100%.
 - [x] Save both amplitude settings with the project and share it across preview and supported animation downloads.
+- [x] Backdrop steps the shared background along the color-cycle or warm-glow ramp. Ramp, direction, and border lead are selects. VIC and TED can lead the border; C128 80-col keeps the border equal to the background. Preview, GIF, video, and ZIP use the animated fill. Native PRG/D64 still write one background.
+- [x] Parallax moves ink groups or glyph groups. Direction, spread, and same/opposite travel are selects. Spread 1 is the two-speed drift (moiré with two line glyphs, chessboard with two inks). Source art stays still for Undo and still exports.
 
 Wave height shipped in PR #24; doubled movement range and independent color-wave height shipped in PR #25. Grouped animation controls shipped in PR #26. Sine scroller and Raster-style bars shipped in PR #27 after Chromium and both iPad WebKit layouts passed. Plasma field shipped in PR #28. Bouncing/stretching logos, Starfield and Patterned wipe shipped in PR #29 after all three browser jobs passed. Independent wavelength controls shipped in PR #30 after all three browser jobs passed. The sidebar grouping pass shipped in PR #31 and Ripple in PR #32. Existing animation optimization and C64 validation remain lower-priority follow-ups.
 
@@ -246,3 +249,4 @@ New animation types take priority over this optional hardware feature.
 - [ ] When designing expansion-aware players, also consider **C128 bank 1** (`FRE(1)` ≈ 64,256) via MMU banking. The C128 boot banner’s **122,365** is bank 0 + bank 1; today’s linear `$1C01` player only budgets bank-0 `FRE(0)` (58,109). Bank-1/REU capacity is optional and must not replace standard bank-0 exports.
 - [ ] Validate capacity, timing, glyph/color accuracy and RUN/STOP behavior in VICE with REU emulation before physical-hardware testing.
 - [ ] Keep standard C64 / C128 bank-0 / Plus/4 exports available. Extra RAM does not automatically extend the current player or remove every playback-speed limit.
+- [ ] Optional case frame on PNG, SVG, GIF, and video: one export-cell thick, default off, square corners, using the editor highlight color. ZIP and PRG/D64 stay artwork pixels only. The editor bezel stays on-screen chrome.

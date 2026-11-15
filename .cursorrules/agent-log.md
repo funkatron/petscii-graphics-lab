@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-14 — Backdrop and Parallax
+
+**What:** Backdrop (`field` / `plus4-field`) steps the shared background on the color-cycle or warm-glow ramp, forward or reverse, with a border lead of 0, 1, 2, or 4. C128 80-col keeps the border equal to the background. Parallax groups cells by ink or glyph, with spread and same/opposite travel. Preview, GIF, video, and ZIP use the animated fill. Native PRG/D64 still write one background. Roadmap puts new animations and shaders first and parks the case frame under REU.  
+**Tested:** `node --test tests/backdrop-parallax.unit.mjs` and Chromium `tests/backdrop-parallax.spec.cjs` plus `tests/project-defaults.spec.cjs`. Knobs persist, invalid values fail the load, the GIF fill follows the ramp, and preview leaves the source grid unchanged.  
+**Touched:** `animation-frames.js`, `project-validation.js`, `plus4-colors.js`, `index.html`, `styles/editor.css`, README, roadmap, machine-modes, maintainer reference, new unit and browser tests.
+
 ## 2026-11-14 — VICE smoke for Plus/4 and C128 80-col
 
 **What:** Optional `npm run test:vice:hosts` autostarts one Plus/4 still and one C128 80-col still. It checks TED screen, attributes, and `$FF19`, or VDC screen and attributes, then pokes STKEY `$91` and expects `READY.`. The C64 `test:vice` suite is unchanged. Not part of browser CI.  

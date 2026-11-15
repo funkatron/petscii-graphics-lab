@@ -337,7 +337,7 @@ dialog::backdrop{background:#0009}
 #animationEffect,#animationColor{width:100%}
 #animationMovement>.field:first-of-type,#animationColors>.field:first-of-type,#animationTimeline>.field,#animationTimeline>.row{grid-column:1/-1}
 #animationTimeline>.row{margin:0}#animationTimeline label{min-height:0}
-#scrollOptions,#waveOptions,#colorWaveOptions{display:contents}
+#scrollOptions,#waveOptions,#colorWaveOptions,#parallaxOptions,#fieldOptions{display:contents}
 #introMotionHelp{grid-column:1/-1;margin:0}
 .animation-section .wave-length{grid-column:1}
 #animationTimeline>.cycle-rate{grid-column:auto}

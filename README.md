@@ -204,7 +204,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Spinning globe** | Wrap the drawing around a tilted rotating sphere. |
 | **Rolling drum** | Roll the drawing around a cylinder with textured end caps. |
 | **Space warp** | Sparse glyphs approach or recede through depth. Choose **Depth travel**; near glyphs cover distant ones. Glyphs stay whole. Objects can pop as their depth wraps. |
-| **Starfield** | Move the drawing’s glyphs at three speeds, like stars at different distances. Use sparse artwork and choose Scroll direction. Nearer glyphs cover farther ones when they meet.  Choose any of eight directions. Diagonal travel follows the canvas diagonal. |
+| **Parallax** | Move each ink, or each glyph, as its own layer. Direction uses the eight scroll directions. Spread holds the lowest group and lets later groups travel 1, 2, or 4 extra cells, or Together moves them as one. Opposite reverses every other layer. Two line glyphs make a moiré. A two-ink checker makes a chessboard. Empty cells stay put. |
 | **Patterned wipe** | Reveal, hold, then hide the drawing. Choose Wipe direction and a Diagonal, Checkerboard or Blinds pattern. |
 | **Plasma field** | Intersecting color waves flow across occupied cells. Color → Direction, Waveform, Height and Cycles / loop shape the field; Sine is the starting waveform. Glyphs and the shared background stay unchanged. |
 | **Raster-style bars** | Blue/cyan/white bands move across occupied cells. Color → Direction, Waveform and Height shape the bands. Empty cells and the shared background stay unchanged. |
@@ -214,8 +214,9 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Bonfire** | Build rising, tapering flames using the drawing’s glyphs and inks as texture. Even one painted cell supplies the texture; empty drawings stay empty. Pair with Bonfire colors for a fire palette. |
 | **Bonfire colors** | Apply flickering brown/red/orange tips and yellow-white cores to occupied cells. Works independently of movement; the shared background stays fixed. |
 | **Warm glow** | Ink moves through brown, orange, red, light red, yellow, and white, then back. |
+| **Backdrop** | Steps the shared background through the color cycle or the warm glow. Direction is forward or reverse. Border lead can match the background or sit 1, 2, or 4 steps ahead. On C128 80-column the border matches the background. Cell glyphs and inks stay as the movement effect left them. |
 
-Movement carries each cell’s ink with its glyph. Color animation then changes the resulting ink; Rainbow wave uses the cell’s new position. Both choices share one loop duration. The shared background stays fixed. Still-image downloads use the original drawing, even when an animation is paused.
+Movement carries each cell’s ink with its glyph. Color animation then changes the resulting ink; Rainbow wave uses the cell’s new position. Both choices share one loop duration. Backdrop is the color effect that steps the shared background. The other color effects leave it fixed. Still-image downloads use the original drawing, even when an animation is paused.
 
 For example, an **8-second loop** with **4× movement** and **8× color** repeats movement every 2 seconds and color every 1 second. Both return to their starting phase at the loop boundary. Video repetitions still count complete 8-second loops.
 
