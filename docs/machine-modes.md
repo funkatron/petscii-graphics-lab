@@ -162,7 +162,6 @@ Product owns the JS source of truth. Do not dual-write Python MCP machine tables
 2. Repo-wide `MACHINE` / `INDEX_SPACE` literal cleanup (constants already used in machine-modes and new 80-col paths).
 3. Extra VIC presets (DeeKay, Frodo, CCS64, NTSC variants).
 4. Optional bezel in image exports; separate PRG border ink; MCP Python sync from JS.
-5. Full VICE `xplus4` / `x128 -80col` smoke for native players (unit coverage exists today).
 
 ## Shipped behavior
 
@@ -171,5 +170,6 @@ Product owns the JS source of truth. Do not dual-write Python MCP machine tables
 - Plus/4 drawing uses TED indices `0–120` and TED glyph atlas; C128 80-col uses RGBI `0–15` and the C64 glyph atlas up to **80 × 25**; crossing VIC / TED / VDC remaps inks (and glyphs for TED) undoably.
 - Contextual color-animation lists; native PRG/D64 for all four machines; color RAM `.bin` VIC-only; color text on every machine. Plus/4 writes `PETSCII-GLYPHS` v3 (`00`–`78`). VIC and VDC stay on v2.
 - Unit: `tests/machine-modes.unit.mjs`, `tests/plus4-colors.unit.mjs`, `tests/vdc-colors.unit.mjs`, `tests/c128-vdc-export.unit.mjs`. Chromium Playwright: `tests/machine-modes.spec.cjs` + theme mapping coverage in `tests/ui-theme.spec.cjs` (run on GitHub Actions).
+- Optional VICE smoke (`npm run test:vice:hosts`) loads one Plus/4 still and one C128 80-col still, checks TED or VDC memory, and returns to BASIC. It is not part of browser CI.
 - Machine appearance maps onto `data-ui-theme` (`c64`→`c64c`, `c128` / `c128-80`→`c128`, `plus4`); there is no separate Interface look control.
 - Editor cells remain square for now; aspect-ratio UI is a tracked follow-up.

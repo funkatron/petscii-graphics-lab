@@ -72,7 +72,7 @@ flowchart TB
 
 ## Testing
 
-Playwright drives Chromium and two iPad WebKit profiles. Unit tests (`*.unit.mjs`) cover pure projection/validation without a browser. Optional `npm run test:vice` exercises downloaded PRGs under py65/VICE.
+Playwright drives Chromium and two iPad WebKit profiles. Unit tests (`*.unit.mjs`) cover pure projection/validation without a browser. Optional `npm run test:vice` exercises C64 PRGs under VICE. `npm run test:vice:hosts` is the Plus/4 and C128 80-col smoke.
 
 ## Incremental modularization
 
