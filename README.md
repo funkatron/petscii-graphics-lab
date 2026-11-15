@@ -306,7 +306,7 @@ Repetitions change the video file only. GIF and preview looping, and the frame Z
 
 ### While a file is being prepared
 
-Animation downloads show progress and provide **Cancel export**. You can close the download panel and keep drawing. Each export uses a copy of the artwork and settings from when it started.
+Animation downloads show a progress bar and frame counter (for example `Rendering GIF: 3 / 48`) and provide **Cancel export**. You can close the download panel and keep drawing. Each export uses a copy of the artwork and settings from when it started.
 
 Tap the same animation Download button again to reuse the completed file. Changing artwork or output settings makes the editor prepare a new file. Canceling or failing to prepare a file preserves the previous completed download.
 

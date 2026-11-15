@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-15 — Animation export progress bar and frame counter
+
+**What:** GIF, video, and frame-ZIP exports again show `Rendering …: n / total` in the download dialog plus a themed progress bar. The stage mirrors the same text and bar when the download panel is closed. `setStatus` no longer clears `#downloadStatus` during an active export (regression from the download-dialog split).  
+**Tested:** `tests/download-actions.spec.cjs` (5 cases, Chromium).  
+**Touched:** `index.html`, `styles/editor.css`, `tests/download-actions.spec.cjs`, `README.md`.
+
 ## 2026-11-15 — Declare the package as an ES module
 
 **What:** `package.json` now has `"type": "module"`. The `.js` sources already use `import`/`export`, and CommonJS stays in `.cjs`. Node 24 validates without the line, then warns and reparses. The declaration matches the files.  

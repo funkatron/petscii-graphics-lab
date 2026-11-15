@@ -308,7 +308,18 @@ button,select,.field input[type=number]{min-height:44px}
 #saveStatus{max-width:160px;font-size:.68rem}
 .preview-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--stage-caption);font-size:.8rem}
 .preview-banner button{font-size:.75rem}
-.task-progress:has(button[hidden]){display:none}
+.task-progress:not(:has(#cancelAnimationExport:not([hidden]))):not(:has(#stageExportProgressWrap:not([hidden]))){display:none}
+.task-progress .export-progress-wrap{margin-bottom:6px}
+.export-progress-wrap{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+#exportProgressWrap{margin-top:6px}
+.export-progress{width:100%;height:10px;appearance:none;-webkit-appearance:none;border:1px solid var(--ui-control-border);border-radius:6px;background:var(--ui-control-bg);overflow:hidden}
+.export-progress::-webkit-progress-bar{background:var(--ui-control-bg);border-radius:6px}
+.export-progress::-webkit-progress-value{background:var(--ui-focus-border);border-radius:5px}
+.export-progress::-moz-progress-bar{background:var(--ui-focus-border);border-radius:5px}
+.export-progress.export-progress-indeterminate::-webkit-progress-value{background:repeating-linear-gradient(90deg,var(--ui-focus-border) 0 12px,transparent 12px 20px);animation:export-progress-pulse 1s linear infinite}
+.export-progress.export-progress-indeterminate::-moz-progress-bar{background:repeating-linear-gradient(90deg,var(--ui-focus-border) 0 12px,transparent 12px 20px);animation:export-progress-pulse 1s linear infinite}
+@keyframes export-progress-pulse{from{background-position:0 0}to{background-position:20px 0}}
+.export-progress-label{font-size:.78rem;font-weight:600;color:var(--text-status)}
 #cancelAnimationExport{width:auto;margin:0}
 dialog{color:var(--case-text);background:var(--case-surface);border:1px solid var(--case-edge);border-radius:14px;width:min(820px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:18px;overscroll-behavior:contain}
 dialog::backdrop{background:#0009}
