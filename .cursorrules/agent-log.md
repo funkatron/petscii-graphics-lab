@@ -1,5 +1,26 @@
 # Agent log
 
+## 2026-11-15 — Declare the package as an ES module
+
+**What:** `package.json` now has `"type": "module"`. The `.js` sources already use `import`/`export`, and CommonJS stays in `.cjs`. Node 24 validates without the line, then warns and reparses. The declaration matches the files.  
+**Touched:** `package.json`.
+
+## 2026-11-15 — PETSCII shading glyphs in the drawing skill
+
+**What:** The drawing skill now says a finished picture shades with glyphs, not a field of solid 160. Checker 102 is the mid tone, diagonals 77 and 78 brush a slope, halves and quarters are the steps toward black, and a region repeats one of those. The RoboCop profile was repainted that way through the preview MCP.  
+**Touched:** `.cursor/skills/petscii-draw/SKILL.md`. The picture stays in `agents/petscii-preview/out/`.
+
+## 2026-11-15 — Preview tools use the home-built Node 24
+
+**What:** Node bridges and project validation call `~/build/node24/node-v*/out/Release/node` (v24.22.2) when that binary is present. `PGL_NODE` overrides it. `run-mcp.sh` puts that directory first on `PATH`. The older Cursor-agent pin is no longer the fallback.  
+**Tested:** `find_node()` prints the Release binary and `v24.22.2`. Drawing and MCP smoke tests passed (6).
+
+## 2026-11-15 — PETSCII preview MCP in the repo
+
+**What:** `agents/petscii-preview` is tracked so someone else can paint, render, and export. The virtualenv and `out/` stay ignored. `.cursor/mcp.json` starts `run-mcp.sh`. The drawing skill is `.cursor/skills/petscii-draw`.  
+**Tested:** drawing unit test and the MCP smoke tests after `pip install -r agents/petscii-preview/requirements.txt`.  
+**Touched:** `agents/petscii-preview`, `.gitignore`, `.cursor/mcp.json`, `.cursor/skills/petscii-draw/SKILL.md`. `setup-venv.sh` creates the virtualenv and installs `requirements.txt`. The drawing skill studies `examples/IMG_0343` through `IMG_0360` before a picture is painted.
+
 ## 2026-11-14 — Backdrop and Parallax
 
 **What:** Backdrop (`field` / `plus4-field`) steps the shared background on the color-cycle or warm-glow ramp, forward or reverse, with a border lead of 0, 1, 2, or 4. C128 80-col keeps the border equal to the background. Parallax groups cells by ink or glyph, with spread and same/opposite travel. Preview, GIF, video, and ZIP use the animated fill. Native PRG/D64 still write one background. Roadmap puts new animations and shaders first and parks the case frame under REU.  

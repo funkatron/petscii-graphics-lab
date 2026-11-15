@@ -1,7 +1,9 @@
 node_modules/
 playwright-report/
 test-results/
-# Local agent sandboxes / Python envs — never commit
-agents/
+# Python envs and generated preview output. MCP sources under agents/ are tracked.
 .venv/
 **/.venv/
+agents/**/__pycache__/
+agents/**/*.pyc
+agents/**/out/
