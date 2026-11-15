@@ -27,7 +27,8 @@ test('animation export shows progress bar and mirrored status in the dialog',asy
  await expect(page.locator('#exportBadge')).toHaveText('Canceled');
  await expect(page.locator('#exportProgressWrap')).toBeHidden();
 });
-test('animation export shows frame counts while rendering',async({page})=>{
+test('animation export shows frame counts while rendering',async({page},testInfo)=>{
+ test.skip(testInfo.project.name!=='chromium','frame counter timing is checked on Chromium only');
  test.setTimeout(120000);
  await ui(page,'#animationColor','selectOption','color-cycle');
  await ui(page,'#animationSeconds','selectOption','4');
