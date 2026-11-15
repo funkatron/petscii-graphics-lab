@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-15 — PETSCII preview MCP in the repo
+
+**What:** `agents/petscii-preview` is tracked so someone else can paint, render, and export. The virtualenv and `out/` stay ignored. `.cursor/mcp.json` starts `run-mcp.sh`. The drawing skill is `.cursor/skills/petscii-draw`.  
+**Tested:** drawing unit test and the MCP smoke tests after `pip install -r agents/petscii-preview/requirements.txt`.  
+**Touched:** `agents/petscii-preview`, `.gitignore`, `.cursor/mcp.json`, `.cursor/skills/petscii-draw/SKILL.md`.
+
 ## 2026-11-14 — Backdrop and Parallax
 
 **What:** Backdrop (`field` / `plus4-field`) steps the shared background on the color-cycle or warm-glow ramp, forward or reverse, with a border lead of 0, 1, 2, or 4. C128 80-col keeps the border equal to the background. Parallax groups cells by ink or glyph, with spread and same/opposite travel. Preview, GIF, video, and ZIP use the animated fill. Native PRG/D64 still write one background. Roadmap puts new animations and shaders first and parks the case frame under REU.  
