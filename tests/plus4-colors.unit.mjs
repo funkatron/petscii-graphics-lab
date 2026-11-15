@@ -52,6 +52,11 @@ test('Plus/4 color effects are validated and detected', () => {
   for (const effect of PLUS4_COLOR_EFFECTS) {
     assert.equal(isPlus4ColorEffect(effect), true);
     assert.ok(COLOR_EFFECTS.includes(effect));
+    // Backdrop reuses the Plus/4 cycle and glow ramps. It is not a cell-color cycle.
+    if (effect === 'plus4-field') {
+      assert.equal(PLUS4_COLOR_CYCLES[effect], undefined);
+      continue;
+    }
     assert.ok(PLUS4_COLOR_CYCLES[effect].length >= 6);
   }
   assert.equal(isPlus4ColorEffect('color-wave'), false);
