@@ -218,6 +218,7 @@ export const PLUS4_COLOR_EFFECTS = Object.freeze([
   'plus4-raster',
   'plus4-plasma',
   'plus4-bonfire',
+  'plus4-field',
 ]);
 
 export function isPlus4ColorEffect(effect) {

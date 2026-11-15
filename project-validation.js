@@ -6,6 +6,12 @@ export const ANIMATION_CYCLES = [1, 2, 4, 8, 16];
 export const DEPTH_EFFECTS = ['space-warp', 'perspective-floor', 'curved-road', 'tunnel-flight'];
 export const INTRO_MOTIONS = ['logo-bounce', 'logo-stretch', 'starfield', 'wipe'];
 export const WIPE_PATTERNS = ['diagonal', 'checkerboard', 'blinds'];
+export const FIELD_RAMPS = ['cycle', 'glow'];
+export const FIELD_DIRECTIONS = ['forward', 'reverse'];
+export const FIELD_LEADS = [0, 1, 2, 4];
+export const PARALLAX_GROUPS = ['ink', 'glyph'];
+export const PARALLAX_SPREADS = [0, 1, 2, 4];
+export const PARALLAX_TRAVELS = ['same', 'opposite'];
 export const WAVE_AMPLITUDES = [10, 25, 50, 75, 100];
 export const WAVE_LENGTHS = [10, 25, 50, 75, 100];
 export const WAVE_SHAPES = ['sine', 'triangle', 'square', 'sawtooth', 'reverse-sawtooth'];
@@ -23,15 +29,16 @@ export const SOLID_CAMERA_VALUES = {
 };
 export const MOTION_EFFECTS = [
   'none', 'bonfire', 'replay', 'scroll-x', 'scroll-y', 'scroll-diagonal',
-  'wave', 'sine-scroll', 'ripple',
+  'wave', 'sine-scroll', 'ripple', 'parallax',
   ...DEPTH_EFFECTS,
   ...SOLID_EFFECTS,
   ...INTRO_MOTIONS,
 ];
 export const COLOR_EFFECTS = [
   'none', 'bonfire', 'raster-bars', 'plasma', 'color-cycle', 'color-wave', 'color-glow',
-  'inverse',
+  'inverse', 'field',
   'plus4-cycle', 'plus4-wave', 'plus4-glow', 'plus4-raster', 'plus4-plasma', 'plus4-bonfire',
+  'plus4-field',
 ];
 
 /**
@@ -190,7 +197,7 @@ function scrollDirectionChoices(effect) {
   if (effect === 'scroll-diagonal') {
     return DIAGONAL_DIRECTIONS;
   }
-  if (effect === 'starfield' || effect === 'sine-scroll') {
+  if (effect === 'starfield' || effect === 'sine-scroll' || effect === 'parallax') {
     return COLOR_WAVE_DIRECTIONS;
   }
   return WAVE_DIRECTIONS;
@@ -222,6 +229,24 @@ function validateAnimationField(data) {
     }
   }
   if (animation.wipePattern !== undefined && !WIPE_PATTERNS.includes(animation.wipePattern)) {
+    throw Error('Invalid animation settings');
+  }
+  if (animation.fieldRamp !== undefined && !FIELD_RAMPS.includes(animation.fieldRamp)) {
+    throw Error('Invalid animation settings');
+  }
+  if (animation.fieldDirection !== undefined && !FIELD_DIRECTIONS.includes(animation.fieldDirection)) {
+    throw Error('Invalid animation settings');
+  }
+  if (animation.fieldLead !== undefined && !FIELD_LEADS.includes(animation.fieldLead)) {
+    throw Error('Invalid animation settings');
+  }
+  if (animation.parallaxGroup !== undefined && !PARALLAX_GROUPS.includes(animation.parallaxGroup)) {
+    throw Error('Invalid animation settings');
+  }
+  if (animation.parallaxSpread !== undefined && !PARALLAX_SPREADS.includes(animation.parallaxSpread)) {
+    throw Error('Invalid animation settings');
+  }
+  if (animation.parallaxTravel !== undefined && !PARALLAX_TRAVELS.includes(animation.parallaxTravel)) {
     throw Error('Invalid animation settings');
   }
   for (const key of ['waveAmplitude', 'colorWaveAmplitude']) {

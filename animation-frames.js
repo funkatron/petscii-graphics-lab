@@ -39,7 +39,34 @@ function colorFamily(effect) {
   if (effect === 'plus4-glow' || effect === 'color-glow') {
     return 'color-glow';
   }
+  if (effect === 'plus4-field' || effect === 'field') {
+    return 'field';
+  }
   return effect;
+}
+
+function fieldBaseRamp(source) {
+  const rampName = source.fieldRamp ?? 'cycle';
+  const ted = isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect);
+  if (ted && rampName === 'glow') {
+    return COLOR_CYCLES['plus4-glow'];
+  }
+  if (ted) {
+    return COLOR_CYCLES['plus4-cycle'];
+  }
+  if (rampName === 'glow') {
+    return COLOR_CYCLES['color-glow'];
+  }
+  return COLOR_CYCLES['color-cycle'];
+}
+
+function fieldSequence(source) {
+  const ramp = fieldBaseRamp(source).slice();
+  const background = source.colors?.background ?? 0;
+  if (!ramp.includes(background)) {
+    ramp.unshift(background);
+  }
+  return ramp;
 }
 
 const FRAME_BUDGET_MS = 20;
@@ -94,6 +121,9 @@ function colorStepsFor(source) {
     // Keep a dense fire timeline; never shorter than the ramp itself.
     return Math.max(48, ramp ? ramp.length : 0);
   }
+  if (family === 'field') {
+    return fieldSequence(source).length;
+  }
   if (family === 'plasma') {
     // C64 plasma stays on the classic 24-sample loop; Plus/4 uses the
     // expanded TED ramp length so gap-filled colors actually appear.
@@ -123,6 +153,15 @@ function samplesPerMotionCycle(source) {
   }
   if (INTRO_MOTIONS.includes(source.effect)) {
     return 24;
+  }
+  if (source.effect === 'parallax') {
+    if (DIAGONAL_DIRECTIONS.includes(direction)) {
+      return Math.max(source.W, source.H);
+    }
+    if (horizontal) {
+      return source.W;
+    }
+    return source.H;
   }
   if (source.effect === 'scroll-diagonal') {
     return Math.max(source.W, source.H);
@@ -357,7 +396,89 @@ export function introMotionFrame(phase, source) {
   return {cells, inks};
 }
 
+function parallaxMultiplier(source, layerIndex) {
+  const spread = source.parallaxSpread ?? 1;
+  let multiplier = 1;
+  if (spread !== 0) {
+    multiplier = layerIndex * spread;
+  }
+  if ((source.parallaxTravel ?? 'same') === 'opposite' && layerIndex % 2 === 1) {
+    multiplier = -multiplier;
+  }
+  return multiplier;
+}
+
+function parallaxDelta(source, phase, layerIndex) {
+  const direction = scrollDirection(source);
+  const multiplier = parallaxMultiplier(source, layerIndex);
+  let dx = 0;
+  let dy = 0;
+  if (DIAGONAL_DIRECTIONS.includes(direction)) {
+    const stepX = Math.floor(phase * source.W) * multiplier;
+    const stepY = Math.floor(phase * source.H) * multiplier;
+    if (direction.endsWith('right')) {
+      dx = stepX;
+    } else {
+      dx = -stepX;
+    }
+    if (direction.startsWith('down')) {
+      dy = stepY;
+    } else {
+      dy = -stepY;
+    }
+    return {dx, dy};
+  }
+  if (direction === 'left' || direction === 'right') {
+    const step = Math.floor(phase * source.W) * multiplier;
+    if (direction === 'right') {
+      dx = step;
+    } else {
+      dx = -step;
+    }
+    return {dx, dy};
+  }
+  const step = Math.floor(phase * source.H) * multiplier;
+  if (direction === 'down') {
+    dy = step;
+  } else {
+    dy = -step;
+  }
+  return {dx, dy};
+}
+
+function applyParallax(phase, source, cells, inks) {
+  const groupByGlyph = (source.parallaxGroup ?? 'ink') === 'glyph';
+  const groups = new Map();
+  for (let index = 0; index < source.grid.length; index++) {
+    if (source.grid[index] === '') {
+      continue;
+    }
+    const key = groupByGlyph ? source.grid[index] : source.inks[index];
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+    groups.get(key).push(index);
+  }
+  const keys = [...groups.keys()].sort((a, b) => a - b);
+  keys.forEach((key, layerIndex) => {
+    const delta = parallaxDelta(source, phase, layerIndex);
+    for (const index of groups.get(key)) {
+      const x = index % source.W;
+      const y = Math.floor(index / source.W);
+      const destX = wrapIndex(x + delta.dx, source.W);
+      const destY = wrapIndex(y + delta.dy, source.H);
+      const dest = destY * source.W + destX;
+      cells[dest] = source.grid[index];
+      inks[dest] = source.inks[index];
+    }
+  });
+}
+
 function applyGridMotion(frame, phase, source, cells, inks) {
+  if (source.effect === 'parallax') {
+    applyParallax(phase, source, cells, inks);
+    return;
+  }
   const wrap = wrapIndex;
   for (let y = 0; y < source.H; y++) {
     for (let x = 0; x < source.W; x++) {
@@ -474,6 +595,31 @@ function applyGridMotion(frame, phase, source, cells, inks) {
       inks[destination] = source.inks[sampleY * source.W + sampleX];
     }
   }
+}
+
+function fieldColors(colorPhase, source) {
+  const still = source.colors?.background ?? 0;
+  if (colorFamily(source.colorEffect) !== 'field') {
+    return {background: still, border: still};
+  }
+  const sequence = fieldSequence(source);
+  const length = sequence.length;
+  let step = Math.floor(colorPhase * length);
+  if ((source.fieldDirection ?? 'forward') === 'reverse') {
+    step = -step;
+  }
+  const index = wrapIndex(sequence.indexOf(still) + step, length);
+  const background = sequence[index];
+  let lead = source.fieldLead ?? 1;
+  if (isVdcMachine(source.machine)) {
+    lead = 0;
+  }
+  let borderStep = lead;
+  if ((source.fieldDirection ?? 'forward') === 'reverse') {
+    borderStep = -lead;
+  }
+  const border = sequence[wrapIndex(index + borderStep, length)];
+  return {background, border};
 }
 
 function applyInversePass(colorPhase, source, cells) {
@@ -620,6 +766,7 @@ export function animationCells(frame, source) {
 
   applyInversePass(colorPhase, normalized, cells);
   applyColorPass(colorPhase, normalized, cells, inks);
+  const field = fieldColors(colorPhase, normalized);
   let colorPalette = 'pepto-pal';
   if (isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect)) {
     colorPalette = 'ted-pal';
@@ -630,5 +777,7 @@ export function animationCells(frame, source) {
     cells,
     inks,
     colorPalette,
+    background: field.background,
+    border: field.border,
   };
 }

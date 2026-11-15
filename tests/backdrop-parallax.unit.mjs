@@ -1,0 +1,120 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {animationCells} from '../animation-frames.js';
+import {validateProject} from '../project-validation.js';
+
+const cycle = [0, 11, 12, 15, 1, 7, 13, 5, 3, 14, 6, 4, 2, 10, 8, 9];
+const glow = [9, 8, 2, 10, 7, 1, 7, 10, 2, 8];
+const baseProject = {
+  format: 'petscii-stencil-lab',
+  version: 3,
+  columns: 2,
+  rows: 2,
+  grid: [160, '', 0, 64],
+  selectedGlyph: 160,
+  colors: {ink: 14, background: 6},
+};
+
+function picture(extra) {
+  return {
+    W: 4,
+    H: 1,
+    grid: [160, '', 81, ''],
+    inks: [1, 0, 2, 0],
+    colors: {ink: 1, background: 6},
+    effect: 'none',
+    colorEffect: 'field',
+    seconds: 1,
+    scale: 1,
+    background: 'dark',
+    motionCycles: 1,
+    colorCycles: 1,
+    ...extra,
+  };
+}
+
+test('backdrop keeps cells and walks the chosen ramp', () => {
+  const first = animationCells(0, picture());
+  const next = animationCells(1, picture());
+  assert.deepEqual(first.cells, [160, '', 81, '']);
+  assert.deepEqual(first.inks, [1, 0, 2, 0]);
+  assert.equal(first.background, 6);
+  assert.equal(first.border, 4);
+  assert.equal(next.background, 4);
+  assert.equal(next.border, 2);
+  assert.equal(animationCells(1, picture({fieldDirection: 'reverse'})).background, 14);
+  assert.equal(animationCells(0, picture({fieldLead: 0})).border, 6);
+  assert.equal(animationCells(0, picture({fieldLead: 4})).border, cycle[14]);
+  const warm = animationCells(1, picture({fieldRamp: 'glow'}));
+  assert.equal(warm.background, glow[0]);
+  assert.equal(animationCells(1, picture({fieldRamp: 'glow', fieldDirection: 'reverse'})).background, glow[glow.length - 1]);
+});
+
+test('VDC backdrop border matches the background', () => {
+  const frame = animationCells(1, picture({machine: 'c128-80', fieldLead: 4}));
+  assert.equal(frame.border, frame.background);
+  assert.notEqual(frame.background, 6);
+});
+
+test('parallax spread, travel, and glyph groups', () => {
+  const together = animationCells(1, picture({
+    effect: 'parallax',
+    colorEffect: 'none',
+    scrollDirection: 'left',
+    parallaxSpread: 0,
+  }));
+  assert.deepEqual(together.cells, ['', 81, '', 160]);
+  assert.equal(together.inks[1], 2);
+  assert.equal(together.inks[3], 1);
+
+  const drift = animationCells(1, picture({
+    effect: 'parallax',
+    colorEffect: 'none',
+    scrollDirection: 'left',
+    parallaxSpread: 1,
+  }));
+  assert.deepEqual(drift.cells, [160, 81, '', '']);
+  assert.equal(drift.inks[0], 1);
+  assert.equal(drift.inks[1], 2);
+
+  const opposite = animationCells(1, picture({
+    effect: 'parallax',
+    colorEffect: 'none',
+    grid: [160, 81, '', ''],
+    inks: [1, 2, 0, 0],
+    scrollDirection: 'left',
+    parallaxSpread: 0,
+    parallaxTravel: 'opposite',
+  }));
+  assert.deepEqual(opposite.cells, ['', '', 81, 160]);
+
+  const glyphs = animationCells(1, picture({
+    effect: 'parallax',
+    colorEffect: 'none',
+    grid: [160, '', 81, ''],
+    inks: [7, 0, 3, 0],
+    scrollDirection: 'left',
+    parallaxGroup: 'glyph',
+    parallaxSpread: 1,
+  }));
+  assert.deepEqual(glyphs.cells, ['', '', 81, 160]);
+  assert.equal(glyphs.inks[2], 3);
+  assert.equal(glyphs.inks[3], 7);
+});
+
+test('backdrop and parallax settings validate as a closed list', () => {
+  const animation = {effect: 'parallax', colorEffect: 'field', seconds: 1, scale: 1, background: 'dark'};
+  assert.doesNotThrow(() => validateProject({...baseProject, animation}));
+  assert.throws(
+    () => validateProject({...baseProject, animation: {...animation, fieldLead: 3}}),
+    /animation settings/,
+  );
+  assert.throws(
+    () => validateProject({...baseProject, animation: {...animation, parallaxGroup: 'layer'}}),
+    /animation settings/,
+  );
+  assert.throws(
+    () => validateProject({...baseProject, animation: {...animation, effect: 'moire'}}),
+    /animation settings/,
+  );
+});

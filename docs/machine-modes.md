@@ -16,7 +16,7 @@ Add application-level **Machine** and **Display palette** controls for:
 | Commodore 128 (80-col) | VDC RGBI indices `0–15` (`vdc-colors.js`) | Same C64 atlas (KERNAL copies VIC patterns into VDC) |
 | Commodore Plus/4 | TED indices `0–120` (full 121-color palette) | TED atlas (`assets/ted-glyphs.svg`; hardware-inverse high halves) |
 
-**Still follow-ups:** baking machine bezels into PNG/SVG/GIF. Production host checks use `MACHINE` / `isTedMachine` / `isVdcMachine`. Saved ids stay `'c64'`, `'c128'`, `'c128-80'`, and `'plus4'`.
+**Still follow-ups:** extra VIC display palettes. A case frame around image exports is deferred under REU on the roadmap; downloads stay artwork pixels only. Production host checks use `MACHINE` / `isTedMachine` / `isVdcMachine`. Saved ids stay `'c64'`, `'c128'`, `'c128-80'`, and `'plus4'`.
 
 **Cell shape** (Square / CRT, device pref in the Machine menu) stretches the editor and PNG/SVG/GIF/video. VIC/TED cells are 5∶6; VDC cells are 5∶12. Square is the default and keeps today’s pixel grid. Native PRG/D64 ignore the toggle.
 
@@ -161,7 +161,7 @@ Product owns the JS source of truth. Do not dual-write Python MCP machine tables
 1. Non-square cell aspect for canvas + raster exports (all machines; most visible at 80-col). See plan note in `.cursorrules/c128-80col-research.md`.
 2. Repo-wide `MACHINE` / `INDEX_SPACE` literal cleanup (constants already used in machine-modes and new 80-col paths).
 3. Extra VIC presets (DeeKay, Frodo, CCS64, NTSC variants).
-4. Optional bezel in image exports; separate PRG border ink; MCP Python sync from JS.
+4. Case frame in image exports is deferred (roadmap, under REU). Separate PRG border ink and MCP Python sync from JS remain open.
 
 ## Shipped behavior
 
