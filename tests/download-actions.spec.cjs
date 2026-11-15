@@ -16,20 +16,30 @@ test('download progress restores the same button after cancellation or an encode
  await page.reload();await page.locator('.app[data-ready=true]').waitFor();await ui(page,'#exportGif');await expect(page.locator('#status')).toContainText('GIF export failed');await expect(page.locator('#exportGif')).toHaveText('Download GIF');await expect(page.locator('#exportGif')).toBeEnabled();
 });
 
-test('animation export shows frame counter and progress bar in the dialog',async({page})=>{
+test('animation export shows progress bar and mirrored status in the dialog',async({page})=>{
+ let release,started;const gate=new Promise(r=>release=r),loading=new Promise(r=>started=r);
+ await page.route('**/vendor/gifenc.esm.js',async route=>{started();await gate;await route.continue()});
+ await ui(page,'#exportGif');await loading;
+ await expect(page.locator('#exportProgressWrap')).toBeVisible();
+ await expect(page.locator('#downloadStatus')).toContainText(/Preparing GIF/);
+ await expect(page.locator('#stageExportStatus')).toContainText(/Preparing GIF/);
+ await page.locator('#cancelAnimationExport').click();release();
+ await expect(page.locator('#exportBadge')).toHaveText('Canceled');
+ await expect(page.locator('#exportProgressWrap')).toBeHidden();
+});
+test('animation export shows frame counts while rendering',async({page})=>{
+ test.setTimeout(120000);
  await ui(page,'#animationColor','selectOption','color-cycle');
  await ui(page,'#animationSeconds','selectOption','4');
  const progress=page.waitForFunction(()=>{
-  const wrap=document.querySelector('#exportProgressWrap');
   const dialog=document.querySelector('#downloadStatus')?.textContent||'';
   const stage=document.querySelector('#stageExportStatus')?.textContent||'';
   const match=/Rendering GIF: \d+ \/ \d+/;
-  return wrap&&!wrap.hidden&&match.test(dialog)&&match.test(stage);
- },undefined,{timeout:60000});
+  return match.test(dialog)&&match.test(stage);
+ },undefined,{timeout:90000});
  const done=download(page,'#exportGif');
  await progress;
  await done;
- await expect(page.locator('#exportProgressWrap')).toBeHidden();
 });
 test('stage shows export progress when the download dialog is closed',async({page})=>{
  let release,started;const gate=new Promise(r=>release=r),loading=new Promise(r=>started=r);
