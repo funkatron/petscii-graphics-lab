@@ -5,6 +5,7 @@ import {validateProject} from '../project-validation.js';
 
 const cycle = [0, 11, 12, 15, 1, 7, 13, 5, 3, 14, 6, 4, 2, 10, 8, 9];
 const glow = [9, 8, 2, 10, 7, 1, 7, 10, 2, 8];
+const plasma = [6, 4, 2, 8, 7, 13, 3, 14];
 const baseProject = {
   format: 'petscii-stencil-lab',
   version: 3,
@@ -48,6 +49,9 @@ test('backdrop keeps cells and walks the chosen ramp', () => {
   const warm = animationCells(1, picture({fieldRamp: 'glow'}));
   assert.equal(warm.background, glow[0]);
   assert.equal(animationCells(1, picture({fieldRamp: 'glow', fieldDirection: 'reverse'})).background, glow[glow.length - 1]);
+  assert.equal(animationCells(0, picture({fieldRamp: 'plasma'})).background, 6);
+  assert.equal(animationCells(1, picture({fieldRamp: 'plasma'})).background, 4);
+  assert.ok(plasma.includes(animationCells(1, picture({fieldRamp: 'plasma'})).background));
 });
 
 test('VDC backdrop border matches the background', () => {

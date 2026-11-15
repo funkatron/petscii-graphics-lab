@@ -214,7 +214,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Bonfire** | Build rising, tapering flames using the drawing’s glyphs and inks as texture. Even one painted cell supplies the texture; empty drawings stay empty. Pair with Bonfire colors for a fire palette. |
 | **Bonfire colors** | Apply flickering brown/red/orange tips and yellow-white cores to occupied cells. Works independently of movement; the shared background stays fixed. |
 | **Warm glow** | Ink moves through brown, orange, red, light red, yellow, and white, then back. |
-| **Backdrop** | Steps the shared background through the color cycle or the warm glow. Direction is forward or reverse. Border lead can match the background or sit 1, 2, or 4 steps ahead. On C128 80-column the border matches the background. Cell glyphs and inks stay as the movement effect left them. |
+| **Backdrop** | Steps the shared background through any color-animation ramp except Backdrop and Inverse pulse: color cycle, warm glow, rainbow wave, raster-style bars, plasma field, or bonfire colors. Direction is forward or reverse. Border lead can match the background or sit 1, 2, or 4 steps ahead. On C128 80-column the border matches the background. Cell glyphs and inks stay as the movement effect left them. |
 
 Movement carries each cell’s ink with its glyph. Color animation then changes the resulting ink; Rainbow wave uses the cell’s new position. Both choices share one loop duration. Backdrop is the color effect that steps the shared background. The other color effects leave it fixed. Still-image downloads use the original drawing, even when an animation is paused.
 
