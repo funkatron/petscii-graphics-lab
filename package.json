@@ -1,6 +1,7 @@
 {
   "name": "petscii-stencil-lab",
   "private": true,
+  "type": "module",
   "scripts": {
     "test": "playwright test",
     "test:vice": "node --test --test-concurrency=1 tests/vice.integration.mjs",
