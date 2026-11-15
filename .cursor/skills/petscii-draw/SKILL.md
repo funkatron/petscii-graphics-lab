@@ -20,19 +20,39 @@ For a place, read `IMG_0347.JPG`, `IMG_0348.PNG`, `IMG_0351.JPG`, and `IMG_0359.
 - The eyes decide the picture. They are large, dark against a lit face, and one cell of white is the catchlight.
 - Black is a paint color. Hair, the shadow side of a face, a visor, and a doorway are solid black. Empty cells are only the untouched background.
 - Light comes from one side. The near side is a lighter ink. The far side drops a step darker, then into black.
-- A region is one flat color, then tone inside it. Checker, diagonal, and half-block glyphs change the value. They stay inside the shape.
-- Skin, fur, and metal use three inks plus black. One extra color is the accent: a red scan, green eyes, a yellow sky.
+- A region is one ink, then several glyphs inside it. Solid 160 is the brightest step, not the whole surface. The tiger (`IMG_0346`), the pipe portrait (`IMG_0354`), the close face (`IMG_0355`), the house (`IMG_0359`), and the dragon (`IMG_0360`) all shade this way.
+- Skin, fur, and metal use three inks plus black. The steps between those inks are glyphs. One extra color is the accent: a red scan, green eyes, a yellow sky.
 - A busy background is one repeating glyph in one or two inks: foliage, roof shingles, a field of windows. The repeat stays behind the subject.
 - Line glyphs are a thin accent: a window frame, an antenna, a whisker. The body of the picture is filled.
 - A sparse glyph opens the background through that cell. A highlight on a lit surface is a lighter ink on a solid, or a dense glyph. Leave a cell empty only when that opening is meant to be black, such as a visor or a pupil.
 - Letters, when they appear, are part of the picture and few.
 
+## Shading with glyphs
+
+Off pixels in a glyph show the background. On a black screen, a sparser glyph is a darker step of the same ink. Change the glyph before reaching for another ink.
+
+Against black, from light to dark:
+
+- `160` solid. A catchlight, a lamp, a rim, the brightest part of a lit face.
+- `102` checker. The usual mid tone. Half the cell is ink. The panda's leaves and the house's lit wall repeat one pattern like this.
+- `78` and `77` diagonals. A slope or brushed metal. `78` leans with light from the left. `77` leans the other way. A region uses one of them, the way one tiger stripe holds a single direction.
+- `226` top half and `98` bottom half. A horizontal band: highlight along a brow, shade under a jaw.
+- `95` and `105` triangles. They turn the corner of a flat area into a ramp.
+- `126` and `123` quarters. A transition that still touches a filled neighbor. On the outer edge, with black behind them, they become a dashed fringe.
+- `127` diagonal split. One cell between a lit block and a dark block.
+
+The far side, on a black background, stays dense: solid `160` in the dark ink. Checker and diagonals belong on the lit face and the middle step. A whole region repeats one of these. Do not sprinkle unrelated characters through a shape.
+
+Keep the outline as `160` or a half-block (`225` on a left edge, `97` on a right edge). Texture stays inside the outline.
+
+`103`, `116`, and `111` are slots, scans, and thin lines. They are not shade. In the middle of a surface they open a hole. Add 128 to a bank-0 id for its inverse when the cell should be mostly ink with a dark notch.
+
 ## Passes
 
 1. Silhouette. Block the mass with solid 160. One background, usually black (color 0).
 2. Light. Split the form into a lit ink and a shadow ink.
-3. Face or focal detail. Eyes, mouth, the one accent. Check with `read_grid`, then `render_still`, and compare the still with the references.
-4. Texture last. Swap solids for denser or sparser glyphs only where the surface needs it.
+3. Face or focal detail. Eyes, mouth, the one accent.
+4. Texture. This pass is part of the picture. Replace interior solids: lit interior becomes checker `102` with a few `160` highlights left, the middle band becomes diagonals `77` and `78`, and the shadow band stays solid `160` in the darker ink, with one checker column where the middle band meets it. Then `read_grid`, `render_still`, and compare the still with the references.
 
 ## Canvas
 

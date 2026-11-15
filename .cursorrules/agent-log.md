@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-15 — PETSCII shading glyphs in the drawing skill
+
+**What:** The drawing skill now says a finished picture shades with glyphs, not a field of solid 160. Checker 102 is the mid tone, diagonals 77 and 78 brush a slope, halves and quarters are the steps toward black, and a region repeats one of those. The RoboCop profile was repainted that way through the preview MCP.  
+**Touched:** `.cursor/skills/petscii-draw/SKILL.md`. The picture stays in `agents/petscii-preview/out/`.
+
 ## 2026-11-15 — Preview tools use the home-built Node 24
 
 **What:** Node bridges and project validation call `~/build/node24/node-v*/out/Release/node` (v24.22.2) when that binary is present. `PGL_NODE` overrides it. `run-mcp.sh` puts that directory first on `PATH`. The older Cursor-agent pin is no longer the fallback.  
