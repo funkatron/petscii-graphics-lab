@@ -4,7 +4,7 @@
 
 **What:** `agents/petscii-preview` is tracked so someone else can paint, render, and export. The virtualenv and `out/` stay ignored. `.cursor/mcp.json` starts `run-mcp.sh`. The drawing skill is `.cursor/skills/petscii-draw`.  
 **Tested:** drawing unit test and the MCP smoke tests after `pip install -r agents/petscii-preview/requirements.txt`.  
-**Touched:** `agents/petscii-preview`, `.gitignore`, `.cursor/mcp.json`, `.cursor/skills/petscii-draw/SKILL.md`. `setup-venv.sh` creates the virtualenv and installs `requirements.txt`.
+**Touched:** `agents/petscii-preview`, `.gitignore`, `.cursor/mcp.json`, `.cursor/skills/petscii-draw/SKILL.md`. `setup-venv.sh` creates the virtualenv and installs `requirements.txt`. The drawing skill studies `examples/IMG_0343` through `IMG_0360` before a picture is painted.
 
 ## 2026-11-14 — Backdrop and Parallax
 
