@@ -1,12 +1,14 @@
 const {GifReader}=require('omggif'),AdmZip=require('adm-zip'),{PNG}=require('pngjs');
 const {test,expect,ui,waitForProjectAutosave,download,loadProject,project,contents}=require('./helpers.cjs');
+const ANIMATION_CYCLES=[1,2,3,4,5,6,8,10,12,14,16];
+const colorCyclesFor=motion=>{const want=Math.max(1,Math.floor(motion/2));if(ANIMATION_CYCLES.includes(want))return want;if(motion%2===0&&ANIMATION_CYCLES.includes(2))return 2;return 1};
 const ramp=[2,8,7,13,3,14,6,4],hex=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'],rgb=i=>[0,2,4].map(n=>parseInt(hex[i].slice(n,n+2),16)),wrap=(x,n)=>(x%n+n)%n;
 const anim={effect:'scroll-x',colorEffect:'color-wave',seconds:8,scale:1,background:'dark'};
 function frame(gif,f){const b=new Uint8Array(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(f,b);return Buffer.from(b)}
 function pixel(b,w,x,y=4){const i=(y*w+x)*4;return [...b.subarray(i,i+3)]}
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
-for(const cycles of [1,2,4,8,16])test(cycles+' movement cycles and independent color cycles preserve total loop duration and exact GIF/ZIP frames',async({page})=>{
- const colorCycles=Math.max(1,cycles/2);await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,14,14,14],animation:{...anim,motionCycles:cycles,colorCycles}}));
+for(const cycles of [1,2,3,4,5,6,8,10,12,14,16])test(cycles+' movement cycles and independent color cycles preserve total loop duration and exact GIF/ZIP frames',async({page})=>{
+ const colorCycles=colorCyclesFor(cycles);await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,14,14,14],animation:{...anim,motionCycles:cycles,colorCycles}}));
  const before=JSON.parse(await download(page,'#saveProject')),gif=new GifReader(await download(page,'#exportGif')),zip=new AdmZip(await download(page,'#exportFrames')),timing=JSON.parse(zip.readAsText('timing.json')),n=gif.numFrames();
  expect(n%cycles).toBe(0);expect(n%colorCycles).toBe(0);expect(n/cycles).toBeGreaterThanOrEqual(4);expect(timing).toMatchObject({motionCycles:cycles,colorCycles,durationMs:8000});expect(timing.frames.reduce((v,f)=>v+f.durationMs,0)).toBe(8000);
  for(let f=0;f<n;f++){const b=frame(gif,f),mp=(f%(n/cycles))/(n/cycles),cp=(f%(n/colorCycles))/(n/colorCycles),x=wrap(-Math.floor(mp*4),4);for(let col=0;col<4;col++)expect(pixel(b,32,col*8+4)).toEqual(rgb(col===x?ramp[(x+Math.floor(cp*8))%8]:6));expect(Buffer.from(PNG.sync.read(zip.readFile(timing.frames[f].file)).data)).toEqual(b);expect(timing.frames[f].durationMs).toBeGreaterThanOrEqual(20)}
@@ -22,7 +24,7 @@ test('replay repeats the drawing and its final hold within each cycle',async({pa
 test('cycle controls preserve duration, persistence and history and reject invalid values atomically',async({page})=>{
  await loadProject(page,project([160,'','',''],4,1,{animation:anim}));await ui(page,'#animationCycles','selectOption','4');await ui(page,'#animationColorCycles','selectOption','8');await expect(page.locator('#animationSeconds')).toHaveValue('8');const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#quickPlay');await ui(page,'#animationColorCycles','selectOption','16');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#animationSeconds')).toHaveValue('8');await ui(page,'#animationStop');await ui(page,'#clear');await ui(page,'#undo');expect(JSON.parse(await download(page,'#saveProject')).animation).toMatchObject({motionCycles:4,colorCycles:16,seconds:8});
  await loadProject(page,before);await waitForProjectAutosave(page,before);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationCycles')).toHaveValue('4');await expect(page.locator('#animationColorCycles')).toHaveValue('8');
- for(const value of [0,3,-1,1.5,'4',null,32])for(const key of ['motionCycles','colorCycles']){await loadProject(page,{...before,animation:{...before.animation,[key]:value}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
+ for(const value of [0,7,9,-1,1.5,'4',null,17,32])for(const key of ['motionCycles','colorCycles']){await loadProject(page,{...before,animation:{...before.animation,[key]:value}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before)}
 });
 test('undersampled cycles warn and block playback and exports until duration is increased',async({page})=>{
  await loadProject(page,project([160,'','',''],4,1,{animation:{...anim,effect:'wave',colorEffect:'none',motionCycles:16,seconds:.5}}));await ui(page,'#animationDetails > summary'); // toggle twice to leave the disclosure open regardless of helper

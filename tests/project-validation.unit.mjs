@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {validateProject,normalizeAnimation} from '../project-validation.js';
+import {validateProject,normalizeAnimation,ANIMATION_CYCLES} from '../project-validation.js';
 
 const base={format:'petscii-stencil-lab',version:3,columns:2,rows:2,grid:[160,'',0,64],selectedGlyph:160,colors:{ink:14,background:6}};
 
@@ -12,6 +12,13 @@ test('rejects legacy charset field',()=>{
 
 test('rejects invalid animation effect',()=>{
  assert.throws(()=>validateProject({...base,animation:{effect:'color-wave',seconds:2,scale:2,background:'dark'}}),/animation settings/);
+});
+
+test('animation cycle rates use the shared allowlist',()=>{
+ const anim={effect:'replay',colorEffect:'none',seconds:2,scale:2,background:'dark'};
+ assert.deepEqual(ANIMATION_CYCLES,[1,2,3,4,5,6,8,10,12,14,16]);
+ for(const cycles of [3,10,14])assert.doesNotThrow(()=>validateProject({...base,animation:{...anim,motionCycles:cycles,colorCycles:cycles}}));
+ for(const cycles of [7,17])assert.throws(()=>validateProject({...base,animation:{...anim,motionCycles:cycles}}),/animation settings/);
 });
 
 test('accepts animation scale up to 8 px/cell',()=>{
