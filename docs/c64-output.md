@@ -44,6 +44,10 @@ Smaller drawings and animations are **centered** on the host screen (40 × 25 VI
 
 Image resolution and export-background choices do not affect native program output. Programs always use character cells, per-cell ink, and the canvas background.
 
+### Backdrop on C64 and C128 (40-column)
+
+When **Backdrop** is enabled in Animation, native VIC export paints **empty** canvas cells as a **solid block** with the animated backdrop color in **color RAM**. Spatial backdrop waves (rainbow, plasma, raster, and similar ramps) then play on real hardware. Cells that already hold your artwork keep their glyphs and cell color animation; the block layer only appears where the drawing is empty. Transparent areas inside a glyph still show the shared screen background color (`$D021`), not the per-cell wave.
+
 ## Load and run it
 
 ### In VICE

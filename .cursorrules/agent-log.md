@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-15 — C64 backdrop block paper (0.33.0)
+
+**What:** VIC native export (`prepareC64BackdropFrames`) maps empty cells to block 160 and `backgroundMatte` ink when Backdrop is on, so spatial waves animate in color RAM on hardware. Preflight/export use `buildNativeExportFrames`. Release **0.33.0**.  
+**Tested:** `node --test tests/c64-backdrop-blocks.unit.mjs`.
+
 ## 2026-11-15 — Independent backdrop wave controls (0.32.2)
 
 **What:** Backdrop spatial ramps use `fieldWaveDirection`, `fieldWaveShape`, `fieldWaveLength`, and `fieldWaveAmplitude`, separate from cell `colorWave*`. Backdrop fieldset shows wave direction/waveform/wavelength/height when Backdrop is on; `fieldDirection` is labeled play direction (forward/reverse along the ramp). Legacy projects copy `colorWave*` into `fieldWave*` on load. Release **0.32.2**.  
