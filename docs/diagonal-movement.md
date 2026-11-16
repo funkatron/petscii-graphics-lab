@@ -12,7 +12,7 @@ Diagonal scrolling is feasible in the existing derived-frame pipeline. It requir
 | Starfield | Released in PR #62 | Each depth uses two-axis travel with preserved collision order. |
 | Sine scroller | Implemented; browser validation pending | Travel across width and height; bend perpendicular to the canvas diagonal. See the [renderer contract](maintainer-reference.md#diagonal-sine-scroller). |
 | Patterned wipe | Separate design | Direction controls reveal ranking rather than translation; diagonal reveal needs explicit pattern rules. |
-| Wave | Separate design | Current direction chooses row or column displacement. Diagonal propagation and diagonal displacement are different effects. |
+| Wave | **Diagonal directions shipped** | Phase runs along the chosen diagonal; displacement is perpendicular (cardinals unchanged). |
 | Ripple, logos, replay, inverse | Keep existing controls | Ripple is radial; logos have their own paths; the other effects do not translate by direction. |
 
 ## Proposed first implementation
@@ -39,7 +39,8 @@ Adding a new effect identifier extends the supported v3 settings; older app vers
 - [x] Trace cardinal direction assumptions in controls, import, planning and sampling.
 - [x] Define rectangular-grid loop closure and distinguish it from equal cell speed.
 - [x] Bound the first feature to ordinary scroll; record other effects separately.
-- [ ] Add independent expected frames for all eight directions on square, rectangular, one-row and one-column artwork.
+- [x] Wave rows/columns: eight movement directions (`waveDirection` uses color-wave diagonals); cardinals byte-identical (`tests/diagonal-wave.spec.cjs`).
+- [ ] Add independent expected frames for scroll on square, rectangular, one-row and one-column artwork (wave covered above for motion).
 - [ ] Verify glyph/ink pairing, independent color cycles, loop closure and warning boundaries.
 - [ ] Check preview, decoded GIF/PNG ZIP and C64 frame inputs against the same independent expectations; retain cardinal byte regressions.
 - [ ] Check exact save/open, autosave, Undo, invalid combinations and export snapshots/cache invalidation.

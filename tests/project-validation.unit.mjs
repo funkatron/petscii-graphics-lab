@@ -52,6 +52,12 @@ test('accepts inverse as a color effect and migrates legacy motion inverse',()=>
  );
 });
 
+test('wave motion accepts diagonal waveDirection',()=>{
+ const anim={effect:'wave',colorEffect:'none',waveDirection:'up-right',seconds:1,scale:1,background:'dark'};
+ assert.doesNotThrow(()=>validateProject({...base,animation:anim}));
+ assert.throws(()=>validateProject({...base,animation:{...anim,waveDirection:'up-left',effect:'scroll-x'}}),/animation settings/);
+});
+
 test('missing machine validates inks against fallbackMachine',()=>{
  const tedInks={
   ...base,
