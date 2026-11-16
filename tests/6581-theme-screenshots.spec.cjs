@@ -11,7 +11,7 @@ test('capture Commodore enclosure styling in the full editor viewport',async({pa
   trim:getComputedStyle(document.documentElement).getPropertyValue('--case-trim').trim(),
   highlight:getComputedStyle(document.documentElement).getPropertyValue('--case-highlight').trim()
  }));
- expect(theme).toEqual({id:'c64c',trim:'#d4cbb7',highlight:'#ffdf70'});
+ expect(theme).toEqual({id:'c64c',trim:'#d4cbb7',highlight:'#c94e1a'});
  await testInfo.attach('editor-viewport-'+testInfo.project.name,{body:await page.screenshot({animations:'disabled',fullPage:true}),contentType:'image/png'});
  // Show settings and the glyph palette together where space allows.
  if(!(await page.locator('#sidebar').isVisible()))await page.locator('#toggle').click();

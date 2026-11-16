@@ -25,7 +25,10 @@ button,select{border:1px solid var(--case-edge);background:var(--case-raised);co
 button{cursor:pointer}
 button:disabled{cursor:default;opacity:.5}
 button:focus-visible,select:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:2px}
-button.active{background:var(--case-highlight);border-color:var(--case-edge)}
+button.active:not(.color-grid button){
+ background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);
+ box-shadow:var(--key-pressed-shadow);transform:translateY(2px);
+}
 button:hover{border-color:var(--ui-focus-border)}
 .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 header{height:61px;flex:none;display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--case-bg)}
@@ -130,7 +133,7 @@ summary:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:-3
 .symmetry-on{border-radius:9px}#downloadPreview{width:100%;object-fit:contain}#saveFailure{color:var(--ui-accent);margin:0}
 /* C64C case tokens (default). Monitor darkness stays separate from interface chrome. */
 :root,html[data-ui-theme="c64c"]{
- --case-trim:var(--ui-case-bg);--case-seam:#8294a6;--case-highlight:var(--ui-selected-bg);
+ --case-trim:var(--ui-case-bg);--case-seam:#8294a6;--case-highlight:var(--key-active);
  --case-bg:var(--ui-case-bg);--case-surface:var(--ui-control-bg);--case-raised:var(--ui-control-bg);
  --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#45566d;
  --ui-ink:#23344b;--ui-ivory:#eee7d6;--ui-outline:#8a8d8d;
@@ -151,14 +154,14 @@ summary:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:-3
  --control-raised-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 #9b9589;
  --sym-divider:#8d887e;--sym-divider-shine:#fff8e8;
  --sym-summary-bg:#e6dfd1;--sym-summary-fg:#293a4c;--sym-summary-border:#99958e;
- --sym-summary-on-bg:#f7e5d2;--sym-summary-on-fg:#843713;--sym-summary-on-border:#c76b3e;
+ --sym-summary-on-bg:var(--key-active);--sym-summary-on-fg:var(--text-on-accent);--sym-summary-on-border:var(--key-active-edge);
  --glyph-key-bg:linear-gradient(155deg,#fff9eb 0%,#eee5d2 72%,#d6cbb7 100%);
  --glyph-key-bg-hover:#fff8e7;--glyph-key-border:#8f8a80;--glyph-key-border-hover:#5b7793;
  --glyph-key-text:#24364c;--glyph-key-code:#485a6e;
  --glyph-key-shadow:inset 1px 1px #fffdf5,inset -1px -1px #b9b09f,0 2px 0 #9d9587;
- --glyph-key-selected-bg:var(--ui-selected-bg);--glyph-key-selected-border:#9b7a31;
- --glyph-key-selected-text:#1b293a;
- --glyph-key-selected-shadow:inset 1px 1px #fff1b5,inset -1px -1px #d5b85b,0 2px 0 #a38b4c;
+ --glyph-key-selected-bg:var(--key-active);--glyph-key-selected-border:var(--key-active-edge);
+ --glyph-key-selected-text:var(--text-on-accent);
+ --glyph-key-selected-shadow:var(--key-pressed-shadow);
  --glyph-key-selected-code:var(--text-on-accent);
  --glyph-rom-filter:invert(1);--glyph-rom-filter-selected:brightness(0) invert(1);
  --pin-raised-shadow:0 2px 0 #a49b8c;
@@ -190,7 +193,7 @@ html[data-ui-theme="c128"]{
  --ui-field-disabled-bg:#d2cec5;
  --ui-field-disabled-text:#5a5a5a;
  --ui-control-shadow:#9a968c;
- --case-trim:#6b6b6b;--case-seam:#8a8a8a;--case-highlight:var(--ui-selected-bg);
+ --case-trim:#6b6b6b;--case-seam:#8a8a8a;--case-highlight:var(--key-active);
  --case-bg:var(--ui-case-bg);--case-surface:var(--ui-panel-bg);--case-raised:var(--ui-control-bg);
  --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#555555;
  --ui-ink:var(--ui-text);--ui-ivory:var(--ui-control-bg);--ui-outline:var(--ui-control-border);
@@ -210,14 +213,14 @@ html[data-ui-theme="c128"]{
  --control-raised-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 var(--ui-control-shadow);
  --sym-divider:#8a867c;--sym-divider-shine:#ebe7de;
  --sym-summary-bg:var(--ui-control-bg);--sym-summary-fg:var(--ui-text);--sym-summary-border:var(--ui-control-border);
- --sym-summary-on-bg:var(--ui-selected-bg);--sym-summary-on-fg:var(--ui-selected-text);--sym-summary-on-border:var(--ui-selected-border);
+ --sym-summary-on-bg:var(--key-active);--sym-summary-on-fg:var(--text-on-accent);--sym-summary-on-border:var(--key-active-edge);
  --glyph-key-bg:linear-gradient(155deg,#f5f2ea 0%,#e0dcd2 72%,#c5c0b4 100%);
  --glyph-key-bg-hover:#ebe7de;--glyph-key-border:#8a867c;--glyph-key-border-hover:#4a6a8a;
  --glyph-key-text:#2a2a2a;--glyph-key-code:#555555;
  --glyph-key-shadow:inset 1px 1px #f5f2ea,inset -1px -1px #9a968c,0 2px 0 #8a867c;
- --glyph-key-selected-bg:var(--ui-selected-bg);--glyph-key-selected-border:var(--ui-selected-border);
- --glyph-key-selected-text:var(--ui-selected-text);
- --glyph-key-selected-shadow:inset 1px 1px #c8e0a8,inset -1px -1px #6a8a4a,0 2px 0 #5a7a3a;
+ --glyph-key-selected-bg:var(--key-active);--glyph-key-selected-border:var(--key-active-edge);
+ --glyph-key-selected-text:var(--text-on-accent);
+ --glyph-key-selected-shadow:var(--key-pressed-shadow);
  --glyph-key-selected-code:var(--text-on-accent);
  --glyph-rom-filter:invert(1);--glyph-rom-filter-selected:brightness(0) invert(1);
  --pin-raised-shadow:0 2px 0 var(--ui-control-shadow);
@@ -247,7 +250,7 @@ html[data-ui-theme="plus4"]{
  --ui-field-disabled-bg:#333333;
  --ui-field-disabled-text:#9a9a9a;
  --ui-control-shadow:#1a1a1a;
- --case-trim:#1a1a1a;--case-seam:#555555;--case-highlight:var(--ui-selected-bg);
+ --case-trim:#1a1a1a;--case-seam:#555555;--case-highlight:var(--key-active);
  --case-bg:var(--ui-case-bg);--case-surface:var(--ui-panel-bg);--case-raised:var(--ui-control-bg);
  --case-edge:var(--ui-control-border);--case-text:var(--ui-text);--case-muted:#a8a8a8;
  --ui-ink:var(--ui-text);--ui-ivory:var(--ui-control-bg);--ui-outline:var(--ui-control-border);
@@ -267,14 +270,14 @@ html[data-ui-theme="plus4"]{
  --control-raised-shadow:inset 0 1px var(--ui-control-highlight),0 2px 0 var(--ui-control-shadow);
  --sym-divider:#6a6a6a;--sym-divider-shine:#505050;
  --sym-summary-bg:var(--ui-control-bg);--sym-summary-fg:var(--ui-text);--sym-summary-border:var(--ui-control-border);
- --sym-summary-on-bg:var(--ui-selected-bg);--sym-summary-on-fg:var(--ui-selected-text);--sym-summary-on-border:var(--ui-selected-border);
+ --sym-summary-on-bg:var(--key-active);--sym-summary-on-fg:var(--text-on-accent);--sym-summary-on-border:var(--key-active-edge);
  --glyph-key-bg:linear-gradient(155deg,#5a5a5a 0%,#4a4a4a 72%,#3a3a3a 100%);
  --glyph-key-bg-hover:#555555;--glyph-key-border:#6a6a6a;--glyph-key-border-hover:#8ab4d4;
  --glyph-key-text:#f0f0f0;--glyph-key-code:#c0c0c0;
  --glyph-key-shadow:inset 1px 1px #6a6a6a,inset -1px -1px #2a2a2a,0 2px 0 #1a1a1a;
- --glyph-key-selected-bg:var(--ui-selected-bg);--glyph-key-selected-border:var(--ui-selected-border);
- --glyph-key-selected-text:var(--ui-selected-text);
- --glyph-key-selected-shadow:inset 1px 1px #e8a0c0,inset -1px -1px #8c3258,0 2px 0 #6a2848;
+ --glyph-key-selected-bg:var(--key-active);--glyph-key-selected-border:var(--key-active-edge);
+ --glyph-key-selected-text:var(--text-on-accent);
+ --glyph-key-selected-shadow:var(--key-pressed-shadow);
  --glyph-key-selected-code:var(--text-on-accent);
  /* Light ROM pixels on charcoal keys; invert only when selected (white on pink). */
  --glyph-rom-filter:none;--glyph-rom-filter-selected:brightness(0) invert(1);
@@ -536,7 +539,7 @@ dialog input:not([type=checkbox]):not([type=radio]):not([type=range]):focus{
 }
 #symmetryMenu>summary.symmetry-on{
  color:var(--sym-summary-on-fg);background:var(--sym-summary-on-bg);border-color:var(--sym-summary-on-border);
- box-shadow:inset 0 0 0 1px var(--sym-summary-on-border);
+ box-shadow:var(--key-pressed-shadow);transform:translateY(2px);
 }
 
 
@@ -563,8 +566,8 @@ dialog input:not([type=checkbox]):not([type=radio]):not([type=range]):focus{
 .drawing-strip .hint{color:var(--stage-caption)}
 header #saveStatus,header .status,header .note{color:var(--chrome-label)}
 #inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{
- background:var(--ui-selected-bg);color:var(--ui-selected-text);border-color:var(--ui-selected-border);
- box-shadow:inset 0 1px #fff0ae,0 2px 0 #b4a174;
+ background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);
+ box-shadow:var(--key-pressed-shadow);transform:translateY(2px);
 }
 .context-help{
  background:var(--help-panel-bg);color:var(--help-panel-fg);border:2px solid var(--help-panel-border);

@@ -92,7 +92,7 @@ hex-color overrides for routine controls.
 | Panel/dialog | Warm ivory enclosure (C64C) | `--ui-panel-bg` |
 | Editable text, number, dropdown, textarea | Recessed field with readable text | `--ui-field-bg`, `--ui-field-border`, `--ui-text` |
 | Ordinary button | Raised control with distinct border | `--ui-control-bg`, `--ui-control-border` |
-| Selected/pressed action | Distinct selected fill; never color alone | `--ui-selected-bg`, `--ui-selected-text` (or `--key-active` / `--text-on-accent` for accent keys) |
+| Selected/pressed action | Depressed hardware key (accent fill) | `--key-active`, `--key-active-edge`, `--key-pressed-shadow`, `--text-on-accent` |
 | Disabled control | Muted surface and readable subdued text | `--ui-field-disabled-bg`, `--ui-field-disabled-text` |
 | Keyboard focus | Visible high-contrast outline | `--ui-focus-border` |
 
