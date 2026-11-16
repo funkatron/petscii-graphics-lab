@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-16 — Plus/4 backdrop block paper (0.33.1)
+
+**What:** Shared `native-backdrop-export.js` (`prepareNativeBackdropFrames`); Plus/4 native download uses the same empty→block 160 path as VIC; docs and export help. Release **0.33.1**.  
+**Tested:** `node --test tests/c64-backdrop-blocks.unit.mjs tests/plus4-backdrop-blocks.unit.mjs`.
+
 ## 2026-11-15 — Backdrop brightness + C64 block paper (0.33.0)
 
 **What:** `fieldBrightness` (10–100%) remaps backdrop mattes by palette luminance; VIC native export paints empty cells as block 160 with `backgroundMatte` color RAM (`prepareC64BackdropFrames`, `buildNativeExportFrames`). Release **0.33.0**.  
