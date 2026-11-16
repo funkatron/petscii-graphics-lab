@@ -101,13 +101,20 @@ Scoring: **V** = visual payoff on PETSCII grid, **F** = fit with existing pipeli
 
 **Backdrop + Parallax** are **shipped**; next *new type* work is unlikely to be another backdrop ramp. Focus: **movement/color variants** and **depth readability**.
 
+## Algorithmic VIC tricks (feasibility)
+
+Hardware scroll/VIC register tricks (DYCP, FLD, VSP, FLI, raster IRQ, and similar) are assessed separately in [**algorithmic VIC feasibility**](algorithmic-vic-feasibility.md): which belong on the **grid animation** track vs **screen look** vs **research only**.
+
+**Short conclusion:** pursue **column-offset (DYCP-like)** and **FLD-style row gaps** as browser prototypes; treat **VSP/AGSP/FLI** as poor fits for the PETSCII grid; put **true scanline raster bars** under canvas shaders.
+
 ## Recommended sequence (research → build)
 
 1. **Close validation debt** on shipped effects (sine scroller, bonfire iPad, depth performance on device) — overlaps priority **#2** but unblocks honest comparisons.
 2. **Depth triage** — side-by-side GIFs on sparse vs dense PETSCII art; keep floor/road/tunnel or document “use Space warp instead.”
 3. **Diagonal wave** — spec ranking in `animation-frames.js`; one Playwright export fixture.
 4. **Diagonal wipe** — extend `WIPE_PATTERNS` or new pattern id with loop closure proof.
-5. **Only then** green-field concepts (crawl, orbital) with throwaway prototypes behind a flag.
+5. **Algorithmic spikes** — column-wave (DYCP-like), then FLD blinds ([feasibility doc](algorithmic-vic-feasibility.md)).
+6. **Only then** green-field concepts (crawl, orbital) with throwaway prototypes behind a flag.
 
 Each step: update `MOTION_EFFECTS`, UI picker, `animationPlan` sample budget, Chromium + iPad WebKit specs, native export spot-check.
 

@@ -35,6 +35,11 @@ Most of the app still lives in one `index.html` module script; smaller areas alr
 3. **Document contracts** — each module owns clear inputs/outputs; shared editor state stays explicit (imported store or passed context) instead of hidden globals.
 4. **Maintain AGENTS guidance** — update “where the code lives” as modules move; avoid drive-by refactors unrelated to the slice.
 
+**Algorithmic VIC research (optional prototypes)**
+
+- [ ] Read [algorithmic VIC feasibility](algorithmic-vic-feasibility.md); spike **column-offset wave** and **FLD blinds** on derived frames before new depth effects.
+- [ ] Keep **VSP/FLI/AGSP** as documentation-only unless requirements change.
+
 **Checklist (not started)**
 
 - [ ] Agree module boundaries and naming (`editor-stage.js`, `canvas-view.js`, `drawing-tools.js`, or similar).
