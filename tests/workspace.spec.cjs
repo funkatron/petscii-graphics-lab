@@ -7,7 +7,9 @@ test('letters reveal both cases without a whole-drawing character switch',async(
 });
 test('drawing controls stay reachable with settings hidden at phone width',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.app[data-ready=true]').waitFor();
- for(const id of ['glyphToggle','inkQuick','paint','erase','undo','redo','symmetryMenu'])await expect(page.locator('#'+id)).toBeInViewport();
+ for(const id of ['glyphToggle','inkQuick','paint','erase','undo','redo'])await expect(page.locator('#'+id)).toBeInViewport();
+ await expect(page.locator('#symmetryMenu')).toBeVisible();
+ await page.locator('#tool-line').click();await expect(page.locator('#symmetryMenu')).toBeHidden();
  await page.locator('#erase').click();await expect(page.locator('#erase')).toHaveAttribute('aria-pressed','true');await page.locator('#paint').click();await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','true');
  await page.locator('#inkQuick').click();await expect(page.locator('#quickInkPalette')).toBeVisible();await page.locator('#quickInkPalette button').nth(2).click();await expect(page.locator('#inkQuick')).toHaveAttribute('title','Ink: Red');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);

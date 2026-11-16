@@ -42,6 +42,30 @@ test('unfinished previews stay out of files; Escape cancels and selection delete
  await ui(page,'#quickPlay');await expect(page.locator('#fillMenu')).toHaveAttribute('inert','');await expect(page.locator('#pickerMenu')).toHaveAttribute('inert','');
  for(const tool of ['#tool-line','#tool-rectangle','#tool-select'])await expect(page.locator(tool)).toBeDisabled();
 });
+test('symmetry appears only for paint and eraser',async({page})=>{
+ const visible=async()=>page.locator('#symmetryMenu').evaluate(e=>!e.hidden);
+ await expect(page.locator('#symmetryMenu')).toBeVisible();
+ await ui(page,'#tool-line');await expect(page.locator('#symmetryMenu')).toBeHidden();
+ await ui(page,'#erase');await expect(page.locator('#symmetryMenu')).toBeVisible();
+ await armFill(page,'both');await expect(page.locator('#symmetryMenu')).toBeHidden();
+ await ui(page,'#paint');await expect(page.locator('#symmetryMenu')).toBeVisible();
+ await drag(page,[0,0],[1,0]);
+ await ui(page,'#quickPlay');await expect(page.locator('#symmetryMenu')).toBeHidden();
+ await ui(page,'#returnDrawing');await expect(page.locator('#symmetryMenu')).toBeVisible();
+ expect(await visible()).toBe(true);
+});
+test('undo and redo respond to standard keyboard shortcuts',async({page})=>{
+ const blank=Array(16).fill('');
+ await ui(page,'#tool-line');await drag(page,[0,0],[3,0]);
+ const after=await saved(page);
+ expect(after.grid.filter(g=>g===160).length).toBeGreaterThan(0);
+ await expect(page.locator('#undo')).toBeEnabled();
+ await page.locator('#canvas').focus();
+ await page.keyboard.press(process.platform==='darwin'?'Meta+Z':'Control+Z');
+ expect((await saved(page)).grid).toEqual(blank);
+ await page.keyboard.press(process.platform==='darwin'?'Meta+Shift+Z':'Control+Shift+Z');
+ expect((await saved(page)).grid).toEqual(after.grid);
+});
 test('palette shows one selected tool and restores saved eraser state',async({page})=>{
  await ui(page,'#tool-line');await expect(page.locator('#tool-line')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','false');
  await ui(page,'#erase');await saved(page);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#erase')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','false');
