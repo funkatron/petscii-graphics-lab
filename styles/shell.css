@@ -125,7 +125,7 @@ header #saveStatus .save-status-compact{display:none}
 .tool-mode-menu>summary .tool-mode-chevron{position:absolute;right:2px;bottom:1px;font-size:.55rem;line-height:1;opacity:.7;pointer-events:none}
 .tool-mode-menu[open]>summary .tool-mode-chevron{transform:rotate(180deg)}
 .tool-mode-menu>summary:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:2px}
-.tool-mode-menu>summary.active{border-color:var(--ui-focus-border);background:var(--case-highlight)}
+.tool-mode-menu>summary.active{border-color:var(--ui-focus-border)}
 .tool-mode-menu .tool-mode-popover{top:calc(100% + 4px);right:0;left:auto}
 
 #inkPopover .dialog-heading{align-items:center;gap:8px}
