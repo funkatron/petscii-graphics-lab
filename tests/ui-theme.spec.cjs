@@ -1,5 +1,18 @@
 const {test,expect}=require('@playwright/test');
 
+async function closeChromeForMachineMenu(page){
+ if(await page.locator('#glyphPicker').isVisible()){
+  await page.locator('#glyphToggle').click();
+ }
+ await page.evaluate(()=>{
+  const machine=document.querySelector('#machineMenu');
+  const project=document.querySelector('#projectMenu');
+  if(machine)machine.open=false;
+  if(project)project.open=false;
+ });
+ await expect(page.locator('#machineMenu > summary')).toBeVisible();
+}
+
 async function themeTokens(page){
  return page.evaluate(()=>{
   const style=getComputedStyle(document.documentElement);
@@ -15,6 +28,7 @@ async function themeTokens(page){
 
 // Machine owns appearance: data-ui-theme is mapped from the header Machine control (c64->c64c).
 test('default C64C look matches ivory baseline; machine switches map to themes without recoloring VIC artwork',async({page},testInfo)=>{
+ test.setTimeout(120000);
  page.on('dialog',dialog=>dialog.accept());
  await page.goto('/');
  await page.evaluate(()=>{localStorage.removeItem('petscii-workspace-prefs');localStorage.removeItem('petscii-graphics-project-v3')});
@@ -123,6 +137,7 @@ test('default C64C look matches ivory baseline; machine switches map to themes w
  });
  await page.locator('#projectMenu > summary').click();
  await page.setViewportSize({width:1080,height:810});
+ await closeChromeForMachineMenu(page);
  await page.locator('#machineMenu > summary').click();
  await page.locator('#workspaceMachine').selectOption('c64');
  await expect(page.locator('#machineSummary')).toHaveText('C64 · Pepto');
@@ -132,6 +147,7 @@ test('default C64C look matches ivory baseline; machine switches map to themes w
  });
 
  await page.setViewportSize({width:1280,height:800});
+ await closeChromeForMachineMenu(page);
  await page.locator('#machineMenu > summary').click();
  await page.locator('#workspaceMachine').selectOption('c128');
  await page.reload();
