@@ -40,6 +40,19 @@ test('backdrop and parallax knobs persist and leave the drawing unchanged',async
  }
 });
 
+test('backdrop spatial waves appear in the download animation preview',async({page})=>{
+ await loadProject(page,project(['',''],2,1,{cellColors:[0,0],colors:{ink:1,background:6},animation:{effect:'none',colorEffect:'none',backgroundEffect:'field',fieldRamp:'color-wave',seconds:2,scale:1,background:'dark'}}));
+ await ui(page,'#downloadOpen');
+ await page.locator('#export-tab-motion').click();
+ await expect(page.locator('#downloadPreview')).toBeVisible();
+ const differs=await page.evaluate(()=>{
+  const ctx=document.getElementById('downloadPreview').getContext('2d');
+  const sample=(col)=>{const x=col*8+4,[r,g,b]=ctx.getImageData(x,4,1,1).data;return r*65536+g*256+b};
+  return sample(0)!==sample(1);
+ });
+ expect(differs).toBe(true);
+});
+
 test('backdrop GIF fill follows the ramp and VDC hides border lead',async({page})=>{
  await loadProject(page,project([160,''],2,1,{cellColors:[1,0],colors:{ink:1,background:6},animation:{effect:'none',colorEffect:'field',seconds:1,scale:1,background:'dark',fieldLead:1}}));
  await ui(page,'#gifScale','selectOption','1');
