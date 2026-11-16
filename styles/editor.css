@@ -303,7 +303,15 @@ button,select,.field input[type=number]{min-height:44px}
 .tool-mode-popover{width:auto;min-width:0;padding:6px;z-index:15}
 .tool-mode-bar{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:4px}
 .tool-mode-bar .tool-mode-option{flex:0 0 auto;border-radius:9px}
-.tool-mode-bar .tool-mode-option[aria-pressed=true]{background:var(--case-highlight);border-color:var(--ui-focus-border)}
+.tool-mode-bar .tool-mode-option[aria-pressed=true]{
+ background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);
+ box-shadow:var(--key-pressed-shadow);transform:translateY(1px);
+}
+.tool-mode-menu>summary.tool-mode-trigger.active{
+ background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);
+ box-shadow:var(--key-pressed-shadow);transform:translateY(2px);
+}
+.tool-mode-menu>summary.tool-mode-trigger.active svg{stroke:currentColor}
 #projectMenu{position:relative}
 #projectMenu>summary{list-style:none;border:1px solid var(--case-edge);border-radius:9px;padding:11px;font-size:.8rem}
 .project-menu{position:fixed;right:max(12px,env(safe-area-inset-right,0px));top:max(calc(env(safe-area-inset-top,0px) + 48px),3rem);left:auto;width:min(340px,calc(100vw - 24px));box-sizing:border-box;max-height:calc(100dvh - 80px);overflow:auto;padding:14px;background:var(--case-surface);border:1px solid var(--case-edge);z-index:12;border-radius:10px;box-shadow:0 10px 35px #0008}
