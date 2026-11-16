@@ -287,7 +287,7 @@ function validateAnimationField(data) {
   if (animation.parallaxTravel !== undefined && !PARALLAX_TRAVELS.includes(animation.parallaxTravel)) {
     throw Error('Invalid animation settings');
   }
-  for (const key of ['waveAmplitude', 'colorWaveAmplitude', 'fieldWaveAmplitude']) {
+  for (const key of ['waveAmplitude', 'colorWaveAmplitude', 'fieldWaveAmplitude', 'fieldBrightness']) {
     if (animation[key] !== undefined && !WAVE_AMPLITUDES.includes(animation[key])) {
       throw Error('Invalid animation settings');
     }

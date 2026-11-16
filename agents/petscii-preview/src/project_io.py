@@ -44,6 +44,7 @@ DEFAULT_ANIMATION = {
     "fieldWaveShape": "sawtooth",
     "fieldWaveAmplitude": 100,
     "fieldWaveLength": 50,
+    "fieldBrightness": 100,
     "wipePattern": "diagonal",
     "depthTravel": "toward",
     "depthWaveShape": "sawtooth",
