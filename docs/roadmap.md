@@ -10,13 +10,13 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 
 ## Current priorities
 
-1. **New animation types:** Backdrop and Parallax are the current effects. Keep prioritizing additional creative effects over C64 capacity optimization and memory-expansion support.
-2. **Canvas shaders:** the screen look is our own Monitor, Television, Green, and Amber treatment. Raster exports match the canvas. SVG, PRG, and D64 stay clean. See [Canvas shaders](#canvas-shaders--exploration).
+1. **New animation types:** Backdrop and Parallax shipped; **deep research** for the next movement/color prototypes is in [animation types research](animation-types-research.md) (demoscene references + ranked candidates). Prioritize new creative effects over raw C64 capacity work.
+2. **Animation and C64 follow-ups:** capacity optimization, broader PAL/NTSC VICE validation, native export hardening, and physical C64/storage checks. Run **immediately after** priority #1 prototypes are chosen (validation debt for shipped effects overlaps here).
 3. **UI validation:** physical iPad finger reach and larger-text checks after the compact cleanup (Apple Pencil is out of scope).
 4. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
 5. **Machine modes / display palettes:** C64, C128 (40-col), C128 80-col, and Plus/4 are shipped. Extra VIC palettes (DeeKay, Frodo, CCS64, Pepto NTSC) stay later. See [machine modes](machine-modes.md).
-6. **Animation and C64 follow-ups — lower priority:** further capacity optimization, broader PAL/NTSC VICE validation, and physical C64/storage checks. Revisit when a concrete need or playback issue arises.
-7. **Editor modularization:** peel the large `index.html` script into native ES modules without a bundler or build step (static `import` for GitHub Pages). See [Editor modularization](#editor-modularization--planned).
+6. **Editor modularization:** peel the large `index.html` script into native ES modules without a bundler or build step (static `import` for GitHub Pages). See [Editor modularization](#editor-modularization--planned).
+7. **Canvas shaders (lowest):** the screen look is our own Monitor, Television, Green, and Amber treatment. Raster exports match the canvas. SVG, PRG, and D64 stay clean. See [Canvas shaders](#canvas-shaders--exploration).
 
 ## Editor modularization — planned
 
@@ -104,6 +104,8 @@ A shader is a visual effect applied over the rendered canvas. The shipped screen
 - [x] Keep the graphics palette’s letters-and-numbers filter independent of typing.
 
 ## Additional animations — in progress
+
+**Research (2026-11-16):** [New animation types research](animation-types-research.md) maps shipped effects to C64 demoscene references and ranks next prototypes. Open checklist items below still apply.
 
 ### Bonfire — implementation, validation pending
 
