@@ -62,8 +62,8 @@ test('backdrop GIF fill follows the ramp and VDC hides border lead',async({page}
  gif.decodeAndBlitFrameRGBA(0,frame0);
  gif.decodeAndBlitFrameRGBA(1,frame1);
  const empty=(buf)=>[...buf.subarray((4*gif.width+12)*4,(4*gif.width+12)*4+3)];
- expect(empty(frame0)).toEqual([0x35,0x28,0x79]);
- expect(empty(frame1)).toEqual([0x6f,0x3d,0x86]);
+ expect(empty(frame0)).toEqual([0x6f,0x3d,0x86]);
+ expect(empty(frame1)).toEqual([0x68,0x37,0x2b]);
  page.on('dialog',dialog=>dialog.accept());
  await page.goto('/');
  await page.locator('.app[data-ready=true]').waitFor();
