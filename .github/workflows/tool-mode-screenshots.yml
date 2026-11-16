@@ -18,6 +18,9 @@ jobs:
   capture:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --init --shm-size=1gb
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,7 +28,6 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
       - name: Capture Pick/Fill toolbar views
         run: node smoke/tool-mode-screenshots.mjs
         env:
