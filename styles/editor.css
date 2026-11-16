@@ -299,7 +299,11 @@ button,select,.field input[type=number]{min-height:44px}
 #inkPopover{position:fixed;inset:auto;margin:0;width:min(320px,calc(100vw - 16px));max-height:calc(100dvh - 145px);overflow:auto;background:var(--case-surface);color:var(--case-text);border:1px solid var(--case-edge);border-radius:12px;padding:14px;box-shadow:0 10px 35px #0008}
 #inkPopover h2{font-size:.9rem;margin:0}#inkPopover .color-grid{margin-bottom:0}#inkPopover .color-grid button{font-size:.7rem}#inkSelection{margin:8px 0 0}
 #symmetryMenu{position:relative;border:1px solid var(--case-edge);border-radius:9px}
-.tool-popover{position:absolute;top:100%;right:0;background:var(--case-surface);border:1px solid var(--case-edge);padding:14px;width:210px;border-radius:9px;box-shadow:0 10px 30px #0008}
+.tool-popover{position:absolute;top:100%;right:0;background:var(--case-surface);border:1px solid var(--case-edge);padding:14px;width:210px;border-radius:9px;box-shadow:0 10px 30px #0008;z-index:14}
+.tool-mode-popover{width:auto;min-width:0;padding:8px}
+.tool-mode-bar{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:6px}
+.tool-mode-bar .tool-mode-option{width:44px;min-width:44px;height:44px;padding:8px!important;flex:0 0 auto}
+.tool-mode-bar .tool-mode-option[aria-pressed=true]{outline:2px solid var(--ui-focus-border);outline-offset:1px}
 #projectMenu{position:relative}
 #projectMenu>summary{list-style:none;border:1px solid var(--case-edge);border-radius:9px;padding:11px;font-size:.8rem}
 .project-menu{position:fixed;right:max(12px,env(safe-area-inset-right,0px));top:max(calc(env(safe-area-inset-top,0px) + 48px),3rem);left:auto;width:min(340px,calc(100vw - 24px));box-sizing:border-box;max-height:calc(100dvh - 80px);overflow:auto;padding:14px;background:var(--case-surface);border:1px solid var(--case-edge);z-index:12;border-radius:10px;box-shadow:0 10px 35px #0008}

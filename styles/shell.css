@@ -112,6 +112,22 @@ header #saveStatus .save-status-compact{display:none}
 #symmetryMenu>summary:active,#symmetryMenu>summary.symmetry-on{transform:none!important}
 .symmetry-chevron{font-size:1rem;line-height:1;opacity:.8;margin-left:2px}
 
+.tool-mode-menu{position:relative;display:inline-flex;align-items:center;min-height:44px;border:0!important;background:transparent!important}
+.tool-mode-menu>summary{
+ display:inline-flex;align-items:center;justify-content:center;gap:4px;
+ height:44px;min-height:44px;padding:0 8px!important;margin:0;cursor:pointer;border-radius:8px!important;
+ list-style:none;font:inherit;line-height:normal;box-sizing:border-box;
+ transform:none!important;box-shadow:none!important;border:1px solid transparent;
+}
+.tool-mode-menu>summary::-webkit-details-marker{display:none}
+.tool-mode-menu>summary::marker{content:""}
+.tool-mode-menu>summary:after{content:"▾";font-size:.7em;opacity:.75;margin-left:2px}
+.tool-mode-menu[open]>summary:after{content:"▴"}
+.tool-mode-menu>summary:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:2px}
+.tool-mode-menu>summary.active{border-color:var(--ui-focus-border);background:var(--ui-control-bg)}
+.tool-mode-menu .tool-mode-popover{top:calc(100% + 4px);right:0;left:auto}
+.drawing-strip>.tool-mode-menu>summary{min-height:44px;box-sizing:border-box}
+
 #inkPopover .dialog-heading{align-items:center;gap:8px}
 #inkPopover .dialog-heading>button{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;display:grid;place-items:center}
 .picker-title{justify-content:flex-start;gap:8px}

@@ -79,7 +79,8 @@ The compact drawing strip uses familiar tool icons with accessible names. The se
 | Tool | Action |
 | --- | --- |
 | Paint / Eraser | Drag to draw or remove cells |
-| Fill | Tap to replace a connected region of matching glyph and ink; empty regions ignore ink |
+| Pick | Open the menu · **Ink** / **Glyph** / **Background** · tap a cell to copy that value to the brush or shared background |
+| Fill | Open the menu · **Glyph + ink** / **Glyph only** / **Ink only** · tap a connected region; empty regions ignore ink when matching |
 | Line / Rectangle | Drag to preview a straight line or outlined rectangle; release to apply |
 | Select | Drag a rectangular marquee, then drag inside it to move the region |
 | Text | Tap a starting cell, type, then choose Apply text |

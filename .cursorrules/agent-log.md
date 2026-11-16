@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-16 — Canvas pick and split fill menus (0.34.0)
+
+**What:** **Pick** and **Fill** use horizontal sub-menus (glyph+ink / glyph-only / ink-only fill; ink / glyph / background pick). Preview locks mode menus via `inert`. Release **0.34.0**.  
+**Tested:** `tests/drawing-tools.spec.cjs` (Chromium 8/8); `tests/canvas-space.spec.cjs` (Chromium).
+
 ## 2026-11-16 — Project naming regressions (#66) (0.33.4)
 
 **What:** Native export filenames in tests match `{stem}-{machine}-still|animation-{W}x{H}`; Project menu panel uses fixed viewport anchoring so it stays on-screen at 200% root font (iPad layout spec). Release **0.33.4**.  
