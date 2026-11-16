@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-16 — GitHub Pages version check (0.33.2 live)
+
+**What:** Verified production `app-version.js` serves **0.33.2** (`curl https://funkatron.github.io/petscii-graphics-lab/app-version.js`). Matches `main` after backdrop preview matte (PR #132). No app bump — documentation only.  
+**Follow-ups:** Split into separate PRs for MCP Plus/4 backdrop smoke, VDC backdrop UI note, optional VICE Plus/4 backdrop host test, project-naming roadmap (#66), and physical-device backdrop checklist rows.
+
 ## 2026-11-16 — Backdrop matte in download preview (0.33.2)
 
 **What:** `artworkPreview` paints `backgroundMatte` so backdrop spatial waves show in the Download animation preview (and centered native tab). Release **0.33.2**.  
