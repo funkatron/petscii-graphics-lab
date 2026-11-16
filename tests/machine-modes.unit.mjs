@@ -136,6 +136,11 @@ test('workspace prefs round-trip cellAspect with square default', () => {
     assert.equal(readWorkspacePrefs().cellAspect, CELL_ASPECT.CRT);
     writeWorkspacePrefs({machine: MACHINE.C64, palette: 'pepto', cellAspect: 'nope'});
     assert.equal(readWorkspacePrefs().cellAspect, CELL_ASPECT.SQUARE);
+    writeWorkspacePrefs({machine: MACHINE.C64, palette: 'pepto', cellAspect: CELL_ASPECT.SQUARE, canvasZoom: 2, centerGuides: true});
+    assert.deepEqual(readWorkspacePrefs(), {machine: MACHINE.C64, palette: 'pepto', cellAspect: CELL_ASPECT.SQUARE, canvasZoom: 2, centerGuides: true});
+    writeWorkspacePrefs({machine: MACHINE.C64, palette: 'pepto', cellAspect: CELL_ASPECT.SQUARE, canvasZoom: 9, centerGuides: 'yes'});
+    assert.equal(readWorkspacePrefs().canvasZoom, 1);
+    assert.equal(readWorkspacePrefs().centerGuides, false);
   } finally {
     globalThis.localStorage = memory;
   }

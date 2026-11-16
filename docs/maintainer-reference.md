@@ -225,6 +225,8 @@ Planned C64 / C128 / Plus/4 machine modes, VIC display-palette switching, TED dr
 
 - **Color actions.** Colors uses Ink/Background targets, a flush swatch tile grid (VIC 4×4; TED 8-wide chroma×luma), Swap brush / background, and explicit Recolor entire drawing. Brush selection changes future strokes and glyph previews only. Swap changes brush/background settings without changing cell ink. Recolor changes occupied cells, records color edits in replay, and is undoable. Color changes stop preview and persist in history, JSON and autosave.
 
+- **Canvas view.** `canvasZoom` (device prefs, levels 1 / 1.25 / 1.5 / 2 / 3) scales editor CSS size after the automatic fit step; zoomed frames scroll inside the bezel. Ctrl/Cmd + wheel on the frame steps zoom. `centerGuides` draws dashed orange axes through the pixel center on the editor canvas only; PNG/SVG/GIF/video/PRG/D64 ignore guides. Neither setting belongs in v3 projects.
+
 - **Painting and resize.** Painting checks both glyph and ink, so stamping an unchanged glyph can recolor it. Erasing writes the current brush index to the emptied cell. Symmetry applies brush ink to all stamped cells; patterns and text import use brush ink. Resize preserves overlap colors and fills new empty cells with brush ink.
 
 - **Replay colors.** `drawingReplay.baseColors` and `eventColors` parallel the base grid and two-tuple glyph events. Infer missing arrays from global ink for older recordings. Validate that both final glyphs and colors reconstruct the saved composition, including empty cells. History and async export snapshots clone these arrays. Reset recordings preserve empty-cell color state; events include color-only edits.

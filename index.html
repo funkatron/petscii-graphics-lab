@@ -42,7 +42,12 @@
 <fieldset class="sidebar-section" id="canvasSizeGroup"><legend>Canvas size</legend>
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option selected>16</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option selected>16</option></select></div></div>
 <button id="c64CanvasPreset" type="button" class="full-width">Full screen · 40 × 25</button>
-<div id="resizeDraft" hidden><p id="resizeSummary" class="note"></p><canvas id="resizePreview" aria-label="Resized drawing preview"></canvas><div class="row"><button id="applyResize">Apply size</button><button id="cancelResize">Cancel</button></div></div></fieldset><details id="drawingActions" class="help-disclosure"><summary>Whole drawing actions</summary><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div><button id="clear" class="full-width">Clear drawing</button></details>
+<div id="resizeDraft" hidden><p id="resizeSummary" class="note"></p><canvas id="resizePreview" aria-label="Resized drawing preview"></canvas><div class="row"><button id="applyResize">Apply size</button><button id="cancelResize">Cancel</button></div></div></fieldset>
+<fieldset class="sidebar-section" id="canvasViewGroup"><legend>Canvas view</legend>
+<div class="field"><label for="editorZoom">Zoom</label><select id="editorZoom" aria-label="Canvas zoom"></select></div>
+<label class="field checkbox-field"><input type="checkbox" id="centerGuides"> Center guides</label>
+<p class="note">Zoom affects the editor only. Center guides mark the middle column and row for symmetry. Hold Ctrl or ⌘ and scroll on the canvas to change zoom.</p>
+</fieldset><details id="drawingActions" class="help-disclosure"><summary>Whole drawing actions</summary><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div><button id="clear" class="full-width">Clear drawing</button></details>
 </div></details>
 <details id="colorDetails" class="tool-group"><summary>Colors <span id="colorSummary" class="summary-badge" aria-hidden="true"></span></summary><div class="group-body">
 <fieldset class="sidebar-section" id="paintColorsGroup"><legend>Paint colors</legend>
@@ -88,7 +93,7 @@
 
 </div></details></aside>
 <main class="stage">
-<div class="stagebar"><span id="dimensions">16 × 16</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
+<div class="stagebar"><span id="dimensions">16 × 16</span><span id="zoomBadge" class="zoom-badge" title="Editor zoom (Canvas setup)">Fit</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
 <div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="editAnimationFromPreview" type="button">Animation settings</button><button id="returnDrawing">Return to drawing</button></div><div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
 <div class="task-progress"><div id="stageExportProgressWrap" class="export-progress-wrap" hidden><progress id="stageExportProgress" class="export-progress" max="100" value="0" aria-label="Animation export progress"></progress><span id="stageExportStatus" class="export-progress-label status" aria-live="polite"></span></div><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
@@ -149,7 +154,7 @@ const {convertGlyph,convertGlyphArray}=await import('./glyph-map.js');
 const {
  MACHINE,MACHINES,INDEX_SPACE,CELL_ASPECT,applyMachineChrome,convertColorsObject,convertInkArray,getMachine,
  isTedMachine,isVicMachine,isVdcMachine,isCellAspectId,maxColumnsForMachine,cellAspectUnits,
- machineSummary,readWorkspacePrefs,writeWorkspacePrefs
+ machineSummary,readWorkspacePrefs,writeWorkspacePrefs,CANVAS_ZOOM_LEVELS,isCanvasZoom
 }=await import('./machine-modes.js');
 const {planTypedText}=await import('./typed-text.js');
 const {graphicsCode,buildGlyphCatalog,familyGlyphCodes}=await import('./glyph-families.js');
@@ -160,6 +165,7 @@ const {SOLID_EFFECTS}=await import('./solid-motion.js');
 const {applyUiTheme,uiThemeForMachine}=await import('./ui-themes.js');
 const prefs=readWorkspacePrefs();
 let workspaceMachine=prefs.machine,workspacePalette=prefs.palette,workspaceCellAspect=prefs.cellAspect;
+let canvasZoom=prefs.canvasZoom,centerGuidesEnabled=prefs.centerGuides;
 const activeColorTable=()=>{
  if(isTedMachine(workspaceMachine))return PLUS4_COLORS;
  if(isVdcMachine(workspaceMachine))return VDC_COLORS;
@@ -372,7 +378,7 @@ function cropCanvasToMachineLimits(){
  for(let y=0;y<nh;y++)for(let x=0;x<nw;x++){next[y*nw+x]=grid[y*W+x];inks[y*nw+x]=cellColors[y*W+x]}
  grid=next;cellColors=inks;W=nw;resetReplay();$('columns').value=String(W);
 }
-function prefsPayload(){return{machine:workspaceMachine,palette:workspacePalette,cellAspect:workspaceCellAspect}}
+function prefsPayload(){return{machine:workspaceMachine,palette:workspacePalette,cellAspect:workspaceCellAspect,canvasZoom,centerGuides:centerGuidesEnabled}}
 function syncMachineControls(){
  const ted=isTedMachine(workspaceMachine),vdc=isVdcMachine(workspaceMachine);
  $('workspaceMachine').value=workspaceMachine;$('workspacePalette').value=workspacePalette;$('workspaceCellAspect').value=workspaceCellAspect;
@@ -552,13 +558,14 @@ function fit(){
  const r=frame.getBoundingClientRect();
  const availableW=Math.max(20,r.width-22),availableH=Math.max(20,r.height-22);
  const {aw,ah}=cellAspectUnits(workspaceMachine,workspaceCellAspect);
- const scale=Math.max(1,Math.min(availableW/(W*aw),availableH/(H*ah)));
+ const fitScale=Math.max(1,Math.min(availableW/(W*aw),availableH/(H*ah)));
+ const scale=fitScale*canvasZoom;
  // Integer CSS pixels: float style strings can oscillate and re-trigger ResizeObserver.
  const width=Math.round(W*aw*scale),height=Math.round(H*ah*scale),dpr=Math.min(devicePixelRatio||1,3);
  const styleW=width+'px',styleH=height+'px';
  const pixelWidth=Math.round(width*dpr),pixelHeight=Math.round(height*dpr);
  const unchangedSize=canvas.style.width===styleW&&canvas.style.height===styleH&&canvas.width===pixelWidth&&canvas.height===pixelHeight;
- const gridKey=W+'x'+H+'x'+workspaceCellAspect+'x'+workspaceMachine;
+ const gridKey=W+'x'+H+'x'+workspaceCellAspect+'x'+workspaceMachine+'x'+canvasZoom;
  unit=width/W;
  if(!unchangedSize){
   canvas.style.width=styleW;canvas.style.height=styleH;
@@ -568,6 +575,45 @@ function fit(){
  if(unchangedSize&&fittedGridKey===gridKey)return;
  fittedGridKey=gridKey;
  redraw();
+ updateCanvasViewChrome();
+}
+function updateCanvasViewChrome(){
+ const zoomed=canvasZoom>1.001;
+ frame.classList.toggle('canvas-zoomed',zoomed);
+ frame.setAttribute('data-zoom',String(canvasZoom));
+ const zoomLabel=canvasZoom===1?'Fit':Math.round(canvasZoom*100)+'%';
+ if($('editorZoom').value!==String(canvasZoom))$('editorZoom').value=String(canvasZoom);
+ $('zoomBadge').textContent=zoomLabel;
+ if(zoomed)requestAnimationFrame(centerFrameScroll);
+}
+function centerFrameScroll(){
+ if(canvasZoom<=1)return;
+ const left=Math.max(0,(frame.scrollWidth-frame.clientWidth)/2),top=Math.max(0,(frame.scrollHeight-frame.clientHeight)/2);
+ frame.scrollTo({left,top,behavior:'instant' in window?'instant':'auto'});
+}
+function drawCenterGuides(){
+ if(!centerGuidesEnabled||animationPreview)return;
+ const cellW=canvas.width/W,cellH=canvas.height/H,cx=canvas.width/2,cy=canvas.height/2;
+ const stroke=Math.max(1,Math.min(cellW,cellH)/10);
+ ctx.save();
+ ctx.strokeStyle='rgba(255,132,48,.85)';
+ ctx.lineWidth=stroke;
+ const dash=Math.max(3,Math.round(Math.min(cellW,cellH)/4));
+ ctx.setLineDash([dash,dash]);
+ ctx.beginPath();
+ ctx.moveTo(cx+.5,0);ctx.lineTo(cx+.5,canvas.height);
+ ctx.moveTo(0,cy+.5);ctx.lineTo(canvas.width,cy+.5);
+ ctx.stroke();
+ ctx.restore();
+}
+function setCanvasZoom(next,opts={persist:true,scroll:true}){
+ const value=isCanvasZoom(next)?Number(next):1;
+ if(value===canvasZoom)return;
+ canvasZoom=value;
+ if(opts.persist){writeWorkspacePrefs(prefsPayload());}
+ fittedGridKey='';
+ fit();
+ if(opts.scroll&&canvasZoom>1)requestAnimationFrame(centerFrameScroll);
 }
 // Square cells stay 8×scale (stills pass 2×pngScale so they remain 16×pngScale).
 // CRT cells are aw×scale by ah×scale (VIC/TED 5×6, VDC 5×12).
@@ -695,7 +741,7 @@ function updateResizeDraft(){
 }
 function redraw(){
  renderGrid(animationPreview?animationCells(animationFrame,animationSource()):grid);
- if(!animationPreview){toolOutline(selection);renderTypedText()}
+ if(!animationPreview){drawCenterGuides();toolOutline(selection);renderTypedText()}
  out.value=textGrid();
  clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);
  $('dimensions').textContent=W+' × '+H;updateResizeDraft();updateDownloadPreview();
@@ -1319,7 +1365,9 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  bullet('Line, Rectangle &amp; Select','Drag across the canvas, or enable '+control('Tap endpoints')+' to select two points.'),
  bullet('Move &amp; Duplicate','Drag an existing selection, or choose '+control('Move')+' or '+control('Duplicate')+' and tap its destination.'),
  bullet('Text','Tap a starting cell, enter your text, then press '+control('Apply text')+'.'),
- bullet('Symmetry','Available with '+control('Paint')+' and '+control('Eraser')+'. Mirrors freehand strokes across the canvas.')
+ bullet('Symmetry','Available with '+control('Paint')+' and '+control('Eraser')+'. Mirrors freehand strokes across the canvas.'),
+ bullet('Center guides','Canvas setup → Center guides marks the middle column and row for symmetry. Editor only.'),
+ bullet('Zoom','Canvas setup → Zoom, or '+key('Ctrl')+' / '+key('⌘')+' + scroll on the canvas. Scroll inside the bezel when zoomed in.')
  ],'<h4>Keyboard shortcuts</h4><ul class="help-points">'+[
  bullet(key('← ↑ ↓ →'),'Move the cursor.'),
  bullet(key('Enter ↵'),'Mark an endpoint or focus text entry.'),
@@ -1395,7 +1443,10 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
 $('sidebar').inert=true;$('glyphPicker').inert=true;$('glyphToggle').disabled=true;canvas.style.pointerEvents='none';
 try{await loadBuiltinGlyphs();glyph=64;updateSourceInfo()}catch{updateSourceInfo();setStatus('C64 glyphs unavailable. Reload glyphs to resume drawing.')}
 try{const saved=JSON.parse(localStorage.getItem(PROJECT_KEY));if(saved){validateProject(saved,{fallbackMachine:workspaceMachine});applyProject(saved);setStatus('Autosaved project restored'+(!rom&&grid.some(g=>typeof g==='number')?'; reload C64 glyphs to render codes':''))}}catch{setStatus('Saved draft could not be restored; load a JSON backup')}
-$('showAlphanumerics').checked=false;syncMachineControls();updateAnimationOptions();updateColorUI();initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
+$('editorZoom').replaceChildren(...CANVAS_ZOOM_LEVELS.map(z=>new Option(z===1?'Fit (100%)':Math.round(z*100)+'%',String(z))));$('editorZoom').value=String(canvasZoom);$('editorZoom').onchange=()=>setCanvasZoom($('editorZoom').value);
+$('centerGuides').checked=centerGuidesEnabled;$('centerGuides').onchange=()=>{centerGuidesEnabled=$('centerGuides').checked;writeWorkspacePrefs(prefsPayload());redraw()};
+frame.addEventListener('wheel',e=>{if(animationPreview||(!e.ctrlKey&&!e.metaKey))return;e.preventDefault();let i=CANVAS_ZOOM_LEVELS.indexOf(canvasZoom);if(i<0)i=Math.max(0,CANVAS_ZOOM_LEVELS.findIndex(z=>z>=canvasZoom));setCanvasZoom(CANVAS_ZOOM_LEVELS[Math.max(0,Math.min(CANVAS_ZOOM_LEVELS.length-1,i+(e.deltaY<0?1:-1)))]);},{passive:false});
+$('showAlphanumerics').checked=false;syncMachineControls();updateAnimationOptions();updateColorUI();updateCanvasViewChrome();initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
 })();
 </script>
 </body>

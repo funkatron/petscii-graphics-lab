@@ -192,6 +192,11 @@ Increasing capacity must retain glyph/color accuracy, bounded memory, RUN/STOP e
 
 Show letters & numbers reveals both cases. There is no whole-drawing character-set switch or separate lowercase option; existing graphics stay unchanged.
 
+## Canvas zoom and center guides — implemented
+
+- [x] Device-pref editor zoom (fit, 125%, 150%, 200%, 300%) with scrollable bezel when enlarged; Ctrl/Cmd + wheel steps zoom.
+- [x] Optional center guides for symmetry (editor only; exports unchanged).
+
 ## Richer drawing tools — implemented
 
 - [x] Fill connected cells with the selected glyph and ink.
