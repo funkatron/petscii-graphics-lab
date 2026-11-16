@@ -6,6 +6,8 @@
 **Tested:** `node --test tests/backdrop-parallax.unit.mjs tests/project-validation.unit.mjs tests/project-defaults.spec.cjs` (unit); `tests/animation.spec.cjs` (Chromium, defaults).  
 **Touched:** `project-validation.js`, `animation-frames.js`, `index.html`, `docs/maintainer-reference.md`, `agents/petscii-preview/*`, tests.
 
+**Docs follow-up:** `index.html` animation help and `README.md` preview section explain independent Color vs Backdrop wave rows.
+
 ## 2026-11-15 — Spatial backdrop ramps (0.32.0)
 
 **What:** Every backdrop ramp paints a per-cell `backgroundMatte` in preview and raster exports. Wave, raster, plasma, and bonfire match cell-color spatial rules; **Color cycle** and **Warm glow** backdrops add wave bands on the paper via the color-wave knobs (cell cycle/glow unchanged). Border lead still uses the scalar `background`/`border` step. Release **0.32.0**.  
