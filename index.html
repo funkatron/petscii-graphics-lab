@@ -46,7 +46,7 @@
 <fieldset class="sidebar-section" id="canvasViewGroup"><legend>Canvas view</legend>
 <div class="field"><label for="editorZoom">Zoom</label><select id="editorZoom" aria-label="Canvas zoom"></select></div>
 <label class="field checkbox-field"><input type="checkbox" id="centerGuides"> Center guides</label>
-<p class="note">Zoom affects the editor only. Center guides mark the middle column and row for symmetry. Hold Ctrl or ⌘ and scroll on the canvas to change zoom.</p>
+<p class="note">Zoom affects the editor only. Center guides mark the middle column and row for symmetry. Hold Ctrl or ⌘ and scroll on the canvas to change zoom. When zoomed in, drag with two fingers on the canvas to pan.</p>
 </fieldset><details id="drawingActions" class="help-disclosure"><summary>Whole drawing actions</summary><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div><button id="clear" class="full-width">Clear drawing</button></details>
 </div></details>
 <details id="colorDetails" class="tool-group"><summary>Colors <span id="colorSummary" class="summary-badge" aria-hidden="true"></span></summary><div class="group-body">
@@ -449,6 +449,8 @@ let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).f
 let cellColors=Array(256).fill(colors.ink);
 let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0;
 let W=16,H=16,grid=Array(256).fill(''),glyph=64,erasing=false,painting=false,last=null,pointer=null,unit=20;
+const panPointers=new Map();
+let panScrollAnchor=null;
 function setStatus(s){$('status').textContent=s;if(!animationExportTask)$('downloadStatus').textContent=s}
 function romGlyphRows(code){
  if(!rom||!Number.isInteger(code)||code<0||code>511)return null;
@@ -584,6 +586,7 @@ function updateCanvasViewChrome(){
  const zoomLabel=canvasZoom===1?'Fit':Math.round(canvasZoom*100)+'%';
  if($('editorZoom').value!==String(canvasZoom))$('editorZoom').value=String(canvasZoom);
  $('zoomBadge').textContent=zoomLabel;
+ updateDrawingHint();
  if(zoomed)requestAnimationFrame(centerFrameScroll);
 }
 function centerFrameScroll(){
@@ -1110,16 +1113,28 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawingTool==='text
 function editingShortcutTarget(){const el=document.activeElement;if(!el||el===document.body||el===document.documentElement)return false;if(el.isContentEditable)return true;if(el.tagName==='TEXTAREA'){if(el.id==='output')return false;return !el.readOnly}if(el.tagName==='SELECT')return true;if(el.tagName==='INPUT'){const type=(el.getAttribute('type')||'text').toLowerCase();if(!['button','checkbox','radio','submit','reset','range','color','hidden'].includes(type))return true}return $('downloadDialog').open||$('inkPopover').matches(':popover-open')}
 document.addEventListener('keydown',e=>{if(editingShortcutTarget())return;const mod=e.metaKey||e.ctrlKey;if(!mod)return;const key=e.key.toLowerCase();if(key==='z'&&!e.shiftKey){if($('undo').disabled)return;e.preventDefault();$('undo').click()}else if((key==='z'&&e.shiftKey)||key==='y'){if($('redo').disabled)return;e.preventDefault();$('redo').click()}});
 function strokeAndRedraw(a,b){stroke(a,b);redraw()}
-canvas.addEventListener('pointerdown',e=>{if(!rom){setStatus('Reload C64 glyphs to resume drawing');return}if(animationPreview||!brushToolActive()){if(e.cancelable&&animationPreview)e.preventDefault();return}if(painting||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}strokeAndRedraw(last,last);setStatus('Drawing…');});
-canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.pointerId!==pointer)return;if(e.cancelable)e.preventDefault();const p=position(e);strokeAndRedraw(last,p);last=p;});
+canvas.addEventListener('pointerdown',e=>{if(!rom){setStatus('Reload C64 glyphs to resume drawing');return}if(animationPreview||!brushToolActive()){if(e.cancelable&&animationPreview)e.preventDefault();return}if(panPointers.size>=2||painting||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}strokeAndRedraw(last,last);setStatus('Drawing…');});
+canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.pointerId!==pointer||panPointers.size>=2)return;if(e.cancelable)e.preventDefault();const p=position(e);strokeAndRedraw(last,p);last=p;});
 function cancelStroke(){const active=pointer;painting=false;pointer=null;last=null;if(active!==null)try{canvas.releasePointerCapture(active)}catch{}}
 function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview&&e.type==='pointerup')strokeAndRedraw(last,position(e));cancelStroke();if(!animationPreview)setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
-for(const type of ['touchstart','touchmove','gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
+function editorZoomed(){return canvasZoom>1.001;}
+function panCentroid(){let x=0,y=0;for(const p of panPointers.values()){x+=p.x;y+=p.y;}const n=panPointers.size;return n?{x:x/n,y:y/n}:{x:0,y:0};}
+function syncPanScrollAnchor(){const c=panCentroid();panScrollAnchor={sl:frame.scrollLeft,st:frame.scrollTop,x:c.x,y:c.y};}
+function applyZoomPan(){if(!panScrollAnchor||panPointers.size<2)return;const c=panCentroid();frame.scrollLeft=Math.max(0,panScrollAnchor.sl-(c.x-panScrollAnchor.x));frame.scrollTop=Math.max(0,panScrollAnchor.st-(c.y-panScrollAnchor.y));}
+function trackPanPointer(e){panPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(panPointers.size>=2){cancelStroke();if(!panScrollAnchor)syncPanScrollAnchor();try{frame.setPointerCapture(e.pointerId)}catch{}}}
+function releasePanPointer(e){panPointers.delete(e.pointerId);try{frame.releasePointerCapture(e.pointerId)}catch{}if(panPointers.size<2)panScrollAnchor=null;}
+frame.addEventListener('pointerdown',e=>{if(!editorZoomed()||animationPreview||e.pointerType==='mouse')return;trackPanPointer(e);if(panPointers.size>=2&&e.cancelable)e.preventDefault();},true);
+frame.addEventListener('pointermove',e=>{if(panPointers.size<2||!panPointers.has(e.pointerId))return;panPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});applyZoomPan();if(e.cancelable)e.preventDefault();},true);
+for(const type of ['pointerup','pointercancel','lostpointercapture'])frame.addEventListener(type,e=>{if(panPointers.has(e.pointerId))releasePanPointer(e);},true);
+frame.addEventListener('touchstart',e=>{if(animationPreview){if(e.cancelable)e.preventDefault();return;}if(!editorZoomed()){if(e.cancelable)e.preventDefault();return;}if(e.touches.length>=2){if(e.cancelable)e.preventDefault();return;}if(e.target===canvas&&e.cancelable)e.preventDefault();},{passive:false});
+frame.addEventListener('touchmove',e=>{if(animationPreview){if(e.cancelable)e.preventDefault();return;}if(!editorZoomed()){if(e.cancelable)e.preventDefault();return;}if(e.touches.length>=2){if(e.cancelable)e.preventDefault();return;}if(e.target===canvas&&e.cancelable)e.preventDefault();},{passive:false});
+for(const type of ['gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 function fillHint(){const mode=FILL_MODES.find(m=>m.id===fillMode);return (mode?.label??'Fill')+' · Tap a connected region of matching glyph and ink.'+(fillMode==='glyph'?' Changes glyph only.':fillMode==='ink'?' Changes ink only.':'')}
 function pickerHint(){const mode=PICKER_MODES.find(m=>m.id===pickerMode);return (mode?.label??'Pick')+' · Tap a cell on the canvas.'}
 function symmetryHint(){const mode=$('sym').selectedOptions[0]?.textContent;return $('sym').value==='none'?'':(' Symmetry: '+mode+'.')}
-function updateDrawingHint(){updateToolPalette();$('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':!['paint','erase'].includes(drawingTool)?(toolNames[drawingTool]??drawingTool)+' · '+(drawingTool==='text'?'Tap a starting cell, type, then Apply text.':drawingTool==='fill'?fillHint():drawingTool==='picker'?pickerHint():'Drag on the canvas. Escape cancels a preview or selection.'):erasing?'Eraser · Drag to remove cells. Choose Paint to draw.'+symmetryHint():'Paint · '+inkLabel(colors.ink)+' ink · Drag to draw.'+symmetryHint()}
+function zoomPanHint(){return editorZoomed()?' Two-finger drag pans when zoomed.':'';}
+function updateDrawingHint(){updateToolPalette();$('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':!['paint','erase'].includes(drawingTool)?(toolNames[drawingTool]??drawingTool)+' · '+(drawingTool==='text'?'Tap a starting cell, type, then Apply text.':drawingTool==='fill'?fillHint():drawingTool==='picker'?pickerHint():'Drag on the canvas. Escape cancels a preview or selection.')+zoomPanHint():erasing?'Eraser · Drag to remove cells. Choose Paint to draw.'+symmetryHint()+zoomPanHint():'Paint · '+inkLabel(colors.ink)+' ink · Drag to draw.'+symmetryHint()+zoomPanHint()}
 function refresh(){refreshModeMenuSummaries();updateDrawingHint();updateSymmetryChrome();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(drawingTool==='paint'));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===0&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};
 $('paint').onclick=()=>setDrawingTool('paint');$('erase').onclick=()=>setDrawingTool('erase');
@@ -1367,7 +1382,7 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  bullet('Text','Tap a starting cell, enter your text, then press '+control('Apply text')+'.'),
  bullet('Symmetry','Available with '+control('Paint')+' and '+control('Eraser')+'. Mirrors freehand strokes across the canvas.'),
  bullet('Center guides','Canvas setup → Center guides marks the middle column and row for symmetry. Editor only.'),
- bullet('Zoom','Canvas setup → Zoom, or '+key('Ctrl')+' / '+key('⌘')+' + scroll on the canvas. Scroll inside the bezel when zoomed in.')
+ bullet('Zoom','Canvas setup → Zoom, or '+key('Ctrl')+' / '+key('⌘')+' + scroll on the canvas. When zoomed in, two-finger drag on the canvas pans; one finger still draws.')
  ],'<h4>Keyboard shortcuts</h4><ul class="help-points">'+[
  bullet(key('← ↑ ↓ →'),'Move the cursor.'),
  bullet(key('Enter ↵'),'Mark an endpoint or focus text entry.'),

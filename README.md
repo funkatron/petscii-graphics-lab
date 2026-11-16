@@ -1,6 +1,6 @@
 # PETSCII Graphics Lab
 
-Draw with Commodore 64 character graphics using a finger, Apple Pencil, or mouse.
+Draw with Commodore 64 character graphics using a finger or mouse.
 
 **[Open the editor](https://funkatron.github.io/petscii-graphics-lab/)** — it runs in your browser. No installation or extra glyph download is needed.
 
@@ -138,7 +138,7 @@ The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic
 
 For **Border**, **Checkerboard**, or **Clear drawing**, open **Canvas setup → Whole drawing actions**. Each operation can be undone.
 
-Canvas setup groups dimensions and staged resizing under **Canvas size**. **Canvas view** offers editor zoom (fit through 300%) and optional **Center guides** that mark the middle column and row for symmetry work; guides and zoom affect the editor only, not PNG/SVG/animation exports. Hold **Ctrl** or **⌘** and scroll on the canvas to step zoom; scroll inside the bezel when enlarged. Colors groups brush/background selection and swapping under **Paint colors**, with whole-drawing recoloring kept in its own disclosure.
+Canvas setup groups dimensions and staged resizing under **Canvas size**. **Canvas view** offers editor zoom (fit through 300%) and optional **Center guides** that mark the middle column and row for symmetry work; guides and zoom affect the editor only, not PNG/SVG/animation exports. Hold **Ctrl** or **⌘** and scroll on the canvas to step zoom. When zoomed in, **two-finger drag on the canvas pans**; one finger still paints or erases. Colors groups brush/background selection and swapping under **Paint colors**, with whole-drawing recoloring kept in its own disclosure.
 
 ### Resize the canvas
 
@@ -412,7 +412,7 @@ An empty cell differs from a deliberately placed space glyph (ID `020` in hexade
 
 Image export waits for C64 glyph data rather than omitting unavailable glyphs. Text, JSON, and glyph-ID files can still preserve numeric IDs.
 
-Physical iPad/Pencil gestures and Files/Photos handoffs still need testing on a real device.
+Physical iPad finger gestures and Files/Photos handoffs still need testing on a real device.
 
 ## Develop or maintain the editor
 

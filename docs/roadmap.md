@@ -12,7 +12,7 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 
 1. **New animation types:** Backdrop and Parallax are the current effects. Keep prioritizing additional creative effects over C64 capacity optimization and memory-expansion support.
 2. **Canvas shaders:** the screen look is our own Monitor, Television, Green, and Amber treatment. Raster exports match the canvas. SVG, PRG, and D64 stay clean. See [Canvas shaders](#canvas-shaders--exploration).
-3. **UI validation:** physical iPad/Pencil reach and larger-text checks after the compact cleanup.
+3. **UI validation:** physical iPad finger reach and larger-text checks after the compact cleanup (Apple Pencil is out of scope).
 4. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
 5. **Machine modes / display palettes:** C64, C128 (40-col), C128 80-col, and Plus/4 are shipped. Extra VIC palettes (DeeKay, Frodo, CCS64, Pepto NTSC) stay later. See [machine modes](machine-modes.md).
 6. **Animation and C64 follow-ups — lower priority:** further capacity optimization, broader PAL/NTSC VICE validation, and physical C64/storage checks. Revisit when a concrete need or playback issue arises.
@@ -152,7 +152,7 @@ Wave height shipped in PR #24; doubled movement range and independent color-wave
 - [x] Put compact tappable help beside headings; keep selection actions below the canvas.
 - [x] Show C64 export readiness and offer only exporter-tested longer-loop remedies.
 - [x] Add automated pointer, keyboard and iPad layout regressions.
-- [ ] Verify physical finger/Pencil reach and larger text on an iPad.
+- [ ] Verify physical finger reach and larger text on an iPad.
 - [x] Validate 200% text in both iPad orientations, including header controls, glyph selection, download navigation and saved artwork; flexible-header change released with PR #20. Physical device text testing remains open.
 
 ## C64 animation capacity — lower-priority follow-ups
@@ -203,9 +203,9 @@ Show letters & numbers reveals both cases. There is no whole-drawing character-s
 - [x] Draw straight lines and outlined rectangles with a visible preview before applying.
 - [x] Select, move, duplicate and delete regions.
 - [x] Evaluate reusable stamps; remove them during UI cleanup in favor of Select and Duplicate.
-- [x] Keep each completed drawing operation undoable; use pointer input for touch, Pencil and mouse.
+- [x] Keep each completed drawing operation undoable; use pointer input for touch and mouse.
 - [x] Contextual Symmetry: show the control only while Paint or Eraser is active; preserve the saved symmetry setting elsewhere.
-- [ ] Evaluate physical Pencil reach before expanding drawing controls.
+- [x] Two-finger pan on the zoomed editor canvas (touch).
 
 ## Combine movement and color cycling — implemented
 
