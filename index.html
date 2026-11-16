@@ -948,7 +948,7 @@ let tapPoints=false,textOrigin=null;
 let fillMode='both',pickerMode='ink';
 const MODE_ICON={
  fill:{both:'M9 4h6v2H9z M7 8h10l-1 11H8L7 8z',glyph:'M5 5h7v7H5z M15 15h4v4h-4z',ink:'M12 4c-3 3.5-5.5 7-5.5 11a5.5 5.5 0 0 0 11 0c0-4-2.5-7.5-5.5-11z'},
- picker:{ink:'M4 19l4-1 9-9-3-3-9 9z M14 6l2 2',glyph:'M5 5h6v6H5z M14 14h5v5h-5z',background:'M5 6h14v9H5z M5 15h14'},
+ picker:{ink:'M7 21l3-1.5 M4 14l12-12 M16 2l2 2 M17.5 7.5l2.5 2.5',glyph:'M5 5h6v6H5z M14 14h5v5h-5z',background:'M5 6h14v9H5z M5 15h14'},
 };
 function modeIconSvg(path){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+path+'"/></svg>'}
 function closeToolModeMenus(except){for(const id of ['fillMenu','pickerMenu']){if(id===except)continue;const el=$(id);if(el)el.open=false}}
@@ -967,7 +967,7 @@ function createToolModeMenu({id,summaryId,summaryTitle,ariaLabel,modes,icons,onS
  }
  pop.append(bar);details.append(pop);
  details.addEventListener('toggle',()=>{if(details.open)closeSiblingModeMenus(id)});
- return {details,summary,refreshSummary:()=>{summary.innerHTML=modeIconSvg(icons[getMode()])}};
+ return {details,summary,refreshSummary:()=>{summary.innerHTML=modeIconSvg(icons[getMode()])+'<span class="tool-mode-chevron" aria-hidden="true">▾</span>'}};
 }
 const toolNames={picker:'Pick',fill:'Fill',line:'╱ Line',rectangle:'□ Rectangle',select:'⬚ Select',text:'Text'};
 const FILL_MODES=[{id:'both',label:'Fill glyph and ink',title:'Fill matching cells with the brush glyph and ink'},{id:'glyph',label:'Fill glyph only',title:'Fill matching cells with the brush glyph; keep each cell ink'},{id:'ink',label:'Fill ink only',title:'Fill matching cells with the brush ink; keep each glyph'}];
