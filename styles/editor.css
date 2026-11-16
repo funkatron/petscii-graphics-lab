@@ -79,6 +79,9 @@ textarea{resize:vertical;width:100%;min-height:80px;background:var(--case-surfac
 .status{font-size:.77rem;color:var(--case-text)}
 #dimensions{font-size:.77rem;color:var(--stage-caption)}
 .canvas-frame{flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:12px;padding:9px;touch-action:none;overscroll-behavior:contain}
+.canvas-frame.canvas-zoomed{align-items:flex-start;justify-content:flex-start;overflow:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
+.canvas-frame.canvas-zoomed canvas{flex-shrink:0;max-width:none;max-height:none}
+.stagebar .zoom-badge{min-width:3.2em;text-align:center;opacity:.92;font-variant-numeric:tabular-nums}
 canvas.preview-locked{cursor:default}
 canvas{display:block;max-width:100%;max-height:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:crosshair;image-rendering:pixelated}
 .stagefoot{font-size:.72rem;color:var(--case-muted);flex:none;text-align:center}

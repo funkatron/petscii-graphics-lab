@@ -1,0 +1,49 @@
+const {test,expect,ui,project,loadProject,download}=require('./helpers.cjs');
+const {PNG}=require('pngjs');
+
+test.beforeEach(async({page})=>{
+  await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
+});
+
+test('canvas zoom enlarges the editor surface without changing export pixels',async({page})=>{
+  await loadProject(page,project([160],4,4));
+  await ui(page,'#canvasDetails');
+  const read=()=>page.evaluate(()=>({w:document.getElementById('canvas').offsetWidth,z:Number(document.querySelector('.canvas-frame').dataset.zoom||1)}));
+  await page.locator('#editorZoom').selectOption('1');
+  const atFit=await read();
+  await page.locator('#editorZoom').selectOption('2');
+  await expect(page.locator('#zoomBadge')).toHaveText('200%');
+  const zoomed=await read();
+  expect(zoomed.z).toBe(2);
+  expect(zoomed.w).toBeGreaterThan(atFit.w*1.9);
+  await expect(page.locator('.canvas-frame')).toHaveClass(/canvas-zoomed/);
+  const png1=PNG.sync.read(await download(page,'#png'));
+  await ui(page,'#editorZoom','selectOption','1');
+  const png2=PNG.sync.read(await download(page,'#png'));
+  expect([png1.width,png1.height]).toEqual([png2.width,png2.height]);
+});
+
+test('center guides render on the canvas but not in PNG export',async({page})=>{
+  await loadProject(page,project([160],8,8,{colors:{ink:14,background:6}}));
+  const sample=()=>page.locator('#canvas').evaluate(c=>{
+    const x=Math.floor(c.width/2),y=Math.floor(c.height/2);
+    const px=c.getContext('2d');
+    return [px.getImageData(x,2,1,1).data[0],px.getImageData(2,y,1,1).data[0]];
+  });
+  const off=await sample();
+  await ui(page,'#centerGuides','check');
+  const on=await sample();
+  expect(on[0]).toBeGreaterThan(off[0]+40);
+  expect(on[1]).toBeGreaterThan(off[1]+40);
+  const pngOn=PNG.sync.read(await download(page,'#png'));
+  await ui(page,'#centerGuides','uncheck');
+  const pngOff=PNG.sync.read(await download(page,'#png'));
+  const i=(pngOn.width*Math.floor(pngOn.height/2)+Math.floor(pngOn.width/2))*4;
+  expect(pngOn.data.slice(i,i+3)).toEqual(pngOff.data.slice(i,i+3));
+});
+
+test('center guides preference survives reload',async({page})=>{
+  await ui(page,'#centerGuides','check');
+  await page.reload();await page.locator('.app[data-ready=true]').waitFor();
+  await expect(page.locator('#centerGuides')).toBeChecked();
+});

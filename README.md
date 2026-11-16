@@ -138,7 +138,7 @@ The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic
 
 For **Border**, **Checkerboard**, or **Clear drawing**, open **Canvas setup → Whole drawing actions**. Each operation can be undone.
 
-Canvas setup groups dimensions and staged resizing under **Canvas size**. Colors groups brush/background selection and swapping under **Paint colors**, with whole-drawing recoloring kept in its own disclosure.
+Canvas setup groups dimensions and staged resizing under **Canvas size**. **Canvas view** offers editor zoom (fit through 300%) and optional **Center guides** that mark the middle column and row for symmetry work; guides and zoom affect the editor only, not PNG/SVG/animation exports. Hold **Ctrl** or **⌘** and scroll on the canvas to step zoom; scroll inside the bezel when enlarged. Colors groups brush/background selection and swapping under **Paint colors**, with whole-drawing recoloring kept in its own disclosure.
 
 ### Resize the canvas
 

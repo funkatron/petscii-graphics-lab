@@ -280,6 +280,13 @@ export function applyMachineChrome(machineId, paletteId = 'pepto', root = docume
   return {machine: machine.id, palette: root.dataset.palette};
 }
 
+export const CANVAS_ZOOM_LEVELS = Object.freeze([1, 1.25, 1.5, 2, 3]);
+
+export function isCanvasZoom(value) {
+  const n = Number(value);
+  return CANVAS_ZOOM_LEVELS.some((level) => level === n);
+}
+
 export function readWorkspacePrefs() {
   try {
     const saved = JSON.parse(localStorage.getItem(WORKSPACE_PREFS_KEY));
@@ -289,13 +296,21 @@ export function readWorkspacePrefs() {
       palette = isDisplayPaletteId(saved?.palette) ? saved.palette : 'pepto';
     }
     const cellAspect = isCellAspectId(saved?.cellAspect) ? saved.cellAspect : CELL_ASPECT.SQUARE;
-    return {machine, palette, cellAspect};
+    const canvasZoom = isCanvasZoom(saved?.canvasZoom) ? Number(saved.canvasZoom) : 1;
+    const centerGuides = saved?.centerGuides === true;
+    return {machine, palette, cellAspect, canvasZoom, centerGuides};
   } catch {
-    return {machine: MACHINE.C64, palette: 'pepto', cellAspect: CELL_ASPECT.SQUARE};
+    return {
+      machine: MACHINE.C64,
+      palette: 'pepto',
+      cellAspect: CELL_ASPECT.SQUARE,
+      canvasZoom: 1,
+      centerGuides: false,
+    };
   }
 }
 
-export function writeWorkspacePrefs({machine, palette, cellAspect}) {
+export function writeWorkspacePrefs({machine, palette, cellAspect, canvasZoom, centerGuides}) {
   try {
     localStorage.setItem(
       WORKSPACE_PREFS_KEY,
@@ -303,6 +318,8 @@ export function writeWorkspacePrefs({machine, palette, cellAspect}) {
         machine: isMachineId(machine) ? machine : MACHINE.C64,
         palette: isDisplayPaletteId(palette) ? palette : 'pepto',
         cellAspect: isCellAspectId(cellAspect) ? cellAspect : CELL_ASPECT.SQUARE,
+        canvasZoom: isCanvasZoom(canvasZoom) ? Number(canvasZoom) : 1,
+        centerGuides: centerGuides === true,
       }),
     );
   } catch {
