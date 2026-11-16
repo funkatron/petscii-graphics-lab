@@ -1,2 +1,2 @@
 /** Editor release version (semver). Bump when shipping user-visible behavior. */
-export const APP_VERSION = '0.32.0';
+export const APP_VERSION = '0.32.1';

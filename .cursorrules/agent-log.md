@@ -2,7 +2,7 @@
 
 ## 2026-11-15 — Spatial backdrop ramps (0.32.0)
 
-**What:** Backdrop ramps **Rainbow wave**, **Raster-style bars**, **Plasma field**, and **Bonfire colors** paint a per-cell `backgroundMatte` (wave/plasma knobs and bonfire heat, same families as Color). Canvas preview, GIF, video, and frame ZIP fill empty paper through that matte. Cycle and warm glow stay a single stepped background + border. Release **0.32.0**.  
+**What:** Every backdrop ramp paints a per-cell `backgroundMatte` in preview and raster exports. Wave, raster, plasma, and bonfire match cell-color spatial rules; **Color cycle** and **Warm glow** backdrops add wave bands on the paper via the color-wave knobs (cell cycle/glow unchanged). Border lead still uses the scalar `background`/`border` step. Release **0.32.0**.  
 **Tested:** `node --test tests/backdrop-parallax.unit.mjs tests/stacked-backdrop.unit.mjs tests/app-version.unit.mjs`.  
 **Touched:** `animation-frames.js`, `index.html`, `docs/maintainer-reference.md`, `tests/backdrop-parallax.unit.mjs`, `app-version.js`, `package.json`.
 

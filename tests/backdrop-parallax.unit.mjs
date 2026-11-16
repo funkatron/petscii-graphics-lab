@@ -36,6 +36,35 @@ function picture(extra) {
   };
 }
 
+test('backdrop color cycle and warm glow use spatial wave bands', () => {
+  const cycle = animationCells(0, picture({
+    W: 4,
+    H: 2,
+    grid: Array(8).fill(''),
+    inks: Array(8).fill(0),
+    backgroundEffect: 'field',
+    fieldRamp: 'cycle',
+    colorWaveDirection: 'left',
+    seconds: 1,
+  }));
+  assert.ok(cycle.backgroundMatte);
+  assert.notEqual(cycle.backgroundMatte[0], cycle.backgroundMatte[3]);
+
+  const glow = animationCells(0, picture({
+    W: 4,
+    H: 1,
+    grid: ['', '', '', ''],
+    inks: [0, 0, 0, 0],
+    colors: {ink: 1, background: 9},
+    backgroundEffect: 'field',
+    fieldRamp: 'glow',
+    colorWaveDirection: 'left',
+    seconds: 1,
+  }));
+  assert.ok(glow.backgroundMatte);
+  assert.ok(glow.backgroundMatte.some((ink, index) => index > 0 && ink !== glow.backgroundMatte[0]));
+});
+
 test('backdrop bonfire paints a spatial matte', () => {
   const frame = animationCells(0, picture({
     W: 6,

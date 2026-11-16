@@ -3,7 +3,13 @@ import {spaceWarpFrame} from './space-warp.js';
 import {depthSurfaceFrame} from './depth-surfaces.js';
 import {solidMotionFrame, SOLID_EFFECTS} from './solid-motion.js';
 import {isTedMachine, isVdcMachine} from './machine-modes.js';
-import {DEPTH_EFFECTS, INTRO_MOTIONS, DIAGONAL_DIRECTIONS, normalizeAnimation} from './project-validation.js';
+import {
+  DEPTH_EFFECTS,
+  FIELD_RAMPS,
+  INTRO_MOTIONS,
+  DIAGONAL_DIRECTIONS,
+  normalizeAnimation,
+} from './project-validation.js';
 import {
   PLUS4_COLOR_CYCLES,
   c64InkToTed,
@@ -90,13 +96,12 @@ function fieldSequence(source) {
   return ramp;
 }
 
-const SPATIAL_FIELD_RAMPS = new Set(['color-wave', 'raster-bars', 'plasma', 'bonfire']);
-
 export function isSpatialFieldRamp(source) {
   if (!backgroundActive(source)) {
     return false;
   }
-  return SPATIAL_FIELD_RAMPS.has(source.fieldRamp ?? 'cycle');
+  const ramp = source.fieldRamp ?? 'cycle';
+  return FIELD_RAMPS.includes(ramp);
 }
 
 function backdropPhase(backgroundPhase, source) {
@@ -693,7 +698,7 @@ function applyInversePass(colorPhase, source, cells) {
   }
 }
 
-function colorRampInk(index, effect, phase, source, startInk, cellInk) {
+function colorRampInk(index, effect, phase, source, startInk, cellInk, spatialBackdrop = false) {
   const family = colorFamily(effect);
   const ramp = COLOR_CYCLES[effect];
   if (!ramp) {
@@ -715,7 +720,10 @@ function colorRampInk(index, effect, phase, source, startInk, cellInk) {
   }
   let step = Math.floor(phase * ramp.length);
 
-  if (family === 'color-wave' || family === 'raster-bars') {
+  const spatialBands = family === 'color-wave'
+    || family === 'raster-bars'
+    || (spatialBackdrop && (family === 'color-cycle' || family === 'color-glow'));
+  if (spatialBands) {
     const direction = source.colorWaveDirection
       ?? (family === 'raster-bars' ? 'up' : 'up-left');
     const x = index % source.W;
@@ -788,7 +796,7 @@ function fieldMatte(backgroundPhase, source) {
   }
   const matte = Array(source.W * source.H);
   for (let index = 0; index < matte.length; index++) {
-    matte[index] = colorRampInk(index, effectKey, phase, source, startInk, still);
+    matte[index] = colorRampInk(index, effectKey, phase, source, startInk, still, true);
   }
   return matte;
 }
