@@ -44,7 +44,7 @@ test('backdrop color cycle and warm glow use spatial wave bands', () => {
     inks: Array(8).fill(0),
     backgroundEffect: 'field',
     fieldRamp: 'cycle',
-    colorWaveDirection: 'left',
+    fieldWaveDirection: 'left',
     seconds: 1,
   }));
   assert.ok(cycle.backgroundMatte);
@@ -58,7 +58,7 @@ test('backdrop color cycle and warm glow use spatial wave bands', () => {
     colors: {ink: 1, background: 9},
     backgroundEffect: 'field',
     fieldRamp: 'glow',
-    colorWaveDirection: 'left',
+    fieldWaveDirection: 'left',
     seconds: 1,
   }));
   assert.ok(glow.backgroundMatte);
@@ -83,6 +83,25 @@ test('backdrop bonfire paints a spatial matte', () => {
   }
 });
 
+test('backdrop wave knobs are independent of cell color wave', () => {
+  const base = picture({
+    W: 4,
+    H: 1,
+    grid: [160, '', '', ''],
+    inks: [1, 0, 0, 0],
+    colorEffect: 'color-wave',
+    colorWaveDirection: 'up',
+    backgroundEffect: 'field',
+    fieldRamp: 'color-wave',
+    fieldWaveDirection: 'left',
+  });
+  const left = animationCells(0, base).backgroundMatte;
+  const right = animationCells(0, {...base, fieldWaveDirection: 'right'}).backgroundMatte;
+  assert.notEqual(JSON.stringify(left), JSON.stringify(right));
+  const colorOnly = animationCells(0, {...base, colorEffect: 'none'}).backgroundMatte;
+  assert.deepEqual(left, colorOnly);
+});
+
 test('backdrop rainbow wave paints a spatial matte', () => {
   const wide = picture({
     W: 4,
@@ -91,7 +110,7 @@ test('backdrop rainbow wave paints a spatial matte', () => {
     inks: [1, 1, 1, 1],
     backgroundEffect: 'field',
     fieldRamp: 'color-wave',
-    colorWaveDirection: 'left',
+    fieldWaveDirection: 'left',
     seconds: 1,
   });
   const frame = animationCells(0, wide);

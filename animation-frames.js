@@ -111,6 +111,16 @@ function backdropPhase(backgroundPhase, source) {
   return backgroundPhase;
 }
 
+function backdropWaveSource(source) {
+  return {
+    ...source,
+    colorWaveDirection: source.fieldWaveDirection ?? source.colorWaveDirection ?? 'up-left',
+    colorWaveShape: source.fieldWaveShape ?? source.colorWaveShape ?? 'sawtooth',
+    colorWaveLength: source.fieldWaveLength ?? source.colorWaveLength ?? 50,
+    colorWaveAmplitude: source.fieldWaveAmplitude ?? source.colorWaveAmplitude ?? 100,
+  };
+}
+
 const FRAME_BUDGET_MS = 20;
 
 function wrapIndex(value, size) {
@@ -794,9 +804,10 @@ function fieldMatte(backgroundPhase, source) {
   if (!fixedRamp) {
     startInk = Math.max(0, ramp.indexOf(still));
   }
+  const waveSource = backdropWaveSource(source);
   const matte = Array(source.W * source.H);
   for (let index = 0; index < matte.length; index++) {
-    matte[index] = colorRampInk(index, effectKey, phase, source, startInk, still, true);
+    matte[index] = colorRampInk(index, effectKey, phase, waveSource, startInk, still, true);
   }
   return matte;
 }

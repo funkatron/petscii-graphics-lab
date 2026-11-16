@@ -8,6 +8,7 @@ test('scroll, rainbow wave, and backdrop stack in the UI and saved project',asyn
  await expect(page.locator('#animationEffect')).toHaveValue('scroll');
  await expect(page.locator('#animationColor')).toHaveValue('color-wave');
  await expect(page.locator('#backdropEffect')).not.toHaveValue('none');
+ await expect(page.locator('#fieldWaveDirection')).toBeVisible();
  await ui(page,'#quickPlay');
  await waitForPreviewAdvance(page);
  await ui(page,'#quickPlay');
