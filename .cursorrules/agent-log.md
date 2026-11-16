@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-16 — Project naming regressions (#66) (0.33.4)
+
+**What:** Native export filenames in tests match `{stem}-{machine}-still|animation-{W}x{H}`; Project menu panel uses fixed viewport anchoring so it stays on-screen at 200% root font (iPad layout spec). Release **0.33.4**.  
+**Tested:** `tests/project-naming.spec.cjs`, `tests/project-save.spec.cjs` (Chromium 14/14).
+
 ## 2026-11-16 — Roadmap #66 validation snapshot
 
 **What:** `docs/roadmap.md` records Chromium results for `project-naming` + `project-save` (11/14 pass; export filename sweep and 200% text layout still failing).  

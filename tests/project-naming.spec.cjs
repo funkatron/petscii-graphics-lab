@@ -62,10 +62,10 @@ test('all export families use the sanitized project name and retain valid conten
  }
  for(const format of ['prg','d64']){
   await ui(page,'#c64Format','selectOption',format);
-  const first=await namedDownload(page,'#exportC64');expect(first.name).toBe('Electric_Raven-still-2x1.'+format);
+  const first=await namedDownload(page,'#exportC64');expect(first.name).toBe('Electric_Raven-c64-still-2x1.'+format);
   if(format==='prg')expect([...first.bytes.subarray(0,2)]).toEqual([1,8]);else expect(first.bytes.length).toBe(174848);
   await ui(page,'#projectFilename','fill','Quiet Mountain');
-  const renamed=await namedDownload(page,'#exportC64');expect(renamed.name).toBe('Quiet Mountain-still-2x1.'+format);expect(renamed.bytes).toEqual(first.bytes);
+  const renamed=await namedDownload(page,'#exportC64');expect(renamed.name).toBe('Quiet Mountain-c64-still-2x1.'+format);expect(renamed.bytes).toEqual(first.bytes);
   await ui(page,'#projectFilename','fill','Electric/Raven.JSON');
  }
 });

@@ -50,7 +50,7 @@ for(const native of [false,true]){
   });
   test('save controls remain reachable at 200% text in both iPad layouts',async({page})=>{
    for(const [width,height] of [[810,1080],[1080,810]]){
-    await page.setViewportSize({width,height});await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();await page.addStyleTag({content:'html{font-size:200%}'});await ui(page,'#projectFilename','fill','Evening artwork');
+    await page.setViewportSize({width,height});await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();await page.addStyleTag({content:'html{font-size:200%}'});await ui(page,'#projectMenu > summary');await ui(page,'#projectFilename','fill','Evening artwork');
     await expect(page.locator('#projectSaveGroup')).toHaveAccessibleName('Save editable project');await expect(page.locator('#projectSaveGroup button:visible:not(#regenerateProjectName)')).toHaveCount(1);
     const menu=page.locator('.project-menu'),box=await menu.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);expect(box.y+box.height).toBeLessThanOrEqual(height);expect(await menu.evaluate(e=>e.scrollWidth-e.clientWidth)).toBeLessThanOrEqual(1);
     for(const id of ['#projectFilename',action,'#loadProject','#openTextGrid']){await page.locator(id).scrollIntoViewIfNeeded();await expect(page.locator(id)).toBeInViewport()}
