@@ -54,7 +54,7 @@ Architecture: [`animation-frames.js`](../animation-frames.js) plans and samples 
 
 ## Other PETSCII editors
 
-Cross-tool comparison (Petmate, Marq, Wizard, Krissz, Playscii, on-machine editors): [**PETSCII editors landscape**](petscii-editors-landscape.md). Use it when deciding UX borrowings (pan/zoom, char-only paint, guide conversion) vs differentiators (procedural animation, iPad, native player).
+Cross-tool comparison (Petmate, Marq, Wizard, Krissz, Playscii, on-machine editors): [**PETSCII editors landscape**](petscii-editors-landscape.md). Prioritized **features and UI naming** to adopt: [**editor borrowings**](editor-borrowings.md). Use these when deciding UX (pan/zoom, char-only paint, guide conversion) vs differentiators (procedural animation, iPad, native player).
 
 ## External reference — what C64 demos actually do
 

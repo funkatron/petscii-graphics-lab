@@ -125,6 +125,8 @@ Summarized from [Marq’s overview](https://www.kameli.net/marq/?p=4365):
 
 ## What is reasonable to adopt (research → roadmap)
 
+**Detailed backlog (features + naming / label recommendations):** [**editor borrowings**](editor-borrowings.md). Owner is open to implementing ideas and **renaming UI** to match Petmate/Wizard/Marq habit where it does not weaken accuracy.
+
 | Idea | Source | Fit for Lab | Effort |
 | --- | --- | --- | --- |
 | **Char-only / ink-only modifiers** | Wizard, Petmate | High UX win; matches shift-modifiers on desktop | Low–medium |
@@ -162,6 +164,7 @@ Summarized from [Marq’s overview](https://www.kameli.net/marq/?p=4365):
 
 ## Internal links
 
+- [editor-borrowings.md](editor-borrowings.md) — prioritized features and nomenclature proposals  
 - [roadmap.md](roadmap.md)  
 - [animation-types-research.md](animation-types-research.md)  
 - [README.md](../README.md) — current user-facing scope  

@@ -95,6 +95,7 @@ These are ideas to test after using the new layout:
 
 1. **Physical iPad/Pencil checks:** test reach, the hand covering controls or artwork, gestures, and portrait/landscape layouts on a device.
 2. **Large-text checks:** confirm that labels, focus, and primary actions remain usable at larger text sizes.
+3. **Cross-editor naming:** adopt low-risk label changes from [editor borrowings](editor-borrowings.md) (e.g. **Backdrop effect** vs brush Background, **Native program (PRG)** tab, **Movement** without “/ reveal”) and add a short animation glossary so Wizard/Petmate users recognize procedural effects vs cel frames.
 
 Preserve familiar control positions as these changes are evaluated. Avoid adding mandatory Draw/Animate workspace tabs; drawing and preview can share the existing canvas.
 
