@@ -10,6 +10,7 @@ import {
 
 test('backdropExportActive follows backgroundEffect', () => {
   assert.equal(backdropExportActive({backgroundEffect: 'field'}), true);
+  assert.equal(backdropExportActive({backgroundEffect: 'plus4-field'}), true);
   assert.equal(backdropExportActive({backgroundEffect: 'none'}), false);
 });
 

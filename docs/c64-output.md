@@ -44,9 +44,9 @@ Smaller drawings and animations are **centered** on the host screen (40 × 25 VI
 
 Image resolution and export-background choices do not affect native program output. Programs always use character cells, per-cell ink, and the canvas background.
 
-### Backdrop on C64 and C128 (40-column)
+### Backdrop on C64, C128 (40-column), and Plus/4
 
-When **Backdrop** is enabled in Animation, native VIC export paints **empty** canvas cells as a **solid block** with the animated backdrop color in **color RAM**. Spatial backdrop waves (rainbow, plasma, raster, and similar ramps) then play on real hardware. Cells that already hold your artwork keep their glyphs and cell color animation; the block layer only appears where the drawing is empty. Transparent areas inside a glyph still show the shared screen background color (`$D021`), not the per-cell wave.
+When **Backdrop** is enabled in Animation, native **VIC and TED** export paints **empty** canvas cells as a **solid block** with the animated backdrop color in **color RAM** (C64/C128) or **TED screen attributes** (Plus/4). Spatial backdrop waves (rainbow, plasma, raster, and similar ramps) then play on real hardware. Cells that already hold your artwork keep their glyphs and cell color animation; the block layer only appears where the drawing is empty. Transparent areas inside a glyph still show the shared screen background color (`$D021` on VIC, TED background on Plus/4), not the per-cell wave. C128 **80-column VDC** export does not use this block-paper path.
 
 ## Load and run it
 

@@ -138,8 +138,8 @@
 const {APP_VERSION}=await import('./app-version.js');
 const {validateProject,normalizeAnimation,ANIMATION_CYCLES,FIELD_RAMPS,FIELD_RAMP_LABELS,DEPTH_EFFECTS,INTRO_MOTIONS,WIPE_PATTERNS,WAVE_AMPLITUDES,WAVE_LENGTHS,WAVE_SHAPES,WAVE_DIRECTIONS,DIAGONAL_DIRECTIONS,COLOR_WAVE_DIRECTIONS,SOLID_CAMERA_VALUES}=await import('./project-validation.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
-const {backdropExportActive,prepareC64BackdropFrames}=await import('./c64-export.js');
-function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareC64BackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}
+const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
+function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareNativeBackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}
 const {canvasCell,createPainter}=await import('./pointer-stroke.js');
 const {colorRGB,inkHex,paletteColors,isDisplayPaletteId}=await import('./c64-colors.js');
 const {PLUS4_COLORS,isPlus4ColorEffect,plus4Hex,tedIndex}=await import('./plus4-colors.js');
@@ -335,14 +335,15 @@ function updateNativeExportLabels(){
  animationDownloadLabels.c64=disk?'Download '+host+' disk (.d64)':'Download '+host+' program (.prg)';
  if(!animationExportTask)$('exportC64').textContent=animationDownloadLabels.c64;
  $('c64DiskHelp').textContent='Virtual 1541 disk containing PICTURE or ANIMATION for '+host+'. Attach as device 8, then LOAD "*",8,1 and RUN. The disk contains the same player as the PRG download.';
+ const backdropNote='With Backdrop on, empty cells export as solid blocks with animated backdrop colors so spatial backdrop waves play on real hardware. ';
  if(host==='Plus/4'){
-  help.textContent='Runs on a Commodore Plus/4 or emulator (BASIC at $1001). TED character ROM with hardware reverse; mixed banks include a RAM charset. Up to 40 × 25 cells, centered. Canvas background also drives the border. Press RUN/STOP to exit. ';
+  help.textContent='Runs on a Commodore Plus/4 or emulator (BASIC at $1001). TED character ROM with hardware reverse; mixed banks include a RAM charset. Up to 40 × 25 cells, centered. Canvas background also drives the border. '+backdropNote+'Press RUN/STOP to exit. ';
  }else if(host==='C128 80-col'){
   help.textContent='Runs on a Commodore 128 in 80-column VDC mode (BASIC at $1C01). Forces 80-col for playback and restores your prior 40/80 mode on RUN/STOP. RGBI attributes; up to 80 × 25 cells, centered. Press RUN/STOP to exit. ';
  }else if(host==='C128'){
-  help.textContent='Runs in Commodore 128 native 40-column mode (BASIC at $1C01). Use a 40-col display. Up to 40 × 25 cells, centered. Canvas background also drives the border. Mixed glyphs include a RAM character set (up to 256 patterns). Press RUN/STOP to exit. ';
+  help.textContent='Runs in Commodore 128 native 40-column mode (BASIC at $1C01). Use a 40-col display. Up to 40 × 25 cells, centered. Canvas background also drives the border. '+backdropNote+'Mixed glyphs include a RAM character set (up to 256 patterns). Press RUN/STOP to exit. ';
  }else{
-  help.textContent='Runs on a standard C64 or emulator. Up to 40 × 25 cells, centered on screen. Uses the canvas background (also drives the border). Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. ';
+  help.textContent='Runs on a standard C64 or emulator. Up to 40 × 25 cells, centered on screen. Uses the canvas background (also drives the border). '+backdropNote+'Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. ';
  }
  const docs=document.createElement('a');docs.href=docsHref;docs.target='_blank';docs.rel='noopener';docs.textContent='Loading instructions & limits';help.append(docs);
 }
