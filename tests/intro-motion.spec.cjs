@@ -18,9 +18,13 @@ function reference(effect,f,a=settings,source=grid){
    const xx=((x+dx)%W+W)%W,yy=((y+dy)%H+H)%H;
    put(diagonal?yy*W+xx:horizontal?y*W+wrap(x+travel):wrap(y+travel)*W+x,i)}
  }else{
-  const visible=p<.35?p/.35:p>.65?(1-p)/.35:1,horizontal=['left','right'].includes(a.scrollDirection),reverse=['left','up'].includes(a.scrollDirection);
+  const visible=p<.35?p/.35:p>.65?(1-p)/.35:1,horizontal=['left','right'].includes(a.scrollDirection),reverse=['left','up'].includes(a.scrollDirection),diag=a.scrollDirection.includes('-');
   for(let i=0;i<W*H;i++){const x=i%W,y=Math.floor(i/W),pos=horizontal?x:y,len=horizontal?W:H,u=reverse?1-(pos+.5)/len:(pos+.5)/len,v=horizontal?(y+.5)/H:(x+.5)/W,stripe=(pos%4+.5)/4;
-   const threshold=a.wipePattern==='blinds'?(reverse?1-stripe:stripe):a.wipePattern==='checkerboard'?((x+y)%2+u)/2:(u+v)/2;if(threshold<=visible)put(i,i);
+   let threshold;
+   if(diag){const wx=a.scrollDirection.includes('left')?x:W-1-x,wy=a.scrollDirection.includes('up')?y:H-1-y,sweep=((wx+.5)/W+(wy+.5)/H)*.5;
+    threshold=a.wipePattern==='blinds'?(((Math.floor(sweep*len*4)%4)+.5)/4):a.wipePattern==='checkerboard'?((x+y)%2+sweep)/2:sweep;
+   }else threshold=a.wipePattern==='blinds'?(reverse?1-stripe:stripe):a.wipePattern==='checkerboard'?((x+y)%2+u)/2:(u+v)/2;
+   if(threshold<=visible)put(i,i);
   }
  }
  if(a.colorEffect==='raster-bars')out.inks=out.inks.map((c,i)=>out.cells[i]===''?c:[0,6,14,3,1,3,14,6][(Math.floor(i/W)+Math.floor(p*8))%8]);
@@ -35,7 +39,7 @@ for(const effect of effects)test(effect+' exports exact glyph/ink pixels in GIF 
 });
 test('starfield directions and wipe patterns move or mask original glyphs deterministically',async({page})=>{
  test.setTimeout(120000);
- for(const scrollDirection of ['left','right','up','down','up-left','up-right','down-left','down-right'])for(const effect of (scrollDirection.includes('-')?['starfield']:['starfield','wipe'])){
+ for(const scrollDirection of ['left','right','up','down','up-left','up-right','down-left','down-right'])for(const effect of ['starfield','wipe']){
   for(const wipePattern of effect==='wipe'?['diagonal','checkerboard','blinds']:['diagonal']){const a=await art(page,effect,{scrollDirection,wipePattern}),gif=new GifReader(await download(page,'#exportGif'));expect(gif.numFrames()).toBe(24);for(const f of [0,3,6,12,21,23]){const pixels=Buffer.alloc(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(f,pixels);expect(pixels,JSON.stringify({effect,scrollDirection,wipePattern,f})).toEqual(raster(reference(effect,f,a)))}}
  }
 });

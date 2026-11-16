@@ -35,7 +35,7 @@ test('Sine scroller preview, save, reload and Undo preserve diagonal settings an
  }
  await ui(page,'#animationEffect','selectOption','starfield');await expect(page.locator('#scrollDirection')).toHaveValue('down-right');
  await ui(page,'#animationEffect','selectOption','sine-scroll');await expect(page.locator('#scrollDirection')).toHaveValue('down-right');
- await ui(page,'#animationEffect','selectOption','wipe');await expect(page.locator('#scrollDirection')).toHaveValue('left');
+ await ui(page,'#animationEffect','selectOption','wipe');await expect(page.locator('#scrollDirection')).toHaveValue('down-right');
 });
 test('diagonal Sine scroller shares independent color cycles with GIF, ZIP, PRG and D64',async({page})=>{
  const p=art('up-right');p.animation={...p.animation,seconds:4,motionCycles:2,colorEffect:'color-cycle',colorCycles:4};await loadProject(page,p);
