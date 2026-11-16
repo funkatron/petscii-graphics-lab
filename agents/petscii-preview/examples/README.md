@@ -12,6 +12,25 @@ Open these in PETSCII Graphics Lab with **Project → Open**.
 
 PNG previews are in `png/` for a quick look without launching the lab.
 
+## Animation JSON (MCP)
+
+Stack movement, cell color, and backdrop with the same keys as `project.animation` in the editor. Prefer `backgroundEffect` for stepped shared backgrounds:
+
+```json
+"animation": {
+  "effect": "scroll-x",
+  "colorEffect": "color-wave",
+  "backgroundEffect": "field",
+  "fieldRamp": "glow",
+  "motionCycles": 1,
+  "colorCycles": 1,
+  "backgroundCycles": 1,
+  "seconds": 2
+}
+```
+
+Legacy saves may still have `colorEffect: "field"`; the lab and MCP migrate that to `backgroundEffect` on load.
+
 ## Drawing references
 
 `IMG_0343` through `IMG_0360` are pictures to study before painting with the MCP. The drawing skill in `.cursor/skills/petscii-draw/SKILL.md` says which file to open for a face, a figure, or a place. They are references, not files to trace.

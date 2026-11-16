@@ -25,6 +25,22 @@ class PglMcpSmokeTests(unittest.TestCase):
         self.assertIn("scroll-x", effects["motionEffects"])
         self.assertIn("color-wave", effects["colorEffects"])
         self.assertIn("plus4-cycle", effects["colorEffects"])
+        self.assertIn("field", effects["backgroundEffects"])
+        self.assertIn("glow", effects["fieldRamps"])
+
+    def test_plan_stacked_backdrop(self):
+        plan = pgl_export.plan_animation(
+            str(SAMPLE),
+            {
+                "effect": "scroll-x",
+                "colorEffect": "color-wave",
+                "backgroundEffect": "field",
+                "fieldRamp": "glow",
+                "seconds": 2,
+            },
+        )
+        self.assertGreaterEqual(plan["frameCount"], 8)
+        self.assertEqual(plan.get("warning", ""), "")
 
     def test_validate_wordmark(self):
         result = project_io.validate_project(str(SAMPLE))

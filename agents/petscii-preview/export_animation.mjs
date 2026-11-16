@@ -5,11 +5,13 @@
  *   node export_animation.mjs --project=path.json [--out=frames.json] [--settings='{...}']
  *
  * Settings merge over project.animation. Keys match project JSON animation fields
- * plus optional motionEffect/colorEffect aliases for effect/colorEffect.
+ * plus optional motionEffect/colorEffect/backgroundEffect aliases.
+ * Use backgroundEffect: 'field' | 'plus4-field' for backdrop ramps (not colorEffect: field).
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { buildAnimationSource, mergeAnimationSettings } from './animation-source.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const here = dirname(fileURLToPath(import.meta.url));
@@ -26,6 +28,8 @@ const {
   validateProject,
   MOTION_EFFECTS,
   COLOR_EFFECTS,
+  BACKGROUND_EFFECTS,
+  FIELD_RAMPS,
   SOLID_CAMERA_VALUES,
   WAVE_DIRECTIONS,
   WAVE_SHAPES,
@@ -52,6 +56,8 @@ if (has('list-effects')) {
   console.log(JSON.stringify({
     motionEffects: MOTION_EFFECTS,
     colorEffects: COLOR_EFFECTS,
+    backgroundEffects: BACKGROUND_EFFECTS,
+    fieldRamps: FIELD_RAMPS,
     animationCycles: ANIMATION_CYCLES,
     waveDirections: WAVE_DIRECTIONS,
     waveShapes: WAVE_SHAPES,
@@ -78,28 +84,16 @@ const settings = settingsRaw ? JSON.parse(settingsRaw) : {};
 const data = JSON.parse(readFileSync(projectPath, 'utf8'));
 validateProject(data);
 
-const anim = { ...(data.animation || {}), ...settings };
-if (settings.motionEffect !== undefined) {
-  anim.effect = settings.motionEffect;
-}
-if (settings.colorEffect !== undefined) {
-  anim.colorEffect = settings.colorEffect;
-}
-if (settings.motion !== undefined && settings.motionEffect === undefined) {
-  anim.effect = settings.motion;
-}
+const anim = mergeAnimationSettings(data, settings);
 
 const columns = data.columns;
 const rows = data.rows;
-const cellCount = columns * rows;
 const colors = {
   ink: data.colors?.ink ?? 14,
   background: data.colors?.background ?? 0,
 };
-const grid = data.grid.slice();
-const inks = (data.cellColors || Array(cellCount).fill(colors.ink)).slice();
 
-function resolveSeconds(desired, motion, colorEffect) {
+function resolveSeconds(desired) {
   let seconds = desired ?? anim.seconds ?? 2;
   const probe = buildSource(seconds);
   const plan = animationPlan(probe);
@@ -119,40 +113,7 @@ function resolveSeconds(desired, motion, colorEffect) {
 }
 
 function buildSource(seconds) {
-  return {
-    W: columns,
-    H: rows,
-    grid,
-    inks,
-    base: (data.replayBase || Array(cellCount).fill('')).slice(),
-    baseColors: (data.replayBaseColors || Array(cellCount).fill(colors.ink)).slice(),
-    events: (data.replayEvents || []).map((e) => e.slice()),
-    eventColors: (data.replayEventColors || []).slice(),
-    colors: { ...colors },
-    effect: anim.effect ?? 'none',
-    colorEffect: anim.colorEffect ?? 'none',
-    seconds,
-    scale: anim.scale ?? 1,
-    background: anim.background ?? 'dark',
-    motionCycles: anim.motionCycles ?? 1,
-    colorCycles: anim.colorCycles ?? 1,
-    cameraDistance: anim.cameraDistance ?? 4,
-    cameraOrbit: anim.cameraOrbit ?? 0,
-    cameraElevation: anim.cameraElevation ?? 0,
-    cameraMotion: anim.cameraMotion ?? 0,
-    scrollDirection: anim.scrollDirection ?? 'left',
-    waveDirection: anim.waveDirection ?? 'up',
-    waveShape: anim.waveShape ?? 'sine',
-    waveAmplitude: anim.waveAmplitude ?? 100,
-    waveLength: anim.waveLength ?? 50,
-    colorWaveDirection: anim.colorWaveDirection ?? 'up-left',
-    colorWaveShape: anim.colorWaveShape ?? 'sawtooth',
-    colorWaveAmplitude: anim.colorWaveAmplitude ?? 100,
-    colorWaveLength: anim.colorWaveLength ?? 50,
-    wipePattern: anim.wipePattern ?? 'diagonal',
-    depthTravel: anim.depthTravel ?? 'toward',
-    depthWaveShape: anim.depthWaveShape ?? 'sawtooth',
-  };
+  return buildAnimationSource(data, { ...anim, seconds });
 }
 
 if (has('plan-only')) {
@@ -161,6 +122,7 @@ if (has('plan-only')) {
     project: projectPath,
     effect: anim.effect ?? 'none',
     colorEffect: anim.colorEffect ?? 'none',
+    backgroundEffect: anim.backgroundEffect ?? 'none',
     seconds,
     frameCount: plan.count,
     warning: plan.warning || '',
@@ -172,7 +134,8 @@ if (has('plan-only')) {
 const { seconds, plan } = resolveSeconds(anim.seconds);
 const source = buildSource(seconds);
 const frameCount = animationCount(source);
-const ted = isPlus4ColorEffect(source.colorEffect);
+const ted = isPlus4ColorEffect(source.colorEffect)
+  || source.backgroundEffect === 'plus4-field';
 const palette = ted
   ? PLUS4_COLORS.map(([, hex]) => hex)
   : C64_COLORS.map(([, hex]) => hex);
@@ -203,8 +166,9 @@ for (let i = 0; i < frameCount; i++) {
 
 const payload = {
   project: projectPath,
-  effect: source.colorEffect,
   motionEffect: source.effect,
+  colorEffect: source.colorEffect,
+  backgroundEffect: source.backgroundEffect,
   colorPalette: ted ? 'ted-pal' : 'pepto-pal',
   columns,
   rows,
@@ -221,11 +185,16 @@ const payload = {
   animation: {
     effect: source.effect,
     colorEffect: source.colorEffect,
+    backgroundEffect: source.backgroundEffect,
     seconds: source.seconds,
     scale: source.scale,
     background: source.background,
     motionCycles: source.motionCycles,
     colorCycles: source.colorCycles,
+    backgroundCycles: source.backgroundCycles,
+    fieldRamp: source.fieldRamp,
+    fieldDirection: source.fieldDirection,
+    fieldLead: source.fieldLead,
     cameraDistance: source.cameraDistance,
     cameraOrbit: source.cameraOrbit,
     cameraElevation: source.cameraElevation,
@@ -252,6 +221,7 @@ console.log(JSON.stringify({
   project: projectPath,
   motionEffect: source.effect,
   colorEffect: source.colorEffect,
+  backgroundEffect: source.backgroundEffect,
   frameCount,
   seconds,
   warning: plan.warning || '',
