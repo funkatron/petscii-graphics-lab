@@ -49,6 +49,7 @@ flowchart TB
 | `animation-frames.js` | Frame plan, sampling budget, and per-frame cell/ink computation |
 | [animation-types-research.md](animation-types-research.md) | Roadmap research: external demoscene refs and candidate next effects |
 | [algorithmic-vic-feasibility.md](algorithmic-vic-feasibility.md) | Hardware VIC tricks vs grid editor / export feasibility |
+| [petscii-editors-landscape.md](petscii-editors-landscape.md) | Survey of other PETSCII editors (external) vs Graphics Lab |
 | `pointer-stroke.js` | Cell picking from pointer events and symmetric brush strokes |
 | `c64-colors.js` | Shared Pepto palette metadata |
 | `typed-text.js` | Text-tool glyph mapping and layout |

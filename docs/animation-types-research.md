@@ -40,6 +40,10 @@ Architecture: [`animation-frames.js`](../animation-frames.js) plans and samples 
 
 `field` / `plus4-field` with ramps (cycle, wave, raster, plasma, bonfire, glow). **Shipped:** backdrop + **Parallax** as the newest spatial pair (roadmap).
 
+## Other PETSCII editors
+
+Cross-tool comparison (Petmate, Marq, Wizard, Krissz, Playscii, on-machine editors): [**PETSCII editors landscape**](petscii-editors-landscape.md). Use it when deciding UX borrowings (pan/zoom, char-only paint, guide conversion) vs differentiators (procedural animation, iPad, native player).
+
 ## External reference — what C64 demos actually do
 
 Classic demos use **VIC-II tricks** that the browser editor does not emulate literally. The goal is **spirit and composition**, not cycle-exact hardware.

@@ -10,7 +10,7 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 
 ## Current priorities
 
-1. **New animation types:** Backdrop and Parallax shipped; **deep research** for the next movement/color prototypes is in [animation types research](animation-types-research.md) (demoscene references + ranked candidates). Prioritize new creative effects over raw C64 capacity work.
+1. **New animation types:** Backdrop and Parallax shipped; **deep research** for the next movement/color prototypes is in [animation types research](animation-types-research.md) (demoscene references + ranked candidates) and [other PETSCII editors](petscii-editors-landscape.md) (how comparable tools handle animation and export). Prioritize new creative effects over raw C64 capacity work.
 2. **Animation and C64 follow-ups:** capacity optimization, broader PAL/NTSC VICE validation, native export hardening, and physical C64/storage checks. Run **immediately after** priority #1 prototypes are chosen (validation debt for shipped effects overlaps here).
 3. **UI validation:** physical iPad finger reach and larger-text checks after the compact cleanup (Apple Pencil is out of scope).
 4. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
