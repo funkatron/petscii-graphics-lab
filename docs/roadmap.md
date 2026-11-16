@@ -10,13 +10,57 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 
 ## Current priorities
 
-1. **New animation types:** Backdrop and Parallax are the current effects. Keep prioritizing additional creative effects over C64 capacity optimization and memory-expansion support.
-2. **Canvas shaders:** the screen look is our own Monitor, Television, Green, and Amber treatment. Raster exports match the canvas. SVG, PRG, and D64 stay clean. See [Canvas shaders](#canvas-shaders--exploration).
-3. **UI validation:** physical iPad finger reach and larger-text checks after the compact cleanup (Apple Pencil is out of scope).
-4. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
-5. **Machine modes / display palettes:** C64, C128 (40-col), C128 80-col, and Plus/4 are shipped. Extra VIC palettes (DeeKay, Frodo, CCS64, Pepto NTSC) stay later. See [machine modes](machine-modes.md).
-6. **Animation and C64 follow-ups — lower priority:** further capacity optimization, broader PAL/NTSC VICE validation, and physical C64/storage checks. Revisit when a concrete need or playback issue arises.
+Reviewed **2026-11-16** after PETSCII editor landscape research, the real-hardware product gate, and the borrowings backlog.
+
+| # | Track | One-line intent |
+| ---: | --- | --- |
+| 1 | **New animation types** | Next movement/color prototypes with **native PRG/D64** on real hardware |
+| 2 | **Animation & C64 follow-ups** | Capacity, VICE, physical checks, optional **player rewrite** |
+| 3 | **Cross-editor UX & naming** | Petmate/Wizard/Marq workflows and familiar labels ([editor borrowings](editor-borrowings.md)) |
+| 4 | **UI validation** | Physical iPad reach and larger text (automated pass largely done) |
+| 5 | **Drawing & import** | Everyday tools beyond what #3 lifts from other editors |
+| 6 | **Machine modes** | Extra VIC palettes; modes are shipped |
+| 7 | **Editor modularization** | Split `index.html` for maintainability |
+| 8 | **Canvas shaders** | Screen look on raster exports only |
+
+1. **New animation types:** Backdrop and Parallax shipped; **deep research** for the next movement/color prototypes is in [animation types research](animation-types-research.md) (demoscene references + ranked candidates) and [other PETSCII editors](petscii-editors-landscape.md) (competitive context). **Ship only what can run as native PRG/D64** on real hardware ([product gate](animation-types-research.md#product-gate--real-hardware)); prioritize new creative effects over raw C64 capacity work. UX polish from other editors belongs in priority **#3**, not here.
+2. **Animation and C64 follow-ups:** capacity optimization, broader PAL/NTSC VICE validation, native export hardening, physical C64/storage checks, and—when a prototype needs hardware fidelity—a **native player rewrite** ([design note](native-player-rewrite.md)). Run **in parallel with #1** once prototypes are chosen (validation debt for shipped effects overlaps here).
+3. **Cross-editor UX and naming:** adopt high-value ideas from [editor borrowings](editor-borrowings.md) and [PETSCII editors landscape](petscii-editors-landscape.md)—glyph-only/ink-only paint, reference overlay import, low-risk label changes (Movement, Backdrop effect, Native program (PRG)), animation glossary (procedural effects vs cel frames), scroller export copy. See [Cross-editor UX and naming](#cross-editor-ux-and-naming--priority-3).
+4. **UI validation:** physical iPad finger reach and larger-text checks after the compact cleanup (Apple Pencil is out of scope). Overlaps the nomenclature pass in **#3** on device.
+5. **Drawing and import usability:** typed entry and text-file import are implemented; line/rect/fill and replace-ink called out in **#3** land here when not tied to cross-editor parity. Evaluate further everyday drawing improvements (stamps, selection/move, motifs per [AGENTS.md](../AGENTS.md)).
+6. **Machine modes / display palettes:** C64, C128 (40-col), C128 80-col, and Plus/4 are shipped. Extra VIC palettes (DeeKay, Frodo, CCS64, Pepto NTSC) stay later. See [machine modes](machine-modes.md).
 7. **Editor modularization:** peel the large `index.html` script into native ES modules without a bundler or build step (static `import` for GitHub Pages). See [Editor modularization](#editor-modularization--planned).
+8. **Canvas shaders (lowest):** the screen look is our own Monitor, Television, Green, and Amber treatment. Raster exports match the canvas. SVG, PRG, and D64 stay clean. See [Canvas shaders](#canvas-shaders--exploration).
+
+### How the top three relate
+
+- **#1** chooses *what moves* on the grid; every shipped effect needs a native story ([product gate](animation-types-research.md#product-gate--real-hardware)).
+- **#2** keeps *exports honest* on silicon (timing, bytes, VICE, physical)—and funds a [player rewrite](native-player-rewrite.md) when replay is not enough.
+- **#3** makes the editor *feel familiar* to Petmate/Wizard refugees without diluting glyph authenticity or v3 project ids.
+
+Research PRs may land documentation for #1–#3 together; implementation order should still respect the numbers above unless the owner reorders.
+
+## Cross-editor UX and naming — priority #3
+
+**Source of truth:** [editor-borrowings.md](editor-borrowings.md) (features, naming table, tier list). **Survey:** [petscii-editors-landscape.md](petscii-editors-landscape.md). **UI placement rules:** [ui-review.md](ui-review.md) follow-up #3.
+
+**Tier A — implement or relabel first**
+
+- [ ] **Glyph-only / ink-only paint** (Wizard Shift, Petmate modes); Playwright stroke coverage.
+- [ ] **Nomenclature pass:** Movement (drop “/ reveal”), Backdrop effect vs brush Background, Native program **(PRG)** tab; help glossary (glyph/ink/backdrop vs cel frames).
+- [ ] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship.
+- [ ] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment).
+
+**Tier B — after Tier A or with #5**
+
+- [ ] Line, rectangle, replace-ink (**magic replace** wording).
+- [ ] **Show grid** label (retain center guides).
+- [ ] Optional animation **timeline** disclosure (effect-generated frames, not Wizard cel strip).
+- [ ] Krissz-style **$D020 / $D021** help (border vs background).
+
+**Explicitly defer (document only):** layers, quarter-block grid, Ultimate 64 live port, SID ([editor borrowings](editor-borrowings.md) Tier B/C).
+
+**Done when:** Tier A checkboxes green, README/help match new labels, iPad WebKit spot-check for changed Animation/Download strings.
 
 ## Editor modularization — planned
 
@@ -34,6 +78,11 @@ Most of the app still lives in one `index.html` module script; smaller areas alr
 2. **Extract in slices** — one feature or subsystem per change, with focused Playwright or `*.unit.mjs` coverage where practical.
 3. **Document contracts** — each module owns clear inputs/outputs; shared editor state stays explicit (imported store or passed context) instead of hidden globals.
 4. **Maintain AGENTS guidance** — update “where the code lives” as modules move; avoid drive-by refactors unrelated to the slice.
+
+**Algorithmic VIC research (optional prototypes)**
+
+- [ ] Read [algorithmic VIC feasibility](algorithmic-vic-feasibility.md); spike **column-offset wave** and **FLD blinds** on derived frames before new depth effects.
+- [ ] Keep **VSP/FLI/AGSP** as documentation-only unless requirements change.
 
 **Checklist (not started)**
 
@@ -104,6 +153,8 @@ A shader is a visual effect applied over the rendered canvas. The shipped screen
 - [x] Keep the graphics palette’s letters-and-numbers filter independent of typing.
 
 ## Additional animations — in progress
+
+**Roadmap priority #1.** **Research (2026-11-16):** [New animation types research](animation-types-research.md) maps shipped effects to C64 demoscene references and ranks next prototypes. Open checklist items below still apply.
 
 ### Bonfire — implementation, validation pending
 
@@ -181,9 +232,9 @@ Wave height shipped in PR #24; doubled movement range and independent color-wave
 - [ ] Verify physical finger reach and larger text on an iPad.
 - [x] Validate 200% text in both iPad orientations, including header controls, glyph selection, download navigation and saved artwork; flexible-header change released with PR #20. Physical device text testing remains open.
 
-## C64 animation capacity — lower-priority follow-ups
+## C64 animation capacity — priority #2 follow-ups
 
-Current animation behavior meets the owner’s needs. Further optimization and broader machine validation remain useful follow-ups, but do not lead the roadmap. Fix reported regressions as needed.
+Current animation behavior meets the owner’s needs for daily use. Capacity optimization and broader machine validation sit under **roadmap priority #2** (not #1). Fix reported regressions as needed.
 
 The work below explores **40-column × 24-row** movement waves combined with color waves, guided by the [capacity measurements](c64-capacity.md). Retain the distinction between CPU checks, full-machine emulation and physical-hardware validation.
 
@@ -264,7 +315,7 @@ Show letters & numbers reveals both cases. There is no whole-drawing character-s
 - [x] Compact scattered changes into literal byte runs, reducing full-screen update work and program size.
 - [ ] Verify on physical PAL/NTSC C64 hardware, including RUN/STOP key handling.
 - [ ] Verify transfer to physical storage devices.
-- [ ] Evaluate raster-synchronized updates and procedural native effects.
+- [ ] Evaluate raster-synchronized updates and procedural native effects. See [native player rewrite](native-player-rewrite.md) (owner-approved scope; hybrid replay + procedural profiles).
 
 The fragmented full-screen benchmark now copies in at most 6 clock ticks (about 0.1 seconds), down from 18 ticks on PAL. Raster synchronization alone cannot fit that work into one screen refresh; further work needs faster decoding, staged updates, or native effects. See [VICE performance checks](vice-validation.md#full-screen-performance).
 
