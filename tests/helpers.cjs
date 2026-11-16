@@ -40,9 +40,13 @@ async function ui(page,selector,method='click',...args){
 const SAVE_PROJECT_SELECTOR = '#saveProject';
 
 async function clickDownloadTrigger(page, selector) {
-  // On iPad, Share replaces the visible download button; the hidden control still downloads.
-  if (selector === SAVE_PROJECT_SELECTOR) {
-    await page.evaluate(() => document.getElementById('saveProject').click());
+  const useDomClick = await page.locator(selector).first().evaluate((el) => {
+    // Share hides the project save control on iPad; WebKit can also block Playwright
+    // clicks on download-sheet controls after tab switches and long help reflow.
+    return el.id === 'saveProject' || !!el.closest('#downloadDialog');
+  });
+  if (useDomClick) {
+    await page.evaluate((sel) => document.querySelector(sel)?.click(), selector);
     return;
   }
   await page.locator(selector).first().click();
