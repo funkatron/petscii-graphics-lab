@@ -5,7 +5,7 @@ test('animation controls are grouped, paired and preserve projects at iPad sizes
   await loadProject(page,project([160,0],2,1,{animation:{effect:'wave',colorEffect:'color-wave',seconds:2,scale:1,background:'dark',waveAmplitude:75,colorWaveAmplitude:25}}));
   await expect(page.locator('#canvasSizeGroup #columns')).toHaveCount(1);await expect(page.locator('#paintColorsGroup #colorPalette')).toHaveCount(1);await expect(page.locator('#paintColorsGroup #recolorDrawing')).toHaveCount(0);
   const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#waveAmplitude','selectOption','75');
-  for(const [id,name]of [['animationTimeline','Timeline & preview'],['animationMovement','Movement'],['animationColors','Color']])await expect(page.locator('#'+id)).toHaveAccessibleName(name);
+  for(const [id,name]of [['animationTimeline','Timeline & preview'],['animationMovement','Movement'],['animationColors','Color'],['animationBackdrop','Backdrop']])await expect(page.locator('#'+id)).toHaveAccessibleName(name);
   for(const [left,right]of [['waveDirection','waveShape'],['waveLength','waveAmplitude'],['colorWaveDirection','colorWaveShape'],['colorWaveLength','colorWaveAmplitude'],['animationCycles','animationColorCycles']]){
    const a=await page.locator('#'+left).boundingBox(),b=await page.locator('#'+right).boundingBox();expect(Math.abs(a.y-b.y)).toBeLessThan(2);expect(b.x).toBeGreaterThan(a.x+a.width-1);
   }

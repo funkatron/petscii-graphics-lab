@@ -174,7 +174,7 @@ The editor opens version 3 projects containing numeric glyph IDs across both sou
 
 ## Preview an animation
 
-Controls are grouped into **Timeline & preview**, **Movement**, and **Color**. Related wave options sit side by side; options appear only for the selected effect. Duration, movement/color cycles and playback are together at the top. Direction pairs with waveform; wavelength pairs with height.
+Controls are grouped into **Timeline & preview**, **Movement**, **Color**, and **Backdrop**. Related wave options sit side by side; options appear only for the selected effect. Duration, movement/color cycles and playback are together at the top. **Backdrop** animates the shared background and border; **Color** animates cell inks only. Direction pairs with waveform; wavelength pairs with height.
 
 1. Open **☰ → Animation**.
 2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.

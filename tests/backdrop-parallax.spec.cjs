@@ -24,9 +24,9 @@ test('backdrop and parallax knobs persist and leave the drawing unchanged',async
  await expect(page.locator('#fieldLead')).toHaveValue('4');
  await ui(page,'#animationEffect','selectOption','none');
  await expect(page.locator('#parallaxGroup')).toBeHidden();
- await ui(page,'#animationColor','selectOption','none');
+ await ui(page,'#backdropEffect','selectOption','None');
  await expect(page.locator('#fieldRamp')).toBeHidden();
- await ui(page,'#animationColor','selectOption','field');
+ await ui(page,'#backdropEffect','selectOption','Backdrop');
  await ui(page,'#quickPlay');
  await waitForPreviewAdvance(page);
  await ui(page,'#quickPlay');
@@ -55,7 +55,7 @@ test('backdrop GIF fill follows the ramp and VDC hides border lead',async({page}
  await page.goto('/');
  await page.locator('.app[data-ready=true]').waitFor();
  await ui(page,'#workspaceMachine','selectOption','c128-80');
- await ui(page,'#animationColor','selectOption','field');
+ await ui(page,'#backdropEffect','selectOption','Backdrop');
  await expect(page.locator('#fieldRamp')).toBeVisible();
  await expect(page.locator('#fieldLead')).toBeHidden();
 });
