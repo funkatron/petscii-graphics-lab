@@ -1,6 +1,6 @@
 const {test,expect,project,loadProject,download,waitForProjectAutosave}=require('./helpers.cjs');
 // This is an import/serialization contract, deliberately independent of UI defaults.
-const normalized={waveLength:50,colorWaveLength:50,wipePattern:'diagonal',parallaxGroup:'ink',parallaxSpread:1,parallaxTravel:'same',fieldRamp:'cycle',fieldDirection:'forward',fieldLead:1,motionCycles:1,colorCycles:1,backgroundCycles:1,scrollDirection:'left',waveDirection:'up',waveShape:'sine',waveAmplitude:100,colorWaveDirection:'up-left',colorWaveShape:'sawtooth',colorWaveAmplitude:100,effect:'replay',colorEffect:'none',backgroundEffect:'none',seconds:4,scale:2,background:'dark',videoRepeats:1};
+const normalized={waveLength:50,colorWaveLength:50,fieldWaveLength:50,wipePattern:'diagonal',parallaxGroup:'ink',parallaxSpread:1,parallaxTravel:'same',fieldRamp:'cycle',fieldDirection:'forward',fieldLead:1,motionCycles:1,colorCycles:1,backgroundCycles:1,scrollDirection:'left',waveDirection:'up',waveShape:'sine',waveAmplitude:100,colorWaveDirection:'up-left',colorWaveShape:'sawtooth',colorWaveAmplitude:100,fieldWaveDirection:'up-left',fieldWaveShape:'sawtooth',fieldWaveAmplitude:100,effect:'replay',colorEffect:'none',backgroundEffect:'none',seconds:4,scale:2,background:'dark',videoRepeats:1};
 test('omitted optional animation fields normalize independently of the preceding project',async({page})=>{
  await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
  const sparse=project([160,257,'',0],2,2,{cellColors:[2,3,4,5]});

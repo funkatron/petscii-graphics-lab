@@ -87,6 +87,17 @@ export function normalizeAnimation(animation) {
   if (next.backgroundCycles === undefined) {
     next.backgroundCycles = 1;
   }
+  const fieldWaveDefaults = [
+    ['fieldWaveDirection', 'colorWaveDirection'],
+    ['fieldWaveShape', 'colorWaveShape'],
+    ['fieldWaveLength', 'colorWaveLength'],
+    ['fieldWaveAmplitude', 'colorWaveAmplitude'],
+  ];
+  for (const [field, legacy] of fieldWaveDefaults) {
+    if (next[field] === undefined && next[legacy] !== undefined) {
+      next[field] = next[legacy];
+    }
+  }
   return next;
 }
 
@@ -250,7 +261,7 @@ function validateAnimationField(data) {
   if (animation.depthTravel !== undefined && !['toward', 'away'].includes(animation.depthTravel)) {
     throw Error('Invalid animation settings');
   }
-  for (const key of ['waveLength', 'colorWaveLength']) {
+  for (const key of ['waveLength', 'colorWaveLength', 'fieldWaveLength']) {
     if (animation[key] !== undefined && !WAVE_LENGTHS.includes(animation[key])) {
       throw Error('Invalid animation settings');
     }
@@ -276,7 +287,7 @@ function validateAnimationField(data) {
   if (animation.parallaxTravel !== undefined && !PARALLAX_TRAVELS.includes(animation.parallaxTravel)) {
     throw Error('Invalid animation settings');
   }
-  for (const key of ['waveAmplitude', 'colorWaveAmplitude']) {
+  for (const key of ['waveAmplitude', 'colorWaveAmplitude', 'fieldWaveAmplitude']) {
     if (animation[key] !== undefined && !WAVE_AMPLITUDES.includes(animation[key])) {
       throw Error('Invalid animation settings');
     }
@@ -293,6 +304,8 @@ function validateAnimationField(data) {
     waveShape: WAVE_SHAPES,
     colorWaveDirection: COLOR_WAVE_DIRECTIONS,
     colorWaveShape: WAVE_SHAPES,
+    fieldWaveDirection: COLOR_WAVE_DIRECTIONS,
+    fieldWaveShape: WAVE_SHAPES,
   };
   for (const [key, allowed] of Object.entries(directionFields)) {
     if (animation[key] !== undefined && !allowed.includes(animation[key])) {

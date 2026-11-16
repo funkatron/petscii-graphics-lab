@@ -1,5 +1,19 @@
 # Agent log
 
+## 2026-11-15 — Independent backdrop wave controls (0.32.2)
+
+**What:** Backdrop spatial ramps use `fieldWaveDirection`, `fieldWaveShape`, `fieldWaveLength`, and `fieldWaveAmplitude`, separate from cell `colorWave*`. Backdrop fieldset shows wave direction/waveform/wavelength/height when Backdrop is on; `fieldDirection` is labeled play direction (forward/reverse along the ramp). Legacy projects copy `colorWave*` into `fieldWave*` on load. Release **0.32.2**.  
+**Tested:** `node --test tests/backdrop-parallax.unit.mjs tests/project-validation.unit.mjs tests/project-defaults.spec.cjs` (unit); `tests/animation.spec.cjs` (Chromium, defaults).  
+**Touched:** `project-validation.js`, `animation-frames.js`, `index.html`, `docs/maintainer-reference.md`, `agents/petscii-preview/*`, tests.
+
+**Docs follow-up:** `index.html` animation help and `README.md` preview section explain independent Color vs Backdrop wave rows.
+
+## 2026-11-15 — Spatial backdrop ramps (0.32.0)
+
+**What:** Every backdrop ramp paints a per-cell `backgroundMatte` in preview and raster exports. Wave, raster, plasma, and bonfire match cell-color spatial rules; **Color cycle** and **Warm glow** backdrops add wave bands on the paper via the color-wave knobs (cell cycle/glow unchanged). Border lead still uses the scalar `background`/`border` step. Release **0.32.0**.  
+**Tested:** `node --test tests/backdrop-parallax.unit.mjs tests/stacked-backdrop.unit.mjs tests/app-version.unit.mjs`.  
+**Touched:** `animation-frames.js`, `index.html`, `docs/maintainer-reference.md`, `tests/backdrop-parallax.unit.mjs`, `app-version.js`, `package.json`.
+
 ## 2026-11-15 — Agent log catch-up and MCP backdrop docs
 
 **What:** Logged missing **0.31.0** release notes. Corrected the **0.30.0** entry to describe historical behavior (superseded by stacking in 0.31.0). MCP bridges now pass `backgroundEffect` / backdrop ramp fields through `animation-source.mjs`; `list_effects` exposes `backgroundEffects` and `fieldRamps`; README documents stacked layers and `backgroundEffect` instead of `colorEffect: field` for new JSON.  

@@ -58,7 +58,9 @@ Animation settings use the same object shape as `project.animation` (pass
 `animation={...}` or `settings_json='{...}'`). Keys include `effect` /
 `motionEffect`, `colorEffect`, `backgroundEffect`, `seconds`, `motionCycles`,
 `colorCycles`, `backgroundCycles`, backdrop ramp knobs (`fieldRamp`,
-`fieldDirection`, `fieldLead`), scroll/wave/color-wave, wipe, depth, parallax,
+`fieldDirection`, `fieldLead`, `fieldWaveDirection`, `fieldWaveShape`,
+`fieldWaveLength`, `fieldWaveAmplitude`), scroll/wave/color-wave, wipe, depth,
+parallax,
 and solid-camera fields.
 
 Movement, cell color, and backdrop stack independently. For a stepped shared

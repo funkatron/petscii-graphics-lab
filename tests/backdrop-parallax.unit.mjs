@@ -36,6 +36,89 @@ function picture(extra) {
   };
 }
 
+test('backdrop color cycle and warm glow use spatial wave bands', () => {
+  const cycle = animationCells(0, picture({
+    W: 4,
+    H: 2,
+    grid: Array(8).fill(''),
+    inks: Array(8).fill(0),
+    backgroundEffect: 'field',
+    fieldRamp: 'cycle',
+    fieldWaveDirection: 'left',
+    seconds: 1,
+  }));
+  assert.ok(cycle.backgroundMatte);
+  assert.notEqual(cycle.backgroundMatte[0], cycle.backgroundMatte[3]);
+
+  const glow = animationCells(0, picture({
+    W: 4,
+    H: 1,
+    grid: ['', '', '', ''],
+    inks: [0, 0, 0, 0],
+    colors: {ink: 1, background: 9},
+    backgroundEffect: 'field',
+    fieldRamp: 'glow',
+    fieldWaveDirection: 'left',
+    seconds: 1,
+  }));
+  assert.ok(glow.backgroundMatte);
+  assert.ok(glow.backgroundMatte.some((ink, index) => index > 0 && ink !== glow.backgroundMatte[0]));
+});
+
+test('backdrop bonfire paints a spatial matte', () => {
+  const frame = animationCells(0, picture({
+    W: 6,
+    H: 8,
+    grid: Array(48).fill(''),
+    inks: Array(48).fill(0),
+    backgroundEffect: 'field',
+    fieldRamp: 'bonfire',
+    seconds: 1,
+  }));
+  assert.ok(frame.backgroundMatte);
+  const unique = new Set(frame.backgroundMatte);
+  assert.ok(unique.size > 1);
+  for (const ink of frame.backgroundMatte) {
+    assert.ok(ink >= 0 && ink <= 15);
+  }
+});
+
+test('backdrop wave knobs are independent of cell color wave', () => {
+  const base = picture({
+    W: 4,
+    H: 1,
+    grid: [160, '', '', ''],
+    inks: [1, 0, 0, 0],
+    colorEffect: 'color-wave',
+    colorWaveDirection: 'up',
+    backgroundEffect: 'field',
+    fieldRamp: 'color-wave',
+    fieldWaveDirection: 'left',
+  });
+  const left = animationCells(0, base).backgroundMatte;
+  const right = animationCells(0, {...base, fieldWaveDirection: 'right'}).backgroundMatte;
+  assert.notEqual(JSON.stringify(left), JSON.stringify(right));
+  const colorOnly = animationCells(0, {...base, colorEffect: 'none'}).backgroundMatte;
+  assert.deepEqual(left, colorOnly);
+});
+
+test('backdrop rainbow wave paints a spatial matte', () => {
+  const wide = picture({
+    W: 4,
+    H: 1,
+    grid: ['', '', '', ''],
+    inks: [1, 1, 1, 1],
+    backgroundEffect: 'field',
+    fieldRamp: 'color-wave',
+    fieldWaveDirection: 'left',
+    seconds: 1,
+  });
+  const frame = animationCells(0, wide);
+  assert.ok(frame.backgroundMatte);
+  assert.notEqual(frame.backgroundMatte[0], frame.backgroundMatte[3]);
+  assert.deepEqual(frame.cells, ['', '', '', '']);
+});
+
 test('backdrop keeps cells and walks the chosen ramp', () => {
   const ramp = {backgroundEffect: 'field'};
   const first = animationCells(0, picture(ramp));
@@ -52,9 +135,18 @@ test('backdrop keeps cells and walks the chosen ramp', () => {
   const warm = animationCells(1, picture({...ramp, fieldRamp: 'glow'}));
   assert.equal(warm.background, glow[0]);
   assert.equal(animationCells(1, picture({...ramp, fieldRamp: 'glow', fieldDirection: 'reverse'})).background, glow[glow.length - 1]);
-  assert.equal(animationCells(0, picture({...ramp, fieldRamp: 'plasma'})).background, 6);
-  assert.equal(animationCells(1, picture({...ramp, fieldRamp: 'plasma'})).background, 4);
-  assert.ok(plasma.includes(animationCells(1, picture({...ramp, fieldRamp: 'plasma'})).background));
+  const plasma0 = animationCells(0, picture({...ramp, fieldRamp: 'plasma'}));
+  const plasma1 = animationCells(1, picture({...ramp, fieldRamp: 'plasma'}));
+  assert.equal(plasma0.background, 6);
+  assert.ok(plasma0.backgroundMatte);
+  assert.ok(plasma0.backgroundMatte.some((ink, index) => index > 0 && ink !== plasma0.backgroundMatte[0]));
+  assert.notEqual(
+    JSON.stringify(plasma0.backgroundMatte),
+    JSON.stringify(plasma1.backgroundMatte),
+  );
+  for (const ink of plasma0.backgroundMatte) {
+    assert.ok(plasma.includes(ink));
+  }
 });
 
 test('VDC backdrop border matches the background', () => {
