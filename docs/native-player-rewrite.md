@@ -1,7 +1,10 @@
 # Native player rewrite — scope and options
 
 **Status:** Research / owner decision (2026-11-16).  
-**Owner:** Player rewrite is **explicitly on the table** when new animation work needs authentic VIC behavior on real hardware—not blocked by fear of touching `c64-export.js`.
+**Owner:**
+
+- Player rewrite is **explicitly on the table** when new animation work needs authentic VIC behavior on real hardware—not blocked by fear of touching `c64-export.js`.
+- **Browser-only or GIF-only effects are not product goals.** If frame replay cannot carry an effect, procedural native (possibly via rewrite) is the alternative—not shipping preview without PRG.
 
 This note sits beside [animation types research](animation-types-research.md) and [algorithmic VIC feasibility](algorithmic-vic-feasibility.md). It does **not** schedule implementation; it records what a rewrite would unlock and how to phase it without breaking shipped exports.
 
@@ -34,7 +37,7 @@ Priority **#1** prototypes (column-offset waves, FLD-style blinds, optional sub-
 | Backdrop raster (VIC) | Matte + block cells | Block + color RAM updates | Optional **IRQ** on border/background only |
 | VSP / AGSP | Poor grid fit | Not attempted | Still **out of product scope** (unsafe / display fraud) |
 
-**Owner intent (2026-11-16):** Pursue browser prototypes first; when native parity matters for a shipped effect, **design a second player generation** rather than endlessly compressing frame streams.
+**Owner intent (2026-11-16):** Use the browser to **prove visuals and loop closure** in derived frames, but **do not ship** new Animation types until **native export** is designed (replay, procedural profile, or rewrite). Prefer designing a **second player generation** over shipping effects that only exist in GIF/video.
 
 ## Design directions (not a mandate)
 
@@ -76,10 +79,10 @@ Plus/4 and VDC must keep **replay fallback** even if VIC procedural path ships.
 
 ## Suggested phasing
 
-1. **Browser:** Ship DYCP-like column wave and/or FLD blinds in derived frames (priority #1 spikes).
-2. **Export analysis:** Extend diagnostics with “would procedural profile fit?” (table sizes, worst IRQ cost)—no 6502 yet.
-3. **VIC runtime v2 spike:** One effect (e.g. cardinal scroll + `scrollPhase`, or shared-background IRQ ramp only) behind `renderer: procedural-v2` in tests only.
-4. **Productize:** Wire UI warnings when replay exceeds threshold and procedural path is available.
+1. **Design native** for the effect (replay vs procedural ops); reject spikes with no C64 story.
+2. **Browser:** Implement derived-frame logic and export analysis (“would procedural profile fit?”).
+3. **VIC runtime v2 spike:** One effect behind `renderer: procedural-v2` in tests + VICE before UI.
+4. **Productize:** Expose in Animation picker only when **Native program** readiness passes for representative art.
 5. **Capacity track:** REU / C128 bank-1 ([roadmap](roadmap.md)) remains **optional**; procedural tables may reduce need for extra RAM.
 
 ## Testing bar (same as today, stricter per path)

@@ -14,7 +14,7 @@ This is not a competitive scorecard; it records **how other tools work** so we c
 | **Retro styled** | PETSCII-like but relaxed limits, layers, arbitrary fonts | Playscii, early EDSCII |
 | **Hybrid web** | C64 profile + modern UX | PETSCII Wizard, Krissz editor, lvllvl |
 
-**Graphics Lab** position: **authentic glyphs and machine modes** (C64 / C128 / Plus/4 / VDC) with a **browser-first** editor and **procedural animation** not found in classic frame-strip tools.
+**Graphics Lab** position: **authentic glyphs and machine modes** (C64 / C128 / Plus/4 / VDC) with a touch-friendly **web editor** and **procedural animation**—plus a **native player** competitors lack. New animation work targets **real hardware playback**, not GIF-only demos.
 
 ---
 

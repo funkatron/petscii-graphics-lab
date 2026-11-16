@@ -4,6 +4,18 @@
 
 This document combines **in-repo inventory** with **external** demoscene and hardware references. Prototypes are candidates only until preview/export/C64 contracts are defined.
 
+## Product gate — real hardware
+
+**Owner stance (2026-11-16):** Effects that **won’t run on real Commodore hardware** (native PRG/D64 for the selected **Machine**, within existing memory/timing checks) are **not exciting as shipped product**. Browser-only previews, GIF/video-only tricks, and shader-only looks are fine for **spikes and research**, but they **do not graduate** to the Animation picker without a **credible native path**—including a [**player rewrite**](native-player-rewrite.md) when frame replay is not enough.
+
+**Minimum bar to ship a new animation type**
+
+1. Same sampled semantics as today’s exports (preview ≡ GIF ≡ native frames unless a procedural native path is documented).
+2. **Native program** export passes ordinary readiness (or documented procedural profile) on **C64** at minimum; **TED / VDC** when the effect is machine-specific.
+3. VICE PAL/NTSC spot-check for that effect; physical hardware stays on the roadmap checklist ([c64-output.md](c64-output.md)).
+
+Spikes may stay behind a flag or in docs only until (2) is designed—not “ship browser, maybe native later.”
+
 ## Editor constraints (non‑negotiable)
 
 | Constraint | Implication |
@@ -13,7 +25,7 @@ This document combines **in-repo inventory** with **external** demoscene and har
 | **Shared background** | One background ink per frame; backdrop animation walks that register on VIC/TED, not per-cell paper in native PRG. |
 | **Loop closure** | Movement/color/backdrop cycles must align to **loop duration** and independent cycle counts (`ANIMATION_CYCLES`). |
 | **Machines** | VIC, TED, and VDC paths differ for color counts and backdrop; new ids must validate in `project-validation.js`. |
-| **C64 export** | Frame-stream player is tight; heavy effects ship **browser-first**, then **procedural native** if needed. Owner accepts a [**player rewrite**](native-player-rewrite.md) when an effect needs real VIC semantics—not only smaller frame diffs. |
+| **C64 export** | Frame-stream player is tight; new types need a **native plan** up front (replay, procedural ops, or rewrite slice). No **GIF-only** animation types. |
 
 Architecture: [`animation-frames.js`](../animation-frames.js) plans and samples frames; movement modules include [`solid-motion.js`](../solid-motion.js), [`space-warp.js`](../space-warp.js), [`depth-surfaces.js`](../depth-surfaces.js), [`bonfire.js`](../bonfire.js). See [architecture](architecture.md).
 
@@ -90,18 +102,18 @@ Typical intros combine **raster border**, **DYCP text**, **starfield**, **bounci
 
 ## Candidate prototypes (ranked for priority #1)
 
-Scoring: **V** = visual payoff on PETSCII grid, **F** = fit with existing pipeline, **C** = C64 export feasibility (higher = easier).
+Scoring: **V** = visual payoff on PETSCII grid, **F** = fit with existing pipeline, **C** = **native hardware** feasibility on C64-class export (higher = easier). **Low C** = research or reject unless native/player design closes the gap **before** ship.
 
 | Rank | Candidate | V | F | C | Rationale |
 | --- | --- | --- | --- | --- | --- |
 | **A** | **Finish depth review** (floor, road, tunnel) | High | High | Med | Already implemented; external “disco floor” / tunnel demos justify polish or cut ([Codebase64](https://codebase64.c64.org/doku.php?id=vic%3Ademo_programming)) |
 | **A** | **Diagonal wave** | Med | Med | Med | Fills gap vs color-wave diagonals; design in [diagonal-movement](diagonal-movement.md) |
 | **B** | **Diagonal wipe patterns** | Med | Med | High | Reveal order on diagonals; distinct from scroll |
-| **B** | **Charset-style “vertical crawl”** (Star Wars–lite) | High | Low | Low | Inspired by [Raistlin Star Wars scroller](https://c64demo.com/category/effects/); needs new projection |
+| **B** | **Charset-style “vertical crawl”** (Star Wars–lite) | High | Low | Low | Inspired by [Raistlin Star Wars scroller](https://c64demo.com/category/effects/); needs new projection **and** native budget proof—deprioritize until C path exists |
 | **B** | **Tec-Tec / horizontal wave on logo** | Med | Med | Med | Whole-grid sine on X per row; related to existing logo stretch |
 | **C** | **Orbital field** | Med | Low | Low | depth-effects #5; after A-tier |
 | **C** | **FLD-style row shear** | Low | Low | Low | Hardware row gap trick; poor fit for fixed grid |
-| **—** | IRQ **true raster bars** | High on HW | — | — | **Not a canvas effect**; keep as **backdrop/raster-bars** approximation |
+| **—** | IRQ **true raster bars** | High on HW | — | — | **Shader track only** (no native scanline truth); **not** a shipped animation type—use **backdrop/raster-bars** for hardware |
 
 **Backdrop + Parallax** are **shipped**; next *new type* work is unlikely to be another backdrop ramp. Focus: **movement/color variants** and **depth readability**.
 
@@ -109,7 +121,7 @@ Scoring: **V** = visual payoff on PETSCII grid, **F** = fit with existing pipeli
 
 Hardware scroll/VIC register tricks (DYCP, FLD, VSP, FLI, raster IRQ, and similar) are assessed separately in [**algorithmic VIC feasibility**](algorithmic-vic-feasibility.md): which belong on the **grid animation** track vs **screen look** vs **research only**.
 
-**Short conclusion:** pursue **column-offset (DYCP-like)** and **FLD-style row gaps** as browser prototypes; treat **VSP/AGSP/FLI** as poor fits for the PETSCII grid; put **true scanline raster bars** under canvas shaders.
+**Short conclusion:** pursue **column-offset (DYCP-like)** and **FLD-style row gaps** only with a **native export story** (replay or [player rewrite](native-player-rewrite.md)); treat **VSP/AGSP/FLI** as poor fits; **true scanline raster bars** stay **screen look / shaders**, not product animation, because they do not map to char-mode PRG.
 
 ## Recommended sequence (research → build)
 
@@ -117,10 +129,10 @@ Hardware scroll/VIC register tricks (DYCP, FLD, VSP, FLI, raster IRQ, and simila
 2. **Depth triage** — side-by-side GIFs on sparse vs dense PETSCII art; keep floor/road/tunnel or document “use Space warp instead.”
 3. **Diagonal wave** — spec ranking in `animation-frames.js`; one Playwright export fixture.
 4. **Diagonal wipe** — extend `WIPE_PATTERNS` or new pattern id with loop closure proof.
-5. **Algorithmic spikes** — column-wave (DYCP-like), then FLD blinds ([feasibility doc](algorithmic-vic-feasibility.md)).
-6. **Only then** green-field concepts (crawl, orbital) with throwaway prototypes behind a flag.
+5. **Algorithmic spikes** — column-wave (DYCP-like), then FLD blinds ([feasibility doc](algorithmic-vic-feasibility.md)); **do not expose in UI** until native readiness or procedural profile is specified.
+6. Green-field concepts (crawl, orbital) only when **C** score and native design are written first—not throwaway GIF demos.
 
-Each step: update `MOTION_EFFECTS`, UI picker, `animationPlan` sample budget, Chromium + iPad WebKit specs, native export spot-check.
+Each step: update `MOTION_EFFECTS`, UI picker, `animationPlan` sample budget, Chromium + iPad WebKit specs, **VICE + native export** spot-check for the target machine.
 
 ## What we are not pursuing in this track
 

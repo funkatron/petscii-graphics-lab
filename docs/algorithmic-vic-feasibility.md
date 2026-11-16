@@ -1,6 +1,8 @@
 # Algorithmic VIC-II tricks — feasibility for PETSCII Graphics Lab
 
-**Status:** Research (2026-11-16). Companion to [animation types research](animation-types-research.md). Answers whether classic **hardware algorithmic** demo tricks are reasonable in a **browser character-grid editor** with optional **C64 PRG/D64** export.
+**Status:** Research (2026-11-16). Companion to [animation types research](animation-types-research.md). Answers whether classic **hardware algorithmic** demo tricks are reasonable in a **browser character-grid editor** with **C64 PRG/D64** export on real hardware.
+
+**Product gate:** Shipped animation types must have a **native path** ([animation research — real hardware](animation-types-research.md#product-gate--real-hardware)). Ratings below separate **spike** value from **ship** value.
 
 ## How to read this document
 
@@ -36,7 +38,7 @@ Hardware tricks that **move the display window without updating screen RAM** (VS
 | **Shipped** | **Scroll** moves whole cells per frame; no sub-pixel phase. |
 | **Grid animation** | **Reasonable (medium).** Interpolate scroll with a **phase 0–1** per motion cycle: sample floor/ceil cell sources or render at higher internal resolution then snap—tradeoff between smoothness and export pixel lock. |
 | **C64 export** | Fine scroll on real hardware is **register-only**; today’s exporter writes **screen memory** (quantized). A [**procedural player**](native-player-rewrite.md) can tweak scroll regs between occasional RAM shifts. |
-| **Verdict** | **Research spike:** sub-cell scroll phase for browser preview; document that PRG stays cell-quantized. |
+| **Verdict** | **Ship candidate only with** register-phase native plan ([player rewrite](native-player-rewrite.md)); do not ship cell-quantized preview alone if sub-cell motion is the selling point. |
 
 ### DYCP / DXYCP / FPP / Tec-Tec (per-column or per-line Y)
 
@@ -46,7 +48,7 @@ Hardware tricks that **move the display window without updating screen RAM** (VS
 | **Shipped** | **Sine scroller** (path-based), **Bouncing/Stretching logo** (global transforms). |
 | **Grid animation** | **Reasonable (medium–high) for editor; hard for C64.** A **per-column offset table** (max ±few cells) on each frame is faithful to DYCP *visually* on our grid. Cost: `W × H` remap each sample; dense art collides. **DXYCP** (2D offsets) explodes combinatorics. |
 | **C64 export** | Real DYCP is **charset CPU**; our player emits **screen codes**. Could emit **only changed cells** if offsets small, but worst case ≈ full screen updates every frame → **capacity** risk. |
-| **Verdict** | **Best algorithmic target:** “column wave” or “row Tec-Tec” effect with bounded amplitude and loop closure. Prototype in browser first; native optional with warnings. |
+| **Verdict** | **Best algorithmic target:** “column wave” or “row Tec-Tec” with bounded amplitude; **native table or procedural player required** before UI ship—not optional. |
 
 ### FLD — flexible line distance
 
@@ -55,8 +57,8 @@ Hardware tricks that **move the display window without updating screen RAM** (VS
 | **Hardware** | Delay badlines via `$D011` Y-scroll; gaps of N raster lines between **character rows** without moving RAM ([Codebase64 FLD](https://codebase64.c64.org/doku.php?id=base%3Afld), [Code 198x](https://code198x.com/vault/techniques/fld/), [MOS 6567 §3.14.2](https://janklingel.de/wordpress/wp-content/uploads/2020/08/MOS-6567_6569-Video-Interface-Controller.pdf)). |
 | **Shipped** | Nothing equivalent. |
 | **Grid animation** | **Reasonable (high) as stylized effect.** Insert **empty rows** (background) between logical rows whose count follows a wave/table—**Venetian blind** opening. Not pixel-accurate FLD; row insert/remove changes effective `H` in derived frames only (do not resize project grid). |
-| **C64 export** | Could map to **vertical spacing** only if we animate **row pointers** in player (complex). Easier as **browser/GIF-only** or insert blank screen-code rows in native (bandwidth heavy). |
-| **Verdict** | **Strong research prototype:** “FLD blinds” reveal. Good synergy with **Patterned wipe**. |
+| **C64 export** | **Row-pointer / procedural player** or heavy blank-row replay; must fit budgets—design before preview ships. **GIF-only is not a product outcome.** |
+| **Verdict** | **Strong candidate if native designed up front:** “FLD blinds” reveal; pair with **Patterned wipe** and export analysis. |
 
 ### VSP, linecrunch, AGSP
 
@@ -77,7 +79,7 @@ Hardware tricks that **move the display window without updating screen RAM** (VS
 | **Grid animation** | **Poor fit** per scanline on a **40×25 cell** canvas (cells are 8×8 logical pixels tall in export). |
 | **Screen look** | **Reasonable (high).** Post-process in `screen-look.js` or future shader pass: draw horizontal colour bands on **rasterized canvas**, export in PNG/GIF/video only ([roadmap shaders](roadmap.md#canvas-shaders--exploration)). |
 | **C64 export** | IRQ border/background ramps are feasible in a [**procedural player**](native-player-rewrite.md) for **backdrop-only** motion; still not per-scanline cell ink. |
-| **Verdict** | Split: **animation track = backdrop bars**; **shader track = true scanline bars**. |
+| **Verdict** | **Hardware excitement = backdrop / raster-bars on grid (native block path).** True scanline IRQ bars = **shader track only**—not a shipped animation type. |
 
 ### FLI / half-FLI / FPP timing / “every line is a badline”
 
