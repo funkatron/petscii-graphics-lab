@@ -12,6 +12,8 @@ import {atlasIdToVdcCell,vdcAttr} from '../vdc-colors.js';
 
 const {createPlus4Program}=await import(new URL('../plus4-export.js',import.meta.url));
 const {createC128VdcProgram}=await import(new URL('../c128-vdc-export.js',import.meta.url));
+const {animationCells}=await import(new URL('../animation-frames.js',import.meta.url));
+const {prepareNativeBackdropFrames}=await import(new URL('../native-backdrop-export.js',import.meta.url));
 
 const executable=process.env.VICE_EXECUTABLE;
 const data=process.env.VICE_DATA_DIR;
@@ -187,6 +189,44 @@ async function returnToBasic(monitor,program,returnAddress){
  await monitor.checkpoint(0xffcf);
  await monitor.resume(0xffcf);
 }
+
+test('Plus/4: backdrop PRG paints block 160 in empty cells with TED matte attrs.',{timeout:60000},async t=>{
+ const {monitor,dir}=await launch(t,plus4Executable,[
+  '-kernal',join(data,'PLUS4/kernal-318005-05.bin'),
+  '-basic',join(data,'PLUS4/basic-318006-01.bin'),
+  '-functionlo',join(data,'PLUS4/3plus1-317053-01.bin'),
+  '-functionhi',join(data,'PLUS4/3plus1-317054-01.bin'),
+ ]);
+ const background=tedIndex(1,4);
+ const source={
+  machine:'plus4',
+  W:2,
+  H:1,
+  grid:['',''],
+  inks:[0,0],
+  colors:{ink:tedIndex(2,4),background},
+  effect:'none',
+  colorEffect:'none',
+  backgroundEffect:'plus4-field',
+  fieldRamp:'cycle',
+  seconds:1,
+ };
+ const frame=animationCells(0,source);
+ const [prepared]=prepareNativeBackdropFrames([{...frame,durationMs:1000}]);
+ const program=createPlus4Program({
+  columns:2,rows:1,background,ink:0,
+  frames:[prepared],
+  repetitions:1,
+ });
+ const expected=tedPicture(prepared.cells,prepared.inks,background,0);
+ const returnAddress=await loadProgram(monitor,dir,program);
+ await monitor.checkpoint(program.debugSymbols.frameReady);
+ await monitor.resume(program.debugSymbols.frameReady);
+ assert.deepEqual(await monitor.memory(0x0c00,0x0fe7),expected.screen,'TED screen');
+ assert.deepEqual(await monitor.memory(0x0800,0x0be7),expected.attrs,'TED attributes');
+ assert.equal((await monitor.memory(0xff19,0xff19))[0]&0x7f,expected.border,'TED border $FF19');
+ await returnToBasic(monitor,program,returnAddress);
+});
 
 test('Plus/4: still PRG paints TED screen, attributes, and border, then BASIC prints READY.',{timeout:60000},async t=>{
  const {monitor,dir}=await launch(t,plus4Executable,[
