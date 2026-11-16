@@ -947,20 +947,20 @@ let drawingTool='paint',selection=null,toolDrag=null;
 let tapPoints=false,textOrigin=null;
 let fillMode='both',pickerMode='ink';
 const MODE_ICON={
- fill:{both:'M5 10l7-7 9 9-7 7z M4 11h17 M5 3l7 7 M3 17c-4 5 3 5 0 0',glyph:'M4 4h9v9H4z M6 7h5v3H6z M15 4h5v5h-5z',ink:'M12 4c-4 3-7 7-7 11a7 7 0 0 0 14 0c0-4-3-8-7-11z'},
- picker:{ink:'M16 4l4 4-9 9H4v-7z M14 6l2 2',glyph:'M4 4h8v8H4z M16 16h4v4h-4z',background:'M4 18h16v2H4z M6 6h12v10H6z'},
+ fill:{both:'M9 4h6v2H9z M7 8h10l-1 11H8L7 8z',glyph:'M5 5h7v7H5z M15 15h4v4h-4z',ink:'M12 4c-3 3.5-5.5 7-5.5 11a5.5 5.5 0 0 0 11 0c0-4-2.5-7.5-5.5-11z'},
+ picker:{ink:'M4 19l4-1 9-9-3-3-9 9z M14 6l2 2',glyph:'M5 5h6v6H5z M14 14h5v5h-5z',background:'M5 6h14v9H5z M5 15h14'},
 };
 function modeIconSvg(path){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+path+'"/></svg>'}
 function closeToolModeMenus(except){for(const id of ['fillMenu','pickerMenu']){if(id===except)continue;const el=$(id);if(el)el.open=false}}
 function closeSiblingModeMenus(menuId){for(const id of ['fillMenu','pickerMenu','symmetryMenu']){if(id===menuId)continue;const el=$(id);if(el)el.open=false}}
 function createToolModeMenu({id,summaryId,summaryTitle,ariaLabel,modes,icons,onSelect,getMode}){
  const details=document.createElement('details');details.id=id;details.className='tool-mode-menu';
- const summary=document.createElement('summary');summary.id=summaryId;summary.className='tool-icon';summary.title=summaryTitle;summary.setAttribute('aria-label',summaryTitle);
- summary.innerHTML=modeIconSvg(icons[getMode()]);details.append(summary);
+ const summary=document.createElement('summary');summary.id=summaryId;summary.className='tool-mode-trigger';summary.title=summaryTitle;summary.setAttribute('aria-label',summaryTitle);
+ summary.innerHTML=modeIconSvg(icons[getMode()])+'<span class="tool-mode-chevron" aria-hidden="true">▾</span>';details.append(summary);
  const pop=document.createElement('div');pop.className='tool-popover tool-mode-popover';pop.setAttribute('role','group');pop.setAttribute('aria-label',ariaLabel);
  const bar=document.createElement('div');bar.className='tool-mode-bar';
  for(const mode of modes){
-  const btn=document.createElement('button');btn.type='button';btn.className='tool-icon tool-mode-option';btn.dataset.mode=mode.id;btn.title=mode.title;btn.setAttribute('aria-label',mode.label);
+  const btn=document.createElement('button');btn.type='button';btn.className='tool-mode-option';btn.dataset.mode=mode.id;btn.title=mode.title;btn.setAttribute('aria-label',mode.label);
   btn.innerHTML=modeIconSvg(icons[mode.id]);
   btn.onclick=()=>{onSelect(mode.id);details.open=false;summary.focus({preventScroll:true})};
   bar.append(btn);

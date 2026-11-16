@@ -293,17 +293,17 @@ html[data-ui-theme="plus4"]{
 
 /* Keep frequent actions stable; occasional controls live in separate surfaces. */
 button,select,.field input[type=number]{min-height:44px}
-.drawing-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:7px 10px;flex:none;background:var(--case-bg);z-index:8}
+.drawing-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:7px 10px;flex:none;background:var(--case-bg);z-index:8;overflow:visible}
 .drawing-strip button,.drawing-strip summary{white-space:nowrap}
-.drawing-strip summary{padding:10px;list-style:none}
+.drawing-strip summary:not(.tool-mode-trigger){padding:10px;list-style:none}
 #inkPopover{position:fixed;inset:auto;margin:0;width:min(320px,calc(100vw - 16px));max-height:calc(100dvh - 145px);overflow:auto;background:var(--case-surface);color:var(--case-text);border:1px solid var(--case-edge);border-radius:12px;padding:14px;box-shadow:0 10px 35px #0008}
 #inkPopover h2{font-size:.9rem;margin:0}#inkPopover .color-grid{margin-bottom:0}#inkPopover .color-grid button{font-size:.7rem}#inkSelection{margin:8px 0 0}
 #symmetryMenu{position:relative;border:1px solid var(--case-edge);border-radius:9px}
 .tool-popover{position:absolute;top:100%;right:0;background:var(--case-surface);border:1px solid var(--case-edge);padding:14px;width:210px;border-radius:9px;box-shadow:0 10px 30px #0008;z-index:14}
-.tool-mode-popover{width:auto;min-width:0;padding:8px}
-.tool-mode-bar{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:6px}
-.tool-mode-bar .tool-mode-option{width:44px;min-width:44px;height:44px;padding:8px!important;flex:0 0 auto}
-.tool-mode-bar .tool-mode-option[aria-pressed=true]{outline:2px solid var(--ui-focus-border);outline-offset:1px}
+.tool-mode-popover{width:auto;min-width:0;padding:6px;z-index:15}
+.tool-mode-bar{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:4px}
+.tool-mode-bar .tool-mode-option{flex:0 0 auto;border-radius:9px}
+.tool-mode-bar .tool-mode-option[aria-pressed=true]{background:var(--case-highlight);border-color:var(--ui-focus-border)}
 #projectMenu{position:relative}
 #projectMenu>summary{list-style:none;border:1px solid var(--case-edge);border-radius:9px;padding:11px;font-size:.8rem}
 .project-menu{position:fixed;right:max(12px,env(safe-area-inset-right,0px));top:max(calc(env(safe-area-inset-top,0px) + 48px),3rem);left:auto;width:min(340px,calc(100vw - 24px));box-sizing:border-box;max-height:calc(100dvh - 80px);overflow:auto;padding:14px;background:var(--case-surface);border:1px solid var(--case-edge);z-index:12;border-radius:10px;box-shadow:0 10px 35px #0008}

@@ -1,12 +1,13 @@
 {
   "name": "petscii-graphics-lab",
-  "version": "0.34.0",
+  "version": "0.34.1",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "playwright test",
     "test:vice": "node --test --test-concurrency=1 tests/vice.integration.mjs",
-    "test:vice:hosts": "node --test --test-concurrency=1 tests/vice-hosts.integration.mjs"
+    "test:vice:hosts": "node --test --test-concurrency=1 tests/vice-hosts.integration.mjs",
+    "screenshots:tool-modes": "node smoke/tool-mode-screenshots.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",

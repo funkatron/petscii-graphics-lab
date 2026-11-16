@@ -49,8 +49,10 @@ function select(files, {full=false, motionOnly=false, light=false}={}) {
   if (changed(/^(index\.html|styles\/|ui-themes\.js$|assets\/|vendor\/|package(-lock)?\.json$|playwright\.config\.cjs$|\.github\/|tests\/helpers\.cjs$)/))
     set.add('tests/layout.spec.cjs');
   // Capture reviewable iPad/desktop screenshots whenever the editor UI changes.
-  if (changed(/^(index\.html|styles\/|ui-themes\.js$|assets\/)/))
+  if (changed(/^(index\.html|styles\/|ui-themes\.js$|assets\/)/)) {
     set.add('tests/6581-theme-screenshots.spec.cjs');
+    set.add('tests/tool-mode-screenshots.spec.cjs');
+  }
   // Extracted shared modules affect multiple workflows, not just layout.
   if (changed(/^project-validation\.js$/)) {
     set.add('tests/c64-only.spec.cjs');

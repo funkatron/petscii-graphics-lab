@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-16 — Pick/Fill toolbar polish and screenshot smoke (0.34.1)
+
+**What:** Uniform 44px Pick/Fill triggers and mode options; redrawn mode icons; `smoke/tool-mode-screenshots.mjs` + workflow artifact upload; `tests/tool-mode-screenshots.spec.cjs` in focused CI. Release **0.34.1**.  
+**Tested:** Chromium `tool-mode-screenshots`, `drawing-tools`; `node smoke/tool-mode-screenshots.mjs` (desktop).
+
 ## 2026-11-16 — Canvas pick and split fill menus (0.34.0)
 
 **What:** **Pick** and **Fill** use horizontal sub-menus (glyph+ink / glyph-only / ink-only fill; ink / glyph / background pick). Preview locks mode menus via `inert`. Release **0.34.0**.  
