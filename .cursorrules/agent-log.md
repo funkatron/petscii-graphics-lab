@@ -1,9 +1,9 @@
 # Agent log
 
-## 2026-11-15 — C64 backdrop block paper (0.33.0)
+## 2026-11-15 — Backdrop brightness + C64 block paper (0.33.0)
 
-**What:** VIC native export (`prepareC64BackdropFrames`) maps empty cells to block 160 and `backgroundMatte` ink when Backdrop is on, so spatial waves animate in color RAM on hardware. Preflight/export use `buildNativeExportFrames`. Release **0.33.0**.  
-**Tested:** `node --test tests/c64-backdrop-blocks.unit.mjs`.
+**What:** `fieldBrightness` (10–100%) remaps backdrop mattes by palette luminance; VIC native export paints empty cells as block 160 with `backgroundMatte` color RAM (`prepareC64BackdropFrames`, `buildNativeExportFrames`). Release **0.33.0**.  
+**Tested:** `node --test tests/backdrop-brightness.unit.mjs tests/c64-backdrop-blocks.unit.mjs`.
 
 ## 2026-11-15 — Independent backdrop wave controls (0.32.2)
 

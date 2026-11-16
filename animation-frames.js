@@ -12,9 +12,12 @@ import {
 } from './project-validation.js';
 import {
   PLUS4_COLOR_CYCLES,
+  PLUS4_COLORS,
   c64InkToTed,
   isPlus4ColorEffect,
 } from './plus4-colors.js';
+import {VDC_COLORS} from './vdc-colors.js';
+import {backdropInkBrightness, paletteColors} from './c64-colors.js';
 
 const COLOR_CYCLES = {
   bonfire: BONFIRE_COLORS,
@@ -787,6 +790,16 @@ function colorRampInk(index, effect, phase, source, startInk, cellInk, spatialBa
   return ramp[((start + step) % ramp.length + ramp.length) % ramp.length];
 }
 
+function backdropInkTable(source) {
+  if (isVdcMachine(source.machine)) {
+    return VDC_COLORS;
+  }
+  if (isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect) || source.backgroundEffect === 'plus4-field') {
+    return PLUS4_COLORS;
+  }
+  return paletteColors(source.palette);
+}
+
 function fieldMatte(backgroundPhase, source) {
   if (!isSpatialFieldRamp(source)) {
     return null;
@@ -805,9 +818,12 @@ function fieldMatte(backgroundPhase, source) {
     startInk = Math.max(0, ramp.indexOf(still));
   }
   const waveSource = backdropWaveSource(source);
+  const inkTable = backdropInkTable(source);
+  const brightness = source.fieldBrightness ?? 100;
   const matte = Array(source.W * source.H);
   for (let index = 0; index < matte.length; index++) {
-    matte[index] = colorRampInk(index, effectKey, phase, waveSource, startInk, still, true);
+    const ink = colorRampInk(index, effectKey, phase, waveSource, startInk, still, true);
+    matte[index] = backdropInkBrightness(ink, brightness, inkTable);
   }
   return matte;
 }
@@ -876,6 +892,10 @@ export function animationCells(frame, source) {
   applyInversePass(colorPhase, normalized, cells);
   applyColorPass(colorPhase, normalized, cells, inks);
   const field = fieldColors(backgroundPhase, normalized);
+  const inkTable = backdropInkTable(normalized);
+  const brightness = normalized.fieldBrightness ?? 100;
+  const background = backdropInkBrightness(field.background, brightness, inkTable);
+  const border = backdropInkBrightness(field.border, brightness, inkTable);
   const backgroundMatte = fieldMatte(backgroundPhase, normalized);
   let colorPalette = 'pepto-pal';
   if (isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect) || source.backgroundEffect === 'plus4-field') {
@@ -887,8 +907,8 @@ export function animationCells(frame, source) {
     cells,
     inks,
     colorPalette,
-    background: field.background,
-    border: field.border,
+    background,
+    border,
     backgroundMatte,
   };
 }
