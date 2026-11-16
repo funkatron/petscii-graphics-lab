@@ -5,14 +5,19 @@ test.beforeEach(async({page})=>{
   await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
 });
 
+test('zoom and guides live in the stage bar above the canvas',async({page})=>{
+  await expect(page.locator('#stageCanvasView #editorZoom')).toBeVisible();
+  await expect(page.locator('#stageCanvasView #centerGuides')).toBeVisible();
+  await expect(page.locator('#canvasViewGroup')).toHaveCount(0);
+});
+
 test('canvas zoom enlarges the editor surface without changing export pixels',async({page})=>{
   await loadProject(page,project([160],4,4));
-  await ui(page,'#canvasDetails');
   const read=()=>page.evaluate(()=>({w:document.getElementById('canvas').offsetWidth,z:Number(document.querySelector('.canvas-frame').dataset.zoom||1)}));
   await page.locator('#editorZoom').selectOption('1');
   const atFit=await read();
   await page.locator('#editorZoom').selectOption('2');
-  await expect(page.locator('#zoomBadge')).toHaveText('200%');
+  await expect(page.locator('#editorZoom')).toHaveValue('2');
   const zoomed=await read();
   expect(zoomed.z).toBe(2);
   expect(zoomed.w).toBeGreaterThan(atFit.w*1.9);
@@ -50,7 +55,6 @@ test('center guides preference survives reload',async({page})=>{
 
 test('two-finger drag pans a zoomed canvas',async({page})=>{
   await loadProject(page,project([160],24,24));
-  await ui(page,'#canvasDetails');
   await page.locator('#editorZoom').selectOption('2');
   await page.locator('#frame').evaluate(f=>{f.scrollLeft=0;f.scrollTop=0;});
   const before=await page.locator('#frame').evaluate(f=>({sl:f.scrollLeft,st:f.scrollTop,sw:f.scrollWidth,cw:f.clientWidth}));

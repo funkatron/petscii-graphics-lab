@@ -43,11 +43,8 @@
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option selected>16</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option selected>16</option></select></div></div>
 <button id="c64CanvasPreset" type="button" class="full-width">Full screen · 40 × 25</button>
 <div id="resizeDraft" hidden><p id="resizeSummary" class="note"></p><canvas id="resizePreview" aria-label="Resized drawing preview"></canvas><div class="row"><button id="applyResize">Apply size</button><button id="cancelResize">Cancel</button></div></div></fieldset>
-<fieldset class="sidebar-section" id="canvasViewGroup"><legend>Canvas view</legend>
-<div class="field"><label for="editorZoom">Zoom</label><select id="editorZoom" aria-label="Canvas zoom"></select></div>
-<label class="field checkbox-field"><input type="checkbox" id="centerGuides"> Center guides</label>
-<p class="note">Zoom affects the editor only. Center guides mark the middle column and row for symmetry. Hold Ctrl or ⌘ and scroll on the canvas to change zoom. When zoomed in, drag with two fingers on the canvas to pan.</p>
-</fieldset><details id="drawingActions" class="help-disclosure"><summary>Whole drawing actions</summary><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div><button id="clear" class="full-width">Clear drawing</button></details>
+<p class="note" id="canvasViewNote">Zoom and center guides live in the bar above the canvas. Zoom affects the editor only; exports stay full size.</p>
+<details id="drawingActions" class="help-disclosure"><summary>Whole drawing actions</summary><div class="row"><button id="border">Border</button><button id="checker">Checkerboard</button></div><button id="clear" class="full-width">Clear drawing</button></details>
 </div></details>
 <details id="colorDetails" class="tool-group"><summary>Colors <span id="colorSummary" class="summary-badge" aria-hidden="true"></span></summary><div class="group-body">
 <fieldset class="sidebar-section" id="paintColorsGroup"><legend>Paint colors</legend>
@@ -93,7 +90,7 @@
 
 </div></details></aside>
 <main class="stage">
-<div class="stagebar"><span id="dimensions">16 × 16</span><span id="zoomBadge" class="zoom-badge" title="Editor zoom (Canvas setup)">Fit</span><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
+<div class="stagebar"><span id="dimensions">16 × 16</span><div class="stage-canvas-view" id="stageCanvasView"><select id="editorZoom" aria-label="Canvas zoom" title="Editor zoom"></select><label class="stage-view-guides"><input type="checkbox" id="centerGuides"><span>Guides</span></label></div><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
 <div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="editAnimationFromPreview" type="button">Animation settings</button><button id="returnDrawing">Return to drawing</button></div><div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
 <div class="task-progress"><div id="stageExportProgressWrap" class="export-progress-wrap" hidden><progress id="stageExportProgress" class="export-progress" max="100" value="0" aria-label="Animation export progress"></progress><span id="stageExportStatus" class="export-progress-label status" aria-live="polite"></span></div><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
@@ -583,9 +580,7 @@ function updateCanvasViewChrome(){
  const zoomed=canvasZoom>1.001;
  frame.classList.toggle('canvas-zoomed',zoomed);
  frame.setAttribute('data-zoom',String(canvasZoom));
- const zoomLabel=canvasZoom===1?'Fit':Math.round(canvasZoom*100)+'%';
  if($('editorZoom').value!==String(canvasZoom))$('editorZoom').value=String(canvasZoom);
- $('zoomBadge').textContent=zoomLabel;
  updateDrawingHint();
  if(zoomed)requestAnimationFrame(centerFrameScroll);
 }
@@ -1381,8 +1376,8 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  bullet('Move &amp; Duplicate','Drag an existing selection, or choose '+control('Move')+' or '+control('Duplicate')+' and tap its destination.'),
  bullet('Text','Tap a starting cell, enter your text, then press '+control('Apply text')+'.'),
  bullet('Symmetry','Available with '+control('Paint')+' and '+control('Eraser')+'. Mirrors freehand strokes across the canvas.'),
- bullet('Center guides','Canvas setup → Center guides marks the middle column and row for symmetry. Editor only.'),
- bullet('Zoom','Canvas setup → Zoom, or '+key('Ctrl')+' / '+key('⌘')+' + scroll on the canvas. When zoomed in, two-finger drag on the canvas pans; one finger still draws.')
+ bullet('Center guides','Toggle Guides above the canvas to mark the middle column and row for symmetry. Editor only.'),
+ bullet('Zoom','Choose zoom above the canvas, or '+key('Ctrl')+' / '+key('⌘')+' + scroll on the canvas. When zoomed in, two-finger drag on the canvas pans; one finger still draws.')
  ],'<h4>Keyboard shortcuts</h4><ul class="help-points">'+[
  bullet(key('← ↑ ↓ →'),'Move the cursor.'),
  bullet(key('Enter ↵'),'Mark an endpoint or focus text entry.'),
