@@ -99,6 +99,35 @@ export function basicSysStub(origin){
  }
  throw Error('Unable to build BASIC SYS stub');
 }
+/** Solid block screen code used for animated backdrop paper on VIC exports. */
+export const C64_BACKDROP_BLOCK = 160;
+
+export function backdropExportActive(source) {
+  return source?.backgroundEffect === 'field' || source?.backgroundEffect === 'plus4-field';
+}
+
+/**
+ * Map empty cells to a solid block and per-cell backdrop ink so C64 color RAM
+ * can animate spatial backdrop waves. Occupied cells keep movement/color glyphs.
+ */
+export function prepareC64BackdropFrames(frames, block = C64_BACKDROP_BLOCK) {
+  return frames.map((frame) => {
+    const matte = frame.backgroundMatte;
+    if (!matte || matte.length !== frame.cells.length) {
+      return frame;
+    }
+    const cells = frame.cells.slice();
+    const inks = frame.inks.slice();
+    for (let index = 0; index < cells.length; index++) {
+      if (cells[index] === '') {
+        cells[index] = block;
+        inks[index] = matte[index];
+      }
+    }
+    return {cells, inks, durationMs: frame.durationMs};
+  });
+}
+
 export function createC64Program(input){
  let result=compileC64Program(input,true);
  // Sharing costs CPU time. Keep a previously viable unshared program when the

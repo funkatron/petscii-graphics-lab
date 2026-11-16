@@ -1,10 +1,9 @@
 # Agent log
 
-## 2026-11-15 — Backdrop brightness via ink remap (0.32.3)
+## 2026-11-15 — Backdrop brightness + C64 block paper (0.33.0)
 
-**What:** `fieldBrightness` (10–100%) remaps backdrop `backgroundMatte`, `background`, and `border` inks toward darker palette entries by scaled luminance; glyph inks unchanged. VIC/TED/VDC use their display tables. Release **0.32.3**.  
-**Tested:** `node --test tests/backdrop-brightness.unit.mjs tests/backdrop-parallax.unit.mjs`.  
-**Touched:** `c64-colors.js`, `animation-frames.js`, `index.html`, validation, MCP stubs, tests, maintainer reference.
+**What:** `fieldBrightness` (10–100%) remaps backdrop mattes by palette luminance; VIC native export paints empty cells as block 160 with `backgroundMatte` color RAM (`prepareC64BackdropFrames`, `buildNativeExportFrames`). Release **0.33.0**.  
+**Tested:** `node --test tests/backdrop-brightness.unit.mjs tests/c64-backdrop-blocks.unit.mjs`.
 
 ## 2026-11-15 — Independent backdrop wave controls (0.32.2)
 
