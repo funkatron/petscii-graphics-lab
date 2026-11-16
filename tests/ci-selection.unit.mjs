@@ -6,8 +6,8 @@ test('documentation-only changes skip browser and unit jobs',()=>{
   assert.deepEqual(select(['README.md','docs/roadmap.md']),{mode:'none',specs:[]});
 });
 test('UI changes run a smoke check without unrelated animation exports',()=>{
-  assert.deepEqual(select(['index.html']),{mode:'focused',specs:['tests/layout.spec.cjs','tests/6581-theme-screenshots.spec.cjs']});
-  assert.deepEqual(select(['styles/editor.css','ui-themes.js']),{mode:'focused',specs:['tests/layout.spec.cjs','tests/6581-theme-screenshots.spec.cjs']});
+  assert.deepEqual(select(['index.html']),{mode:'focused',specs:['tests/layout.spec.cjs','tests/6581-theme-screenshots.spec.cjs','tests/tool-mode-screenshots.spec.cjs']});
+  assert.deepEqual(select(['styles/editor.css','ui-themes.js']),{mode:'focused',specs:['tests/layout.spec.cjs','tests/6581-theme-screenshots.spec.cjs','tests/tool-mode-screenshots.spec.cjs']});
 });
 test('Bonfire and solid-motion changes select their respective tests',()=>{
   assert.deepEqual(select(['bonfire.js','solid-motion.js']),{mode:'focused',specs:['tests/bonfire.spec.cjs','tests/solid-motion.spec.cjs']});

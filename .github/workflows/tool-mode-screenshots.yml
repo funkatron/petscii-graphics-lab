@@ -1,0 +1,43 @@
+name: Tool mode screenshots (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      profiles:
+        description: 'Viewport profiles (desktop, ipad-portrait, ipad-landscape)'
+        type: string
+        default: desktop
+  pull_request:
+    paths:
+      - 'smoke/tool-mode-screenshots.mjs'
+      - '.github/workflows/tool-mode-screenshots.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --init --shm-size=1gb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Capture Pick/Fill toolbar views
+        run: node smoke/tool-mode-screenshots.mjs
+        env:
+          PETSCII_SCREENSHOT_DIR: artifacts/tool-mode-screenshots
+          PETSCII_SCREENSHOT_PROFILES: ${{ github.event_name == 'workflow_dispatch' && inputs.profiles || 'desktop,ipad-portrait,ipad-landscape' }}
+      - name: Upload screenshots and manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tool-mode-screenshots
+          path: artifacts/tool-mode-screenshots/
+          if-no-files-found: warn
+          retention-days: 14
