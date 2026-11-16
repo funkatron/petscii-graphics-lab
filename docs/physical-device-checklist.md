@@ -37,6 +37,7 @@ Record the device, OS version, browser, and date at the top of your notes.
 - **Show letters & numbers** stays off after import and Undo.
 - **Paint** / **Eraser** stay selected when tapped again (no toggle).
 - Animation export: GIF completes and plays once without editing the source drawing.
+- **Backdrop** on C64/C128/Plus/4: spatial ramp visible in Play and in Download animation preview; native program on real hardware (optional) shows block-paper in empty cells on VIC/TED only.
 
 ## When something fails
 
