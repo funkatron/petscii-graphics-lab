@@ -26,7 +26,21 @@ class PglMcpSmokeTests(unittest.TestCase):
         self.assertIn("color-wave", effects["colorEffects"])
         self.assertIn("plus4-cycle", effects["colorEffects"])
         self.assertIn("field", effects["backgroundEffects"])
+        self.assertIn("plus4-field", effects["backgroundEffects"])
         self.assertIn("glow", effects["fieldRamps"])
+
+    def test_plan_plus4_backdrop_field(self):
+        plan = pgl_export.plan_animation(
+            str(SAMPLE),
+            {
+                "backgroundEffect": "plus4-field",
+                "fieldRamp": "color-wave",
+                "seconds": 2,
+            },
+        )
+        self.assertGreaterEqual(plan["frameCount"], 8)
+        self.assertEqual(plan.get("backgroundEffect"), "plus4-field")
+        self.assertEqual(plan.get("warning", ""), "")
 
     def test_plan_stacked_backdrop(self):
         plan = pgl_export.plan_animation(
