@@ -946,9 +946,10 @@ const {paint,stroke}=createPainter({getW:()=>W,getH:()=>H,getSymmetry:()=>$('sym
 let drawingTool='paint',selection=null,toolDrag=null;
 let tapPoints=false,textOrigin=null;
 let fillMode='both',pickerMode='ink';
+const EYEDROPPER='M7 21l3-1.5 M4 14l12-12 M16 2l2 2 M17.5 7.5l2.5 2.5';
 const MODE_ICON={
  fill:{both:'M9 4h6v2H9z M7 8h10l-1 11H8L7 8z',glyph:'M5 5h7v7H5z M15 15h4v4h-4z',ink:'M12 4c-3 3.5-5.5 7-5.5 11a5.5 5.5 0 0 0 11 0c0-4-2.5-7.5-5.5-11z'},
- picker:{ink:'M7 21l3-1.5 M4 14l12-12 M16 2l2 2 M17.5 7.5l2.5 2.5',glyph:'M5 5h6v6H5z M14 14h5v5h-5z',background:'M5 6h14v9H5z M5 15h14'},
+ picker:{ink:EYEDROPPER,glyph:EYEDROPPER+' M3 17h5v5H3z',background:EYEDROPPER+' M3 20h18'},
 };
 function modeIconSvg(path){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+path+'"/></svg>'}
 function closeToolModeMenus(except){for(const id of ['fillMenu','pickerMenu']){if(id===except)continue;const el=$(id);if(el)el.open=false}}
