@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-16 — VICE Plus/4 backdrop host smoke
+
+**What:** `tests/vice-hosts.integration.mjs` adds an optional xplus4 case: empty cells with `plus4-field` become block 160 + TED attribute mattes after `prepareNativeBackdropFrames`, matching native export. Requires `VICE_EXECUTABLE` and `VICE_DATA_DIR` (`npm run test:vice:hosts`).  
+**Tested:** Not run in CI (opt-in host test).
+
 ## 2026-11-16 — GitHub Pages version check (0.33.2 live)
 
 **What:** Verified production `app-version.js` serves **0.33.2** (`curl https://funkatron.github.io/petscii-graphics-lab/app-version.js`). Matches `main` after backdrop preview matte (PR #132). No app bump — documentation only.  
