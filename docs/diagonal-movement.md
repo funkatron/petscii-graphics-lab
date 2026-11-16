@@ -11,7 +11,7 @@ Diagonal scrolling is feasible in the existing derived-frame pipeline. It requir
 | Horizontal/vertical scroll | First implementation: add four diagonal choices | Both source coordinates can wrap independently while glyphs and inks move together. |
 | Starfield | Released in PR #62 | Each depth uses two-axis travel with preserved collision order. |
 | Sine scroller | Implemented; browser validation pending | Travel across width and height; bend perpendicular to the canvas diagonal. See the [renderer contract](maintainer-reference.md#diagonal-sine-scroller). |
-| Patterned wipe | Separate design | Direction controls reveal ranking rather than translation; diagonal reveal needs explicit pattern rules. |
+| Patterned wipe | **Diagonal wipe directions shipped** | Eight wipe directions; diagonal/checkerboard/blinds use corner-weighted sweep ranks (cardinals unchanged). |
 | Wave | **Diagonal directions shipped** | Phase runs along the chosen diagonal; displacement is perpendicular (cardinals unchanged). |
 | Ripple, logos, replay, inverse | Keep existing controls | Ripple is radial; logos have their own paths; the other effects do not translate by direction. |
 

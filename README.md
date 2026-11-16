@@ -231,7 +231,7 @@ For **Bouncing logo**, draw a small logo with empty space around it. Playback ce
 
 For **Starfield**, scatter small glyphs across the canvas. The effect uses those glyphs and their inks as stars, with three wrapping depth layers. Each layer completes one, two or three crossings per movement cycle. It uses your artwork rather than adding random stars.
 
-**Patterned wipe** starts hidden, reveals the complete drawing, holds it, then hides it again. Diagonal sweeps across both axes; Checkerboard reveals alternating cell groups; Blinds opens repeated strips. All four intro effects can combine with any color animation.
+**Patterned wipe** starts hidden, reveals the complete drawing, holds it, then hides it again. **Wipe direction** uses eight choices (including diagonals) so the sweep starts from the chosen corner; **Diagonal** pattern on cardinals still blends both axes. Checkerboard and Blinds follow the same direction. All four intro effects can combine with any color animation.
 
 ### Try the 3-D objects
 

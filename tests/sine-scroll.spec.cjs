@@ -30,12 +30,11 @@ test('Sine scroller preview, save, reload and Undo preserve diagonal settings an
   await waitForProjectAutosave(page,saved);await page.reload();await page.locator('.app[data-ready=true]').waitFor();expect(JSON.parse(await download(page,'#saveProject'))).toEqual(saved);
  }
  const before=JSON.parse(await download(page,'#saveProject'));
- for(const animation of [{...before.animation,scrollDirection:'diagonal'},{...before.animation,effect:'wipe'}]){
-  await loadProject(page,{...before,animation});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
- }
+ await loadProject(page,{...before,animation:{...before.animation,scrollDirection:'diagonal'}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
+ await loadProject(page,{...before,animation:{...before.animation,effect:'wipe'}});await expect(page.locator('#animationEffect')).toHaveValue('wipe');await expect(page.locator('#scrollDirection')).toHaveValue('down-right');await loadProject(page,before);
  await ui(page,'#animationEffect','selectOption','starfield');await expect(page.locator('#scrollDirection')).toHaveValue('down-right');
  await ui(page,'#animationEffect','selectOption','sine-scroll');await expect(page.locator('#scrollDirection')).toHaveValue('down-right');
- await ui(page,'#animationEffect','selectOption','wipe');await expect(page.locator('#scrollDirection')).toHaveValue('left');
+ await ui(page,'#animationEffect','selectOption','wipe');await expect(page.locator('#scrollDirection')).toHaveValue('down-right');
 });
 test('diagonal Sine scroller shares independent color cycles with GIF, ZIP, PRG and D64',async({page})=>{
  const p=art('up-right');p.animation={...p.animation,seconds:4,motionCycles:2,colorEffect:'color-cycle',colorCycles:4};await loadProject(page,p);

@@ -394,9 +394,10 @@ export function introMotionFrame(phase, source) {
     const direction = scrollDirection(source);
     const horizontal = direction === 'left' || direction === 'right';
     const size = horizontal ? source.W : source.H;
-    const reverse = direction === 'left' || direction === 'up';
+    const reverse = direction.includes('left') || direction.includes('up');
     const progress = Math.min(1, phase / 0.35, (1 - phase) / 0.35);
     const pattern = source.wipePattern ?? 'diagonal';
+    const diagonal = DIAGONAL_DIRECTIONS.includes(direction);
 
     for (let y = 0; y < source.H; y++) {
       for (let x = 0; x < source.W; x++) {
@@ -407,7 +408,20 @@ export function introMotionFrame(phase, source) {
         const stripe = Math.min(4, size);
         const blind = (axis % stripe + 0.5) / stripe;
         let rank;
-        if (pattern === 'checkerboard') {
+        if (diagonal) {
+          const wx = direction.includes('left') ? x : source.W - 1 - x;
+          const wy = direction.includes('up') ? y : source.H - 1 - y;
+          const sweep = ((wx + 0.5) / source.W + (wy + 0.5) / source.H) * 0.5;
+          if (pattern === 'checkerboard') {
+            rank = ((x + y) % 2 + sweep) / 2;
+          } else if (pattern === 'blinds') {
+            const band = Math.floor(sweep * size * stripe);
+            const blindDiag = (band % stripe + 0.5) / stripe;
+            rank = blindDiag;
+          } else {
+            rank = sweep;
+          }
+        } else if (pattern === 'checkerboard') {
           rank = ((x + y) % 2 + u) / 2;
         } else if (pattern === 'blinds') {
           rank = reverse ? 1 - blind : blind;

@@ -235,7 +235,7 @@ function scrollDirectionChoices(effect) {
   if (effect === 'scroll-diagonal') {
     return DIAGONAL_DIRECTIONS;
   }
-  if (effect === 'starfield' || effect === 'sine-scroll' || effect === 'parallax') {
+  if (effect === 'starfield' || effect === 'sine-scroll' || effect === 'parallax' || effect === 'wipe') {
     return COLOR_WAVE_DIRECTIONS;
   }
   return WAVE_DIRECTIONS;
