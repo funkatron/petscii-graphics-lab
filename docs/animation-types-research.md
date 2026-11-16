@@ -1,6 +1,6 @@
 # New animation types — research (2026-11-16)
 
-**Status:** Deep research in progress. Informs roadmap priority **#1** (new animation types). **C64/native follow-ups** stay priority **#2** immediately after this track.
+**Status:** Deep research in progress. Informs roadmap priority **#1** (new animation types). **C64/native follow-ups** are **#2**; **cross-editor UX/naming** is **#3** ([roadmap](roadmap.md)).
 
 This document combines **in-repo inventory** with **external** demoscene and hardware references. Prototypes are candidates only until preview/export/C64 contracts are defined.
 

@@ -137,14 +137,16 @@ Short **Glossary** block (or expand **About replay & speed**):
 
 ## Roadmap hooks
 
+**This document is roadmap priority #3.** Checklist: [Cross-editor UX and naming](roadmap.md#cross-editor-ux-and-naming--priority-3).
+
 | Borrowing item | Tie to roadmap / issues |
 | --- | --- |
-| Glyph-only / ink-only | Drawing usability (#1 animation adjacent); Playwright paint assertions |
-| Reference import | Color-aware import / image pipeline ([roadmap](roadmap.md) drawing usability) |
-| Line/rect/fill tools | Tile stamp, line/rect/fill ([AGENTS.md](../AGENTS.md) future) |
-| Nomenclature pass | UI validation on iPad; update [README](../README.md) + [ui-review](ui-review.md) when labels change |
-| Cel timeline UI | Optional; must not imply GIF-only export |
-| Scroller PRG labeling | [c64-output.md](c64-output.md) + download tab copy |
+| Glyph-only / ink-only | **#3** Tier A; Playwright paint assertions |
+| Reference import | **#3** Tier A; overlaps **#5** import pipeline |
+| Line/rect/fill tools | **#3** Tier B → **#5** drawing tools ([AGENTS.md](../AGENTS.md) future) |
+| Nomenclature pass | **#3** + **#4** iPad validation; update [README](../README.md) + [ui-review](ui-review.md) |
+| Cel timeline UI | **#3** Tier B optional; must not imply GIF-only export |
+| Scroller PRG labeling | **#3** Tier A; [c64-output.md](c64-output.md) + download tab copy |
 
 ---
 

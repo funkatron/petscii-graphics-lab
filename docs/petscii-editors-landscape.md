@@ -1,6 +1,6 @@
 # Other PETSCII editors — landscape and relevance (2026-11-16)
 
-**Status:** Research for roadmap priority **#1** and product positioning. Complements [animation types research](animation-types-research.md) and [algorithmic VIC feasibility](algorithmic-vic-feasibility.md).
+**Status:** Research for roadmap priorities **#1** (context) and **#3** (adoption). Complements [animation types research](animation-types-research.md) and [algorithmic VIC feasibility](algorithmic-vic-feasibility.md).
 
 This is not a competitive scorecard; it records **how other tools work** so we can borrow workflows and avoid reinventing wheels. URLs were checked via public pages and Marq’s 2016 overview ([PETSCII editors: an overview](https://www.kameli.net/marq/?p=4365)).
 
