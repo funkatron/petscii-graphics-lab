@@ -267,7 +267,7 @@ def render_color_animation_set(
 
 @mcp.tool()
 def list_effects() -> dict:
-    """List motion/color effects and animation enum values from the lab UI."""
+    """List motion, color, and backdrop effects plus animation enum values from the lab UI."""
     return project_io.list_effects()
 
 
@@ -350,7 +350,7 @@ def plan_animation(
     animation: dict[str, Any] | None = None,
     settings_json: str | None = None,
 ) -> dict:
-    """Return animation frame count and readiness warning for motion/color settings."""
+    """Return animation frame count and readiness warning for stacked motion, color, and backdrop."""
     return pgl_export.plan_animation(project_path, _settings(animation, settings_json))
 
 
@@ -375,10 +375,11 @@ def render_animation(
     save_path: str | None = None,
 ) -> dict:
     """
-    Render any motion × color animation as a GIF.
+    Render movement, cell color, and backdrop together as a GIF.
 
     Pass animation settings as an object (same keys as project.animation) or settings_json.
-    Use motionEffect/effect and colorEffect overrides as needed.
+    Use motionEffect/effect, colorEffect, and backgroundEffect (not colorEffect: field for
+    new backdrop ramps).
     """
     return pgl_export.render_animation_gif(
         project_path,

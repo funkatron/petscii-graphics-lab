@@ -1,8 +1,20 @@
 # Agent log
 
+## 2026-11-15 — Agent log catch-up and MCP backdrop docs
+
+**What:** Logged missing **0.31.0** release notes. Corrected the **0.30.0** entry to describe historical behavior (superseded by stacking in 0.31.0). MCP bridges now pass `backgroundEffect` / backdrop ramp fields through `animation-source.mjs`; `list_effects` exposes `backgroundEffects` and `fieldRamps`; README documents stacked layers and `backgroundEffect` instead of `colorEffect: field` for new JSON.  
+**Tested:** `node agents/petscii-preview/export_animation.mjs --list-effects` and `--plan-only` with stacked backdrop; `node --test tests/project-validation.unit.mjs tests/stacked-backdrop.unit.mjs`.  
+**Touched:** `.cursorrules/agent-log.md`, `agents/petscii-preview/README.md`, `animation-source.mjs`, `export_animation.mjs`, `pgl_cli.mjs`, `src/project_io.py`, `src/server.py`, `tests/test_pgl_mcp_smoke.py`.
+
+## 2026-11-15 — Stack movement, color, and backdrop (0.31.0)
+
+**What:** Movement, cell Color, and Backdrop animate together with independent `motionCycles`, `colorCycles`, and `backgroundCycles`. Projects save `backgroundEffect: 'none' | 'field' | 'plus4-field'`; legacy `colorEffect: 'field'` / `plus4-field` migrates in `normalizeAnimation()`. Release **0.31.0**.  
+**Tested:** `node --test tests/stacked-backdrop.unit.mjs tests/project-validation.unit.mjs`; `tests/stacked-backdrop.spec.cjs` (Chromium).  
+**Touched:** `project-validation.js`, `animation-frames.js`, `index.html`, `README.md`, `docs/maintainer-reference.md`, `tests/stacked-backdrop.*`, `tests/project-validation.unit.mjs`, `app-version.js`, `package.json`.
+
 ## 2026-11-15 — Backdrop animation section (0.30.0)
 
-**What:** Animation panel has a fourth **Backdrop** fieldset (`#backdropEffect` + ramp controls). Backdrop is no longer in the Color animation list; projects still save `colorEffect: field` / `plus4-field`. Color and Backdrop remain mutually exclusive in the UI. Release **0.30.0**.  
+**What:** Animation panel gained a fourth **Backdrop** fieldset (`#backdropEffect` + ramp controls). Backdrop left the Color animation list. At 0.30.0 saves still used `colorEffect: field` on disk and the UI kept Color and Backdrop mutually exclusive — **0.31.0** moved backdrop to `backgroundEffect` and enabled stacking. Release **0.30.0**.  
 **Tested:** `tests/backdrop-parallax.spec.cjs`, `tests/animation-layout.spec.cjs` (Chromium).  
 **Touched:** `index.html`, `README.md`, `docs/maintainer-reference.md`, `tests/backdrop-parallax.spec.cjs`, `tests/animation-layout.spec.cjs`, `app-version.js`, `package.json`.
 

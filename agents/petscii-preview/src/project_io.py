@@ -20,11 +20,13 @@ from node_bridge import (
 DEFAULT_ANIMATION = {
     "effect": "none",
     "colorEffect": "none",
+    "backgroundEffect": "none",
     "seconds": 2,
     "scale": 2,
     "background": "dark",
     "motionCycles": 1,
     "colorCycles": 1,
+    "backgroundCycles": 1,
     "cameraDistance": 4,
     "cameraOrbit": 0,
     "cameraElevation": 0,

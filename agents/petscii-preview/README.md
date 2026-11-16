@@ -36,7 +36,7 @@ Outputs land in `agents/petscii-preview/out/`.
 
 | Tool | Purpose |
 | --- | --- |
-| `list_effects` | Motion/color enums + camera/wave/wipe values from the lab UI |
+| `list_effects` | Motion, color, and backdrop enums + ramp/camera/wave/wipe values from the lab UI |
 | `validate_project` | Validate v3 JSON |
 | `load_project` / `save_project` / `create_project` / `update_project` | Project CRUD |
 | `copy_project_to_workspace` | Copy into `out/workspace/` for drawing sessions |
@@ -56,8 +56,15 @@ Outputs land in `agents/petscii-preview/out/`.
 
 Animation settings use the same object shape as `project.animation` (pass
 `animation={...}` or `settings_json='{...}'`). Keys include `effect` /
-`motionEffect`, `colorEffect`, `seconds`, cycles, scroll/wave/color-wave,
-wipe, depth, and solid-camera fields.
+`motionEffect`, `colorEffect`, `backgroundEffect`, `seconds`, `motionCycles`,
+`colorCycles`, `backgroundCycles`, backdrop ramp knobs (`fieldRamp`,
+`fieldDirection`, `fieldLead`), scroll/wave/color-wave, wipe, depth, parallax,
+and solid-camera fields.
+
+Movement, cell color, and backdrop stack independently. For a stepped shared
+background, set `backgroundEffect` to `'field'` (VIC) or `'plus4-field'` (TED) —
+do not use `colorEffect: 'field'` in new JSON; the editor and MCP still migrate
+that legacy shape on load.
 
 ### Drawing tools
 

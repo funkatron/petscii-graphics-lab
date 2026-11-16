@@ -6,6 +6,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { buildAnimationSource, mergeAnimationSettings } from './animation-source.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const command = process.argv[2];
@@ -32,46 +33,8 @@ function loadProject(path) {
 }
 
 function animationSource(data, overrides = {}) {
-  const anim = { ...(data.animation || {}), ...overrides };
-  const cellCount = data.columns * data.rows;
-  const colors = {
-    ink: data.colors?.ink ?? 14,
-    background: data.colors?.background ?? 0,
-  };
-  return {
-    W: data.columns,
-    H: data.rows,
-    grid: data.grid.slice(),
-    inks: (data.cellColors || Array(cellCount).fill(colors.ink)).slice(),
-    base: (data.replayBase || Array(cellCount).fill('')).slice(),
-    baseColors: (data.replayBaseColors || Array(cellCount).fill(colors.ink)).slice(),
-    events: (data.replayEvents || []).map((e) => e.slice()),
-    eventColors: (data.replayEventColors || []).slice(),
-    colors,
-    effect: anim.effect ?? 'none',
-    colorEffect: anim.colorEffect ?? 'none',
-    seconds: anim.seconds ?? 2,
-    scale: anim.scale ?? 1,
-    background: anim.background ?? 'dark',
-    motionCycles: anim.motionCycles ?? 1,
-    colorCycles: anim.colorCycles ?? 1,
-    cameraDistance: anim.cameraDistance ?? 4,
-    cameraOrbit: anim.cameraOrbit ?? 0,
-    cameraElevation: anim.cameraElevation ?? 0,
-    cameraMotion: anim.cameraMotion ?? 0,
-    scrollDirection: anim.scrollDirection ?? 'left',
-    waveDirection: anim.waveDirection ?? 'up',
-    waveShape: anim.waveShape ?? 'sine',
-    waveAmplitude: anim.waveAmplitude ?? 100,
-    waveLength: anim.waveLength ?? 50,
-    colorWaveDirection: anim.colorWaveDirection ?? 'up-left',
-    colorWaveShape: anim.colorWaveShape ?? 'sawtooth',
-    colorWaveAmplitude: anim.colorWaveAmplitude ?? 100,
-    colorWaveLength: anim.colorWaveLength ?? 50,
-    wipePattern: anim.wipePattern ?? 'diagonal',
-    depthTravel: anim.depthTravel ?? 'toward',
-    depthWaveShape: anim.depthWaveShape ?? 'sawtooth',
-  };
+  const anim = mergeAnimationSettings(data, overrides);
+  return buildAnimationSource(data, anim);
 }
 
 if (command === 'validate') {
@@ -119,11 +82,13 @@ if (command === 'validate') {
     animation: existing?.animation || {
       effect: 'none',
       colorEffect: 'none',
+      backgroundEffect: 'none',
       seconds: 2,
       scale: 2,
       background: 'dark',
       motionCycles: 1,
       colorCycles: 1,
+      backgroundCycles: 1,
     },
     name: existing?.name || 'Imported text grid',
   };
