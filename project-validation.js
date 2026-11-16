@@ -300,7 +300,7 @@ function validateAnimationField(data) {
 
   const directionFields = {
     scrollDirection: scrollDirectionChoices(animation.effect),
-    waveDirection: WAVE_DIRECTIONS,
+    waveDirection: animation.effect === 'wave' ? COLOR_WAVE_DIRECTIONS : WAVE_DIRECTIONS,
     waveShape: WAVE_SHAPES,
     colorWaveDirection: COLOR_WAVE_DIRECTIONS,
     colorWaveShape: WAVE_SHAPES,

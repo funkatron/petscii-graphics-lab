@@ -642,11 +642,23 @@ function applyGridMotion(frame, phase, source, cells, inks) {
 
       if (source.effect === 'wave') {
         const direction = source.waveDirection ?? 'up';
-        const rowWave = direction === 'up' || direction === 'down';
-        const position = (rowWave ? y / Math.max(1, source.H) : x / Math.max(1, source.W))
-          * (50 / (source.waveLength ?? 50));
-        const crossSize = rowWave ? source.W : source.H;
-        const sign = (direction === 'down' || direction === 'right') ? -1 : 1;
+        const diagonal = DIAGONAL_DIRECTIONS.includes(direction);
+        const rowWave = !diagonal && (direction === 'up' || direction === 'down');
+        let position;
+        let crossSize;
+        if (diagonal) {
+          const sx = direction.includes('left') ? 1 : -1;
+          const sy = direction.includes('up') ? 1 : -1;
+          position = (sx * x / Math.max(1, source.W) + sy * y / Math.max(1, source.H))
+            * 0.5
+            * (50 / (source.waveLength ?? 50));
+          crossSize = Math.min(source.W, source.H);
+        } else {
+          position = (rowWave ? y / Math.max(1, source.H) : x / Math.max(1, source.W))
+            * (50 / (source.waveLength ?? 50));
+          crossSize = rowWave ? source.W : source.H;
+        }
+        const sign = (direction.includes('down') || direction.includes('right')) ? -1 : 1;
         let value;
         if ((source.waveShape ?? 'sine') === 'sine') {
           value = Math.sin(phase * Math.PI * 2 * sign + position * Math.PI * 2);
@@ -656,7 +668,14 @@ function applyGridMotion(frame, phase, source, cells, inks) {
         const shift = Math.round(
           value * Math.min(3, Math.max(1, crossSize / 4)) * 2 * ((source.waveAmplitude ?? 100) / 100),
         );
-        if (rowWave) {
+        if (diagonal) {
+          const sx = direction.includes('left') ? 1 : -1;
+          const sy = direction.includes('up') ? 1 : -1;
+          const perpX = -sy;
+          const perpY = sx;
+          sampleX = wrap(x + perpX * shift, source.W);
+          sampleY = wrap(y + perpY * shift, source.H);
+        } else if (rowWave) {
           sampleX = wrap(x + shift, source.W);
         } else {
           sampleY = wrap(y + shift, source.H);
