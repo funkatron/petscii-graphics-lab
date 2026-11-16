@@ -36,6 +36,24 @@ function picture(extra) {
   };
 }
 
+test('backdrop bonfire paints a spatial matte', () => {
+  const frame = animationCells(0, picture({
+    W: 6,
+    H: 8,
+    grid: Array(48).fill(''),
+    inks: Array(48).fill(0),
+    backgroundEffect: 'field',
+    fieldRamp: 'bonfire',
+    seconds: 1,
+  }));
+  assert.ok(frame.backgroundMatte);
+  const unique = new Set(frame.backgroundMatte);
+  assert.ok(unique.size > 1);
+  for (const ink of frame.backgroundMatte) {
+    assert.ok(ink >= 0 && ink <= 15);
+  }
+});
+
 test('backdrop rainbow wave paints a spatial matte', () => {
   const wide = picture({
     W: 4,

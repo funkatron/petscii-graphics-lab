@@ -90,7 +90,7 @@ function fieldSequence(source) {
   return ramp;
 }
 
-const SPATIAL_FIELD_RAMPS = new Set(['color-wave', 'raster-bars', 'plasma']);
+const SPATIAL_FIELD_RAMPS = new Set(['color-wave', 'raster-bars', 'plasma', 'bonfire']);
 
 export function isSpatialFieldRamp(source) {
   if (!backgroundActive(source)) {
