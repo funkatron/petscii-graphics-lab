@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-16 — VDC backdrop expectations in UI (0.33.3)
+
+**What:** C128 80-col **Machine** help and an Animation **Backdrop** note explain that backdrop waves appear in preview/raster exports only; native VDC PRG/D64 keeps empty cells blank (no block-paper). Release **0.33.3**.  
+**Tested:** `node --test tests/app-version.unit.mjs`; `tests/project-defaults.spec.cjs` (version label).
+
 ## 2026-11-16 — VICE Plus/4 backdrop host smoke
 
 **What:** `tests/vice-hosts.integration.mjs` adds an optional xplus4 case: empty cells with `plus4-field` become block 160 + TED attribute mattes after `prepareNativeBackdropFrames`, matching native export. Requires `VICE_EXECUTABLE` and `VICE_DATA_DIR` (`npm run test:vice:hosts`).  
