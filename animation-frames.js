@@ -240,6 +240,9 @@ function samplesPerMotionCycle(source) {
     }
     return Math.max(24, horizontal ? source.W : source.H);
   }
+  if (source.effect === 'column-wave') {
+    return Math.max(24, source.W);
+  }
   if (source.effect === 'wave' || source.effect === 'ripple') {
     return 24;
   }
@@ -258,7 +261,7 @@ function minimumFrameCount(source, motionCycles, cellColorSteps, colorCycles, ba
       || DEPTH_EFFECTS.includes(source.effect)
       || SOLID_EFFECTS.includes(source.effect);
     const intro = INTRO_MOTIONS.includes(source.effect);
-    const waveLike = ['wave', 'ripple', 'replay', 'sine-scroll'].includes(source.effect);
+    const waveLike = ['wave', 'ripple', 'replay', 'sine-scroll', 'column-wave'].includes(source.effect);
     if (needsManySamples) {
       motionMinimum = 12;
     } else if (intro) {
@@ -589,6 +592,22 @@ function applyGridMotion(frame, phase, source, cells, inks) {
         } else {
           sampleY = wrap(y + step, source.H);
         }
+      }
+
+      if (source.effect === 'column-wave') {
+        const direction = scrollDirection(source);
+        const sign = direction === 'right' ? -1 : 1;
+        const travel = Math.floor(phase * source.W) * sign;
+        const bend = Math.round(
+          waveValue(
+            source.waveShape ?? 'sine',
+            (x / source.W) * (50 / (source.waveLength ?? 50)) + phase,
+          )
+            * Math.min(3, Math.max(1, source.H / 4)) * 2
+            * ((source.waveAmplitude ?? 100) / 100),
+        );
+        sampleX = wrap(x + travel, source.W);
+        sampleY = wrap(y + bend, source.H);
       }
 
       if (source.effect === 'sine-scroll') {
