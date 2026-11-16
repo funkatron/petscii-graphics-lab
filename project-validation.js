@@ -46,6 +46,7 @@ export const MOTION_EFFECTS = [
   ...SOLID_EFFECTS,
   ...INTRO_MOTIONS,
 ];
+export const BACKGROUND_EFFECTS = ['none', 'field', 'plus4-field'];
 export const COLOR_EFFECTS = [
   'none', 'bonfire', 'raster-bars', 'plasma', 'color-cycle', 'color-wave', 'color-glow',
   'inverse', 'field',
@@ -61,16 +62,30 @@ export function normalizeAnimation(animation) {
   if (!animation || typeof animation !== 'object') {
     return animation;
   }
-  if (animation.effect !== 'inverse') {
-    return animation;
-  }
-  const next = {...animation, effect: 'none'};
-  if (next.colorEffect === undefined || next.colorEffect === 'none') {
-    next.colorEffect = 'inverse';
-    if (next.motionCycles !== undefined) {
-      next.colorCycles = next.motionCycles;
+  let next = {...animation};
+  if (next.effect === 'inverse') {
+    next = {...next, effect: 'none'};
+    if (next.colorEffect === undefined || next.colorEffect === 'none') {
+      next.colorEffect = 'inverse';
+      if (next.motionCycles !== undefined) {
+        next.colorCycles = next.motionCycles;
+      }
+      next.motionCycles = 1;
     }
-    next.motionCycles = 1;
+  }
+  if (next.backgroundEffect === undefined) {
+    if (next.colorEffect === 'field' || next.colorEffect === 'plus4-field') {
+      next.backgroundEffect = next.colorEffect;
+      next.colorEffect = 'none';
+      if (next.backgroundCycles === undefined) {
+        next.backgroundCycles = next.colorCycles ?? 1;
+      }
+    } else {
+      next.backgroundEffect = 'none';
+    }
+  }
+  if (next.backgroundCycles === undefined) {
+    next.backgroundCycles = 1;
   }
   return next;
 }
@@ -266,7 +281,7 @@ function validateAnimationField(data) {
       throw Error('Invalid animation settings');
     }
   }
-  for (const key of ['motionCycles', 'colorCycles']) {
+  for (const key of ['motionCycles', 'colorCycles', 'backgroundCycles']) {
     if (animation[key] !== undefined && !ANIMATION_CYCLES.includes(animation[key])) {
       throw Error('Invalid animation settings');
     }
@@ -288,7 +303,13 @@ function validateAnimationField(data) {
   if (!MOTION_EFFECTS.includes(animation.effect)) {
     throw Error('Invalid animation settings');
   }
+  if (animation.backgroundEffect !== undefined && !BACKGROUND_EFFECTS.includes(animation.backgroundEffect)) {
+    throw Error('Invalid animation settings');
+  }
   if (animation.colorEffect !== undefined && !COLOR_EFFECTS.includes(animation.colorEffect)) {
+    throw Error('Invalid animation settings');
+  }
+  if (animation.colorEffect === 'field' || animation.colorEffect === 'plus4-field') {
     throw Error('Invalid animation settings');
   }
   if (!ALLOWED_SECONDS.includes(animation.seconds)) {

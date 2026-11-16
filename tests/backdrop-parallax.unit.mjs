@@ -24,7 +24,9 @@ function picture(extra) {
     inks: [1, 0, 2, 0],
     colors: {ink: 1, background: 6},
     effect: 'none',
-    colorEffect: 'field',
+    backgroundEffect: 'none',
+    colorEffect: 'none',
+    backgroundCycles: 1,
     seconds: 1,
     scale: 1,
     background: 'dark',
@@ -35,27 +37,28 @@ function picture(extra) {
 }
 
 test('backdrop keeps cells and walks the chosen ramp', () => {
-  const first = animationCells(0, picture());
-  const next = animationCells(1, picture());
+  const ramp = {backgroundEffect: 'field'};
+  const first = animationCells(0, picture(ramp));
+  const next = animationCells(1, picture(ramp));
   assert.deepEqual(first.cells, [160, '', 81, '']);
   assert.deepEqual(first.inks, [1, 0, 2, 0]);
   assert.equal(first.background, 6);
   assert.equal(first.border, 4);
   assert.equal(next.background, 4);
   assert.equal(next.border, 2);
-  assert.equal(animationCells(1, picture({fieldDirection: 'reverse'})).background, 14);
-  assert.equal(animationCells(0, picture({fieldLead: 0})).border, 6);
-  assert.equal(animationCells(0, picture({fieldLead: 4})).border, cycle[14]);
-  const warm = animationCells(1, picture({fieldRamp: 'glow'}));
+  assert.equal(animationCells(1, picture({...ramp, fieldDirection: 'reverse'})).background, 14);
+  assert.equal(animationCells(0, picture({...ramp, fieldLead: 0})).border, 6);
+  assert.equal(animationCells(0, picture({...ramp, fieldLead: 4})).border, cycle[14]);
+  const warm = animationCells(1, picture({...ramp, fieldRamp: 'glow'}));
   assert.equal(warm.background, glow[0]);
-  assert.equal(animationCells(1, picture({fieldRamp: 'glow', fieldDirection: 'reverse'})).background, glow[glow.length - 1]);
-  assert.equal(animationCells(0, picture({fieldRamp: 'plasma'})).background, 6);
-  assert.equal(animationCells(1, picture({fieldRamp: 'plasma'})).background, 4);
-  assert.ok(plasma.includes(animationCells(1, picture({fieldRamp: 'plasma'})).background));
+  assert.equal(animationCells(1, picture({...ramp, fieldRamp: 'glow', fieldDirection: 'reverse'})).background, glow[glow.length - 1]);
+  assert.equal(animationCells(0, picture({...ramp, fieldRamp: 'plasma'})).background, 6);
+  assert.equal(animationCells(1, picture({...ramp, fieldRamp: 'plasma'})).background, 4);
+  assert.ok(plasma.includes(animationCells(1, picture({...ramp, fieldRamp: 'plasma'})).background));
 });
 
 test('VDC backdrop border matches the background', () => {
-  const frame = animationCells(1, picture({machine: 'c128-80', fieldLead: 4}));
+  const frame = animationCells(1, picture({backgroundEffect: 'field', machine: 'c128-80', fieldLead: 4}));
   assert.equal(frame.border, frame.background);
   assert.notEqual(frame.background, 6);
 });
@@ -107,7 +110,7 @@ test('parallax spread, travel, and glyph groups', () => {
 });
 
 test('backdrop and parallax settings validate as a closed list', () => {
-  const animation = {effect: 'parallax', colorEffect: 'field', seconds: 1, scale: 1, background: 'dark'};
+  const animation = {effect: 'parallax', backgroundEffect: 'field', colorEffect: 'none', seconds: 1, scale: 1, background: 'dark'};
   assert.doesNotThrow(() => validateProject({...baseProject, animation}));
   assert.throws(
     () => validateProject({...baseProject, animation: {...animation, fieldLead: 3}}),

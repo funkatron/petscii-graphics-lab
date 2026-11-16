@@ -18,7 +18,7 @@ test('backdrop and parallax knobs persist and leave the drawing unchanged',async
  await ui(page,'#fieldLead','selectOption','4');
  const saved=JSON.parse(await download(page,'#saveProject'));
  expect(saved.grid).toEqual(art.grid);
- expect(saved.animation).toMatchObject({effect:'parallax',colorEffect:'field',parallaxSpread:0,parallaxTravel:'opposite',fieldRamp:'glow',fieldDirection:'reverse',fieldLead:4});
+ expect(saved.animation).toMatchObject({effect:'parallax',colorEffect:'none',backgroundEffect:'field',parallaxSpread:0,parallaxTravel:'opposite',fieldRamp:'glow',fieldDirection:'reverse',fieldLead:4});
  await loadProject(page,saved);
  await expect(page.locator('#parallaxSpread')).toHaveValue('0');
  await expect(page.locator('#fieldLead')).toHaveValue('4');

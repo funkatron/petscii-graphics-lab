@@ -26,16 +26,29 @@ test('accepts animation scale up to 8 px/cell',()=>{
  assert.throws(()=>validateProject({...base,animation:{effect:'replay',seconds:2,scale:16,background:'dark'}}),/animation settings/);
 });
 
+test('stacks backdrop with cell color and migrates legacy colorEffect field',()=>{
+ const stacked={
+  effect:'scroll-x',colorEffect:'color-wave',backgroundEffect:'field',
+  seconds:2,scale:1,background:'dark',motionCycles:1,colorCycles:2,backgroundCycles:4,
+  fieldRamp:'cycle',fieldDirection:'forward',fieldLead:1,
+ };
+ assert.doesNotThrow(()=>validateProject({...base,animation:stacked}));
+ assert.throws(()=>validateProject({...base,animation:{...stacked,colorEffect:'field'}}),/animation settings/);
+ const migrated=normalizeAnimation({effect:'parallax',colorEffect:'field',colorCycles:3,seconds:1,scale:1,background:'dark'});
+ assert.equal(migrated.colorEffect,'none');
+ assert.equal(migrated.backgroundEffect,'field');
+ assert.equal(migrated.backgroundCycles,3);
+});
 test('accepts inverse as a color effect and migrates legacy motion inverse',()=>{
  assert.doesNotThrow(()=>validateProject({...base,animation:{effect:'none',colorEffect:'inverse',seconds:1,scale:1,background:'dark'}}));
  assert.doesNotThrow(()=>validateProject({...base,animation:{effect:'inverse',seconds:1,scale:1,background:'dark'}}));
  assert.deepEqual(
   normalizeAnimation({effect:'inverse',motionCycles:4,colorEffect:'none',seconds:1,scale:1,background:'dark'}),
-  {effect:'none',colorEffect:'inverse',motionCycles:1,colorCycles:4,seconds:1,scale:1,background:'dark'},
+  {effect:'none',colorEffect:'inverse',motionCycles:1,colorCycles:4,backgroundEffect:'none',backgroundCycles:1,seconds:1,scale:1,background:'dark'},
  );
  assert.deepEqual(
   normalizeAnimation({effect:'inverse',colorEffect:'color-glow',seconds:1,scale:1,background:'dark'}),
-  {effect:'none',colorEffect:'color-glow',seconds:1,scale:1,background:'dark'},
+  {effect:'none',colorEffect:'color-glow',backgroundEffect:'none',backgroundCycles:1,seconds:1,scale:1,background:'dark'},
  );
 });
 

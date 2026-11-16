@@ -174,7 +174,7 @@ The editor opens version 3 projects containing numeric glyph IDs across both sou
 
 ## Preview an animation
 
-Controls are grouped into **Timeline & preview**, **Movement**, **Color**, and **Backdrop**. Related wave options sit side by side; options appear only for the selected effect. Duration, movement/color cycles and playback are together at the top. **Backdrop** animates the shared background and border; **Color** animates cell inks only. Direction pairs with waveform; wavelength pairs with height.
+Controls are grouped into **Timeline & preview**, **Movement**, **Color**, and **Backdrop**. Related wave options sit side by side; options appear only for the selected effect. Duration, movement/color/backdrop cycles and playback are together at the top. **Movement**, **Color**, and **Backdrop** stack: glyphs move, cell inks change, and the shared background can step independently. Direction pairs with waveform; wavelength pairs with height.
 
 1. Open **☰ → Animation**.
 2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
@@ -216,7 +216,7 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Warm glow** | Ink moves through brown, orange, red, light red, yellow, and white, then back. |
 | **Backdrop** | Steps the shared background through any color-animation ramp except Backdrop and Inverse pulse: color cycle, warm glow, rainbow wave, raster-style bars, plasma field, or bonfire colors. Direction is forward or reverse. Border lead can match the background or sit 1, 2, or 4 steps ahead. On C128 80-column the border matches the background. Cell glyphs and inks stay as the movement effect left them. |
 
-Movement carries each cell’s ink with its glyph. Color animation then changes the resulting ink; Rainbow wave uses the cell’s new position. Both choices share one loop duration. Backdrop is the color effect that steps the shared background. The other color effects leave it fixed. Still-image downloads use the original drawing, even when an animation is paused.
+Movement carries each cell’s ink with its glyph. Color animation then changes the resulting ink; Rainbow wave uses the cell’s new position. **Backdrop** steps the shared background (and border lead on VIC) on its own cycle rate, and can run together with movement and cell color. Still-image downloads use the original drawing, even when an animation is paused.
 
 For example, an **8-second loop** with **4× movement** and **8× color** repeats movement every 2 seconds and color every 1 second. Both return to their starting phase at the loop boundary. Video repetitions still count complete 8-second loops.
 
