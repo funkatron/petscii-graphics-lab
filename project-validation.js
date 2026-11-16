@@ -39,9 +39,12 @@ export const SOLID_CAMERA_VALUES = {
   cameraElevation: [0, -60, -30, 30, 60],
   cameraMotion: [0, 1, 2, 3],
 };
+/** Research spike only — not exposed in the Movement menu until native export is designed. */
+export const COLUMN_WAVE_EFFECT = 'column-wave';
+
 export const MOTION_EFFECTS = [
   'none', 'bonfire', 'replay', 'scroll-x', 'scroll-y', 'scroll-diagonal',
-  'wave', 'sine-scroll', 'ripple', 'parallax',
+  'wave', 'sine-scroll', COLUMN_WAVE_EFFECT, 'ripple', 'parallax',
   ...DEPTH_EFFECTS,
   ...SOLID_EFFECTS,
   ...INTRO_MOTIONS,
@@ -232,6 +235,9 @@ function validateDrawingReplay(data) {
 }
 
 function scrollDirectionChoices(effect) {
+  if (effect === COLUMN_WAVE_EFFECT) {
+    return ['left', 'right'];
+  }
   if (effect === 'scroll-diagonal') {
     return DIAGONAL_DIRECTIONS;
   }

@@ -81,7 +81,7 @@ Most of the app still lives in one `index.html` module script; smaller areas alr
 
 **Algorithmic VIC research (optional prototypes)**
 
-- [ ] Read [algorithmic VIC feasibility](algorithmic-vic-feasibility.md); spike **column-offset wave** and **FLD blinds** on derived frames before new depth effects.
+- [ ] Read [algorithmic VIC feasibility](algorithmic-vic-feasibility.md); spike **column-offset wave** and **FLD blinds** on derived frames before new depth effects. **Column-wave** derived-frame spike is in progress (`column-wave` effect id, no UI).
 - [ ] Keep **VSP/FLI/AGSP** as documentation-only unless requirements change.
 
 **Checklist (not started)**
@@ -187,7 +187,7 @@ See the [depth-effects plan](depth-effects.md) for artwork mapping, projection, 
 - [ ] Preserve shared preview/export frames, independent color effects, source artwork and existing C64 limits; validate phone/iPad readability and sampling cost.
 
 
-- [ ] Investigate diagonal directions for movement animations, using the existing color-animation direction choices as a reference. Source review and a proposed first scroll implementation are documented in the [diagonal movement investigation](diagonal-movement.md). Ordinary Scroll shipped with eight directions in PR #44; unsupported picker entries were removed in PR #50; diagonal Starfield shipped in PR #62; diagonal Sine scroller is implemented with browser checks pending; waves and Wipe remain separate follow-ups. Validate preview/export consistency before release.
+- [x] Diagonal directions for movement animations: Scroll, Starfield, Sine scroller, Wave rows/columns, and Patterned wipe each use the eight direction names where applicable (PRs #44, #62, #150, #151). See [diagonal movement investigation](diagonal-movement.md).
 
 - [x] Release Sine scroller and Raster-style bars with shared preview/download behavior; PR #27.
 - [x] Release Plasma field using intersecting color waves and the existing color controls; PR #28.
