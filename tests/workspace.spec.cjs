@@ -7,7 +7,9 @@ test('letters reveal both cases without a whole-drawing character switch',async(
 });
 test('drawing controls stay reachable with settings hidden at phone width',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.app[data-ready=true]').waitFor();
- for(const id of ['glyphToggle','inkQuick','paint','erase','undo','redo','symmetryMenu'])await expect(page.locator('#'+id)).toBeInViewport();
+ for(const id of ['glyphToggle','inkQuick','paint','erase','undo','redo'])await expect(page.locator('#'+id)).toBeInViewport();
+ await expect(page.locator('#symmetryMenu')).toBeVisible();
+ await page.locator('#tool-line').click();await expect(page.locator('#symmetryMenu')).toBeHidden();
  await page.locator('#erase').click();await expect(page.locator('#erase')).toHaveAttribute('aria-pressed','true');await page.locator('#paint').click();await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','true');
  await page.locator('#inkQuick').click();await expect(page.locator('#quickInkPalette')).toBeVisible();await page.locator('#quickInkPalette button').nth(2).click();await expect(page.locator('#inkQuick')).toHaveAttribute('title','Ink: Red');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
@@ -39,7 +41,7 @@ test('download sheet shows actual dimensions and matching grid-free colors, with
  await loadProject(page,project([160,''],2,1,{cellColors:[2,3]}));await ui(page,'#pngScale','selectOption','2');await ui(page,'#pngBg','selectOption','transparent');await expect(page.locator('#downloadDimensions')).toContainText('64 × 32 pixels');
  expect(await page.locator('#downloadPreview').evaluate(c=>Array.from(c.getContext('2d').getImageData(4,4,1,1).data))).toEqual([104,55,43,255]);expect(await page.locator('#downloadPreview').evaluate(c=>c.getContext('2d').getImageData(12,4,1,1).data[3])).toBe(0);
  const png=PNG.sync.read(await download(page,'#png'));expect([png.width,png.height]).toEqual([64,32]);const glyphsOpen=await page.locator('#glyphPicker').isVisible();await page.keyboard.press('Escape');await expect(page.locator('#downloadDialog')).not.toBeVisible();await expect(page.locator('#downloadOpen')).toBeFocused();expect(await page.locator('#glyphPicker').isVisible()).toBe(glyphsOpen);
- await ui(page,'#animationFormat','selectOption','video');await ui(page,'#videoRepeats','fill','3');await expect(page.locator('#downloadDimensions')).toContainText('12 seconds');await page.locator('#downloadClose').click();await expect(page.locator('#saveStatus')).toHaveText('Saved on this device');
+ await ui(page,'#animationFormat','selectOption','video');await ui(page,'#videoRepeats','fill','3');await expect(page.locator('#downloadDimensions')).toContainText('12 seconds');await page.locator('#downloadClose').click();await expect(page.locator('#saveStatus .save-status-full')).toHaveText('Saved on this device');
 });
 test('autosave failures stay visible on a small screen and do not prevent project backups',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.addInitScript(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='petscii-graphics-project-v3')throw new DOMException('Storage full','QuotaExceededError');return original.call(this,key,value)}});await page.reload();await page.locator('.app[data-ready=true]').waitFor();

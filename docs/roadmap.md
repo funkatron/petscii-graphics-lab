@@ -199,6 +199,7 @@ Show letters & numbers reveals both cases. There is no whole-drawing character-s
 - [x] Select, move, duplicate and delete regions.
 - [x] Evaluate reusable stamps; remove them during UI cleanup in favor of Select and Duplicate.
 - [x] Keep each completed drawing operation undoable; use pointer input for touch, Pencil and mouse.
+- [x] Contextual Symmetry: show the control only while Paint or Eraser is active; preserve the saved symmetry setting elsewhere.
 - [ ] Evaluate physical Pencil reach before expanding drawing controls.
 
 ## Combine movement and color cycling — implemented
