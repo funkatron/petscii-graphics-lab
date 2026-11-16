@@ -2,9 +2,11 @@
 
 This page tracks requested work and completed milestones. For current controls, use the [user guide](../README.md).
 
-## Project workflow — implementation, browser validation pending
+## Project workflow — browser validation in progress
 
-See issue #66. New Project resets to a blank default drawing with confirmation and Undo recovery. An icon-only refresh button generates adjective–noun names. All export formats use the same validated project name and capture it before asynchronous work; caches account for renaming. Names stay outside v3 drawing data. Regression coverage includes reset/cancel/Undo, source preservation, filename sanitization, export contents and in-flight naming. Chromium and iPad WebKit CI results are required before release.
+See issue #66. New Project resets to a blank default drawing with confirmation and Undo recovery. An icon-only refresh button generates adjective–noun names. All export formats use the same validated project name and capture it before asynchronous work; caches account for renaming. Names stay outside v3 drawing data. Regression coverage includes reset/cancel/Undo, source preservation, filename sanitization, export contents and in-flight naming.
+
+**Validation status (2026-11-16):** Local Chromium run of `tests/project-naming.spec.cjs` and `tests/project-save.spec.cjs` — **11 passed, 3 failed** (export filename sweep across all families; save controls at 200% text in portrait and landscape). Reset/cancel/Undo, invalid-name blocking, in-flight export naming, and native/download save round-trips passed. **Close #66** still needs those three specs green on Chromium **and** the iPad WebKit matrix in CI.
 
 ## Current priorities
 

@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-16 — Roadmap #66 validation snapshot
+
+**What:** `docs/roadmap.md` records Chromium results for `project-naming` + `project-save` (11/14 pass; export filename sweep and 200% text layout still failing).  
+**Tested:** `npx playwright test tests/project-naming.spec.cjs tests/project-save.spec.cjs --project=chromium`.
+
 ## 2026-11-16 — VDC backdrop expectations in UI (0.33.3)
 
 **What:** C128 80-col **Machine** help and an Animation **Backdrop** note explain that backdrop waves appear in preview/raster exports only; native VDC PRG/D64 keeps empty cells blank (no block-paper). Release **0.33.3**.  
