@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-16 — Backdrop matte in download preview (0.33.2)
+
+**What:** `artworkPreview` paints `backgroundMatte` so backdrop spatial waves show in the Download animation preview (and centered native tab). Release **0.33.2**.  
+**Tested:** `tests/backdrop-parallax.spec.cjs` (new preview case).
+
 ## 2026-11-16 — Plus/4 backdrop block paper (0.33.1)
 
 **What:** Shared `native-backdrop-export.js` (`prepareNativeBackdropFrames`); Plus/4 native download uses the same empty→block 160 path as VIC; docs and export help. Release **0.33.1**.  

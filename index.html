@@ -635,10 +635,13 @@ function paintScreen(context,target,pixelWidth,pixelHeight){
  shadeScreenImage(image,look,pixelWidth,pixelHeight);
  context.putImageData(image,0,0);
 }
-function artworkPreview(target,cells,inks,cols,rows,background,colorPalette='pepto-pal',cellW=8,cellH=8,shade=false){
+function artworkPreview(target,cells,inks,cols,rows,background,colorPalette='pepto-pal',cellW=8,cellH=8,shade=false,backgroundMatte=null){
  target.width=cols*cellW;target.height=rows*cellH;const c=target.getContext('2d');c.clearRect(0,0,target.width,target.height);
- if(background){c.fillStyle=background;c.fillRect(0,0,target.width,target.height)}
- cells.forEach((g,i)=>{const x=i%cols*cellW,y=Math.floor(i/cols)*cellH;if(typeof g==='number')romCanvasGlyph(c,g,x,y,cellW,inks[i],colorPalette,cellH);});
+ const useMatte=backgroundMatte&&backgroundMatte.length===cells.length;
+ if(!useMatte&&background){c.fillStyle=background;c.fillRect(0,0,target.width,target.height)}
+ cells.forEach((g,i)=>{const x=i%cols*cellW,y=Math.floor(i/cols)*cellH;const cellBg=useMatte?inkFill(backgroundMatte[i],colorPalette):background;
+  if(cellBg){c.fillStyle=cellBg;c.fillRect(x,y,cellW,cellH)}
+  if(typeof g==='number')romCanvasGlyph(c,g,x,y,cellW,inks[i],colorPalette,cellH);});
  if(shade)paintScreen(c,target,cellW/8,cellH/8);
 }
 function updateDownloadPreview(){
@@ -651,10 +654,12 @@ function updateDownloadPreview(){
  let previewCells=picture.cells,previewInks=picture.inks,previewColumns=W,previewRows=H;
  const screenCols=isVdcMachine(workspaceMachine)?80:40;
  const centered=data&&W<=screenCols&&H<=25;
+ let previewMatte=picture.backgroundMatte;
  if(centered){
   previewColumns=screenCols;previewRows=25;previewCells=Array(screenCols*25).fill('');previewInks=Array(screenCols*25).fill(colors.ink);
-  const left=Math.floor((screenCols-W)/2),top=Math.floor((25-H)/2);
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const from=y*W+x,to=(top+y)*screenCols+left+x;previewCells[to]=picture.cells[from];previewInks[to]=picture.inks[from]}
+  const left=Math.floor((screenCols-W)/2),top=Math.floor((25-H)/2),paper=picture.background??colors.background;
+  if(previewMatte&&previewMatte.length===W*H){previewMatte=Array(screenCols*25).fill(paper)}
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const from=y*W+x,to=(top+y)*screenCols+left+x;previewCells[to]=picture.cells[from];previewInks[to]=picture.inks[from];if(previewMatte&&picture.backgroundMatte)previewMatte[to]=picture.backgroundMatte[from]}
  }
  let previewScale=2*Number($('pngScale').value);
  if(data)previewScale=1;
@@ -663,7 +668,7 @@ function updateDownloadPreview(){
  const previewCell=exportCellSize(workspaceMachine,workspaceCellAspect,previewScale);
  // Thumbnail stays one scale unit (square 8×8, CRT 5×6 or 5×12). The caption uses the export size.
  const thumb=exportCellSize(workspaceMachine,workspaceCellAspect,1);
- artworkPreview($('downloadPreview'),previewCells,previewInks,previewColumns,previewRows,bg,picture.colorPalette||'pepto-pal',thumb.cellW,thumb.cellH,!data);
+ artworkPreview($('downloadPreview'),previewCells,previewInks,previewColumns,previewRows,bg,picture.colorPalette||'pepto-pal',thumb.cellW,thumb.cellH,!data,previewMatte);
  const loops=motion&&$('animationFormat').value==='video'?Number($('videoRepeats').value):1;
  $('downloadDimensions').textContent=(moving?'Animation':'Drawing')+' · '+previewColumns*previewCell.cellW+' × '+previewRows*previewCell.cellH+' pixels'+(centered?' · '+W+' × '+H+' cells centered':'')+(moving?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
  let description=moving?'Use Play preview to watch the selected animation here.':'Original drawing, without editing grid lines.';
