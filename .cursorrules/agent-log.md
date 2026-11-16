@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-15 — Spatial backdrop ramps (0.32.0)
+
+**What:** Backdrop ramps **Rainbow wave**, **Raster-style bars**, and **Plasma field** now paint a per-cell `backgroundMatte` (same wave/plasma knobs as Color). Canvas preview, GIF, video, and frame ZIP fill empty paper through that matte. Cycle/glow/bonfire stay a single stepped background + border. Release **0.32.0**.  
+**Tested:** `node --test tests/backdrop-parallax.unit.mjs tests/stacked-backdrop.unit.mjs tests/app-version.unit.mjs`.  
+**Touched:** `animation-frames.js`, `index.html`, `docs/maintainer-reference.md`, `tests/backdrop-parallax.unit.mjs`, `app-version.js`, `package.json`.
+
 ## 2026-11-15 — Agent log catch-up and MCP backdrop docs
 
 **What:** Logged missing **0.31.0** release notes. Corrected the **0.30.0** entry to describe historical behavior (superseded by stacking in 0.31.0). MCP bridges now pass `backgroundEffect` / backdrop ramp fields through `animation-source.mjs`; `list_effects` exposes `backgroundEffects` and `fieldRamps`; README documents stacked layers and `backgroundEffect` instead of `colorEffect: field` for new JSON.  

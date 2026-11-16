@@ -596,8 +596,8 @@ function textGrid(){
 }
 // Draw in backing-store pixels to avoid stale HiDPI transforms after WebKit canvas resizing.
 function renderGrid(cells,inks=cellColors,colorPalette='pepto-pal'){
- let fillInk=colors.background;
- if(!Array.isArray(cells)){colorPalette=cells.colorPalette||'pepto-pal';fillInk=cells.background??colors.background;inks=cells.inks;cells=cells.cells}
+ let fillInk=colors.background,backgroundMatte=null;
+ if(!Array.isArray(cells)){colorPalette=cells.colorPalette||'pepto-pal';fillInk=cells.background??colors.background;backgroundMatte=cells.backgroundMatte||null;inks=cells.inks;cells=cells.cells}
  // Start each complete picture with fresh pixels and drawing state. WebKit can
  // retain an earlier ink in empty cells when reusing a resized canvas context.
  if(typeof ctx.reset==='function')ctx.reset();else canvas.width=canvas.width;
@@ -606,9 +606,10 @@ function renderGrid(cells,inks=cellColors,colorPalette='pepto-pal'){
  const line=unit>12?1:.5,ratio=canvas.width/(W*unit),bg=colorRGB(fill);
  ctx.strokeStyle=bg[0]*.299+bg[1]*.587+bg[2]*.114>125?'rgba(0,0,0,.2)':'rgba(255,255,255,.2)';ctx.lineWidth=line*ratio;
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-  const xx=x*cellW,yy=y*cellH;
+  const xx=x*cellW,yy=y*cellH,cellIndex=y*W+x;
   // Paint cell backgrounds explicitly so WebKit retains them across animated redraws.
-  ctx.fillStyle=fill;ctx.fillRect(xx,yy,cellW,cellH);
+  const cellFill=backgroundMatte?inkFill(backgroundMatte[cellIndex],colorPalette):fill;
+  ctx.fillStyle=cellFill;ctx.fillRect(xx,yy,cellW,cellH);
   ctx.strokeRect(xx,yy,cellW,cellH);
   const g=cells[y*W+x];if(typeof g==='number'&&rom){
    // Draw bitmap runs directly: WebKit can retain stale pixels when cached
@@ -714,7 +715,8 @@ function updateAnimationOptions(){
  else if(effect==='parallax')directionLabel='Direction';
  document.querySelector('label[for=scrollDirection]').textContent=directionLabel;
  const depthHelp=' Height sets perspective strength; Wavelength sets spatial depth/texture spacing. Neither changes loop duration or cycles. Sawtooth travels steadily; Sine and Triangle return; Reverse sawtooth reverses travel; Square pulses between two positions.';
- const help={'parallax':'Move each ink, or each glyph, as its own layer. Spread holds the lowest group and lets later groups travel farther. Opposite reverses every other layer. Two line glyphs make a moiré. A two-ink checker makes a chessboard. Empty cells stay put.','bonfire':'Build rising, tapering flames from the glyphs and inks in your drawing. Try a few blocks or diagonal shapes; even one painted cell supplies a flame texture. Empty drawings stay empty. Add Bonfire colors for yellow-white cores and red-orange tips. Movement and color cycles remain independent.','rotating-cube':'Wrap your drawing around six faces of a tumbling cube. Use a colorful pattern or bordered picture.','spinning-globe':'Wrap your drawing around a tilted spinning globe. Texture details compress near its edge.','rolling-drum':'Roll your drawing around a tipped cylinder with textured end caps.','perspective-floor':'Your drawing repeats across a floor below the horizon. Whole glyphs create a coarse perspective texture.','curved-road':'Your drawing textures a widening road with repeating bends. Outside the road stays empty.','tunnel-flight':'Your drawing wraps around a tunnel. Travel shifts its texture through depth; the center stays empty.','space-warp':'Use sparse artwork. Whole glyphs approach or recede through depth; near glyphs cover distant ones. Objects may pop when wrapping depth.','ripple':'Waves radiate from the canvas center. Height sets displacement; Wavelength sets ring spacing. Edges can move out of view.','logo-bounce':'Leave empty space around the drawing for it to bounce. Travel sets how far it moves.','logo-stretch':'Squeeze the drawn area horizontally and vertically, using whole glyphs.','starfield':'Use a sparse drawing: each glyph becomes a star in one of three moving depth layers. Nearer stars cover farther ones.','wipe':'Reveal, hold, then hide the drawing in a repeating pattern.'};$('introMotionHelp').hidden=!help[effect];$('introMotionHelp').textContent=(help[effect]??'')+(DEPTH_EFFECTS.includes(effect)?depthHelp:'');$('colorWaveOptions').hidden=!['color-wave','raster-bars','plasma','plus4-wave','plus4-raster','plus4-plasma'].includes($('animationColor').value);
+ const spatialBackdrop=backdropEffectActive()&&['color-wave','raster-bars','plasma'].includes($('fieldRamp').value);
+ const help={'parallax':'Move each ink, or each glyph, as its own layer. Spread holds the lowest group and lets later groups travel farther. Opposite reverses every other layer. Two line glyphs make a moiré. A two-ink checker makes a chessboard. Empty cells stay put.','bonfire':'Build rising, tapering flames from the glyphs and inks in your drawing. Try a few blocks or diagonal shapes; even one painted cell supplies a flame texture. Empty drawings stay empty. Add Bonfire colors for yellow-white cores and red-orange tips. Movement and color cycles remain independent.','rotating-cube':'Wrap your drawing around six faces of a tumbling cube. Use a colorful pattern or bordered picture.','spinning-globe':'Wrap your drawing around a tilted spinning globe. Texture details compress near its edge.','rolling-drum':'Roll your drawing around a tipped cylinder with textured end caps.','perspective-floor':'Your drawing repeats across a floor below the horizon. Whole glyphs create a coarse perspective texture.','curved-road':'Your drawing textures a widening road with repeating bends. Outside the road stays empty.','tunnel-flight':'Your drawing wraps around a tunnel. Travel shifts its texture through depth; the center stays empty.','space-warp':'Use sparse artwork. Whole glyphs approach or recede through depth; near glyphs cover distant ones. Objects may pop when wrapping depth.','ripple':'Waves radiate from the canvas center. Height sets displacement; Wavelength sets ring spacing. Edges can move out of view.','logo-bounce':'Leave empty space around the drawing for it to bounce. Travel sets how far it moves.','logo-stretch':'Squeeze the drawn area horizontally and vertically, using whole glyphs.','starfield':'Use a sparse drawing: each glyph becomes a star in one of three moving depth layers. Nearer stars cover farther ones.','wipe':'Reveal, hold, then hide the drawing in a repeating pattern.'};$('introMotionHelp').hidden=!help[effect];$('introMotionHelp').textContent=(help[effect]??'')+(DEPTH_EFFECTS.includes(effect)?depthHelp:'');$('colorWaveOptions').hidden=!['color-wave','raster-bars','plasma','plus4-wave','plus4-raster','plus4-plasma'].includes($('animationColor').value)&&!spatialBackdrop;
  $('fieldOptions').hidden=!backdropEffectActive();
  $('fieldLeadField').hidden=isVdcMachine(workspaceMachine);
  $('movementCyclesOptions').hidden=effect==='none';$('colorCyclesOptions').hidden=$('animationColor').value==='none';$('backgroundCyclesOptions').hidden=!backdropEffectActive();
@@ -758,7 +760,7 @@ $('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimatio
  for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Ready to draw')}else toggleAnimation()};
 $('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
 $('editAnimationFromPreview').onclick=()=>openAnimationSettings();
-for(const id of [...Object.keys(SOLID_CAMERA_VALUES),'depthWaveShape','depthTravel','animationEffect','animationColor','backdropEffect','animationSeconds','animationCycles','animationColorCycles','animationBackgroundCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude','waveLength','colorWaveLength','wipePattern','parallaxGroup','parallaxSpread','parallaxTravel','fieldRamp','fieldDirection','fieldLead'])$(id).onchange=()=>{if(id==='animationColor'&&['raster-bars','plus4-raster'].includes($('animationColor').value))$('colorWaveDirection').value='up';if(id==='animationColor'&&['plasma','plus4-plasma'].includes($('animationColor').value)){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
+for(const id of [...Object.keys(SOLID_CAMERA_VALUES),'depthWaveShape','depthTravel','animationEffect','animationColor','backdropEffect','animationSeconds','animationCycles','animationColorCycles','animationBackgroundCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude','waveLength','colorWaveLength','wipePattern','parallaxGroup','parallaxSpread','parallaxTravel','fieldRamp','fieldDirection','fieldLead'])$(id).onchange=()=>{if(id==='animationColor'&&['raster-bars','plus4-raster'].includes($('animationColor').value))$('colorWaveDirection').value='up';if(id==='animationColor'&&['plasma','plus4-plasma'].includes($('animationColor').value)){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};if(id==='fieldRamp'&&['raster-bars'].includes($('fieldRamp').value))$('colorWaveDirection').value='up';if(id==='fieldRamp'&&['plasma'].includes($('fieldRamp').value)){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
 for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseAnimation()});
 // GIF and PNG sequences share source snapshots, exact pixels, and encoded frame durations.
@@ -802,10 +804,17 @@ function animationRaster({s,bits,cellAspect}){
   tiles.set(g,tile);return tile;
  }
  function indexedFrame(index){
-  const {cells,inks}=animationCells(index,s),indexed=new Uint8Array(width*height);
-  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++)if(cells[y*s.W+x]!==''){
-   const tile=tileFor(cells[y*s.W+x]);
-   for(let row=0;row<cellH;row++)for(let col=0;col<cellW;col++)if(tile[row*cellW+col])indexed[(y*cellH+row)*width+x*cellW+col]=inks[y*s.W+x]+1;
+  const picture=animationCells(index,s),{cells,inks}=picture,indexed=new Uint8Array(width*height);
+  const matte=picture.backgroundMatte;
+  const useMatte=matte&&matte.length===s.W*s.H;
+  for(let y=0;y<s.H;y++)for(let x=0;x<s.W;x++){
+   const cellIndex=y*s.W+x,glyph=cells[cellIndex],tile=glyph!==''?tileFor(glyph):null,matteInk=useMatte?matte[cellIndex]:(picture.background??s.colors.background);
+   for(let row=0;row<cellH;row++)for(let col=0;col<cellW;col++){
+    const px=(y*cellH+row)*width+x*cellW+col;
+    if(tile&&tile[row*cellW+col])indexed[px]=inks[cellIndex]+1;
+    else if(s.background==='transparent'&&!useMatte)indexed[px]=0;
+    else indexed[px]=matteInk+1;
+   }
   }
   return indexed;
  }

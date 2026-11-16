@@ -90,6 +90,22 @@ function fieldSequence(source) {
   return ramp;
 }
 
+const SPATIAL_FIELD_RAMPS = new Set(['color-wave', 'raster-bars', 'plasma']);
+
+export function isSpatialFieldRamp(source) {
+  if (!backgroundActive(source)) {
+    return false;
+  }
+  return SPATIAL_FIELD_RAMPS.has(source.fieldRamp ?? 'cycle');
+}
+
+function backdropPhase(backgroundPhase, source) {
+  if ((source.fieldDirection ?? 'forward') === 'reverse') {
+    return 1 - backgroundPhase;
+  }
+  return backgroundPhase;
+}
+
 const FRAME_BUDGET_MS = 20;
 
 function wrapIndex(value, size) {
@@ -158,6 +174,10 @@ function colorStepsFor(source) {
 function backgroundStepsFor(source) {
   if (!backgroundActive(source)) {
     return 1;
+  }
+  if (isSpatialFieldRamp(source)) {
+    const key = fieldRampCycleKey(source);
+    return colorStepsFor({...source, colorEffect: key});
   }
   return fieldSequence(source).length;
 }
@@ -673,85 +693,118 @@ function applyInversePass(colorPhase, source, cells) {
   }
 }
 
+function colorRampInk(index, effect, phase, source, startInk, cellInk) {
+  const family = colorFamily(effect);
+  const ramp = COLOR_CYCLES[effect];
+  if (!ramp) {
+    return cellInk;
+  }
+  const ted = isPlus4ColorEffect(effect);
+  const fixedRamp = family === 'raster-bars' || family === 'plasma';
+  let start = startInk;
+  if (start === undefined) {
+    start = 0;
+    if (!fixedRamp) {
+      if (ted) {
+        const cousin = c64InkToTed(cellInk);
+        start = Math.max(0, ramp.indexOf(cousin));
+      } else {
+        start = Math.max(0, ramp.indexOf(cellInk));
+      }
+    }
+  }
+  let step = Math.floor(phase * ramp.length);
+
+  if (family === 'color-wave' || family === 'raster-bars') {
+    const direction = source.colorWaveDirection
+      ?? (family === 'raster-bars' ? 'up' : 'up-left');
+    const x = index % source.W;
+    const y = Math.floor(index / source.W);
+    const offset = (
+      (direction.includes('left') ? x : direction.includes('right') ? -x : 0)
+      + (direction.includes('up') ? y : direction.includes('down') ? -y : 0)
+    ) * (50 / (source.colorWaveLength ?? 50));
+    const t = phase + offset / ramp.length;
+    const shape = source.colorWaveShape ?? 'sawtooth';
+    if (shape === 'sawtooth') {
+      step = Math.floor(offset + Math.floor(phase * ramp.length));
+    } else {
+      step = Math.min(ramp.length - 1, Math.floor((waveValue(shape, t) + 1) / 2 * ramp.length));
+    }
+    step = Math.floor(
+      ((step % ramp.length) + ramp.length) % ramp.length * ((source.colorWaveAmplitude ?? 100) / 100),
+    );
+  }
+
+  if (family === 'plasma') {
+    const direction = source.colorWaveDirection ?? 'up-left';
+    const dx = direction.includes('left') ? 1 : direction.includes('right') ? -1 : 0;
+    const dy = direction.includes('up') ? 1 : direction.includes('down') ? -1 : 0;
+    const spatial = 50 / (source.colorWaveLength ?? 50);
+    const nx = (index % source.W) / source.W * spatial;
+    const ny = Math.floor(index / source.W) / source.H * spatial;
+    const shape = source.colorWaveShape ?? 'sine';
+    const value = (
+      waveValue(shape, nx + dx * phase)
+      + waveValue(shape, ny + dy * phase)
+      + waveValue(shape, nx + ny + (dx + dy) * phase)
+    ) / 3;
+    step = Math.min(
+      ramp.length - 1,
+      Math.floor(
+        Math.max(0, Math.min(1, (value + 1) / 2))
+        * ((source.colorWaveAmplitude ?? 100) / 100)
+        * ramp.length
+        + 1e-10,
+      ),
+    );
+  }
+
+  if (family === 'bonfire') {
+    const heat = bonfireHeat(index % source.W, Math.floor(index / source.W), source.W, source.H, phase);
+    const fireRamp = ted ? ramp : BONFIRE_COLORS;
+    return fireRamp[Math.min(fireRamp.length - 1, Math.floor(heat * fireRamp.length))];
+  }
+
+  return ramp[((start + step) % ramp.length + ramp.length) % ramp.length];
+}
+
+function fieldMatte(backgroundPhase, source) {
+  if (!isSpatialFieldRamp(source)) {
+    return null;
+  }
+  const effectKey = fieldRampCycleKey(source);
+  const ramp = COLOR_CYCLES[effectKey];
+  if (!ramp) {
+    return null;
+  }
+  const phase = backdropPhase(backgroundPhase, source);
+  const still = source.colors?.background ?? 0;
+  const family = colorFamily(effectKey);
+  const fixedRamp = family === 'raster-bars' || family === 'plasma';
+  let startInk = 0;
+  if (!fixedRamp) {
+    startInk = Math.max(0, ramp.indexOf(still));
+  }
+  const matte = Array(source.W * source.H);
+  for (let index = 0; index < matte.length; index++) {
+    matte[index] = colorRampInk(index, effectKey, phase, source, startInk, still);
+  }
+  return matte;
+}
+
 function applyColorPass(colorPhase, source, cells, inks) {
   const effect = source.colorEffect;
-  const family = colorFamily(effect);
   const ramp = COLOR_CYCLES[effect];
   if (!ramp) {
     return;
   }
-  const ted = isPlus4ColorEffect(effect);
 
   for (let index = 0; index < cells.length; index++) {
     if (cells[index] === '') {
       continue;
     }
-    const fixedRamp = family === 'raster-bars' || family === 'plasma';
-    let start = 0;
-    if (!fixedRamp) {
-      if (ted) {
-        const cousin = c64InkToTed(inks[index]);
-        start = Math.max(0, ramp.indexOf(cousin));
-      } else {
-        start = Math.max(0, ramp.indexOf(inks[index]));
-      }
-    }
-    let step = Math.floor(colorPhase * ramp.length);
-
-    if (family === 'color-wave' || family === 'raster-bars') {
-      const direction = source.colorWaveDirection
-        ?? (family === 'raster-bars' ? 'up' : 'up-left');
-      const x = index % source.W;
-      const y = Math.floor(index / source.W);
-      const offset = (
-        (direction.includes('left') ? x : direction.includes('right') ? -x : 0)
-        + (direction.includes('up') ? y : direction.includes('down') ? -y : 0)
-      ) * (50 / (source.colorWaveLength ?? 50));
-      const t = colorPhase + offset / ramp.length;
-      const shape = source.colorWaveShape ?? 'sawtooth';
-      if (shape === 'sawtooth') {
-        step = Math.floor(offset + Math.floor(colorPhase * ramp.length));
-      } else {
-        step = Math.min(ramp.length - 1, Math.floor((waveValue(shape, t) + 1) / 2 * ramp.length));
-      }
-      step = Math.floor(
-        ((step % ramp.length) + ramp.length) % ramp.length * ((source.colorWaveAmplitude ?? 100) / 100),
-      );
-    }
-
-    if (family === 'plasma') {
-      const direction = source.colorWaveDirection ?? 'up-left';
-      const dx = direction.includes('left') ? 1 : direction.includes('right') ? -1 : 0;
-      const dy = direction.includes('up') ? 1 : direction.includes('down') ? -1 : 0;
-      const spatial = 50 / (source.colorWaveLength ?? 50);
-      const nx = (index % source.W) / source.W * spatial;
-      const ny = Math.floor(index / source.W) / source.H * spatial;
-      const shape = source.colorWaveShape ?? 'sine';
-      const value = (
-        waveValue(shape, nx + dx * colorPhase)
-        + waveValue(shape, ny + dy * colorPhase)
-        + waveValue(shape, nx + ny + (dx + dy) * colorPhase)
-      ) / 3;
-      step = Math.min(
-        ramp.length - 1,
-        Math.floor(
-          Math.max(0, Math.min(1, (value + 1) / 2))
-          * ((source.colorWaveAmplitude ?? 100) / 100)
-          * ramp.length
-          + 1e-10,
-        ),
-      );
-    }
-
-    if (family === 'bonfire') {
-      const heat = bonfireHeat(index % source.W, Math.floor(index / source.W), source.W, source.H, colorPhase);
-      const fireRamp = ted ? ramp : BONFIRE_COLORS;
-      inks[index] = fireRamp[
-        Math.min(fireRamp.length - 1, Math.floor(heat * fireRamp.length))
-      ];
-    } else {
-      inks[index] = ramp[((start + step) % ramp.length + ramp.length) % ramp.length];
-    }
+    inks[index] = colorRampInk(index, effect, colorPhase, source, undefined, inks[index]);
   }
 }
 
@@ -804,6 +857,7 @@ export function animationCells(frame, source) {
   applyInversePass(colorPhase, normalized, cells);
   applyColorPass(colorPhase, normalized, cells, inks);
   const field = fieldColors(backgroundPhase, normalized);
+  const backgroundMatte = fieldMatte(backgroundPhase, normalized);
   let colorPalette = 'pepto-pal';
   if (isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect) || source.backgroundEffect === 'plus4-field') {
     colorPalette = 'ted-pal';
@@ -816,5 +870,6 @@ export function animationCells(frame, source) {
     colorPalette,
     background: field.background,
     border: field.border,
+    backgroundMatte,
   };
 }
