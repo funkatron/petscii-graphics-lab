@@ -45,9 +45,14 @@ function colorFamily(effect) {
   return effect;
 }
 
+function backgroundActive(source) {
+  source = normalizeAnimation(source);
+  return source.backgroundEffect === 'field' || source.backgroundEffect === 'plus4-field';
+}
+
 function fieldRampCycleKey(source) {
   const rampName = source.fieldRamp ?? 'cycle';
-  const ted = isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect);
+  const ted = isTedMachine(source.machine) || source.backgroundEffect === 'plus4-field';
   const vicByRamp = {
     cycle: 'color-cycle',
     glow: 'color-glow',
@@ -122,9 +127,11 @@ export function scrollDirection(source) {
 }
 
 export function effectCycles(source) {
+  source = normalizeAnimation(source);
   const motion = source.effect === 'none' ? 1 : (source.motionCycles ?? 1);
   const color = source.colorEffect === 'none' ? 1 : (source.colorCycles ?? 1);
-  return {motion, color};
+  const background = backgroundActive(source) ? (source.backgroundCycles ?? 1) : 1;
+  return {motion, color, background};
 }
 
 function colorStepsFor(source) {
@@ -137,9 +144,6 @@ function colorStepsFor(source) {
     // Keep a dense fire timeline; never shorter than the ramp itself.
     return Math.max(48, ramp ? ramp.length : 0);
   }
-  if (family === 'field') {
-    return fieldSequence(source).length;
-  }
   if (family === 'plasma') {
     // C64 plasma stays on the classic 24-sample loop; Plus/4 uses the
     // expanded TED ramp length so gap-filled colors actually appear.
@@ -149,6 +153,13 @@ function colorStepsFor(source) {
     return 24;
   }
   return ramp ? ramp.length : 1;
+}
+
+function backgroundStepsFor(source) {
+  if (!backgroundActive(source)) {
+    return 1;
+  }
+  return fieldSequence(source).length;
 }
 
 function samplesPerMotionCycle(source) {
@@ -200,7 +211,7 @@ function samplesPerMotionCycle(source) {
   return 1;
 }
 
-function minimumFrameCount(source, motionCycles, colorSteps, colorCycles) {
+function minimumFrameCount(source, motionCycles, cellColorSteps, colorCycles, backSteps, backgroundCycles) {
   let motionMinimum = 1;
   if (source.effect !== 'none') {
     const needsManySamples =
@@ -223,36 +234,44 @@ function minimumFrameCount(source, motionCycles, colorSteps, colorCycles) {
   }
 
   let colorMinimum = 1;
-  if (colorSteps > 1) {
+  if (cellColorSteps > 1) {
     const family = colorFamily(source.colorEffect);
     const perCycle = (family === 'plasma' || family === 'bonfire') ? 4 : 2;
     colorMinimum = colorCycles * perCycle;
   }
-  return Math.max(motionMinimum, colorMinimum);
+  let backMinimum = 1;
+  if (backSteps > 1) {
+    backMinimum = backgroundCycles * 2;
+  }
+  return Math.max(motionMinimum, colorMinimum, backMinimum);
 }
 
 export function animationPlan(source) {
   source = normalizeAnimation(source);
-  const colorSteps = colorStepsFor(source);
-  const {motion, color} = effectCycles(source);
+  const cellColorSteps = colorStepsFor(source);
+  const backSteps = backgroundStepsFor(source);
+  const {motion, color, background} = effectCycles(source);
   const frameBudget = Math.floor(source.seconds * 1000 / FRAME_BUDGET_MS);
 
-  if (source.effect === 'replay' && colorSteps === 1 && motion === 1) {
+  if (source.effect === 'replay' && cellColorSteps === 1 && backSteps === 1 && motion === 1) {
     const fromDuration = Math.floor(source.seconds * 750 / FRAME_BUDGET_MS) + 1;
     const count = Math.max(2, Math.min(48, fromDuration, source.events.length + 1));
     return {count, warning: ''};
   }
 
   const stepsPerCycle = samplesPerMotionCycle(source);
-  if (motion === 1 && color === 1) {
+  if (motion === 1 && color === 1 && background === 1) {
     const replayCap = source.effect === 'replay' ? 48 : Infinity;
-    const count = Math.max(1, Math.min(replayCap, Math.max(stepsPerCycle, colorSteps), frameBudget));
+    const count = Math.max(
+      1,
+      Math.min(replayCap, Math.max(stepsPerCycle, cellColorSteps, backSteps), frameBudget),
+    );
     return {count, warning: ''};
   }
 
-  const subdivision = Math.max(motion, color);
-  const wanted = Math.max(stepsPerCycle * motion, colorSteps * color);
-  const minimum = minimumFrameCount(source, motion, colorSteps, color);
+  const subdivision = Math.max(motion, color, background);
+  const wanted = Math.max(stepsPerCycle * motion, cellColorSteps * color, backSteps * background);
+  const minimum = minimumFrameCount(source, motion, cellColorSteps, color, backSteps, background);
   const divisible = Math.floor(Math.min(wanted, frameBudget) / subdivision) * subdivision;
   const count = Math.max(subdivision, divisible);
   const warning = count < minimum
@@ -271,6 +290,7 @@ export function animationDelay(frameIndex, source) {
   const motionOnlyReplay =
     source.effect === 'replay'
     && source.colorEffect === 'none'
+    && !backgroundActive(source)
     && (source.motionCycles ?? 1) === 1;
   if (motionOnlyReplay) {
     if (frameIndex === frameCount - 1) {
@@ -615,7 +635,7 @@ function applyGridMotion(frame, phase, source, cells, inks) {
 
 function fieldColors(colorPhase, source) {
   const still = source.colors?.background ?? 0;
-  if (colorFamily(source.colorEffect) !== 'field') {
+  if (!backgroundActive(source)) {
     return {background: still, border: still};
   }
   const sequence = fieldSequence(source);
@@ -741,6 +761,7 @@ export function animationCells(frame, source) {
   const cycles = effectCycles(normalized);
   const phase = cyclePhase(frame, frameCount, cycles.motion);
   const colorPhase = cyclePhase(frame, frameCount, cycles.color);
+  const backgroundPhase = cyclePhase(frame, frameCount, cycles.background);
 
   const cells = normalized.effect === 'replay'
     ? normalized.base.slice()
@@ -782,9 +803,9 @@ export function animationCells(frame, source) {
 
   applyInversePass(colorPhase, normalized, cells);
   applyColorPass(colorPhase, normalized, cells, inks);
-  const field = fieldColors(colorPhase, normalized);
+  const field = fieldColors(backgroundPhase, normalized);
   let colorPalette = 'pepto-pal';
-  if (isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect)) {
+  if (isTedMachine(source.machine) || isPlus4ColorEffect(source.colorEffect) || source.backgroundEffect === 'plus4-field') {
     colorPalette = 'ted-pal';
   } else if (isVdcMachine(source.machine)) {
     colorPalette = 'vdc-pal';

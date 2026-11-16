@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-15 — Backdrop animation section (0.30.0)
+
+**What:** Animation panel has a fourth **Backdrop** fieldset (`#backdropEffect` + ramp controls). Backdrop is no longer in the Color animation list; projects still save `colorEffect: field` / `plus4-field`. Color and Backdrop remain mutually exclusive in the UI. Release **0.30.0**.  
+**Tested:** `tests/backdrop-parallax.spec.cjs`, `tests/animation-layout.spec.cjs` (Chromium).  
+**Touched:** `index.html`, `README.md`, `docs/maintainer-reference.md`, `tests/backdrop-parallax.spec.cjs`, `tests/animation-layout.spec.cjs`, `app-version.js`, `package.json`.
+
 ## 2026-11-15 — Backdrop ramp palette expansion (0.29.0)
 
 **What:** Backdrop **Ramp** can step the shared background through every color-animation palette except Backdrop and Inverse: color cycle, warm glow, rainbow wave, raster bars, plasma, bonfire (`FIELD_RAMPS`). Plus/4 maps to the matching TED ramps. Release **0.29.0**.  
