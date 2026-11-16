@@ -7,3 +7,4 @@ test-results/
 agents/**/__pycache__/
 agents/**/*.pyc
 agents/**/out/
+artifacts/

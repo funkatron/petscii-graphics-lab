@@ -16,6 +16,32 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 4. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
 5. **Machine modes / display palettes:** C64, C128 (40-col), C128 80-col, and Plus/4 are shipped. Extra VIC palettes (DeeKay, Frodo, CCS64, Pepto NTSC) stay later. See [machine modes](machine-modes.md).
 6. **Animation and C64 follow-ups — lower priority:** further capacity optimization, broader PAL/NTSC VICE validation, and physical C64/storage checks. Revisit when a concrete need or playback issue arises.
+7. **Editor modularization:** peel the large `index.html` script into native ES modules without a bundler or build step (static `import` for GitHub Pages). See [Editor modularization](#editor-modularization--planned).
+
+## Editor modularization — planned
+
+Most of the app still lives in one `index.html` module script; smaller areas already ship as separate `.js` files (`machine-modes.js`, exporters, `pointer-stroke.js`, and similar). A larger pass should shrink the monolith incrementally while keeping deploy as “open the repo on Pages.”
+
+**Constraints**
+
+- No npm build, Vite, or Webpack in the default workflow.
+- Keep `index.html` as the shell: markup, styles, and a thin boot script that wires DOM to modules.
+- Preserve static hosting: only standard browser ES modules and existing vendor ESM copies.
+
+**Approach**
+
+1. **Inventory** — list cohesive chunks still inline (canvas view/zoom/pan, drawing tools, download sheet, project persistence, animation preview chrome).
+2. **Extract in slices** — one feature or subsystem per change, with focused Playwright or `*.unit.mjs` coverage where practical.
+3. **Document contracts** — each module owns clear inputs/outputs; shared editor state stays explicit (imported store or passed context) instead of hidden globals.
+4. **Maintain AGENTS guidance** — update “where the code lives” as modules move; avoid drive-by refactors unrelated to the slice.
+
+**Checklist (not started)**
+
+- [ ] Agree module boundaries and naming (`editor-stage.js`, `canvas-view.js`, `drawing-tools.js`, or similar).
+- [ ] Move canvas view (zoom, guides, pan) out of `index.html`.
+- [ ] Move download/export UI orchestration behind a module boundary shared with existing exporters.
+- [ ] Reduce boot script to imports, DOM queries, and `init()` calls.
+- [ ] Confirm cold load on GitHub Pages and CI (Chromium + iPad WebKit) after each slice.
 
 ## Machine modes and display palettes — design in progress
 
@@ -196,6 +222,7 @@ Show letters & numbers reveals both cases. There is no whole-drawing character-s
 
 - [x] Device-pref editor zoom (fit, 125%, 150%, 200%, 300%) with scrollable bezel when enlarged; Ctrl/Cmd + wheel steps zoom.
 - [x] Optional center guides for symmetry (editor only; exports unchanged).
+- [x] Zoom and **Guides** in the stage bar above the canvas (0.35.0).
 
 ## Richer drawing tools — implemented
 
