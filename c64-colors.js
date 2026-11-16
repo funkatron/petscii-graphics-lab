@@ -151,3 +151,32 @@ export function inkName(inkIndex, paletteId = 'pepto') {
 export function isDisplayPaletteId(value) {
   return typeof value === 'string' && Object.hasOwn(DISPLAY_PALETTES, value);
 }
+
+export function inkLuminance(rgb) {
+  return rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114;
+}
+
+/**
+ * Remap a backdrop ink toward darker palette entries (option B brightness).
+ * `inkTable` is name/hex pairs for the active display palette; 100% is identity.
+ */
+export function backdropInkBrightness(ink, percent = 100, inkTable) {
+  if (percent >= 100 || !inkTable?.length) {
+    return ink;
+  }
+  const index = Math.max(0, ink | 0);
+  const scale = Math.max(0, Math.min(100, percent)) / 100;
+  const lums = inkTable.map(([, hex]) => inkLuminance(colorRGB(hex)));
+  const sourceIndex = Math.min(index, lums.length - 1);
+  const target = lums[sourceIndex] * scale;
+  let best = 0;
+  let bestDist = Number.POSITIVE_INFINITY;
+  for (let candidate = 0; candidate < lums.length; candidate++) {
+    const dist = Math.abs(lums[candidate] - target);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = candidate;
+    }
+  }
+  return best;
+}

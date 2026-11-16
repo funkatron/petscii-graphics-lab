@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-15 — Backdrop brightness via ink remap (0.32.3)
+
+**What:** `fieldBrightness` (10–100%) remaps backdrop `backgroundMatte`, `background`, and `border` inks toward darker palette entries by scaled luminance; glyph inks unchanged. VIC/TED/VDC use their display tables. Release **0.32.3**.  
+**Tested:** `node --test tests/backdrop-brightness.unit.mjs tests/backdrop-parallax.unit.mjs`.  
+**Touched:** `c64-colors.js`, `animation-frames.js`, `index.html`, validation, MCP stubs, tests, maintainer reference.
+
 ## 2026-11-15 — Independent backdrop wave controls (0.32.2)
 
 **What:** Backdrop spatial ramps use `fieldWaveDirection`, `fieldWaveShape`, `fieldWaveLength`, and `fieldWaveAmplitude`, separate from cell `colorWave*`. Backdrop fieldset shows wave direction/waveform/wavelength/height when Backdrop is on; `fieldDirection` is labeled play direction (forward/reverse along the ramp). Legacy projects copy `colorWave*` into `fieldWave*` on load. Release **0.32.2**.  

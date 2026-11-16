@@ -64,6 +64,7 @@ export function buildAnimationSource(data, anim) {
     fieldWaveShape: anim.fieldWaveShape,
     fieldWaveAmplitude: anim.fieldWaveAmplitude,
     fieldWaveLength: anim.fieldWaveLength,
+    fieldBrightness: anim.fieldBrightness ?? 100,
     wipePattern: anim.wipePattern ?? 'diagonal',
     depthTravel: anim.depthTravel ?? 'toward',
     depthWaveShape: anim.depthWaveShape ?? 'sawtooth',
