@@ -13,7 +13,7 @@ This document combines **in-repo inventory** with **external** demoscene and har
 | **Shared background** | One background ink per frame; backdrop animation walks that register on VIC/TED, not per-cell paper in native PRG. |
 | **Loop closure** | Movement/color/backdrop cycles must align to **loop duration** and independent cycle counts (`ANIMATION_CYCLES`). |
 | **Machines** | VIC, TED, and VDC paths differ for color counts and backdrop; new ids must validate in `project-validation.js`. |
-| **C64 export** | Native player budget is tight; heavy effects may be **browser-first** with warnings or reduced native support. |
+| **C64 export** | Frame-stream player is tight; heavy effects ship **browser-first**, then **procedural native** if needed. Owner accepts a [**player rewrite**](native-player-rewrite.md) when an effect needs real VIC semantics—not only smaller frame diffs. |
 
 Architecture: [`animation-frames.js`](../animation-frames.js) plans and samples frames; movement modules include [`solid-motion.js`](../solid-motion.js), [`space-warp.js`](../space-warp.js), [`depth-surfaces.js`](../depth-surfaces.js), [`bonfire.js`](../bonfire.js). See [architecture](architecture.md).
 
@@ -124,7 +124,8 @@ Each step: update `MOTION_EFFECTS`, UI picker, `animationPlan` sample budget, Ch
 
 ## What we are not pursuing in this track
 
-- Sprite multiplexing, side-border bitmap scroll, DYCP charset RAM rewrites per frame (hardware fidelity).
+- Sprite multiplexing, side-border bitmap scroll, and **VSP/AGSP**-class display tricks (unsafe or wrong product model).
+- **Full hardware DYCP** (per-frame charset redefinition) in the **browser grid**; native may approach it via [player rewrite](native-player-rewrite.md), not via bigger ZIP frames.
 - Bitmap-only modes (FLI, SHIFLI) as editor canvas modes.
 - Audio / SID (out of product scope).
 
@@ -148,4 +149,5 @@ Each step: update `MOTION_EFFECTS`, UI picker, `animationPlan` sample budget, Ch
 - [depth-performance.md](depth-performance.md) — browser cost baselines  
 - [diagonal-movement.md](diagonal-movement.md) — scroll vs wave vs wipe  
 - [c64-capacity.md](c64-capacity.md) — native player limits  
+- [native-player-rewrite.md](native-player-rewrite.md) — when and how to replace frame replay  
 - [maintainer-reference.md](maintainer-reference.md) — frame contracts and export behavior  

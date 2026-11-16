@@ -11,7 +11,7 @@ See issue #66. New Project resets to a blank default drawing with confirmation a
 ## Current priorities
 
 1. **New animation types:** Backdrop and Parallax shipped; **deep research** for the next movement/color prototypes is in [animation types research](animation-types-research.md) (demoscene references + ranked candidates) and [other PETSCII editors](petscii-editors-landscape.md) (how comparable tools handle animation and export). Prioritize new creative effects over raw C64 capacity work.
-2. **Animation and C64 follow-ups:** capacity optimization, broader PAL/NTSC VICE validation, native export hardening, and physical C64/storage checks. Run **immediately after** priority #1 prototypes are chosen (validation debt for shipped effects overlaps here).
+2. **Animation and C64 follow-ups:** capacity optimization, broader PAL/NTSC VICE validation, native export hardening, physical C64/storage checks, and—when a prototype needs hardware fidelity—a **native player rewrite** ([design note](native-player-rewrite.md)). Run **immediately after** priority #1 prototypes are chosen (validation debt for shipped effects overlaps here).
 3. **UI validation:** physical iPad finger reach and larger-text checks after the compact cleanup (Apple Pencil is out of scope).
 4. **Drawing and import usability:** typed entry and text-file import are implemented; evaluate further everyday drawing improvements.
 5. **Machine modes / display palettes:** C64, C128 (40-col), C128 80-col, and Plus/4 are shipped. Extra VIC palettes (DeeKay, Frodo, CCS64, Pepto NTSC) stay later. See [machine modes](machine-modes.md).
@@ -271,7 +271,7 @@ Show letters & numbers reveals both cases. There is no whole-drawing character-s
 - [x] Compact scattered changes into literal byte runs, reducing full-screen update work and program size.
 - [ ] Verify on physical PAL/NTSC C64 hardware, including RUN/STOP key handling.
 - [ ] Verify transfer to physical storage devices.
-- [ ] Evaluate raster-synchronized updates and procedural native effects.
+- [ ] Evaluate raster-synchronized updates and procedural native effects. See [native player rewrite](native-player-rewrite.md) (owner-approved scope; hybrid replay + procedural profiles).
 
 The fragmented full-screen benchmark now copies in at most 6 clock ticks (about 0.1 seconds), down from 18 ticks on PAL. Raster synchronization alone cannot fit that work into one screen refresh; further work needs faster decoding, staged updates, or native effects. See [VICE performance checks](vice-validation.md#full-screen-performance).
 

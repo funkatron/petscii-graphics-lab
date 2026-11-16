@@ -35,7 +35,7 @@ Hardware tricks that **move the display window without updating screen RAM** (VS
 | **Hardware** | 0–7 pixel scroll within a char; screen RAM shift at wrap ([demo intro scroller](https://odd.blog/wp-content/uploads/2008/01/intro-to-programming-c64-demos.html)). |
 | **Shipped** | **Scroll** moves whole cells per frame; no sub-pixel phase. |
 | **Grid animation** | **Reasonable (medium).** Interpolate scroll with a **phase 0–1** per motion cycle: sample floor/ceil cell sources or render at higher internal resolution then snap—tradeoff between smoothness and export pixel lock. |
-| **C64 export** | Fine scroll on real hardware is **register-only**; our exporter writes **screen memory**. Feasible only as **approximation** (quantized scroll) unless we add a native player that only tweaks scroll regs (out of scope today). |
+| **C64 export** | Fine scroll on real hardware is **register-only**; today’s exporter writes **screen memory** (quantized). A [**procedural player**](native-player-rewrite.md) can tweak scroll regs between occasional RAM shifts. |
 | **Verdict** | **Research spike:** sub-cell scroll phase for browser preview; document that PRG stays cell-quantized. |
 
 ### DYCP / DXYCP / FPP / Tec-Tec (per-column or per-line Y)
@@ -65,7 +65,7 @@ Hardware tricks that **move the display window without updating screen RAM** (VS
 | **Hardware** | Late badline write shifts VC counter horizontally ([VSP](https://code198x.com/vault/techniques/vsp/)); early badline end **crunches** rows ([AGSP](https://code198x.com/vault/techniques/agsp/)); combined = move screen with little RAM copy ([Codebase64 AGSP](https://codebase64.net/doku.php?id=base%3Aagsp_any_given_screen_position)). |
 | **Shipped** | **Scroll** + **Parallax** approximate layered motion, not pointer fraud. |
 | **Grid animation** | **Poor fit as “authentic” trick.** Visually similar to **translating the whole derived grid** with optional **top garbage rows** (blanked)—which users experience as scroll, not magic. |
-| **C64 export** | **Not reasonable** to emulate VSP in generated 6502 without a **different player architecture** (IRQ + reg twiddling, not screen writes). |
+| **C64 export** | **Not reasonable** to emulate VSP even with a rewrite (IRQ + VC fraud); stays research-only. |
 | **Verdict** | **Research only:** document in help as “what scroll already approximates.” Optional **easter-egg** top-blank band in preview is low value. |
 
 ### Raster bars / IRQ colour per scanline
@@ -76,7 +76,7 @@ Hardware tricks that **move the display window without updating screen RAM** (VS
 | **Shipped** | **Raster-style bars** animates **inks/background** on the grid; **Backdrop** field ramps. |
 | **Grid animation** | **Poor fit** per scanline on a **40×25 cell** canvas (cells are 8×8 logical pixels tall in export). |
 | **Screen look** | **Reasonable (high).** Post-process in `screen-look.js` or future shader pass: draw horizontal colour bands on **rasterized canvas**, export in PNG/GIF/video only ([roadmap shaders](roadmap.md#canvas-shaders--exploration)). |
-| **C64 export** | IRQ bars in a **player** are possible but **orthogonal** to artwork animation; separate “border demo” program, not PETSCII composition export. |
+| **C64 export** | IRQ border/background ramps are feasible in a [**procedural player**](native-player-rewrite.md) for **backdrop-only** motion; still not per-scanline cell ink. |
 | **Verdict** | Split: **animation track = backdrop bars**; **shader track = true scanline bars**. |
 
 ### FLI / half-FLI / FPP timing / “every line is a badline”
@@ -165,3 +165,4 @@ Each spike: max one week of agent time, feature flag or hidden effect id, no pro
 - [diagonal-movement.md](diagonal-movement.md) — scroll vs wave vs wipe  
 - [depth-effects.md](depth-effects.md) — projection effects  
 - [c64-capacity.md](c64-capacity.md) — native limits  
+- [native-player-rewrite.md](native-player-rewrite.md) — procedural export path  
