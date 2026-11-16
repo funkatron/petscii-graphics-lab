@@ -47,3 +47,21 @@ test('center guides preference survives reload',async({page})=>{
   await page.reload();await page.locator('.app[data-ready=true]').waitFor();
   await expect(page.locator('#centerGuides')).toBeChecked();
 });
+
+test('two-finger drag pans a zoomed canvas',async({page})=>{
+  await loadProject(page,project([160],24,24));
+  await ui(page,'#canvasDetails');
+  await page.locator('#editorZoom').selectOption('2');
+  await page.locator('#frame').evaluate(f=>{f.scrollLeft=0;f.scrollTop=0;});
+  const before=await page.locator('#frame').evaluate(f=>({sl:f.scrollLeft,st:f.scrollTop,sw:f.scrollWidth,cw:f.clientWidth}));
+  expect(before.sw).toBeGreaterThan(before.cw);
+  await page.locator('#canvas').evaluate(c=>{
+    const r=c.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+    const fire=(type,id,dx,dy)=>c.dispatchEvent(new PointerEvent(type,{pointerId:id,pointerType:'touch',isPrimary:id===1,bubbles:true,cancelable:true,clientX:cx+dx,clientY:cy+dy}));
+    fire('pointerdown',1,-30,0);fire('pointerdown',2,30,0);
+    fire('pointermove',1,-80,-40);fire('pointermove',2,-20,20);
+    fire('pointerup',1,-80,-40);fire('pointerup',2,-20,20);
+  });
+  const after=await page.locator('#frame').evaluate(f=>({sl:f.scrollLeft,st:f.scrollTop}));
+  expect(after.sl+after.st).toBeGreaterThan(before.sl+before.st);
+});

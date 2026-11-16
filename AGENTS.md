@@ -2,7 +2,7 @@
 
 ## Mission
 
-Build an enjoyable **Commodore 64 character-graphics editor** for touch, Apple Pencil, and mouse.
+Build an enjoyable **Commodore 64 character-graphics editor** for touch and mouse.
 
 The main task is choosing authentic glyphs and painting pictures, patterns, and screens. Digital drawing comes first. Physical stencil experiments are secondary.
 
