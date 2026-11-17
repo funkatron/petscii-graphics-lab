@@ -81,3 +81,8 @@
 - `c64-procedural-vic.js`: column bend + fld-blinds gap tables, encode/decode, CPU/RAM estimates; `createC64AdaptiveProgram` prefers `procedural-v2` when `motionSource` present.
 - Readiness/export pass `motionSource` for research effects; download still replay-only until runtime codegen.
 - Tests: `tests/c64-procedural-vic.unit.mjs`; capacity spec expects sparse column-wave `procedural-v2`.
+
+## Procedural VIC playback (2026-11-17)
+
+- `c64-procedural-codegen.js`: 6502 column-wave + fld-blinds players; py65 `c64-procedural-playback.spec.cjs`.
+- 8×5 column-wave sparse PRG ~946 bytes total; download via adaptive + `motionSource`.
