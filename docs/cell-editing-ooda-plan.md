@@ -1,6 +1,8 @@
 # Individual cell editing — OODA plan (draft)
 
-**Status:** Draft for owner review **after** Tier A (#3 overlay, export copy, animation glossary) is merged. Do not implement until this plan is approved.
+**Status:** **Paused (2026-11-17).** Owner chose not to ship per-cell UI until a procedural-animation-aligned workflow is designed. Tier A (reference overlay, export copy, glossary) stays on `main`.
+
+**Exploratory implementation (not on `main`):** branch `cursor/cell-editing-v1-6ab6` (v0.35.3 spike — Edit cell tool + inspector bar). Reverted from `main` in favor of stroke/zoom/selection-first editing.
 
 **Working name:** *Cell inspector* or *Edit cell* — precise UI label TBD.
 

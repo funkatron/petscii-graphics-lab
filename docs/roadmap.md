@@ -68,7 +68,7 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 
 **Done when:** Tier A checkboxes green, README/help match new labels, iPad WebKit spot-check for changed Animation/Download strings.
 
-**After Tier A:** Owner review [cell-editing-ooda-plan.md](cell-editing-ooda-plan.md) for per-cell inspector / edit workflow (separate from Tier B line tools).
+**Cell editing:** Paused — see [cell-editing-ooda-plan.md](cell-editing-ooda-plan.md). Spike on `cursor/cell-editing-v1-6ab6`; focus on zoom, selection, and procedural-friendly tools first.
 
 ## Editor modularization — planned
 
