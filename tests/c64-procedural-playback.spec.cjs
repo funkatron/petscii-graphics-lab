@@ -132,7 +132,7 @@ test.describe('procedural v2 PRG playback (py65)', () => {
       frameIndex,
     });
     const bad = compareLayout(snap, exp, 6, 8);
-    expect(bad).toBeLessThanOrEqual(14);
+    expect(bad).toBe(0);
     const picture = proceduralFramePicture(motionSource, frameIndex);
     const off = canvasOffset(6, 8);
     for (let y = 0; y < 6; y++) {
