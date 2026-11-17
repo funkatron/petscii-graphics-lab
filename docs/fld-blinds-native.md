@@ -28,6 +28,10 @@ Uses the shared [`c64-capacity-fixtures.cjs`](../tests/c64-capacity-fixtures.cjs
 | Sparse checker @ 2 s | Adaptive export **fits** memory and timing (CI assertion in `research-motion-capacity.spec.cjs`) |
 | Dense / mixed-bank | Treat like other full-screen motions: watch `worstUpdateRatio` and custom `glyphBits` paths in the JSON matrix |
 
+## Procedural-v2 PRG
+
+C64 downloads with `motionSource` use the **fld-blinds gap table player** (`c64-procedural-codegen.js`) when adaptive export picks `procedural-v2`. Spot-check: [`tests/c64-procedural-playback.spec.cjs`](../tests/c64-procedural-playback.spec.cjs) (8×6 sparse, frame 6).
+
 ## UI ship gate
 
 Do not expose in the Movement menu until:

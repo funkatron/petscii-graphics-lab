@@ -47,7 +47,7 @@ Playwright attaches `research-motion-capacity.json` (Chromium/WebKit use the rea
 | Sparse @ 12 s | Longer ticks still help replay timing; procedural timing estimate is already within budget at 2 s |
 | `native-rows` fallback | Meets timing on sparse art but **~220k program bytes** — not selected when procedural-v2 fits |
 
-**Download:** procedural analysis passes readiness checks, but PRG/D64 still require the v2 6502 runtime (download throws until codegen lands). Small canvases (8×5) continue to pass replay adaptive export.
+**Download:** C64 adaptive export selects **`procedural-v2`** when `motionSource` is present and the profile fits memory/timing; **PRG download uses the real 6502 player** in `c64-procedural-codegen.js` (py65 regression: [`tests/c64-procedural-playback.spec.cjs`](../tests/c64-procedural-playback.spec.cjs)). D64 still packages the same player via `createC64AdaptiveProgram`.
 
 Table encoding and round-trip: `tests/c64-procedural-vic.unit.mjs`.
 

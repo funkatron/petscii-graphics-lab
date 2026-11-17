@@ -17,6 +17,11 @@ import {
 } from '../c64-procedural-vic.js';
 import {animationCells, animationCount, animationDelay} from '../animation-frames.js';
 import {createC64AdaptiveProgram, createC64Program} from '../c64-export.js';
+import {
+  compileProceduralVicProgram,
+  expectedProceduralVicLayout,
+  proceduralFramePicture,
+} from '../c64-procedural-codegen.js';
 
 const ramp = [2, 8, 7, 13, 3, 14, 6, 4];
 const sparseGrid = Array.from({length: 40 * 24}, (_, i) => {
@@ -96,22 +101,46 @@ test('40×24 column-wave procedural profile fits export-rounded replay', () => {
   assert.ok(adaptive.diagnostics.programBytes <= adaptive.diagnostics.memoryLimit);
   assert.ok(adaptive.diagnostics.worstUpdateRatio <= 1);
   assert.ok(adaptive.diagnostics.proceduralTableBytes > 0);
-  assert.equal(adaptive.diagnostics.proceduralRuntimeBytes, PROCEDURAL_VIC_RUNTIME_BYTES);
+  assert.ok(adaptive.diagnostics.proceduralRuntimeBytes >= PROCEDURAL_VIC_RUNTIME_BYTES);
 });
 
-test('createC64ProceduralVicProgram refuses download before runtime ships', () => {
-  const motionSource = motion({effect: FLD_BLINDS_EFFECT});
-  const frame = {...animationCells(0, motionSource), durationMs: 80};
-  assert.throws(
-    () => createC64ProceduralVicProgram({
+test('createC64ProceduralVicProgram analyze:false returns PRG bytes', () => {
+  const motionSource = {
+    ...motion({effect: COLUMN_WAVE_EFFECT, scrollDirection: 'left'}),
+    W: 8,
+    H: 5,
+    grid: Array.from({length: 40}, (_, i) => (i % (8 + 1) === 0 ? 160 : '')),
+    inks: Array(40).fill(2),
+  };
+  const frames = exportFrames(motionSource).slice(0, 3);
+  const program = createC64ProceduralVicProgram({
+    columns: 8,
+    rows: 5,
+    background: 6,
+    ink: 2,
+    motionSource,
+    frames,
+    analyze: false,
+  });
+  assert.ok(program.bytes.length > 200);
+  assert.equal(program.diagnostics.renderer, 'procedural-v2');
+  assert.ok(program.diagnostics.proceduralRuntimeBytes > 0);
+});
+
+test('proceduralFramePicture matches animationCells on sample frames', () => {
+  const motionSource = motion({effect: COLUMN_WAVE_EFFECT, scrollDirection: 'left'});
+  for (const frameIndex of [0, 3, 7]) {
+    const fromPicture = proceduralFramePicture(motionSource, frameIndex);
+    const fromAnim = animationCells(frameIndex, motionSource);
+    assert.deepEqual(fromPicture.cells, fromAnim.cells);
+    assert.deepEqual(fromPicture.inks, fromAnim.inks);
+    const layout = expectedProceduralVicLayout({
       columns: 40,
       rows: 24,
-      background: 6,
       ink: 14,
-      frames: [frame],
       motionSource,
-      analyze: false,
-    }),
-    /not downloadable yet/,
-  );
+      frameIndex,
+    });
+    assert.equal(layout.screen.filter(v => v === 160).length, fromAnim.cells.filter(c => c === 160).length);
+  }
 });
