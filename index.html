@@ -139,6 +139,7 @@
 (async()=>{
 const {APP_VERSION}=await import('./app-version.js');
 const {validateProject,normalizeAnimation,ANIMATION_CYCLES,FIELD_RAMPS,FIELD_RAMP_LABELS,DEPTH_EFFECTS,INTRO_MOTIONS,WIPE_PATTERNS,WAVE_AMPLITUDES,WAVE_LENGTHS,WAVE_SHAPES,WAVE_DIRECTIONS,DIAGONAL_DIRECTIONS,COLOR_WAVE_DIRECTIONS,SOLID_CAMERA_VALUES}=await import('./project-validation.js');
+const {randomProjectFilename,regenerateProjectFilename}=await import('./project-naming.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
 function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareNativeBackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}
@@ -1323,14 +1324,8 @@ function applyProject(data){
  erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';drawPalette();fit();
 }
 window.addEventListener('pagehide',autosave);
-function randomProjectFilename(){
- const words=[['amber','azure','bright','cosmic','crimson','electric','golden','gentle','quiet','misty','neon','silver','vivid','warm','wild','lunar'],['otter','badger','comet','falcon','fern','fox','gecko','heron','lynx','moth','nebula','owl','panda','raven','tiger','wren']],values=crypto.getRandomValues(new Uint32Array(2));
- return words.map((list,i)=>list[values[i]%list.length]).join('-');
-}
 function regenerateProjectName(){
- const previous=$('projectFilename').value,next=randomProjectFilename();
- // Avoid an unchanged result even if the random draw repeats.
- $('projectFilename').value=next===previous?next.replace(/-[^-]+$/,m=>m==='-raven'?'-otter':'-raven'):next;
+ $('projectFilename').value=regenerateProjectFilename($('projectFilename').value);
  $('projectFilename').removeAttribute('aria-invalid');
 }
 $('projectFilename').value=randomProjectFilename();

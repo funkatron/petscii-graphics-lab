@@ -364,7 +364,7 @@ Feature-detect file sharing with canShare and a JSON File before exposing Share 
 
 Project filename is transient UI state shared by both save actions and every artwork export. Trim whitespace, remove pasted trailing .json suffixes case-insensitively, replace filesystem-reserved/control characters, reject empty or dot-only stems, and append the fixed lowercase .json suffix. Capture the name with the current project before download/share. Do not add it to v3 project data or history.
 
-Generate the initial filename once per page from two 16-word lists (adjectives, nouns) using crypto.getRandomValues, joined with a hyphen. Regenerate only on the explicit icon button or New Project; ensure regeneration differs from the current value. Do not regenerate on menu navigation or saving, and never overwrite a user edit implicitly. Names are convenient defaults, not guaranteed unique identifiers.
+Generate the initial filename once per page in `project-naming.js` from two 48-word lists (adjectives, nouns) using `crypto.getRandomValues`, joined with a hyphen (2 304 combinations). Regenerate only on the explicit icon button or New Project; `regenerateProjectFilename` retries up to 16 draws so the new stem always differs from the current value. Do not regenerate on menu navigation or saving, and never overwrite a user edit implicitly. Names are convenient defaults, not guaranteed unique identifiers across devices or sessions.
 
 Project navigation groups filename/download/native sharing separately from project/text-grid opening. Keep the menu within the viewport and scrollable at enlarged text sizes. Invalid filenames reopen the menu, retain the entered value, mark the field invalid and focus it for correction; no file request occurs.
 

@@ -1,5 +1,10 @@
 # Agent log (2026-11-07)
 
+## Issue #66 — name collision space (2026-11-17)
+
+**What:** `project-naming.js` — 48×48 adjective–noun pool (2 304 stems), shared regenerate with retry.  
+**Tested:** `tests/project-naming.unit.mjs` (4/4); Chromium `project-naming` + `project-save` (14/14). iPad WebKit awaits CI.
+
 ## Download flake (item 2)
 
 - Documented root cause in `docs/test-reliability-audit.md`: hidden `#saveProject` on iPad when Share is shown.

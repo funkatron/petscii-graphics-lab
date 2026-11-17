@@ -6,7 +6,7 @@ This page tracks requested work and completed milestones. For current controls, 
 
 See issue #66. New Project resets to a blank default drawing with confirmation and Undo recovery. An icon-only refresh button generates adjective–noun names. All export formats use the same validated project name and capture it before asynchronous work; caches account for renaming. Names stay outside v3 drawing data. Regression coverage includes reset/cancel/Undo, source preservation, filename sanitization, export contents and in-flight naming.
 
-**Validation status (2026-11-16):** Chromium run of `tests/project-naming.spec.cjs` and `tests/project-save.spec.cjs` — **14/14 passed** (native filenames include machine slug, e.g. `-c64-still-`; Project menu uses fixed viewport anchoring at 200% root font). **Close #66** still needs the same specs green on iPad WebKit in CI.
+**Validation status:** Run `tests/project-naming.spec.cjs` and `tests/project-save.spec.cjs` on Chromium and both iPad WebKit layouts. Default names use a 48×48 adjective–noun pool (`project-naming.js`) so casual regeneration collisions are unlikely. Issue **#66** closes when those browser specs are green in CI.
 
 ## Current priorities
 
