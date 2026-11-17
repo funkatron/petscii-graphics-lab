@@ -53,7 +53,7 @@ Table encoding and round-trip: `tests/c64-procedural-vic.unit.mjs`.
 
 ## C64 export notes for menu users
 
-**Procedural-v2** PRGs apply when movement is the only animated layer (no color wave or backdrop). **Dense 40×24** art may still need a longer loop or simpler artwork; see the capacity matrix above.
+**Procedural-v2** PRGs apply when movement is the only animated layer (no color wave or backdrop). With **color-wave** or backdrop layers, `motionSource` is omitted and adaptive export samples full frames (`research-motion-capacity.spec.cjs`, 40×24 sparse). **Dense 40×24** art may still need a longer loop or simpler artwork; see the capacity matrix above.
 
 ## Related
 
