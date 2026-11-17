@@ -41,3 +41,5 @@ Each action is one `remember()` step and updates `recordCell` per changed cell (
 ### Next after merge
 
 **Slice 1b** — Grid labeling / **Show grid** (editor-borrowings Tier B).
+
+**Follow-up (shipped on main with stability pass):** Symmetry keeps its strip slot when inactive (`inert` + dim), not `hidden`.

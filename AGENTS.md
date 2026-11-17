@@ -33,7 +33,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 3. **Creative output:** Save editable projects and export reliable graphics as SVG, PNG, and text or C64-oriented data where accurate and supported.
 
-4. **Ease of use:** Clean, compact, collapsible sidebar and useful canvas workspace, especially on iPad Safari.
+4. **Ease of use:** Clean, compact, collapsible sidebar and useful canvas workspace, especially on iPad Safari. **Layout stability:** the app behaves like a tool, not a reflowing document. Controls keep fixed slots in the drawing strip and stage chrome; use `inert`, `disabled`, or dimmed styling instead of removing controls from layout (`hidden`, `display:none`, conditional mount) when a feature is inactive, unless a deliberate empty placeholder preserves the same footprint.
 
 5. **Optional stencil experiments:** Manufacturing is outside the current editor. Add stencil-specific tools only if explicitly requested.
 

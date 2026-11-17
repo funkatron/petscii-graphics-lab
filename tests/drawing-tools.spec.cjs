@@ -42,17 +42,16 @@ test('unfinished previews stay out of files; Escape cancels and selection delete
  await ui(page,'#quickPlay');await expect(page.locator('#fillMenu')).toHaveAttribute('inert','');await expect(page.locator('#pickerMenu')).toHaveAttribute('inert','');await expect(page.locator('#paintMenu')).toHaveAttribute('inert','');
  for(const tool of ['#tool-line','#tool-rectangle','#tool-select'])await expect(page.locator(tool)).toBeDisabled();
 });
-test('symmetry appears only for paint and eraser',async({page})=>{
- const visible=async()=>page.locator('#symmetryMenu').evaluate(e=>!e.hidden);
+test('symmetry slot stays put; only active for paint and eraser',async({page})=>{
+ const inactive=async()=>page.locator('#symmetryMenu').evaluate(e=>e.inert);
  await expect(page.locator('#symmetryMenu')).toBeVisible();
- await ui(page,'#tool-line');await expect(page.locator('#symmetryMenu')).toBeHidden();
- await ui(page,'#erase');await expect(page.locator('#symmetryMenu')).toBeVisible();
- await armFill(page,'both');await expect(page.locator('#symmetryMenu')).toBeHidden();
- await ui(page,'#paint');await expect(page.locator('#symmetryMenu')).toBeVisible();
+ await ui(page,'#tool-line');await expect(page.locator('#symmetryMenu')).toBeVisible();expect(await inactive()).toBe(true);
+ await ui(page,'#erase');await expect(page.locator('#symmetryMenu')).toBeVisible();expect(await inactive()).toBe(false);
+ await armFill(page,'both');await expect(page.locator('#symmetryMenu')).toBeVisible();expect(await inactive()).toBe(true);
+ await ui(page,'#paint');await expect(page.locator('#symmetryMenu')).toBeVisible();expect(await inactive()).toBe(false);
  await drag(page,[0,0],[1,0]);
- await ui(page,'#quickPlay');await expect(page.locator('#symmetryMenu')).toBeHidden();
- await ui(page,'#returnDrawing');await expect(page.locator('#symmetryMenu')).toBeVisible();
- expect(await visible()).toBe(true);
+ await ui(page,'#quickPlay');await expect(page.locator('#symmetryMenu')).toBeVisible();expect(await inactive()).toBe(true);
+ await ui(page,'#returnDrawing');await expect(page.locator('#symmetryMenu')).toBeVisible();expect(await inactive()).toBe(false);
 });
 test('undo and redo respond to standard keyboard shortcuts',async({page})=>{
  const blank=Array(16).fill('');

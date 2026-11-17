@@ -4,6 +4,10 @@
 
 This record explains the recent workspace changes and identifies follow-up work. For instructions on using the editor, see the [user guide](../README.md).
 
+## Layout stability (owner priority)
+
+The editor is a **tool**: users build muscle memory for where controls live. When a control is inactive, **siblings must not shift**. Prefer a **fixed slot** that is dimmed, `inert`, or `disabled` over `hidden` or conditional DOM that changes strip width. Stage chrome (zoom, guides; future symmetry / tap-endpoint moves) and the drawing strip follow this rule. Document new UI against [Playwright layout checks](tests/drawing-tools.spec.cjs) where tool changes previously collapsed slots.
+
 ## What the review found
 
 Frequent drawing actions were spread across settings panels. Choosing a glyph, changing ink, and recovering from a stroke required repeated navigation.

@@ -1077,13 +1077,15 @@ const {paint,stroke}=createPainter({getW:()=>W,getH:()=>H,getSymmetry:()=>$('sym
 let drawingTool='paint',selection=null,toolDrag=null;
 function brushToolActive(){return ['paint','erase'].includes(drawingTool)&&!animationPreview}
 function updateSymmetryChrome(){
- const menu=$('symmetryMenu'),show=brushToolActive();
- menu.hidden=!show;
+ const menu=$('symmetryMenu'),summary=$('symmetrySummary'),show=brushToolActive();
+ menu.inert=!show;
+ summary.setAttribute('aria-disabled',String(!show));
+ menu.classList.toggle('tool-slot-inactive',!show);
  if(!show)menu.open=false;
- if(!show)return;
- $('symmetrySummary').title='Symmetry: '+$('sym').selectedOptions[0].textContent;
- $('symmetrySummary').classList.toggle('symmetry-on',$('sym').value!=='none');
- $('symmetrySummary').setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);
+ if(!show){summary.title='Symmetry: Paint or Eraser only';summary.setAttribute('aria-label','Symmetry: Paint or Eraser only');return}
+ summary.title='Symmetry: '+$('sym').selectedOptions[0].textContent;
+ summary.classList.toggle('symmetry-on',$('sym').value!=='none');
+ summary.setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);
 }
 let tapPoints=false,textOrigin=null;
 const EYEDROPPER='M7 21l3-1.5 M4 14l12-12 M16 2l2 2 M17.5 7.5l2.5 2.5';
