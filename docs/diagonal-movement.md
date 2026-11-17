@@ -40,8 +40,8 @@ Adding a new effect identifier extends the supported v3 settings; older app vers
 - [x] Define rectangular-grid loop closure and distinguish it from equal cell speed.
 - [x] Bound the first feature to ordinary scroll; record other effects separately.
 - [x] Wave rows/columns: eight movement directions (`waveDirection` uses color-wave diagonals); cardinals byte-identical (`tests/diagonal-wave.spec.cjs`).
-- [ ] Add independent expected frames for scroll on square, rectangular, one-row and one-column artwork (wave covered above for motion).
-- [ ] Verify glyph/ink pairing, independent color cycles, loop closure and warning boundaries.
-- [ ] Check preview, decoded GIF/PNG ZIP and C64 frame inputs against the same independent expectations; retain cardinal byte regressions.
-- [ ] Check exact save/open, autosave, Undo, invalid combinations and export snapshots/cache invalidation.
-- [ ] Validate Chromium and both iPad WebKit layouts before release.
+- [x] Add independent expected frames for scroll on square, rectangular, one-row and one-column artwork (`tests/diagonal-scroll.spec.cjs`).
+- [x] Verify glyph/ink pairing, independent color cycles, loop closure and warning boundaries (`diagonal-scroll.spec.cjs`, color-cycle cases).
+- [x] Check preview, decoded GIF/PNG ZIP and C64 frame inputs against the same independent expectations; retain cardinal byte regressions.
+- [x] Check exact save/open, autosave, Undo, invalid combinations and export snapshots/cache invalidation (`diagonal-scroll.spec.cjs` persistence block).
+- [ ] Validate Chromium and both iPad WebKit layouts before release (WebKit covered in CI; physical device optional).

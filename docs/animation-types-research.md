@@ -126,7 +126,7 @@ Hardware scroll/VIC register tricks (DYCP, FLD, VSP, FLI, raster IRQ, and simila
 ## Recommended sequence (research → build)
 
 1. **Close validation debt** on shipped effects (sine scroller, bonfire iPad, depth performance on device) — overlaps priority **#2** but unblocks honest comparisons.
-2. **Depth triage** — side-by-side GIFs on sparse vs dense PETSCII art; keep floor/road/tunnel or document “use Space warp instead.”
+2. **Depth triage** — sparse vs dense matrix in [`depth-effects-triage.md`](depth-effects-triage.md) + `tests/depth-triage.spec.cjs`; keep floor/road/tunnel (provisional; polish on device later).
 3. **Diagonal wave** — spec ranking in `animation-frames.js`; one Playwright export fixture.
 4. **Diagonal wipe** — extend `WIPE_PATTERNS` or new pattern id with loop closure proof.
 5. **Algorithmic motions** — **Column wave** and **Row blinds** are in the Movement menu (2026-11-17); procedural-v2 C64 PRGs cover movement-only exports ([column-wave-native.md](column-wave-native.md), [fld-blinds-native.md](fld-blinds-native.md)).
