@@ -1,6 +1,6 @@
 # FLD blinds — native export notes
 
-**Status:** Research. **No Movement menu entry.**
+**Status:** Movement menu **Row blinds (FLD-style)** (2026-11-17).
 
 ## Browser behavior
 
@@ -32,12 +32,9 @@ Uses the shared [`c64-capacity-fixtures.cjs`](../tests/c64-capacity-fixtures.cjs
 
 C64 downloads with `motionSource` use the **fld-blinds gap table player** (`c64-procedural-codegen.js`) when adaptive export picks `procedural-v2`. Spot-check: [`tests/c64-procedural-playback.spec.cjs`](../tests/c64-procedural-playback.spec.cjs) (8×6 sparse, frame 6).
 
-## UI ship gate
+## C64 export notes for menu users
 
-Do not expose in the Movement menu until:
-
-1. A **procedural row-gap player** or bounded gap table is specified ([native player rewrite](native-player-rewrite.md)), **and**
-2. Dense **40 × 24** fixtures pass [`c64-capacity.md`](c64-capacity.md) with margin.
+Use **movement-only** animation (no color or backdrop effects) for the procedural-v2 PRG path. Dense full-screen art may still hit adaptive timing limits; lengthen the loop or simplify artwork if export checks warn.
 
 ## Related
 
