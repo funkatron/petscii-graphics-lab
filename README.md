@@ -194,8 +194,8 @@ The canvas is read-only during playback and while paused. **Paint** and **Eraser
 | **Replay drawing** | Paint, erase, and repaint actions appear in recorded order. The finished picture holds for the last quarter of each cycle. |
 | **Scroll** | The drawing wraps around in any of eight directions. Choose **Scroll direction**. Diagonal movement crosses one canvas width and height per cycle, following the canvas diagonal. |
 | **Wave rows / columns** | Rows or columns shift in a repeating wave. Choose its travel direction and waveform. |
-| **Column wave (DYCP-style)** | Scroll **left** or **right** while bending each column vertically (classic DYCP-style motion on this grid). Waveform, wavelength and height shape the bend. |
-| **Row blinds (FLD-style)** | Open and close blank gaps between your rows (stylized blinds, not hardware badlines). Height sets maximum gap depth; wavelength staggers gaps. |
+| **Column wave (DYCP-style)** | Scroll **left** or **right** while bending each column vertically (classic DYCP-style motion on this grid). Waveform, wavelength and height shape the bend. Stack any **Color animation** like Scroll or Sine scroller. C64 **procedural** PRGs need **Original colors** and no backdrop; otherwise export uses the sampled-frame player. |
+| **Row blinds (FLD-style)** | Open and close blank gaps between your rows (stylized blinds, not hardware badlines). Height sets maximum gap depth; wavelength staggers gaps. Same color-combo and C64 rules as Column wave. |
 | **Ripple** | Waves radiate from the canvas center, shifting glyphs and their inks. Choose waveform, wavelength and height in Movement. The center stays fixed; edges can move out of view. |
 | **Sine scroller** | Scroll the whole drawing while bending it along a sine wave. Choose any of eight directions. Diagonal travel crosses one canvas width and height per cycle, bending perpendicular to that path. Movement → Height controls the bend; Wavelength controls its spacing. Glyphs and their inks move together. |
 | **Bouncing logo** | Move the occupied part of the drawing around the canvas. Leave empty margins for travel. Movement → Travel sets how far it moves. |

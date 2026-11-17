@@ -1,5 +1,5 @@
 const {GifReader}=require('omggif'),AdmZip=require('adm-zip'),{PNG}=require('pngjs');
-const {test,expect,project,loadProject,download,waitForProjectAutosave,ui}=require('./helpers.cjs');
+const {test,expect,project,loadProject,download,waitForProjectAutosave,ui,waitForPreviewAdvance,previewSample}=require('./helpers.cjs');
 const palette=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'];
 const rgb=i=>[0,2,4].map(n=>parseInt(palette[i].slice(n,n+2),16));
 
@@ -112,6 +112,71 @@ test('column-wave adaptive C64 export spot-check',async({page})=>{
  expect(diag.frameCount).toBe(24);
  expect(diag.fits).toBe(true);
  expect(diag.programBytes).toBeLessThanOrEqual(diag.memoryLimit);
+});
+
+test('column-wave preview and color cycles match GIF frame count',async({page})=>{
+ const p=art(8,5,'left');
+ p.animation={...p.animation,seconds:4,motionCycles:2,colorEffect:'color-cycle',colorCycles:4};
+ await loadProject(page,p);
+ await ui(page,'#quickPlay');
+ await waitForPreviewAdvance(page);
+ await ui(page,'#quickPlay');
+ const {f}=await previewSample(page,8,5);
+ const preview=await page.evaluate(async({frame,animation,grid,cellColors,columns,rows})=>{
+  const {animationCells}=await import('./animation-frames.js');
+  const source={W:columns,H:rows,grid,inks:cellColors,colors:{ink:2,background:6},...animation};
+  return animationCells(frame,source);
+ },{frame:f,animation:p.animation,grid:p.grid,cellColors:p.cellColors,columns:p.columns,rows:p.rows});
+ const gif=new GifReader(await download(page,'#exportGif'));
+ expect(gif.numFrames()).toBe(64);
+ const pixels=Buffer.alloc(gif.width*gif.height*4);
+ gif.decodeAndBlitFrameRGBA(f,pixels);
+ expect(pixels.some((_,i)=>i%4===3&&pixels[i]>0)).toBe(true);
+ expect(preview.cells.some(g=>g!=='')).toBe(true);
+});
+
+test('column-wave C64 download matches adaptive export with motionSource',async({page})=>{
+ const p=art(8,5,'left');
+ await loadProject(page,p);
+ await ui(page,'#c64Mode','selectOption','animation');
+ const prg=await download(page,'#exportC64');
+ const diag=await page.evaluate(async({animation,grid,cellColors,columns,rows})=>{
+  const {animationCells,animationCount}=await import('./animation-frames.js');
+  const {createC64AdaptiveProgram}=await import('./c64-export.js');
+  const source={W:columns,H:rows,grid,inks:cellColors,colors:{background:6,ink:14},...animation};
+  const n=animationCount(source);
+  const frames=[];
+  for(let i=0;i<n;i++)frames.push({...animationCells(i,source),durationMs:Math.round(source.seconds*1000/n)});
+  const motionSource={W:columns,H:rows,grid,inks:cellColors,colors:source.colors,effect:source.effect,scrollDirection:source.scrollDirection,waveShape:source.waveShape,waveAmplitude:source.waveAmplitude,waveLength:source.waveLength,seconds:source.seconds,motionCycles:source.motionCycles??1,colorEffect:'none',backgroundEffect:'none'};
+  const analysis=createC64AdaptiveProgram({machine:'c64',columns,rows,charset:0,background:6,ink:14,repetitions:1,frames,motionSource});
+  return {bytes:analysis.bytes.length};
+ },{animation:p.animation,grid:p.grid,cellColors:p.cellColors,columns:p.columns,rows:p.rows});
+ expect(prg.length).toBe(diag.bytes);
+ expect(prg.length).toBeLessThan(20000);
+});
+
+test('column-wave 40×24 sparse uses procedural-v2 in adaptive analysis',async({page})=>{
+ test.setTimeout(90000);
+ const {profiles,artwork}=require('./c64-capacity-fixtures.cjs');
+ const sparse='sparse';
+ const {grid,cellColors}=artwork(sparse);
+ const p=project(grid,40,24,{cellColors,animation:{effect:'column-wave',scrollDirection:'left',waveShape:'sine',waveAmplitude:50,waveLength:50,colorEffect:'none',seconds:2,scale:1,background:'dark',motionCycles:1}});
+ await loadProject(page,p);
+ const diag=await page.evaluate(async({animation,grid,cellColors,columns,rows})=>{
+  const {animationCells,animationCount}=await import('./animation-frames.js');
+  const {createC64AdaptiveProgram}=await import('./c64-export.js');
+  const source={W:columns,H:rows,grid,inks:cellColors,colors:{background:6,ink:14},...animation};
+  const n=animationCount(source);
+  const frames=[];
+  for(let i=0;i<n;i++)frames.push({...animationCells(i,source),durationMs:Math.round(source.seconds*1000/n)});
+  const motionSource={W:columns,H:rows,grid,inks:cellColors,colors:source.colors,effect:source.effect,scrollDirection:source.scrollDirection,waveShape:source.waveShape,waveAmplitude:source.waveAmplitude,waveLength:source.waveLength,seconds:source.seconds,motionCycles:source.motionCycles??1,colorEffect:'none',backgroundEffect:'none'};
+  const analysis=createC64AdaptiveProgram({machine:'c64',columns,rows,charset:0,background:6,ink:14,repetitions:0,analyze:true,frames,motionSource});
+  const d=analysis.diagnostics;
+  return {renderer:d.renderer,frameCount:analysis.frameCount,fits:d.programBytes<=d.memoryLimit&&d.worstUpdateRatio<=1};
+ },{animation:p.animation,grid:p.grid,cellColors:p.cellColors,columns:p.columns,rows:p.rows});
+ expect(diag.frameCount).toBe(40);
+ expect(diag.renderer).toBe('procedural-v2');
+ expect(diag.fits).toBe(true);
 });
 
 test('column-wave is selectable from Movement menu with horizontal scroll only',async({page})=>{

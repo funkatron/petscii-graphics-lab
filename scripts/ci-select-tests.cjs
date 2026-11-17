@@ -64,6 +64,8 @@ function select(files, {full=false, motionOnly=false, light=false}={}) {
     set.add('tests/animation.spec.cjs');
     set.add('tests/intro-motion.spec.cjs');
     set.add('tests/depth-exports.spec.cjs');
+    set.add('tests/column-wave.spec.cjs');
+    set.add('tests/fld-blinds.spec.cjs');
   }
   // Machine modes drive chrome, palettes, Plus/4 inks and export gates from index.html.
   if (changed(/^(machine-modes|plus4-colors)\.js$/)) {

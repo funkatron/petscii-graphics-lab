@@ -10,7 +10,7 @@ Uses existing `waveShape`, `waveAmplitude` (max gap depth), and `waveLength` (ro
 
 ## Native export
 
-See [fld-blinds-native.md](fld-blinds-native.md). UI ship blocked until native story is written.
+See [fld-blinds-native.md](fld-blinds-native.md). Movement menu entry shipped 2026-11-17.
 
 ## Tests
 

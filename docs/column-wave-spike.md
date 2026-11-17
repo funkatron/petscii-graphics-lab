@@ -8,7 +8,7 @@
 
 ## Native export
 
-See [column-wave-native.md](column-wave-native.md). UI ship remains blocked until dense-grid native margin or a procedural player profile is specified ([native player rewrite](native-player-rewrite.md)).
+See [column-wave-native.md](column-wave-native.md). Movement menu entry shipped 2026-11-17; dense full-screen C64 exports may still need longer loops or sampled-frame fallback when color/backdrop layers are active.
 
 ## Tests
 

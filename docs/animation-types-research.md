@@ -129,7 +129,7 @@ Hardware scroll/VIC register tricks (DYCP, FLD, VSP, FLI, raster IRQ, and simila
 2. **Depth triage** — side-by-side GIFs on sparse vs dense PETSCII art; keep floor/road/tunnel or document “use Space warp instead.”
 3. **Diagonal wave** — spec ranking in `animation-frames.js`; one Playwright export fixture.
 4. **Diagonal wipe** — extend `WIPE_PATTERNS` or new pattern id with loop closure proof.
-5. **Algorithmic spikes** — column-wave (DYCP-like), then FLD blinds ([feasibility doc](algorithmic-vic-feasibility.md)); **do not expose in UI** until native readiness or procedural profile is specified.
+5. **Algorithmic motions** — **Column wave** and **Row blinds** are in the Movement menu (2026-11-17); procedural-v2 C64 PRGs cover movement-only exports ([column-wave-native.md](column-wave-native.md), [fld-blinds-native.md](fld-blinds-native.md)).
 6. Green-field concepts (crawl, orbital) only when **C** score and native design are written first—not throwaway GIF demos.
 
 Each step: update `MOTION_EFFECTS`, UI picker, `animationPlan` sample budget, Chromium + iPad WebKit specs, **VICE + native export** spot-check for the target machine.

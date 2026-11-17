@@ -971,7 +971,7 @@ export function animationCells(frame, source) {
   } else if (normalized.effect === 'fld-blinds') {
     const picture = fldBlindsFrame(phase, normalized);
     cells.splice(0, cells.length, ...picture.cells);
-    inks.splice(0, cells.length, ...picture.inks);
+    inks.splice(0, inks.length, ...picture.inks);
   } else {
     applyGridMotion(frame, phase, normalized, cells, inks);
   }
