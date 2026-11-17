@@ -47,8 +47,26 @@ Context: [PETSCII editors landscape](petscii-editors-landscape.md). Implementati
 ### Tier C — document only / defer
 
 - **Layers** (Playscii, Advanced Art Editor): conflicts with single-grid v3 unless new project schema.
+- **Quarter-block / ¼-char grid** (Wizard, TBoard): see glossary below; Tier B table for borrow notes.
 - **Custom charset editor** (Marq): we use ROM SVG atlas; mixed-bank export is the supported escape hatch.
 - **SID / music** (Petmate 9): out of product scope.
+
+#### Glossary — layers and quarter-blocks (deferred editor features)
+
+Other PETSCII tools use these words for **drawing**, not for our procedural animation engine. See also the [editors landscape survey](petscii-editors-landscape.md).
+
+| Term | What competitors mean | What Graphics Lab does today |
+| --- | --- | --- |
+| **Layers** | Several **stacked character grids** in one project (show/hide, reorder, edit one plane, flatten on export). | **One grid** in v3 (`grid` + `cellColors`). **Project → Reference image…** is a **temporary overlay**, not a saved layer. |
+| **Quarter-blocks** | **¼-char** or **quad** mode: paint as if each cell were **four mini blocks** (finer logical resolution, e.g. Wizard on a 40×25 screen). | **One glyph per cell**. Quarter-block *shapes* come from normal PETSCII glyphs (halves, corners, solids), not a separate sub-cell paint mode. |
+
+**Do not confuse with animation wording:** **Parallax** and **Starfield** speak of “layers” as **effect groups** (inks or glyphs moving at different speeds). That is unrelated to Photoshop-style drawing layers.
+
+**Why we defer drawing layers:** a layer stack needs UI, merge rules, replay semantics, and likely a **new project schema**. That fits compositing-first editors more than **one screen + one loop of procedural effects**.
+
+**Why we defer quarter-block mode:** it implies a **virtual 2×2 subgrid** (or similar) and different import/export contracts. Our reference overlay import and native players assume **integer screen codes per cell**. Sub-cell painting is a possible future track only if requirements and format versioning are explicit.
+
+**Procedural-friendly alternative (current product):** zoom/pan, Pick/Fill, glyph-only/ink-only paint, selection move/duplicate, and reference **Apply as import**—all on the single grid. Per-cell inspector UI was prototyped on `cursor/cell-editing-v1-6ab6` and **reverted from `main`** until a full workflow is designed ([cell-editing-ooda-plan.md](cell-editing-ooda-plan.md)).
 
 ---
 
