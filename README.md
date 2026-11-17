@@ -84,7 +84,6 @@ The compact drawing strip uses familiar tool icons with accessible names. The se
 | Line / Rectangle | Drag to preview a straight line or outlined rectangle; release to apply |
 | Select | Drag a rectangular marquee, then drag inside it to move the region |
 | Text | Tap a starting cell, type, then choose Apply text |
-| Edit cell | Tap **?** on the tool for help · tap a cell · change glyph, ink, or clear · **Done** returns to Paint (one undo restores the session) |
 | Duplicate | Select a region, choose Duplicate, then drag inside it to place a copy |
 | Delete | Remove the selected region |
 

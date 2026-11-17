@@ -1,8 +1,8 @@
-# Individual cell editing — OODA plan
+# Individual cell editing — OODA plan (draft)
 
-**Status:** **Approved (2026-11-17).** Implementing as **Edit cell** (v0.35.3+).
+**Status:** Draft for owner review **after** Tier A (#3 overlay, export copy, animation glossary) is merged. Do not implement until this plan is approved.
 
-**Owner decisions:** under-canvas inspector bar; dedicated tool only; live glyph/ink/clear (full palette); clear = Eraser; no replay events; help via **?** pop-ups on the tool and Drawing tools help.
+**Working name:** *Cell inspector* or *Edit cell* — precise UI label TBD.
 
 ---
 
@@ -36,14 +36,11 @@
 | Apply = one undo entry; updates `grid` + `cellColors` like a 1×1 paint | Changing replay event log unless effect is Replay drawing |
 | Accessible names: “Cell column 5, row 3”, glyph family name from palette | Hex screen codes unless **Show glyph codes** on |
 
-**Decisions (locked):**
+**Open decisions (owner):**
 
-1. **Inspector bar** under the canvas (like reference overlay).
-2. **Dedicated** **⊡ Edit cell** tool only (no long-press / Enter in v1).
-3. **Change on pick**; **one undo** when leaving the tool (**Done** or switching away).
-4. **Clear** = Eraser (empty glyph, brush ink); **no** `recordCell` / replay events.
-5. **Picker** stays separate.
-6. Naming via contextual **?** help, not a long sidebar label.
+1. Tool strip slot vs contextual cell popover anchored to canvas.
+2. Whether **Clear cell** uses empty marker or eraser semantics for replay.
+3. Relationship to **Picker** — merge into one “Cell tools” or keep separate.
 
 **Acceptance:** README section; Playwright sets one cell via inspector; undo restores; preview lock blocks edit; exports unchanged for untouched cells.
 
