@@ -54,7 +54,7 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 - [x] **Nomenclature pass (partial):** Movement label, Backdrop effect vs brush Background, Native program **(PRG)** tab; help glossary remains follow-up.
 - [x] **Project naming (#66):** name pool, export effect + machine filename tags; see [tier-a-ooda-plans.md](tier-a-ooda-plans.md) for remaining Tier A order.
 - [ ] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship — **OODA §1**.
-- [ ] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment) — **OODA §2**.
+- [x] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment) — **OODA §2** (PR pending).
 - [ ] **Animation glossary:** procedural effects vs cel frames — **OODA §3**.
 
 **Tier B — after Tier A or with #5**

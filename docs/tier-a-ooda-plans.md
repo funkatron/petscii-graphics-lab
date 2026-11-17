@@ -47,7 +47,7 @@ Review **one section at a time** before implementation. Housekeeping on the road
 
 ---
 
-## Item 2 — Export copy (scroller / native program) *(approved — implement)*
+## Item 2 — Export copy (scroller / native program) *(approved — shipped in export-copy PR)*
 
 ### Observe
 
@@ -102,16 +102,40 @@ Review **one section at a time** before implementation. Housekeeping on the road
 
 **Do not** duplicate the entire `animationInfo` paragraph; glossary = vocabulary, **About replay & speed** = timing/cycles math.
 
+### User paths (where glossary fits)
+
+```mermaid
+flowchart LR
+  A[☰ Animation open] --> B[Pick Movement / Color / Backdrop]
+  B --> C{Confused?}
+  C -->|Yes| D[Expand Animation glossary]
+  C -->|No| E[Play or Download]
+  E --> F[Download → Animation tab]
+  F --> G[Read one-line pointer]
+  G --> D
+  H[Canvas preview lock] --> I[Edit animation settings]
+  I --> A
+```
+
+**editAnimation** (download sheet and preview banner) already closes the dialog, opens `#animationDetails`, and scrolls the sidebar — glossary lives in that same group, so refugees land next to the vocabulary after tapping **Edit**.
+
 ### UI placement (primary)
 
-Add a **sibling** disclosure inside `#animationDetails .group-body`, **above** “About replay & speed”:
+Insert in `index.html` **after** `#animationWarning`, **before** the existing “About replay & speed” `<details>` (sibling inside `#animationDetails .group-body`):
 
 ```html
 <details class="help-disclosure" id="animationGlossary">
   <summary>Animation glossary</summary>
-  <!-- structured <dl> or short <section>s, class="note" -->
+  <dl class="note glossary-list">
+    <!-- dt/dd pairs — see draft copy below -->
+  </dl>
+  <p class="note">From other editors: Petmate <em>screens</em> are one grid plus effect settings, like our Movement and Color choices in one project. Wizard <em>Shift</em> is similar to Paint mode <strong>Glyph only</strong> / <strong>Ink only</strong> on the drawing strip — not a separate animation timeline.</p>
 </details>
 ```
+
+**CSS:** Reuse `.help-disclosure` and `.note` only; if `<dl>` needs tighter spacing, add `.glossary-list` in `styles/editor.css` (margin on `dt` only — no new colors or fonts).
+
+**DOM ids to avoid:** Do not reuse `motionSummary` / `exportScrollerNote` (download dialog duplicates are separate nodes).
 
 **Why here:** User is already choosing Movement / Color / Backdrop; glossary explains those words before they open exports.
 
@@ -121,23 +145,28 @@ Add a **sibling** disclosure inside `#animationDetails .group-body`, **above** �
 
 ### UI placement (secondary — optional v1)
 
-One sentence under **Download artwork → Animation** tab, in the existing note below **Download frame ZIP**:
+Under **Download artwork → Animation** tab (`#export-motion`), append to the `.note` below **Download frame ZIP** (line ~123 today):
 
-> Effects in Animation settings build every frame automatically — see **Animation glossary** in Animation settings.
+> Effects in ☰ **Animation** settings build every frame automatically. Open **Animation glossary** there for a short primer.
+
+Keep `#exportScrollerNote` (scroller exports) as its own dynamic note above the format row — glossary does not replace it.
 
 No link that scrolls the sidebar on phone overlay (fragile); name the control path in plain text.
 
 ### Content outline (match visible control names)
 
-Use a definition list (`<dl>`) for screen-reader-friendly pairs. Proposed entries:
+Use a definition list (`<dl>`) for screen-reader-friendly pairs. **Draft v1 copy** (freeze in PR; tweak only for accuracy):
 
-1. **Generated frames** — Movement, Color animation, and Backdrop effect combine into one loop; you paint the source grid once.
-2. **Replay drawing** — Plays your stroke order; not the same as a Wizard cel timeline.
-3. **Loop duration** — Whole timeline in seconds; **Movement cycles** / **Color cycles** / **Backdrop cycles** set independent speeds inside it.
-4. **Glyph, ink, background** — Cell shape and color vs shared **Background** (brush) under Colors.
-5. **Backdrop effect** — Animates empty-cell paper (and border lead on VIC); distinct from brush Background.
-6. **Exports** — GIF/video/frame ZIP preview what you see; **Native program (PRG)** runs the same timeline on hardware when export succeeds.
-7. **Frame ZIP** — Numbered PNGs + `timing.json` for other tools; not an in-editor cel strip (Tier B timeline stays deferred).
+| `<dt>` (visible) | `<dd>` (one short paragraph each) |
+| --- | --- |
+| Generated frames | **Movement**, **Color animation**, and **Backdrop effect** are combined into every frame of one loop. You paint the source grid once; preview and exports play the result. |
+| Replay drawing | **Replay drawing** follows the order you painted, erased, and repainted. It is not a hand-timed cel strip like a frame bar in some editors. |
+| Loop duration and cycles | **Loop duration** (under **Timeline & preview**) is the full loop in seconds. **Movement cycles**, **Color cycles**, and **Backdrop cycles** run at their own rates inside that loop (up to 16× per loop). |
+| Glyph, ink, and background | Each cell has a **glyph** and **ink** color. **Background** under **Colors** is the shared canvas brush color behind empty cells. |
+| Backdrop effect | **Backdrop effect** animates empty-cell paper (and optional border lead on VIC). It is separate from the brush **Background** color. |
+| Preview vs drawing | **Play** / **Return to drawing** and the preview banner lock the canvas while you watch. **Return to drawing** restores painting without changing your art. |
+| Exports | **GIF**, **Video**, and **PNG frames (.zip)** match the preview timeline. **Native program (PRG)** and disk images run the same animation on real hardware when export succeeds. |
+| Frame ZIP | **Download frame ZIP** saves numbered PNGs plus timing data for other tools. There is no in-editor cel timeline yet (planned separately). |
 
 **From other editors** (single compact `<p class="note">` at bottom):
 

@@ -115,7 +115,7 @@
 <button id="png" class="full-width">Download PNG</button><div class="row"><button id="svg" hidden>Download SVG</button></div><p class="note">Grid-free artwork with each cell’s ink color. Background applies to PNG and SVG.</p>
 </div>
 <div id="export-motion" role="tabpanel" aria-labelledby="export-tab-motion" data-export-mode="motion" hidden>
-<div class="motion-summary"><span id="motionSummary">Replay drawing · 2 s / loop</span><button id="motionPreview" aria-pressed="false">▶ Play preview</button><button id="editAnimation" aria-label="Edit animation settings">Edit</button></div>
+<div class="motion-summary"><span id="motionSummary">Replay drawing · 2 s / loop</span><button id="motionPreview" aria-pressed="false">▶ Play preview</button><button id="editAnimation" aria-label="Edit animation settings">Edit</button></div><p class="note" id="exportScrollerNote" hidden></p>
 <div class="field"><label for="animationFormat">Animation format</label><select id="animationFormat"><option value="gif">Animated GIF</option><option value="video">Video (MP4 / WebM)</option><option value="frames">PNG frames (.zip)</option></select></div>
 <div class="row"><div class="field"><label for="gifScale">Animation resolution</label><select id="gifScale"><option value="1">8 px/cell</option><option value="2" selected>16 px/cell</option><option value="4">32 px/cell</option><option value="8">64 px/cell</option></select></div><div class="field"><label for="gifBackground">Animation background</label><select id="gifBackground"><option value="dark">Canvas color</option><option value="white">White</option><option value="transparent">Transparent</option></select></div></div>
 <div data-motion-format="gif"><button id="exportGif" class="full-width">Download GIF</button><p class="note">Loops automatically. Supports transparency.</p></div>
@@ -196,7 +196,7 @@ const pickerDocked=()=>widePicker.matches||(pickerPinned&&innerWidth>=700);
 $('glyphPin').onclick=()=>{pickerPinned=!pickerPinned;if(pickerPinned&&innerWidth>=700&&innerWidth<1000){$('sidebar').classList.add('closed');$('toggle').setAttribute('aria-expanded','false');$('toggle').textContent='☰'}$('glyphPin').setAttribute('aria-pressed',String(pickerPinned));syncPickerDock()};
 function syncPickerDock(){$('glyphPicker').classList.toggle('pinned',pickerPinned&&innerWidth>=700);$('glyphBackdrop').hidden=$('glyphPicker').hidden||pickerDocked();requestAnimationFrame(fit)}
 window.addEventListener('resize',syncPickerDock);
-$('downloadOpen').onclick=()=>{$('machineMenu').open=false;$('projectMenu').open=false;closeToolModeMenus();$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('downloadDialog').showModal();updateDownloadPreview()};
+$('downloadOpen').onclick=()=>{$('machineMenu').open=false;$('projectMenu').open=false;closeToolModeMenus();$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('downloadDialog').showModal();updateNativeExportLabels();updateExportScrollerCopy();updateDownloadPreview()};
 $('downloadClose').onclick=()=>$('downloadDialog').close();
 $('downloadDialog').addEventListener('click',e=>{if(e.target===$('downloadDialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close()}});
 
@@ -235,7 +235,7 @@ function updateVideoDuration(){
 }
 $('videoRepeats').oninput=()=>{const count=Number($('videoRepeats').value);if(validVideoRepeats(count)){videoRepeats=count;autosave()}updateVideoDuration()};
 function animationName(){const motion=$('animationEffect').value==='scroll'?'Scroll '+$('scrollDirection').value:$('animationEffect').selectedOptions[0].textContent,color=$('animationColor').value==='none'?null:$('animationColor').selectedOptions[0].textContent,backdrop=backdropEffectActive()?$('backdropEffect').selectedOptions[0].textContent:null,parts=[];if($('animationEffect').value!=='none')parts.push(motion);if(backdrop)parts.push(backdrop);if(color)parts.push(color);if(!parts.length)return 'Still drawing';return parts.join(' + ')}
-function updateMotionSummary(){$('motionSummary').textContent=animationName()+' · '+$('animationSeconds').value+' s / loop';$('c64MotionSummary').textContent=$('motionSummary').textContent;updateVideoDuration()}
+function updateMotionSummary(){$('motionSummary').textContent=animationName()+' · '+$('animationSeconds').value+' s / loop';$('c64MotionSummary').textContent=$('motionSummary').textContent;updateVideoDuration();updateExportScrollerCopy()}
 // Ordered color ramps, using C64 hardware palette indices. Repeated warm shades form a return path.
 const COLOR_CYCLES={
  'bonfire':BONFIRE_COLORS,
@@ -330,6 +330,25 @@ function nativeHostLabel(){
  return 'C64';
 }
 function nativeVicHost(){return workspaceMachine===MACHINE.C128?'C128':'C64'}
+function scrollerStyleMovement(){const e=$('animationEffect').value;return e==='scroll'||e==='sine-scroll'||e==='column-wave'}
+function scrollerExportHint(){
+ if(!scrollerStyleMovement())return '';
+ const effect=$('animationEffect').value;
+ if(effect==='scroll')return ' Selected Scroll movement exports as a scroller-style program on '+nativeVicHost()+' when you choose Selected animation and download PRG or disk.';
+ if(effect==='sine-scroll')return ' Sine scroller combines travel with a column bend—similar in spirit to classic C64 scrollers; native export matches the GIF timeline when limits allow.';
+ if(effect==='column-wave')return ' Column wave (DYCP-style) moves columns with a vertical bend; native export uses the procedural or sampled player depending on color/backdrop settings.';
+ return '';
+}
+function updateExportScrollerCopy(){
+ const note=$('exportScrollerNote');
+ if(!note)return;
+ if(!scrollerStyleMovement()){note.hidden=true;note.textContent='';return}
+ note.hidden=false;
+ const native=$('c64Mode').value==='animation';
+ note.textContent=native
+  ?'Scroller-style movement: Native program (PRG) and disk images use the same loop as GIF and frame ZIP when export succeeds.'
+  :'Scroller-style movement is configured. Open Native program (PRG) and choose Selected animation to download a runnable scroller.';
+}
 function updateNativeExportLabels(){
  const host=nativeHostLabel(),disk=$('c64Format').value==='d64',help=$('c64ExportHelp');
  const docsHref=help.querySelector('a')?.getAttribute('href')||'https://github.com/funkatron/petscii-graphics-lab/blob/main/docs/c64-output.md';
@@ -350,7 +369,11 @@ function updateNativeExportLabels(){
  }else{
   help.textContent='Runs on a standard C64 or emulator. Up to 40 × 25 cells, centered on screen. Uses the canvas background (also drives the border). '+backdropNote+'Mixed glyphs include a RAM character set (up to 256 different patterns across the animation). Press RUN/STOP to exit. ';
  }
- const docs=document.createElement('a');docs.href=docsHref;docs.target='_blank';docs.rel='noopener';docs.textContent='Loading instructions & limits';help.append(docs);
+ const docs=document.createElement('a');docs.href=docsHref;docs.target='_blank';docs.rel='noopener';docs.textContent='Loading instructions & limits';
+ const scroller=$('c64Mode').value==='animation'&&scrollerStyleMovement()?scrollerExportHint():'';
+ help.textContent=help.textContent.replace(/\s*$/,'')+scroller+' ';
+ help.append(docs);
+ updateExportScrollerCopy();
 }
 function updateNativeExportAvailability(){
  // Color RAM .bin stays VIC-only. Color text is available on every machine; Plus/4 writes version 3.
@@ -1227,7 +1250,7 @@ $('png').onclick=async()=>{
  }catch(e){setStatus('PNG export failed: '+e.message)}
  finally{URL.revokeObjectURL(url);button.disabled=false}
 };
-$('c64Mode').onchange=()=>{$('c64LoopSettings').hidden=$('c64Mode').value!=='animation'};
+$('c64Mode').onchange=()=>{$('c64LoopSettings').hidden=$('c64Mode').value!=='animation';updateNativeExportLabels();updateExportScrollerCopy()};
 let c64TimingConsentKey=null;
 const c64TimingKey=()=>JSON.stringify({project:projectData(),moving:$('c64Mode').value==='animation'});
 $('c64TimingOverride').onchange=()=>{c64TimingConsentKey=$('c64TimingOverride').checked?c64TimingKey():null};

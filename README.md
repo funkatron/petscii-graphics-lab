@@ -277,7 +277,7 @@ Long recordings use selected points from the recording instead of showing every 
 
 ## Download artwork
 
-Open **Download artwork**, choose a tab and format, then use its **Download** button. The preview shows output dimensions in pixels and, for animations, duration and frame count. Editing grid lines are omitted.
+Open **Download artwork**, choose a tab and format, then use its **Download** button. Scroll-family movements (**Scroll**, **Sine scroller**, **Column wave**) show extra guidance on the **Animation** and **Native program (PRG)** tabs when those effects are selected in **Animation** settings. The preview shows output dimensions in pixels and, for animations, duration and frame count. Editing grid lines are omitted.
 
 In **Animation**, use **Play preview** to watch the selected animation directly in the download panel. **Stop preview** resets it to the first frame. The same control appears in **C64 data** when **Selected animation** is chosen. The C64 preview uses the drawing’s background color; it previews the animation in the browser, not C64 execution speed.
 
