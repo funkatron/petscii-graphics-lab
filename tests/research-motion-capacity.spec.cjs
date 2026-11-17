@@ -80,3 +80,38 @@ test('40 × 24 research motions report adaptive C64 capacity',async({page},testI
  const columnSparse12=results.find(r=>r.effect==='column-wave'&&r.profile==='sparse'&&r.seconds===12);
  expect(columnSparse12.worstUpdateRatio).toBeLessThan(columnSparse2.worstUpdateRatio);
 });
+
+test('40 × 24 research motions with color-wave omit procedural motionSource',async({page})=>{
+ await capacityPage(page);
+ const animationBase={
+  colorEffect:'color-wave',
+  colorWaveShape:'sine',
+  colorWaveDirection:'right',
+  scale:1,
+  background:'dark',
+  motionCycles:1,
+  colorCycles:1,
+  seconds:2,
+ };
+ for(const effect of ['column-wave','fld-blinds']){
+  const motion=effect==='column-wave'
+    ?{effect,scrollDirection:'left',waveShape:'sine',waveAmplitude:50,waveLength:50}
+    :{effect,waveShape:'sine',waveAmplitude:75,waveLength:50};
+  const {grid,cellColors}=artwork('sparse');
+  await loadProject(page,project(grid,40,24,{cellColors,animation:{...animationBase,...motion}}));
+  const row=await page.evaluate(async()=>{
+   const {createC64AdaptiveProgram}=await import('./c64-export.js');
+   const input=window.capacityInput();
+   const hasMotion=Boolean(input.motionSource);
+   const analysis=createC64AdaptiveProgram({...input,analyze:true});
+   return {
+    hasMotion,
+    frameCount:analysis.frameCount,
+    renderer:analysis.diagnostics.renderer,
+   };
+  });
+  expect(row.hasMotion,effect).toBe(false);
+  expect(row.frameCount,effect).toBeGreaterThan(0);
+  expect(row.renderer,effect).not.toBe('procedural-v2');
+ }
+});

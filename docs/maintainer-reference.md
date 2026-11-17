@@ -340,7 +340,7 @@ The editor uses `createC64AdaptiveProgram` for readiness, tested loop-duration r
 | 1 | `paired` | Two or more frames, ROM-backed glyphs, at most 256 distinct screen-code/ink pairs across the sampled frames and any required padding, and both budgets pass. |
 | 2 | `generic` | General changed-run player. Used for stills and when paired is ineligible or exceeds either budget and the generic candidate fits. `createC64Program` explicitly requests this renderer. |
 | 3 | `native-rows` | Compiled row routines for 2–256 frames when the earlier candidates are unavailable or exceed a budget. Normally selected when both budgets pass. `createC64RowProgram` explicitly requests this renderer. |
-| 4 | `procedural-v2` | **Analysis-only today.** Research motions `column-wave` and `fld-blinds` with `motionSource` on the export call (`c64-procedural-vic.js`): table-driven bend/gap profiles replace full-frame replay when budgets pass. PRG bytes are **not** emitted until the v2 runtime ships; readiness and capacity tests use this renderer. |
+| 4 | `procedural-v2` | Table-driven `column-wave` and `fld-blinds` when `motionSource` is present and eligible (`c64-procedural-vic.js` / `c64-procedural-codegen.js`): bend/gap tables replace full-frame replay on movement-only exports. With color or backdrop animation, `motionSource` is omitted and the adaptive stack uses sampled frames like other effects. |
 
 If no renderer fits, the exporter retains the generic diagnostics and errors unless the timing override applies as described below. All candidates consume the same sampled pictures and frame durations (procedural-v2 uses the same loop ticks but estimates per-cell remap work instead of diffing sampled grids).
 

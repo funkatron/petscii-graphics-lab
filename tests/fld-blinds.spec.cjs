@@ -1,5 +1,5 @@
 const {GifReader}=require('omggif'),AdmZip=require('adm-zip'),{PNG}=require('pngjs');
-const {test,expect,project,loadProject,download,waitForProjectAutosave,ui}=require('./helpers.cjs');
+const {test,expect,project,loadProject,download,waitForProjectAutosave,ui,waitForPreviewAdvance}=require('./helpers.cjs');
 const palette=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'];
 const rgb=i=>[0,2,4].map(n=>parseInt(palette[i].slice(n,n+2),16));
 
@@ -74,6 +74,41 @@ test('fld-blinds persists and adaptive C64 spot-check',async({page})=>{
  },{animation:p.animation,grid:p.grid,cellColors:p.cellColors,columns:p.columns,rows:p.rows});
  expect(diag.fits).toBe(true);
  expect(diag.frameCount).toBe(24);
+});
+
+test('fld-blinds stacks color-cycle with movement like other effects',async({page})=>{
+ const p=art(8,6,50);
+ p.animation={...p.animation,colorEffect:'color-cycle',colorCycles:2,seconds:2};
+ await loadProject(page,p);
+ const count=await page.evaluate(async({animation,grid,cellColors,columns,rows})=>{
+  const {animationCount}=await import('./animation-frames.js');
+  const source={W:columns,H:rows,grid,inks:cellColors,colors:{ink:2,background:6},...animation};
+  return animationCount(source);
+ },{animation:p.animation,grid:p.grid,cellColors:p.cellColors,columns:p.columns,rows:p.rows});
+ const gif=new GifReader(await download(page,'#exportGif'));
+ expect(gif.numFrames()).toBe(count);
+ expect(JSON.parse(await download(page,'#saveProject')).animation.colorEffect).toBe('color-cycle');
+ await ui(page,'#quickPlay');
+ await waitForPreviewAdvance(page);
+});
+
+test('fld-blinds C64 download matches adaptive export with motionSource',async({page})=>{
+ const p=art(8,6,50);
+ await loadProject(page,p);
+ await ui(page,'#c64Mode','selectOption','animation');
+ const prg=await download(page,'#exportC64');
+ const diag=await page.evaluate(async({animation,grid,cellColors,columns,rows})=>{
+  const {animationCells,animationCount}=await import('./animation-frames.js');
+  const {createC64AdaptiveProgram}=await import('./c64-export.js');
+  const source={W:columns,H:rows,grid,inks:cellColors,colors:{background:6,ink:14},...animation};
+  const n=animationCount(source);
+  const frames=[];
+  for(let i=0;i<n;i++)frames.push({...animationCells(i,source),durationMs:Math.round(source.seconds*1000/n)});
+  const motionSource={W:columns,H:rows,grid,inks:cellColors,colors:source.colors,effect:source.effect,waveShape:source.waveShape,waveAmplitude:source.waveAmplitude,waveLength:source.waveLength,seconds:source.seconds,motionCycles:source.motionCycles??1,colorEffect:'none',backgroundEffect:'none'};
+  const analysis=createC64AdaptiveProgram({machine:'c64',columns,rows,charset:0,background:6,ink:14,repetitions:1,frames,motionSource});
+  return {bytes:analysis.bytes.length};
+ },{animation:p.animation,grid:p.grid,cellColors:p.cellColors,columns:p.columns,rows:p.rows});
+ expect(prg.length).toBe(diag.bytes);
 });
 
 test('fld-blinds is selectable from Movement menu',async({page})=>{

@@ -45,6 +45,15 @@ test('fld-blinds closes loops and validates in v3 projects', () => {
   });
 });
 
+test('fld-blinds applies color cycles to moved inks', () => {
+  const source = {...base, colorEffect: 'color-cycle', colorCycles: 2};
+  const frame = animationCells(6, source);
+  const still = animationCells(6, {...base, colorEffect: 'none'});
+  const painted = frame.cells.map((g, i) => (g === '' ? -1 : i)).filter((i) => i >= 0);
+  assert.ok(painted.length > 0);
+  assert.ok(painted.some((i) => frame.inks[i] !== still.inks[i]));
+});
+
 test('fld-blinds expands rows differently from static drawing', () => {
   const still = {...base, effect: 'none'};
   const mid = Math.floor(animationCount(base) / 3);

@@ -34,7 +34,7 @@ C64 downloads with `motionSource` use the **fld-blinds gap table player** (`c64-
 
 ## C64 export notes for menu users
 
-Use **movement-only** animation (no color or backdrop effects) for the procedural-v2 PRG path. Dense full-screen art may still hit adaptive timing limits; lengthen the loop or simplify artwork if export checks warn.
+Use **movement-only** animation (no color or backdrop effects) for the procedural-v2 PRG path. With **color-wave** or backdrop layers, adaptive export omits `motionSource` and uses sampled frames like other combined animations (`tests/research-motion-capacity.spec.cjs` spot-check at 40×24 sparse). Dense full-screen art may still hit adaptive timing limits; lengthen the loop or simplify artwork if export checks warn.
 
 ## Related
 
