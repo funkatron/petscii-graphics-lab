@@ -111,6 +111,9 @@ summary:focus-visible{outline:3px solid var(--ui-focus-border);outline-offset:-3
 .full-width{width:100%}
 .help-disclosure{border-top:1px solid var(--case-edge);margin-top:10px}
 .help-disclosure>summary{font-size:.75rem;padding:12px 0}
+.glossary-list dt{font-weight:600;margin:.65em 0 0}
+.glossary-list dt:first-child{margin-top:0}
+.glossary-list dd{margin:.25em 0 0;padding:0}
 .summary-badge{float:right;font-size:.65rem;color:var(--case-text);font-weight:400;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .export-tabs{display:flex;gap:4px;margin:10px 0}
 .export-tabs button{flex:1;min-width:0;padding:8px 3px;font-size:.77rem}

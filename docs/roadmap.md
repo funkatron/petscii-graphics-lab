@@ -55,7 +55,7 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 - [x] **Project naming (#66):** name pool, export effect + machine filename tags; see [tier-a-ooda-plans.md](tier-a-ooda-plans.md) for remaining Tier A order.
 - [ ] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship — **OODA §1**.
 - [x] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment) — **OODA §2** (PR pending).
-- [ ] **Animation glossary:** procedural effects vs cel frames — **OODA §3**.
+- [x] **Animation glossary:** procedural effects vs cel frames — **OODA §3** (PR pending).
 
 **Tier B — after Tier A or with #5**
 
@@ -67,6 +67,8 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 **Explicitly defer (document only):** layers, quarter-block grid, Ultimate 64 live port, SID ([editor borrowings](editor-borrowings.md) Tier B/C).
 
 **Done when:** Tier A checkboxes green, README/help match new labels, iPad WebKit spot-check for changed Animation/Download strings.
+
+**After Tier A:** Owner review [cell-editing-ooda-plan.md](cell-editing-ooda-plan.md) for per-cell inspector / edit workflow (separate from Tier B line tools).
 
 ## Editor modularization — planned
 

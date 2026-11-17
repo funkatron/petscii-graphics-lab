@@ -124,7 +124,9 @@ Community habit varies: **PETSCII**, **chars**, **screen codes**, **color RAM**.
 
 ---
 
-## Suggested help sidebar additions (no code required)
+## Suggested help sidebar additions
+
+Shipped: **Animation glossary** disclosure in ☰ → **Animation** (above **About replay & speed**). Earlier sketch:
 
 Short **Glossary** block (or expand **About replay & speed**):
 

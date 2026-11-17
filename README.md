@@ -178,11 +178,12 @@ The editor opens version 3 projects containing numeric glyph IDs across both sou
 Controls are grouped into **Timeline & preview**, **Movement**, **Color**, and **Backdrop**. Related wave options sit side by side; options appear only for the selected effect. Duration, movement/color/backdrop cycles and playback are together at the top. **Movement**, **Color**, and **Backdrop** stack: glyphs move, cell inks change, and the shared background can step independently. Direction pairs with waveform; wavelength pairs with height.
 
 1. Open **☰ → Animation**.
-2. Choose **Movement** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
-3. Set the direction and waveform controls that appear for your selected effects.
-4. Choose **Loop duration**, the length of the complete timeline: half a second to 12 seconds.
-5. Set **Movement cycles per loop** and **Color cycles per loop** independently from **1× through 16×** (1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16). More cycles make that effect faster without changing the overall loop duration.
-6. Press **Play**, or use **▶** in the header.
+2. Open **Animation glossary** in that section for a short primer on generated frames, cycles, and exports.
+3. Choose **Movement** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
+4. Set the direction and waveform controls that appear for your selected effects.
+5. Choose **Loop duration**, the length of the complete timeline: half a second to 12 seconds.
+6. Set **Movement cycles per loop** and **Color cycles per loop** independently from **1× through 16×** (1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16). More cycles make that effect faster without changing the overall loop duration.
+7. Press **Play**, or use **▶** in the header.
 
 **Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
 

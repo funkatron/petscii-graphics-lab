@@ -6,7 +6,7 @@ Review **one section at a time** before implementation. Housekeeping on the road
 
 ---
 
-**Owner approval (2026-11-17):** OODA **§1** and **§2** approved — implement in that order. **§3** below is the extended UI plan; approve before coding the glossary.
+**Owner approval (2026-11-17):** **§1**, **§2**, and **§3** approved — implement in order 1 → 2 → 3. After Tier A merges, review [cell-editing-ooda-plan.md](cell-editing-ooda-plan.md) before individual cell editing work.
 
 ---
 
@@ -82,7 +82,7 @@ Review **one section at a time** before implementation. Housekeeping on the road
 
 ---
 
-## Item 3 — Animation glossary *(extended UI plan — review before build)*
+## Item 3 — Animation glossary *(approved — implemented in glossary PR)*
 
 ### Observe
 
