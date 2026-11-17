@@ -31,9 +31,15 @@ npm run test:vice
 
 The paths must be absolute. Missing configuration fails with an explanation, rather than producing skipped tests. Tests run one at a time, bind the debugger only to localhost, and remove their temporary disk/program files afterward.
 
+## Procedural-v2 (column-wave / fld-blinds)
+
+When changing `c64-procedural-codegen.js`, also run the optional suite with VICE. Four additional cases exercise **movement-only** procedural players through the same load/clock/STOP path as the replay player (8×5 column-wave and 8×6 fld-blinds sparse fixtures, PAL + NTSC). They compare all **screen and color RAM** cells after every frame against `proceduralFramePicture` and finish on `READY.`.
+
+Py65 regression stays in CI (`tests/c64-procedural-playback.spec.cjs`); VICE is host-only like the scenarios below.
+
 ## What passed
 
-**16 integration scenarios passed, with no skips**, covering PAL (`c64`) and NTSC models. The original eight exercise both character sets; eight more measure full-screen updates:
+**16 integration scenarios passed, with no skips**, covering PAL (`c64`) and NTSC models (plus four procedural-v2 cases when those fixtures are present). The original eight exercise both character sets; eight more measure full-screen updates:
 
 - Load PRGs through VICE autostart and D64s through hardware-level 1541-II emulation. Virtual-device shortcuts are disabled for disk loading. Compare loaded memory with the original program bytes.
 - Display all 256 screen codes in each character set, including code 0 and inverse slots. Compare every artwork pixel from VIC-II output against the reference character ROM and contrasting foreground inks.

@@ -9,6 +9,9 @@ import {join,resolve} from 'node:path';
 import {ViceMonitor,freePort} from './vice-monitor.mjs';
 
 const {createC64Program,createD64Disk}=await import(new URL('../c64-export.js',import.meta.url));
+const {compileProceduralVicProgram,proceduralFramePicture}=await import(new URL('../c64-procedural-codegen.js',import.meta.url));
+const {animationCount}=await import(new URL('../animation-frames.js',import.meta.url));
+const {COLUMN_WAVE_EFFECT,FLD_BLINDS_EFFECT}=await import(new URL('../project-validation.js',import.meta.url));
 const executable=process.env.VICE_EXECUTABLE;
 const data=process.env.VICE_DATA_DIR;
 assert.ok(executable&&data,'Set VICE_EXECUTABLE and VICE_DATA_DIR; see docs/vice-validation.md');
@@ -147,5 +150,56 @@ for(const model of ['c64','ntsc'])for(const workload of workloads){
   assert.ok(maxLateTicks<=maxCopyTicks+1,'Frame-completion delay stays bounded by decoder work');
   t.diagnostic(`Maximum update: ${maxCopyTicks}/60 s; maximum frame-completion lateness: ${maxLateTicks}/60 s; PRG ${p.bytes.length} bytes`);
   await stopAndReturn(m,p,before);
+ });
+}
+
+const proceduralV2Fixtures=[
+ {
+  name:'column-wave 8×5 sparse',
+  columns:8,rows:5,ink:2,
+  motionSource:{
+   W:8,H:5,
+   grid:Array.from({length:40},(_,i)=>(i%(8+1)===0?160:'')),
+   inks:Array.from({length:40},(_,i)=>(i+2)%16),
+   colors:{background:6,ink:2},
+   effect:COLUMN_WAVE_EFFECT,
+   scrollDirection:'left',
+   waveShape:'sine',waveAmplitude:50,waveLength:50,
+   seconds:2,motionCycles:1,colorEffect:'none',backgroundEffect:'none',
+  },
+ },
+ {
+  name:'fld-blinds 8×6 sparse',
+  columns:8,rows:6,ink:2,
+  motionSource:{
+   W:8,H:6,
+   grid:Array.from({length:48},(_,i)=>(i%2===0?160:'')),
+   inks:Array.from({length:48},(_,i)=>i%16),
+   colors:{background:6,ink:2},
+   effect:FLD_BLINDS_EFFECT,
+   waveShape:'sine',waveAmplitude:50,waveLength:50,
+   seconds:2,motionCycles:1,colorEffect:'none',backgroundEffect:'none',
+  },
+ },
+];
+for(const model of ['c64','ntsc'])for(const fixture of proceduralV2Fixtures){
+ test(`${model}: procedural-v2 ${fixture.name}, full loop and BASIC return`,{timeout:90000},async t=>{
+  const {monitor:m,dir}=await launch(t,model);
+  const {columns,rows,ink,motionSource}=fixture;
+  const p=compileProceduralVicProgram({
+   columns,rows,background:6,ink,charset:0,repetitions:1,motionSource,
+  });
+  const frameCount=animationCount(motionSource);
+  const before=await load(m,dir,p,'prg');
+  for(let i=0;i<frameCount;i++){
+   await m.checkpoint(p.debugSymbols.frameReady);await m.resume(p.debugSymbols.frameReady);
+   const framePicture=proceduralFramePicture(motionSource,i);
+   await picture(m,{cells:framePicture.cells,inks:framePicture.inks},columns,rows,ink);
+  }
+  await m.checkpoint(p.debugSymbols.hold);await m.resume(p.debugSymbols.hold);
+  const finalPicture=proceduralFramePicture(motionSource,frameCount-1);
+  await picture(m,{cells:finalPicture.cells,inks:finalPicture.inks},columns,rows,ink);
+  await stopAndReturn(m,p,before);
+  t.diagnostic(`procedural-v2 ${fixture.name}: ${frameCount} frames, PRG ${p.bytes.length} bytes`);
  });
 }
