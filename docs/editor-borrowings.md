@@ -24,7 +24,7 @@ Context: [PETSCII editors landscape](petscii-editors-landscape.md). Implementati
 | **Glyph-only / ink-only paint** | Petmate modes; Wizard **Shift** | Recolor without wiping glyphs; shade without changing shape—standard in every serious editor | Replay player unchanged | Drawing strip toggle or hold-modifier; mirror Wizard “char only / color only” in help |
 | **Reference image overlay → grid** *(shipped: **Project → Reference image…**)* | Marq overlay **`T`** convert; Petmate guide PNG; Wizard JPG/PNG import | Fast onboarding; biggest gap vs competitors | Stills/animation via existing export once converted | Temporary overlay + **Apply as import**; not a v3 layer stack |
 | **Line / rectangle / shape stroke** | Wizard toolbar | Expected web draw tools | Fill runs as undoable paint | New tools gated like Fill; integer grid endpoints |
-| **Replace color / magic replace** | Wizard | Cleanup after import | Same as recolor + search | **Whole drawing color** area or fill variant |
+| **Replace color / magic replace** | Wizard | Cleanup after import | Same as recolor + search | **Shipped:** **Colors → Whole drawing** · **Replace ink** / **Replace glyph** (v0.35.4) |
 | **Grid / guides toggle** | Petmate grid; our **Guides** partial | Users say “show grid” | N/A | Rename **Guides** → **Grid guides** or add explicit **Show grid** |
 | **Pan + zoom language** | Petmate **Pan/Zoom tool** (`z`); Wizard **mouse wheel** | Sets expectations for stage-bar zoom + two-finger pan | N/A | Stage hint: “Pinch to pan · Zoom menu” |
 | **Nudge whole canvas** | Wizard | Position art in safe title-safe zone | Native centering already | Resize/placement staging (small translate before apply) |

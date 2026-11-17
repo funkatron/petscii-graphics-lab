@@ -335,6 +335,11 @@ button,select,.field input[type=number]{min-height:44px}
 .preview-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--stage-caption);font-size:.8rem}
 .preview-banner button{font-size:.75rem}
 .reference-overlay-bar{flex-wrap:wrap;row-gap:6px}
+.replace-fieldset{margin-top:10px}
+.replace-glyph-pair{display:flex;gap:10px;flex-wrap:wrap}
+.replace-glyph-slot{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.replace-glyph-label{font-size:.8rem;color:var(--stage-caption)}
+.replace-glyph-btn{display:flex;align-items:center;gap:6px;min-height:38px;padding:4px 8px}
 .reference-opacity{display:flex;align-items:center;gap:6px;font-size:.75rem}
 .reference-opacity input{width:88px}
 .task-progress:not(:has(#cancelAnimationExport:not([hidden]))):not(:has(#stageExportProgressWrap:not([hidden]))){display:none}
