@@ -46,8 +46,8 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 
 **Tier A — implement or relabel first**
 
-- [ ] **Glyph-only / ink-only paint** (Wizard Shift, Petmate modes); Playwright stroke coverage.
-- [ ] **Nomenclature pass:** Movement (drop “/ reveal”), Backdrop effect vs brush Background, Native program **(PRG)** tab; help glossary (glyph/ink/backdrop vs cel frames).
+- [x] **Glyph-only / ink-only paint** (Wizard Shift, Petmate modes); Playwright stroke coverage (`drawing-paint-modes.spec.cjs`).
+- [x] **Nomenclature pass (partial):** Movement label, Backdrop effect vs brush Background, Native program **(PRG)** tab; help glossary remains follow-up.
 - [ ] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship.
 - [ ] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment).
 

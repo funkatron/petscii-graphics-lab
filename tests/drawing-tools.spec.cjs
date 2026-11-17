@@ -39,7 +39,7 @@ test('unfinished previews stay out of files; Escape cancels and selection delete
  await ui(page,'#tool-rectangle');await page.locator('#canvas').evaluate(c=>{const r=c.getBoundingClientRect();for(const [type,x] of [['pointerdown',.1],['pointermove',.9]])c.dispatchEvent(new PointerEvent(type,{pointerId:42,pointerType:'pen',isPrimary:true,bubbles:true,cancelable:true,clientX:r.left+r.width*x,clientY:r.top+r.height*x}))});
  expect((await saved(page)).grid).toEqual(Array(16).fill(''));await page.keyboard.press('Escape');await drag(page,[0,0],[3,3]);const original=(await saved(page)).grid;
  await ui(page,'#tool-select');await drag(page,[0,0],[3,3]);await ui(page,'#deleteSelection');expect((await saved(page)).grid).toEqual(Array(16).fill(''));await ui(page,'#undo');expect((await saved(page)).grid).toEqual(original);
- await ui(page,'#quickPlay');await expect(page.locator('#fillMenu')).toHaveAttribute('inert','');await expect(page.locator('#pickerMenu')).toHaveAttribute('inert','');
+ await ui(page,'#quickPlay');await expect(page.locator('#fillMenu')).toHaveAttribute('inert','');await expect(page.locator('#pickerMenu')).toHaveAttribute('inert','');await expect(page.locator('#paintMenu')).toHaveAttribute('inert','');
  for(const tool of ['#tool-line','#tool-rectangle','#tool-select'])await expect(page.locator(tool)).toBeDisabled();
 });
 test('symmetry appears only for paint and eraser',async({page})=>{
