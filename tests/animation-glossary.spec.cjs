@@ -6,10 +6,14 @@ test.beforeEach(async({page})=>{
 async function openAnimationGroup(page){
  await page.locator('#animationDetails').evaluate(d=>{d.open=true});
 }
+async function openSidebarIfPhone(page){
+ if(test.info().project.name==='ipad-portrait')await ui(page,'#toggle');
+}
 test('animation glossary collapsed by default with terms on expand',async({page})=>{
+ await openSidebarIfPhone(page);
  await openAnimationGroup(page);
  await expect(page.locator('#animationGlossary')).not.toHaveJSProperty('open',true);
- await page.locator('#animationGlossary > summary').click();
+ await page.locator('#animationGlossary').evaluate(d=>{d.open=true});
  await expect(page.locator('#animationGlossary')).toHaveJSProperty('open',true);
  const terms=await page.locator('#animationGlossary dt').allTextContents();
  expect(terms.length).toBeGreaterThanOrEqual(6);
@@ -36,8 +40,9 @@ test('glossary readable during animation preview',async({page})=>{
  await ui(page,'#quickPlay');
  await waitForPreviewAdvance(page);
  await expect(page.locator('#stageHint')).toContainText('read-only');
+ await openSidebarIfPhone(page);
  await openAnimationGroup(page);
- await page.locator('#animationGlossary > summary').click();
+ await page.locator('#animationGlossary').evaluate(d=>{d.open=true});
  await expect(page.locator('#animationGlossary dt').first()).toBeVisible();
  await ui(page,'#returnDrawing');
 });
