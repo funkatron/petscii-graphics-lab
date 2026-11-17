@@ -82,6 +82,11 @@
 - Readiness/export pass `motionSource` for research effects; download still replay-only until runtime codegen.
 - Tests: `tests/c64-procedural-vic.unit.mjs`; capacity spec expects sparse column-wave `procedural-v2`.
 
+## Housekeeping (2026-11-17)
+
+- Closed obsolete **PR #156**; capacity matrix and native docs live on `main` via #157–#159.
+- Track **#2** adds optional VICE procedural-v2 scenarios (`vice.integration.mjs`).
+
 ## Procedural VIC playback (2026-11-17)
 
 - `c64-procedural-codegen.js`: 6502 column-wave + fld-blinds players; py65 `c64-procedural-playback.spec.cjs`.
