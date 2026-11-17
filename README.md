@@ -178,7 +178,7 @@ The editor opens version 3 projects containing numeric glyph IDs across both sou
 Controls are grouped into **Timeline & preview**, **Movement**, **Color**, and **Backdrop**. Related wave options sit side by side; options appear only for the selected effect. Duration, movement/color/backdrop cycles and playback are together at the top. **Movement**, **Color**, and **Backdrop** stack: glyphs move, cell inks change, and the shared background can step independently. Direction pairs with waveform; wavelength pairs with height.
 
 1. Open **☰ → Animation**.
-2. Choose **Movement / reveal** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
+2. Choose **Movement** and **Color animation** independently. For example, combine **Scroll horizontally** with **Rainbow wave**. Use **Still drawing** for color alone, or **Original colors** for movement alone.
 3. Set the direction and waveform controls that appear for your selected effects.
 4. Choose **Loop duration**, the length of the complete timeline: half a second to 12 seconds.
 5. Set **Movement cycles per loop** and **Color cycles per loop** independently from **1× through 16×** (1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16). More cycles make that effect faster without changing the overall loop duration.
@@ -237,7 +237,7 @@ For **Starfield**, scatter small glyphs across the canvas. The effect uses those
 
 ### Try the 3-D objects
 
-Choose **Rotating cube**, **Spinning globe**, or **Rolling drum** under **Movement / reveal**. Start with a colorful pattern or a picture with a border, preferably on a 40 × 25 canvas. Small canvases show only a coarse silhouette.
+Choose **Rotating cube**, **Spinning globe**, or **Rolling drum** under **Movement**. Start with a colorful pattern or a picture with a border, preferably on a 40 × 25 canvas. Small canvases show only a coarse silhouette.
 
 Use **Camera distance** to move closer or farther away, **Camera orbit** to circle the object, and **Camera elevation** to look from above or below. Very close views can crop the object at the canvas edges. **Camera motion** defaults to **Fixed**. Choose **Orbit once per movement cycle** to circle the spinning object from the selected starting angle. Choose **Move in and out** to move toward the object and back, or **Orbit and move in and out** to combine both. At **Very close**, the camera moves back first. Each move starts and ends at your chosen distance, and exports use the same motion as the preview.
 
