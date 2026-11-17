@@ -1,5 +1,10 @@
 # Agent log (2026-11-07)
 
+## Tier A housekeeping (2026-11-17)
+
+**What:** Roadmap marks #66 done; `docs/tier-a-ooda-plans.md` for ordered Tier A work; app 0.35.1.  
+**Next:** Owner review OODA §1, then implement reference overlay.
+
 ## Issue #66 — name collision space (2026-11-17)
 
 **What:** `project-naming.js` — 48×48 adjective–noun pool (2 304 stems), shared regenerate with retry. `export-filename.js` — effect slugs on GIF/video/ZIP and native PRG/D64 (`machine` + movement/color/backdrop ids).  

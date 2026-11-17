@@ -2,11 +2,15 @@
 
 This page tracks requested work and completed milestones. For current controls, use the [user guide](../README.md).
 
-## Project workflow — browser validation in progress
+## Project workflow — complete (issue #66)
 
-See issue #66. New Project resets to a blank default drawing with confirmation and Undo recovery. An icon-only refresh button generates adjective–noun names. All export formats use the same validated project name and capture it before asynchronous work; caches account for renaming. Names stay outside v3 drawing data. Regression coverage includes reset/cancel/Undo, source preservation, filename sanitization, export contents and in-flight naming.
+Shipped on `main` (PR #163): **New Project** with confirm/Undo; 48×48 adjective–noun names (`project-naming.js`); shared export filenames with effect slugs and machine on PRG/D64 (`export-filename.js`). Names stay outside v3 project data.
 
-**Validation status:** Run `tests/project-naming.spec.cjs` and `tests/project-save.spec.cjs` on Chromium and both iPad WebKit layouts. Default names use a 48×48 adjective–noun pool (`project-naming.js`) so casual regeneration collisions are unlikely. Issue **#66** closes when those browser specs are green in CI.
+**Validation:** `tests/project-naming.spec.cjs` and `tests/project-save.spec.cjs` green on Chromium and both iPad WebKit layouts in CI (2026-11-17).
+
+## Tier A cross-editor UX — in progress
+
+Implement in order after owner review of each [OODA plan](tier-a-ooda-plans.md): (1) reference overlay import, (2) export/scroller copy, (3) animation glossary.
 
 ## Current priorities
 
@@ -48,8 +52,10 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 
 - [x] **Glyph-only / ink-only paint** (Wizard Shift, Petmate modes); Playwright stroke coverage (`drawing-paint-modes.spec.cjs`).
 - [x] **Nomenclature pass (partial):** Movement label, Backdrop effect vs brush Background, Native program **(PRG)** tab; help glossary remains follow-up.
-- [ ] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship.
-- [ ] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment).
+- [x] **Project naming (#66):** name pool, export effect + machine filename tags; see [tier-a-ooda-plans.md](tier-a-ooda-plans.md) for remaining Tier A order.
+- [ ] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship — **OODA §1**.
+- [ ] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment) — **OODA §2**.
+- [ ] **Animation glossary:** procedural effects vs cel frames — **OODA §3**.
 
 **Tier B — after Tier A or with #5**
 

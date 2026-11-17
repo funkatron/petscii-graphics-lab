@@ -51,6 +51,7 @@ flowchart TB
 | [algorithmic-vic-feasibility.md](algorithmic-vic-feasibility.md) | Hardware VIC tricks vs grid editor / export feasibility |
 | [petscii-editors-landscape.md](petscii-editors-landscape.md) | Survey of other PETSCII editors (external) vs Graphics Lab |
 | [editor-borrowings.md](editor-borrowings.md) | Roadmap **#3**: features and naming to adopt from other editors |
+| [tier-a-ooda-plans.md](tier-a-ooda-plans.md) | OODA review plans before each Tier A implementation |
 | `pointer-stroke.js` | Cell picking from pointer events and symmetric brush strokes |
 | `c64-colors.js` | Shared Pepto palette metadata |
 | `typed-text.js` | Text-tool glyph mapping and layout |
