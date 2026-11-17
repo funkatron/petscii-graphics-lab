@@ -26,6 +26,7 @@ const PY65_SPECS = new Set([
   'tests/c64-native.spec.cjs',
   'tests/c64-packed.spec.cjs',
   'tests/c64-paired.spec.cjs',
+  'tests/c64-procedural-playback.spec.cjs',
   'tests/c64-shared.spec.cjs',
   'tests/d64.spec.cjs',
   'tests/unified.spec.cjs',
@@ -72,6 +73,11 @@ function select(files, {full=false, motionOnly=false, light=false}={}) {
   // Native exporters feed readiness memory ceilings shown in the download panel.
   if (changed(/^(c64-export|plus4-export|c128-vdc-export)\.js$/)) {
     set.add('tests/machine-modes.spec.cjs');
+    set.add('tests/research-motion-capacity.spec.cjs');
+  }
+  if (changed(/^c64-procedural-(vic|codegen)\.js$/)) {
+    set.add('tests/c64-procedural-playback.spec.cjs');
+    set.add('tests/research-motion-capacity.spec.cjs');
   }
   if (changed(/^pointer-stroke\.js$/)) set.add('tests/layout.spec.cjs');
   if (changed(/^(typed-text|text-grid|glyph-families|c64-colors)\.js$/))
