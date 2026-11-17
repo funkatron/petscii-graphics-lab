@@ -334,6 +334,9 @@ button,select,.field input[type=number]{min-height:44px}
 #saveStatus{max-width:160px;font-size:.68rem}
 .preview-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--stage-caption);font-size:.8rem}
 .preview-banner button{font-size:.75rem}
+.reference-overlay-bar{flex-wrap:wrap;row-gap:6px}
+.reference-opacity{display:flex;align-items:center;gap:6px;font-size:.75rem}
+.reference-opacity input{width:88px}
 .task-progress:not(:has(#cancelAnimationExport:not([hidden]))):not(:has(#stageExportProgressWrap:not([hidden]))){display:none}
 .task-progress .export-progress-wrap{margin-bottom:6px}
 .export-progress-wrap{display:flex;flex-direction:column;gap:6px;margin:8px 0}

@@ -22,7 +22,7 @@ Context: [PETSCII editors landscape](petscii-editors-landscape.md). Implementati
 | Feature | Where others do it | Why borrow | Native note | Suggested placement |
 | --- | --- | --- | --- | --- |
 | **Glyph-only / ink-only paint** | Petmate modes; Wizard **Shift** | Recolor without wiping glyphs; shade without changing shape—standard in every serious editor | Replay player unchanged | Drawing strip toggle or hold-modifier; mirror Wizard “char only / color only” in help |
-| **Reference image overlay → grid** | Marq overlay **`T`** convert; Petmate guide PNG; Wizard JPG/PNG import | Fast onboarding; biggest gap vs competitors | Stills/animation via existing export once converted | **Project** or **Canvas** import; optional trace layer (not v3 layer stack) |
+| **Reference image overlay → grid** *(shipped: **Project → Reference image…**)* | Marq overlay **`T`** convert; Petmate guide PNG; Wizard JPG/PNG import | Fast onboarding; biggest gap vs competitors | Stills/animation via existing export once converted | Temporary overlay + **Apply as import**; not a v3 layer stack |
 | **Line / rectangle / shape stroke** | Wizard toolbar | Expected web draw tools | Fill runs as undoable paint | New tools gated like Fill; integer grid endpoints |
 | **Replace color / magic replace** | Wizard | Cleanup after import | Same as recolor + search | **Whole drawing color** area or fill variant |
 | **Grid / guides toggle** | Petmate grid; our **Guides** partial | Users say “show grid” | N/A | Rename **Guides** → **Grid guides** or add explicit **Show grid** |

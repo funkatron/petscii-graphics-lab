@@ -26,7 +26,8 @@
 <div class="header-project" role="group" aria-label="Project">
 <details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><p class="note" id="editorVersion" aria-label="Application version"></p><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
 <div class="row"><button id="openTextGrid">Open text grid</button></div><input id="textGridFile" type="file" accept=".txt,text/plain" hidden>
-<p class="note">Text grids replace the drawing and can be undone. You can also paste a grid under <strong>Download artwork → Raw bytes &amp; text</strong>. Project files keep editable art and replay. Changes also autosave on this device.</p></fieldset>
+<div class="row"><button id="openReferenceImage" type="button">Reference image…</button></div><input id="referenceImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/*" hidden>
+<p class="note">Text grids replace the drawing and can be undone. You can also paste a grid under <strong>Download artwork → Raw bytes &amp; text</strong>. A <strong>reference image</strong> is a temporary overlay for approximate import (not a saved layer). Project files keep editable art and replay. Changes also autosave on this device.</p></fieldset>
 </div></details>
 <span id="saveStatus" class="note" role="status" data-state="saved" title="Saved on this device"><span class="save-status-full">Saved on this device</span><span class="save-status-compact" aria-hidden="true">Saved</span></span>
 </div>
@@ -103,7 +104,9 @@
 </div></details></aside>
 <main class="stage">
 <div class="stagebar"><span id="dimensions">16 × 16</span><div class="stage-canvas-view" id="stageCanvasView"><select id="editorZoom" aria-label="Canvas zoom" title="Editor zoom"></select><label class="stage-view-guides"><input type="checkbox" id="centerGuides"><span>Guides</span></label></div><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
-<div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="editAnimationFromPreview" type="button">Animation settings</button><button id="returnDrawing">Return to drawing</button></div><div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
+<div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="editAnimationFromPreview" type="button">Animation settings</button><button id="returnDrawing">Return to drawing</button></div>
+<div id="referenceOverlayBar" class="preview-banner reference-overlay-bar" hidden><span>Reference overlay · approximate colors and blocks</span><label class="reference-opacity">Opacity <input type="range" id="referenceOpacity" min="10" max="100" value="50" aria-label="Reference opacity"></label><button type="button" id="referenceApply">Apply as import</button><button type="button" id="referenceCancel">Remove overlay</button></div>
+<div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
 <div class="task-progress"><div id="stageExportProgressWrap" class="export-progress-wrap" hidden><progress id="stageExportProgress" class="export-progress" max="100" value="0" aria-label="Animation export progress"></progress><span id="stageExportStatus" class="export-progress-label status" aria-live="polite"></span></div><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
 <aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
@@ -174,6 +177,7 @@ const {BONFIRE_COLORS}=await import('./bonfire.js');
 const {SCREEN_LOOKS,shadeScreenImage,shadeRgba,quantizeShaded}=await import('./screen-look.js');
 const {SOLID_EFFECTS}=await import('./solid-motion.js');
 const {applyUiTheme,uiThemeForMachine}=await import('./ui-themes.js');
+const {convertImageToGrid,DEFAULT_REFERENCE_GLYPHS}=await import('./reference-overlay.js');
 const prefs=readWorkspacePrefs();
 let workspaceMachine=prefs.machine,workspacePalette=prefs.palette,workspaceCellAspect=prefs.cellAspect;
 let canvasZoom=prefs.canvasZoom,centerGuidesEnabled=prefs.centerGuides;
@@ -476,7 +480,7 @@ function setWorkspaceMachine(next,{recordHistory=true}={}){
 $('workspaceMachine').onchange=()=>{setWorkspaceMachine($('workspaceMachine').value);$('machineMenu').open=false};
 $('workspacePalette').onchange=()=>{setWorkspacePalette($('workspacePalette').value);$('machineMenu').open=false};
 $('workspaceCellAspect').onchange=()=>{setWorkspaceCellAspect($('workspaceCellAspect').value);$('machineMenu').open=false};
-let rom=null,romC64=null,romTed=null,saveTimer=null,initialized=false,videoRepeats=1;
+let rom=null,romC64=null,romTed=null,saveTimer=null,initialized=false,videoRepeats=1,referenceOverlay=null;
 function selectActiveRom(){rom=isTedMachine(workspaceMachine)?romTed:romC64}
 const PROJECT_KEY='petscii-graphics-project-v3';
 let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).fill(colors.ink),replayEventColors=[];
@@ -774,8 +778,13 @@ function updateResizeDraft(){
  $('resizeSummary').textContent=nw+' × '+nh+' cells · '+(cropped?cropped+' painted cells will be cropped. Undo restores them.':'Existing artwork stays in the top-left corner.');
  artworkPreview($('resizePreview'),cells,inks,nw,nh,colorHex('background'));
 }
+function referencePaletteHex(){return activeColorTable().map(([,hex])=>hex)}
+function referenceGlyphCandidates(){if(!rom)return DEFAULT_REFERENCE_GLYPHS;return DEFAULT_REFERENCE_GLYPHS.filter(id=>romGlyphRows(id))}
+function paintReferenceOverlay(){if(!referenceOverlay)return;ctx.save();ctx.globalAlpha=referenceOverlay.opacity;ctx.drawImage(referenceOverlay.canvas,0,0,canvas.width,canvas.height);ctx.restore()}
+function clearReferenceOverlay(){referenceOverlay=null;$('referenceOverlayBar').hidden=true;$('referenceImageFile').value='';redraw()}
 function redraw(){
  renderGrid(animationPreview?animationCells(animationFrame,animationSource()):grid);
+ if(!animationPreview)paintReferenceOverlay();
  if(!animationPreview){drawCenterGuides();toolOutline(selection);renderTypedText()}
  out.value=textGrid();
  clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);
@@ -1330,6 +1339,11 @@ function importTextGrid(text){
 }
 $('import').onclick=()=>{try{importTextGrid(out.value)}catch(e){setStatus('Import failed: '+e.message)}};
 $('openTextGrid').onclick=()=>{$('projectMenu').open=false;$('textGridFile').click()};
+$('openReferenceImage').onclick=()=>{if(animationPreview){setStatus('Return to drawing before using a reference image');return}$('projectMenu').open=false;$('referenceImageFile').click()};
+$('referenceImageFile').onchange=async()=>{const file=$('referenceImageFile').files?.[0];if(!file)return;if(animationPreview){$('referenceImageFile').value='';return}const url=URL.createObjectURL(file);try{const img=new Image();await new Promise((res,rej)=>{img.onload=()=>res();img.onerror=()=>rej(new Error('Could not load image'));img.src=url});const scratch=document.createElement('canvas');scratch.width=img.naturalWidth;scratch.height=img.naturalHeight;scratch.getContext('2d').drawImage(img,0,0);referenceOverlay={canvas:scratch,data:scratch.getContext('2d').getImageData(0,0,scratch.width,scratch.height).data,width:scratch.width,height:scratch.height,opacity:Number($('referenceOpacity').value)/100};$('referenceOverlayBar').hidden=false;redraw();setStatus('Reference overlay ready. Adjust opacity, then Apply as import.')}catch(e){setStatus(e.message||'Reference image failed')}finally{URL.revokeObjectURL(url)}};
+$('referenceOpacity').oninput=()=>{if(!referenceOverlay)return;referenceOverlay.opacity=Number($('referenceOpacity').value)/100;redraw()};
+$('referenceCancel').onclick=()=>{clearReferenceOverlay();setStatus('Reference overlay removed')};
+$('referenceApply').onclick=()=>{if(animationPreview||!referenceOverlay||!rom){setStatus(rom?'Return to drawing before applying a reference':'Reload C64 glyphs to apply a reference');return}const converted=convertImageToGrid({data:referenceOverlay.data,width:referenceOverlay.width,height:referenceOverlay.height,columns:W,rows:H,paletteHex:referencePaletteHex(),candidateGlyphs:referenceGlyphCandidates(),glyphRowsFor:id=>romGlyphRows(id)});remember();for(let i=0;i<grid.length;i++){grid[i]=converted.cells[i];cellColors[i]=converted.inks[i];recordCell(i)}resetReplay();clearReferenceOverlay();setStatus('Reference applied. Undo restores the previous drawing. Import is approximate, not photo-accurate.')};
 $('textGridFile').onchange=async e=>{
  const input=e.target,file=input.files?.[0];if(!file)return;
  try{

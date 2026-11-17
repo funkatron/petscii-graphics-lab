@@ -165,6 +165,8 @@ On devices that support file sharing, **Project → Share / Save project** opens
 
 **Project → Open text grid** opens a `.txt` glyph-grid file downloaded from the editor. It detects glyph-only or color text automatically, replaces the drawing, and supports Undo. Color text restores cell inks and background; glyph-only text uses the current brush ink and keeps the background. Text grids omit animation settings and replay; use an editable project to preserve those. Invalid files leave your work unchanged.
 
+**Project → Reference image…** places a semi-transparent PNG or JPEG over the canvas for tracing. Adjust opacity, then **Apply as import** to sample the image into glyphs and inks. The result is approximate (16 colors, one glyph per cell, no sub-pixel fidelity), one undo step, and not saved as a layer in the project file. **Remove overlay** dismisses the image without changing art.
+
 The editor also keeps **one automatic draft on this device**. Look for **Saved on this device**. If saving fails, the editor shows a backup notice.
 
 - Download an editable project before clearing browser storage or changing devices. Browser storage may be cleared or unavailable, including in private browsing.

@@ -10,7 +10,7 @@ Review **one section at a time** before implementation. Housekeeping on the road
 
 ---
 
-## Item 1 — Reference image overlay → PETSCII *(approved — implement)*
+## Item 1 — Reference image overlay → PETSCII *(approved — shipped in overlay PR)*
 
 ### Observe
 

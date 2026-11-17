@@ -8,7 +8,7 @@ Shipped on `main` (PR #163): **New Project** with confirm/Undo; 48×48 adjective
 
 **Validation:** `tests/project-naming.spec.cjs` and `tests/project-save.spec.cjs` green on Chromium and both iPad WebKit layouts in CI (2026-11-17).
 
-## Tier A cross-editor UX — in progress
+## Tier A cross-editor UX — complete (pending stack merge)
 
 Implement in order after owner review of each [OODA plan](tier-a-ooda-plans.md): (1) reference overlay import, (2) export/scroller copy, (3) animation glossary.
 
@@ -53,7 +53,7 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 - [x] **Glyph-only / ink-only paint** (Wizard Shift, Petmate modes); Playwright stroke coverage (`drawing-paint-modes.spec.cjs`).
 - [x] **Nomenclature pass (partial):** Movement label, Backdrop effect vs brush Background, Native program **(PRG)** tab; help glossary remains follow-up.
 - [x] **Project naming (#66):** name pool, export effect + machine filename tags; see [tier-a-ooda-plans.md](tier-a-ooda-plans.md) for remaining Tier A order.
-- [ ] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship — **OODA §1**.
+- [x] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship — **OODA §1** (PR pending).
 - [x] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment) — **OODA §2** (PR pending).
 - [x] **Animation glossary:** procedural effects vs cel frames — **OODA §3** (PR pending).
 
