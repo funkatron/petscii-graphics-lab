@@ -15,7 +15,7 @@ async function capacityPage(page){
  await page.route('**/',async route=>{
   const response=await route.fetch();
   const body=(await response.text()).replace('(async()=>{',`(async()=>{
-   window.capacityInput=()=>{const s=animationSource();const frames=animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs}));return {columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,...(frames.some(f=>f.cells.some(g=>g>255))?{glyphBits:rom.slice()}:{})}};
+   window.capacityInput=()=>{const s=animationSource();const frames=animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs}));const research=(s.effect==='column-wave'||s.effect==='fld-blinds')&&s.colorEffect==='none'&&(s.backgroundEffect??'none')==='none';const motion=research?{W:s.W,H:s.H,grid:s.grid,inks:s.inks,colors:s.colors,effect:s.effect,scrollDirection:s.scrollDirection,waveShape:s.waveShape,waveAmplitude:s.waveAmplitude,waveLength:s.waveLength,seconds:s.seconds,motionCycles:s.motionCycles??1,colorEffect:'none',backgroundEffect:'none'}:null;return {columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,...(motion?{motionSource:motion}:{}),...(frames.some(f=>f.cells.some(g=>g>255))?{glyphBits:rom.slice()}:{})}};
   `);
   await route.fulfill({response,body});
  });

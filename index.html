@@ -793,6 +793,11 @@ function resolveMotionEffect(){
  if(ui==='scroll')return DIAGONAL_DIRECTIONS.includes($('scrollDirection').value)?'scroll-diagonal':['left','right'].includes($('scrollDirection').value)?'scroll-x':'scroll-y';
  return ui;
 }
+function motionSourceForExport(s){
+ const effect=resolveMotionEffect();
+ if((effect!=='column-wave'&&effect!=='fld-blinds')||s.colorEffect!=='none'||(s.backgroundEffect??'none')!=='none')return null;
+ return {W:s.W,H:s.H,grid:s.grid,inks:s.inks,colors:s.colors,effect,scrollDirection:s.scrollDirection,waveShape:s.waveShape,waveAmplitude:s.waveAmplitude,waveLength:s.waveLength,seconds:s.seconds,motionCycles:s.motionCycles??1,colorEffect:'none',backgroundEffect:'none'};
+}
 function setAnimationSettings(a={effect:'replay',seconds:2,scale:2,background:'dark'}){a=normalizeAnimation({...a});researchMotionEffect=a.effect;for(const [key,values] of Object.entries(SOLID_CAMERA_VALUES))$(key).value=String(a[key]??values[0]);$('depthTravel').value=a.depthTravel??'toward';$('depthWaveShape').value=a.depthWaveShape??'sawtooth'; const menuPick=['scroll-x','scroll-y','scroll-diagonal'].includes(a.effect)?'scroll':a.effect;
  $('animationEffect').value=animationEffectMenuValues().has(menuPick)?menuPick:'none';
  syncBackdropEffectSelect(a.backgroundEffect??'none');updateAnimationColorOptions(a.colorEffect??'none');$('wipePattern').value=a.wipePattern??'diagonal';$('parallaxGroup').value=a.parallaxGroup??'ink';$('parallaxSpread').value=String(a.parallaxSpread??1);$('parallaxTravel').value=a.parallaxTravel??'same';setFieldRampValue(a.fieldRamp??'cycle');$('fieldDirection').value=a.fieldDirection??'forward';$('fieldLead').value=String(a.fieldLead??1);setCycleSelectValue($('animationCycles'),a.motionCycles??1);setCycleSelectValue($('animationColorCycles'),a.colorCycles??1);setCycleSelectValue($('animationBackgroundCycles'),a.backgroundCycles??1);$('animationSeconds').value=String(a.seconds);$('gifScale').value=String(a.scale);$('gifBackground').value=a.background;$('waveShape').value=a.waveShape??'sine';$('waveAmplitude').value=String(a.waveAmplitude??100);$('waveLength').value=String(a.waveLength??50);$('colorWaveDirection').value=a.colorWaveDirection??(['raster-bars','plus4-raster'].includes(a.colorEffect)?'up':'up-left');$('colorWaveShape').value=a.colorWaveShape??(['plasma','plus4-plasma'].includes(a.colorEffect)?'sine':'sawtooth');$('colorWaveAmplitude').value=String(a.colorWaveAmplitude??100);$('colorWaveLength').value=String(a.colorWaveLength??50);$('fieldWaveDirection').value=a.fieldWaveDirection??a.colorWaveDirection??(['raster-bars'].includes(a.fieldRamp)?'up':'up-left');$('fieldWaveShape').value=a.fieldWaveShape??a.colorWaveShape??(['plasma'].includes(a.fieldRamp)?'sine':'sawtooth');$('fieldWaveAmplitude').value=String(a.fieldWaveAmplitude??a.colorWaveAmplitude??100);$('fieldWaveLength').value=String(a.fieldWaveLength??a.colorWaveLength??50);$('fieldBrightness').value=String(a.fieldBrightness??100);updateAnimationOptions();if($('animationEffect').value==='wave')syncWaveDirections(a.waveDirection??'up');else $('waveDirection').value=a.waveDirection??'up';
@@ -1240,7 +1245,8 @@ $('exportC64').onclick=async()=>{
   }else{
    const mod=await import('./c64-export.js');if(task.cancelled)throw Error('Export canceled');
    createD64Disk=mod.createD64Disk;
-   result=mod.createC64AdaptiveProgram({machine,columns:s.W,rows:s.H,charset:0,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{})});
+   const motionSource=needsGlyphBits?null:motionSourceForExport(s);
+   result=mod.createC64AdaptiveProgram({machine,columns:s.W,rows:s.H,charset:0,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{}) ,...(motionSource?{motionSource}:{})});
   }
   const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
   const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:name+'-'+machine+'-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
@@ -1442,9 +1448,10 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  const panel=document.createElement('section');panel.id='c64Readiness';panel.setAttribute('aria-label','C64 export readiness');$('c64TimingOverrideWrap').before(panel);let revision=0,timer;
  function argsFor(s,frames){
   const mixed=frames.some(f=>f.cells.some(g=>g>255));
+  const motionSource=mixed?null:motionSourceForExport(s);
   const base={columns:s.W,rows:s.H,background:s.colors.background,ink:s.colors.ink,frames,repetitions:s.c64Repetitions,...(mixed?{glyphBits:rom?.slice()}:{})};
   if(workspaceMachine===MACHINE.PLUS4||workspaceMachine===MACHINE.C128_80)return base;
-  return {machine:workspaceMachine===MACHINE.C128?MACHINE.C128:MACHINE.C64,charset:0,...base};
+  return {machine:workspaceMachine===MACHINE.C128?MACHINE.C128:MACHINE.C64,charset:0,...base,...(motionSource?{motionSource}:{})};
  }
  async function analyzeExport(args){
   if(workspaceMachine===MACHINE.PLUS4){const {createPlus4AdaptiveProgram}=await import('./plus4-export.js');return createPlus4AdaptiveProgram({...args,analyze:true,allowTimingOverrun:true})}

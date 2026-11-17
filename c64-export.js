@@ -1,4 +1,5 @@
 import {planNativeRows,nativeFrameStream} from './c64-native-rows.js';
+import {createC64ProceduralVicProgram,proceduralVicEligible} from './c64-procedural-vic.js';
 import {MACHINE} from './machine-modes.js';
 
 // Standard 35-track D64, with one closed PRG and no appended error table.
@@ -128,6 +129,11 @@ export function createC64AdaptiveProgram(input){
  let result=createC64Program({...input,analyze:true});
  const memoryFits=p=>p.diagnostics.programBytes<=p.diagnostics.memoryLimit;
  const fits=p=>p.diagnostics.worstUpdateRatio<=1&&memoryFits(p);
+ if(input.motionSource&&proceduralVicEligible(input.motionSource)&&input.frames?.length&&input.glyphBits===undefined){
+  const procedural=createC64ProceduralVicProgram({...input,analyze:true});
+  const better=fits(procedural)&&(!fits(result)||procedural.diagnostics.worstUpdateRatio<=result.diagnostics.worstUpdateRatio||procedural.diagnostics.programBytes<result.diagnostics.programBytes);
+  if(better)result=procedural;
+ }
  if(input.frames.length>=2&&input.glyphBits===undefined){
   const dictionary=buildPairDictionary(input.frames,input.ink);
   if(dictionary){

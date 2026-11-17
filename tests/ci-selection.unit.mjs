@@ -58,7 +58,9 @@ test('tool installs follow selected video and native specs',()=>{
   assert.equal(toolNeeds(select(['tests/video.spec.cjs'])).ffmpeg,true);
   assert.equal(toolNeeds(select(['tests/d64.spec.cjs'])).py65,true);
   assert.equal(toolNeeds(select(['tests/c64.spec.cjs'])).py65,true);
+  assert.equal(toolNeeds(select(['tests/c64-procedural-playback.spec.cjs'])).py65,true);
   assert.equal(toolNeeds(select(['tests/unified.spec.cjs'])).py65,true);
+  assert.ok(select(['c64-procedural-codegen.js']).specs.includes('tests/c64-procedural-playback.spec.cjs'));
   assert.deepEqual(toolNeeds(select(['README.md'],{full:true})),{ffmpeg:true,py65:true});
   assert.equal(toolNeeds(select(['README.md'],{motionOnly:true})).ffmpeg,true);
 });

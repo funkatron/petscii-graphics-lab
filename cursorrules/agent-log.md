@@ -66,3 +66,23 @@
 - Follow-up: unit+chromium green; both iPad jobs still failed — modal recentered while readiness rewrote, so `#downloadClose` / export tabs never settled; suite hit 600s.
 - Stop schedule-from-redraw and panel rewrite on debounce; helpers close dialog via `.close()` and skip already-selected tabs; focused CI global-timeout 20m.
 - Retriggered on `5bd6a18`.
+
+## Research motion native capacity (2026-11-17)
+
+- After merge of PR #155 (`fld-blinds`), branch `cursor/research-effects-native-6ab6`.
+- Added `tests/research-motion-capacity.spec.cjs`: 40×24 × five profiles × four loop lengths for `column-wave` and `fld-blinds`; uses `capacityInput()` like `c64-capacity.spec.cjs`.
+- Finding: `column-wave` at 40 columns → 40 samples; sparse @ 2s fails **playback speed** on `generic` (~31k bytes, ratio > 1); `native-rows` would fit timing but ~220k bytes RAM. `fld-blinds` sparse @ 2s still fits.
+- Docs: `column-wave-native.md`, `fld-blinds-native.md`, maintainer reference coverage lines.
+- Local: Chromium `research-motion-capacity.spec.cjs` pass; WebKit not installed on agent VM (CI).
+
+## Procedural VIC v2 analysis (2026-11-17)
+
+- Branch `cursor/procedural-vic-v2-6ab6` (includes capacity matrix).
+- `c64-procedural-vic.js`: column bend + fld-blinds gap tables, encode/decode, CPU/RAM estimates; `createC64AdaptiveProgram` prefers `procedural-v2` when `motionSource` present.
+- Readiness/export pass `motionSource` for research effects; download still replay-only until runtime codegen.
+- Tests: `tests/c64-procedural-vic.unit.mjs`; capacity spec expects sparse column-wave `procedural-v2`.
+
+## Procedural VIC playback (2026-11-17)
+
+- `c64-procedural-codegen.js`: 6502 column-wave + fld-blinds players; py65 `c64-procedural-playback.spec.cjs`.
+- 8×5 column-wave sparse PRG ~946 bytes total; download via adaptive + `motionSource`.
