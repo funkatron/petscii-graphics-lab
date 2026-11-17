@@ -6,7 +6,11 @@ Review **one section at a time** before implementation. Housekeeping on the road
 
 ---
 
-## Item 1 — Reference image overlay → PETSCII
+**Owner approval (2026-11-17):** OODA **§1** and **§2** approved — implement in that order. **§3** below is the extended UI plan; approve before coding the glossary.
+
+---
+
+## Item 1 — Reference image overlay → PETSCII *(approved — implement)*
 
 ### Observe
 
@@ -43,7 +47,7 @@ Review **one section at a time** before implementation. Housekeeping on the road
 
 ---
 
-## Item 2 — Export copy (scroller / native program)
+## Item 2 — Export copy (scroller / native program) *(approved — implement)*
 
 ### Observe
 
@@ -78,36 +82,133 @@ Review **one section at a time** before implementation. Housekeeping on the road
 
 ---
 
-## Item 3 — Animation glossary (procedural vs cel frames)
+## Item 3 — Animation glossary *(extended UI plan — review before build)*
 
 ### Observe
 
-- Borrowings recommend a short primer: effects **generate** frames; users need not paint every frame ([editor-borrowings.md](editor-borrowings.md) suggested help block).
-- We have scattered notes (`About replay & speed`, animation sections) but no single **Glossary** disclosure.
-- Wizard users expect a **frame bar**; we offer **Loop duration**, **cycles**, and **frame ZIP** as the bridge.
+- Borrowings recommend a short primer: effects **generate** frames; users need not paint every frame ([editor-borrowings.md](editor-borrowings.md)).
+- Sidebar **Animation** already has three fieldsets (**Timeline & preview**, **Movement**, **Color**, **Backdrop**) plus one long **About replay & speed** disclosure (`#animationInfo`).
+- Download sheet has **Animation** tab with `motionSummary`, preview, and frame ZIP copy that mentions numbered PNGs — but nothing explains **Wizard frame bar vs our effect stack**.
+- `previewBanner` + **Animation settings** jump exists during canvas preview; glossary should be reachable without leaving preview.
 
-### Orient
+### Orient — design goals
 
-- **Education, not UI restructure:** expandable help in **Animation** settings or download preview.
-- **Terms:** glyph / ink / background vs backdrop; native program vs GIF; replay vs procedural stack; frame ZIP vs cel editor.
-- **Risk:** wall of text on iPad; keep collapsible `<details>` per [ui-review.md](ui-review.md).
+| Goal | How |
+| --- | --- |
+| Wizard/Petmate refugees “get it” in &lt;30 s | Lead with *generated frames*, not hand-painted cels |
+| No mode error | Glossary is read-only; never changes `animationEffect` |
+| iPad-first | Collapsed by default; no new scrolling region inside settings scroller |
+| One source of truth | Same bullet text in sidebar + optional mirror line on Download → Animation tab |
 
-### Decide (proposed scope)
+**Do not** duplicate the entire `animationInfo` paragraph; glossary = vocabulary, **About replay & speed** = timing/cycles math.
+
+### UI placement (primary)
+
+Add a **sibling** disclosure inside `#animationDetails .group-body`, **above** “About replay & speed”:
+
+```html
+<details class="help-disclosure" id="animationGlossary">
+  <summary>Animation glossary</summary>
+  <!-- structured <dl> or short <section>s, class="note" -->
+</details>
+```
+
+**Why here:** User is already choosing Movement / Color / Backdrop; glossary explains those words before they open exports.
+
+**Why not Help sidebar:** Animation vocabulary is contextual; Help stays general drawing tips.
+
+**Why not only Download tab:** Users configure effects in ☰ → Animation first; hiding glossary only in downloads misses the “aha” moment.
+
+### UI placement (secondary — optional v1)
+
+One sentence under **Download artwork → Animation** tab, in the existing note below **Download frame ZIP**:
+
+> Effects in Animation settings build every frame automatically — see **Animation glossary** in Animation settings.
+
+No link that scrolls the sidebar on phone overlay (fragile); name the control path in plain text.
+
+### Content outline (match visible control names)
+
+Use a definition list (`<dl>`) for screen-reader-friendly pairs. Proposed entries:
+
+1. **Generated frames** — Movement, Color animation, and Backdrop effect combine into one loop; you paint the source grid once.
+2. **Replay drawing** — Plays your stroke order; not the same as a Wizard cel timeline.
+3. **Loop duration** — Whole timeline in seconds; **Movement cycles** / **Color cycles** / **Backdrop cycles** set independent speeds inside it.
+4. **Glyph, ink, background** — Cell shape and color vs shared **Background** (brush) under Colors.
+5. **Backdrop effect** — Animates empty-cell paper (and border lead on VIC); distinct from brush Background.
+6. **Exports** — GIF/video/frame ZIP preview what you see; **Native program (PRG)** runs the same timeline on hardware when export succeeds.
+7. **Frame ZIP** — Numbered PNGs + `timing.json` for other tools; not an in-editor cel strip (Tier B timeline stays deferred).
+
+**From other editors** (single compact `<p class="note">` at bottom):
+
+- Petmate *screens* ≈ our effect combinations, not separate project files.
+- Wizard *Shift* ≈ Paint mode **Glyph only / Ink only** (drawing strip).
+
+### Interaction and chrome
+
+| State | Behavior |
+| --- | --- |
+| Collapsed (default) | Zero layout shift in Animation group |
+| Expanded | `details[open]` only; does not auto-open on first visit (no nag) |
+| Preview lock | Glossary remains readable; controls inside Movement stay disabled like today |
+| Machine change | No machine-specific glossary body in v1 (backdrop bullet already mentions VIC generically) |
+
+**Accessibility:** `summary` text exactly **Animation glossary**; inner headings are `<dt>` with plain language, not ALL CAPS.
+
+### Relationship to existing help
+
+| Existing | After glossary |
+| --- | --- |
+| `#animationInfo` “About replay & speed” | Keep; add one line at top: *For terms, open **Animation glossary** above.* |
+| Contextual `?` popovers on download | Unchanged |
+| README “Preview an animation” | Add one sentence linking glossary location |
+
+### Visual hierarchy (sidebar Animation)
+
+```
+Animation (details)
+├── Timeline & preview (fieldset)
+├── Movement (fieldset)
+├── Color (fieldset)
+├── Backdrop (fieldset)
+├── [warning note if any]
+├── Animation glossary (details)  ← NEW
+└── About replay & speed (details)
+```
+
+### Tests (when approved)
+
+| Check | Project |
+| --- | --- |
+| Expand glossary, assert 3+ `<dt>` strings | Chromium |
+| Collapsed by default on load | Chromium |
+| Open ☰ → Animation at 200% font, expand glossary in viewport | `ipad-portrait` |
+| Preview playing: glossary still expandable, Movement select stays disabled | Chromium |
+
+Spec file: `tests/animation-glossary.spec.cjs`.
+
+### Out of scope (reminder)
+
+- Cel timeline / frame bar UI (Tier B).
+- Tooltip on every Movement `<option>`.
+- Embedding glossary in v3 JSON.
+
+### Decide (scope lock for v1)
 
 | In | Out |
 | --- | --- |
-| One new **Animation glossary** `<details>` (or expand existing disclosure) with 4–6 bullets from borrowings | Full timeline / cel strip UI (Tier B) |
-| Link from Movement and Color section intros | Changing animation schema |
-| README pointer under Preview an animation | Video walkthrough |
+| `#animationGlossary` + copy outline above | Download-tab-only glossary |
+| Cross-line in `animationInfo` + README | Rewriting full animationInfo |
+| Playwright spec | Video / screenshot marketing |
 
-**Acceptance:** Playwright opens glossary, checks key phrases; iPad portrait reach test; labels still match `index.html` control names.
+**Acceptance:** Owner sign-off on this section, then implement in one PR with docs + iPad reach assertion.
 
-### Act (after approval)
+### Act (after §3 approval)
 
-1. Draft copy in `docs/ui-review.md` or inline in `index.html` help-disclosure pattern.
-2. Implement disclosure + `aria` labels.
-3. `tests/animation-glossary.spec.cjs` (open menu, expand, match strings).
-4. Mark Tier A glossary item done on roadmap; spot-check editor-borrowings table.
+1. Land copy in `index.html` (English prose frozen before tests).
+2. Add tests; run Chromium + iPad portrait.
+3. Update `editor-borrowings.md` “Suggested help sidebar” to point at shipped control name.
+4. Roadmap Tier A glossary checkbox.
 
 ---
 
