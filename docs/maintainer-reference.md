@@ -389,7 +389,7 @@ Short phone landscape additionally hides the idle selection dock for Paint/Erase
 
 Normalize phase modulo one before rotation for exact endpoint closure. Cube yaw completes a full turn while tilt oscillates; the globe has fixed tilt; the drum rolls around its axis with a fixed yaw. Select 48 samples per cycle and require 12 when rates compete for the shared budget. The usual independent color pass follows projection. Hide wave and depth-travel controls. All three identifiers validate in v3 and flow through snapshots, cache identity, autosave, JSON and ZIP metadata. Existing files keep their behavior; older application versions cannot open these new effect identifiers.
 
-Geometry tests cover empty and narrow grids, mixed-bank glyph/ink pairs, silhouettes, latitude mapping and source preservation. Browser checks extend the depth export matrix to GIF/ZIP pixel equality, PRG/D64 bytes and repeated video cycles; separate UI tests compare paused preview pixels to GIF, save/reload settings and reject undersampled rates. Local geometry checks are not browser or physical-device performance evidence.
+Geometry tests cover empty and narrow grids, mixed-bank glyph/ink pairs, silhouettes, latitude mapping and source preservation. Browser checks extend the depth export matrix to GIF/ZIP pixel equality, PRG/D64 bytes and repeated video cycles; separate UI tests compare paused preview pixels to GIF, save/reload settings and reject undersampled rates. **`tests/depth-triage.spec.cjs`** attaches sparse vs dense adaptive-export snapshots for perspective floor, curved road, and tunnel flight ([depth-effects-triage.md](depth-effects-triage.md)). Local geometry checks are not browser or physical-device performance evidence.
 
 
 ## Bonfire movement and colors
