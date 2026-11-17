@@ -1,6 +1,6 @@
 # Column-wave spike (DYCP-like)
 
-**Status:** Research spike (2026-11-16). **Not in the Movement menu.**
+**Status:** Shipped in the Movement menu (2026-11-17) as **Column wave (DYCP-style)**. C64 export still favors movement-only loops for procedural-v2 PRGs.
 
 ## Behavior
 

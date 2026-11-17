@@ -1,6 +1,6 @@
 # Column-wave — native export notes
 
-**Status:** Research (2026-11-16). **`column-wave` is not in the Movement menu.** Browser validation: [`tests/column-wave.spec.cjs`](../tests/column-wave.spec.cjs).
+**Status:** Movement menu **Column wave (DYCP-style)** (2026-11-17). Browser validation: [`tests/column-wave.spec.cjs`](../tests/column-wave.spec.cjs).
 
 ## What the browser exports today
 
@@ -51,14 +51,9 @@ Playwright attaches `research-motion-capacity.json` (Chromium/WebKit use the rea
 
 Table encoding and round-trip: `tests/c64-procedural-vic.unit.mjs`.
 
-## UI ship gate
+## C64 export notes for menu users
 
-Do **not** add a Movement menu entry until at least one of:
-
-1. **Bounded native profile** is documented and tested (e.g. per-column offset table replayed in the [procedural player](native-player-rewrite.md), not 40 full-screen diffs on a 40×24 loop), **or**
-2. Adaptive export is proven on **representative dense** 40×24 column-wave projects with margin under [`c64-capacity.md`](c64-capacity.md) (not only sparse 8×5).
-
-Until then, `column-wave` remains a **validated research effect** loadable from v3 JSON only.
+**Procedural-v2** PRGs apply when movement is the only animated layer (no color wave or backdrop). **Dense 40×24** art may still need a longer loop or simpler artwork; see the capacity matrix above.
 
 ## Related
 

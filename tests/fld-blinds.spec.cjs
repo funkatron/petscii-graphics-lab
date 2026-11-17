@@ -1,5 +1,5 @@
 const {GifReader}=require('omggif'),AdmZip=require('adm-zip'),{PNG}=require('pngjs');
-const {test,expect,project,loadProject,download,waitForProjectAutosave}=require('./helpers.cjs');
+const {test,expect,project,loadProject,download,waitForProjectAutosave,ui}=require('./helpers.cjs');
 const palette=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'];
 const rgb=i=>[0,2,4].map(n=>parseInt(palette[i].slice(n,n+2),16));
 
@@ -30,7 +30,7 @@ test('fld-blinds exports match planner on two grid sizes',async({page})=>{
  for(const [w,h]of [[8,6],[6,4]]){
   const p=art(w,h,75);
   await loadProject(page,p);
-  await expect(page.locator('#animationEffect option[value="fld-blinds"]')).toHaveCount(0);
+  await expect(page.locator('#animationEffect')).toHaveValue('fld-blinds');
   const {count,frames,closed}=await plannerFrames(page,p);
   expect(closed).toBe(true);
   const gif=new GifReader(await download(page,'#exportGif'));
@@ -74,4 +74,14 @@ test('fld-blinds persists and adaptive C64 spot-check',async({page})=>{
  },{animation:p.animation,grid:p.grid,cellColors:p.cellColors,columns:p.columns,rows:p.rows});
  expect(diag.fits).toBe(true);
  expect(diag.frameCount).toBe(24);
+});
+
+test('fld-blinds is selectable from Movement menu',async({page})=>{
+ const p=project(Array(8*6).fill(''),8,6,{animation:{effect:'none',seconds:2,scale:1,background:'dark',colorEffect:'none'}});
+ await loadProject(page,p);
+ await ui(page,'#animationEffect','selectOption','fld-blinds');
+ await expect(page.locator('#animationEffect')).toHaveValue('fld-blinds');
+ await expect(page.locator('#scrollOptions')).toBeHidden();
+ await expect(page.locator('#waveOptions')).toBeVisible();
+ await expect(page.locator('label[for=waveAmplitude]')).toHaveText('Gap depth');
 });

@@ -81,8 +81,8 @@ Most of the app still lives in one `index.html` module script; smaller areas alr
 
 **Algorithmic VIC research (optional prototypes)**
 
-- [x] **Column-wave** derived-frame spike validated in browser ([column-wave-spike.md](column-wave-spike.md), [column-wave-native.md](column-wave-native.md)); **no UI** until native gate cleared.
-- [x] **FLD blinds** row-gap spike validated in browser ([fld-blinds-spike.md](fld-blinds-spike.md), [fld-blinds-native.md](fld-blinds-native.md)); **no UI** until native gate cleared.
+- [x] **Column-wave** in Movement menu ([column-wave-spike.md](column-wave-spike.md), [column-wave-native.md](column-wave-native.md)); procedural-v2 C64 for movement-only exports.
+- [x] **FLD blinds** in Movement menu ([fld-blinds-spike.md](fld-blinds-spike.md), [fld-blinds-native.md](fld-blinds-native.md)); procedural-v2 C64 for movement-only exports.
 - [ ] Keep **VSP/FLI/AGSP** as documentation-only unless requirements change.
 
 **Checklist (not started)**

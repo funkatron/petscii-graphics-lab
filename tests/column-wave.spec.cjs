@@ -1,5 +1,5 @@
 const {GifReader}=require('omggif'),AdmZip=require('adm-zip'),{PNG}=require('pngjs');
-const {test,expect,project,loadProject,download,waitForProjectAutosave}=require('./helpers.cjs');
+const {test,expect,project,loadProject,download,waitForProjectAutosave,ui}=require('./helpers.cjs');
 const palette=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'];
 const rgb=i=>[0,2,4].map(n=>parseInt(palette[i].slice(n,n+2),16));
 
@@ -31,7 +31,7 @@ test('column-wave exports match planner and timing metadata',async({page})=>{
  for(const [w,h,direction]of [[8,5,'left'],[7,3,'right']]){
   const p=art(w,h,direction);
   await loadProject(page,p);
-  await expect(page.locator('#animationEffect option[value="column-wave"]')).toHaveCount(0);
+  await expect(page.locator('#animationEffect')).toHaveValue('column-wave');
   const {count,frames,closed}=await plannerFrames(page,p);
   expect(closed).toBe(true);
   const gif=new GifReader(await download(page,'#exportGif'));
@@ -112,4 +112,14 @@ test('column-wave adaptive C64 export spot-check',async({page})=>{
  expect(diag.frameCount).toBe(24);
  expect(diag.fits).toBe(true);
  expect(diag.programBytes).toBeLessThanOrEqual(diag.memoryLimit);
+});
+
+test('column-wave is selectable from Movement menu with horizontal scroll only',async({page})=>{
+ const p=project(Array(8*5).fill(''),8,5,{animation:{effect:'none',seconds:2,scale:1,background:'dark',colorEffect:'none'}});
+ await loadProject(page,p);
+ await ui(page,'#animationEffect','selectOption','column-wave');
+ await expect(page.locator('#animationEffect')).toHaveValue('column-wave');
+ await expect(page.locator('#scrollDirection option')).toHaveText(['Left','Right']);
+ await expect(page.locator('#scrollOptions')).toBeVisible();
+ await expect(page.locator('#waveOptions')).toBeVisible();
 });

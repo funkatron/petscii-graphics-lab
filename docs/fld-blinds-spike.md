@@ -1,6 +1,6 @@
 # FLD blinds spike (row gaps)
 
-**Status:** Research (2026-11-17). **Not in the Movement menu.**
+**Status:** Shipped in the Movement menu (2026-11-17) as **Row blinds (FLD-style)**.
 
 ## Behavior
 
