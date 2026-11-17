@@ -29,11 +29,30 @@ Per frame, **every destination cell** can sample a different source address (hor
 
 Sparse art (checker columns) keeps many cells empty; native cost tracks **painted** cells × frames, not empty grid slots.
 
+## 40 × 24 capacity matrix (2026-11-17)
+
+Reproduce with the same fixtures as [`c64-capacity.spec.cjs`](../tests/c64-capacity.spec.cjs):
+
+```sh
+npx playwright test tests/research-motion-capacity.spec.cjs --workers=1
+```
+
+Playwright attaches `research-motion-capacity.json` (Chromium/WebKit use the real `capacityInput()` sampler).
+
+| Finding | Detail |
+| --- | --- |
+| Sample count | `max(24, W)` → **40 frames** at 40 columns (unlike `wave` at 24) |
+| Sparse @ 2 s | `generic` renderer ~31k bytes, **memory fits**, `worstUpdateRatio` > 1 → **playback speed** rejection |
+| Sparse @ 12 s | Same program bytes; longer per-frame ticks reduce `worstUpdateRatio` (timing headroom grows) |
+| `native-rows` fallback | Meets timing on sparse art but **~220k program bytes** — far above the 38911-byte budget, so adaptive export keeps `generic` diagnostics |
+
+Small canvases (e.g. 8×5 in `column-wave.spec.cjs`) still pass adaptive export; full-screen column-wave needs a **procedural column-offset player** or a shorter sample policy before PRG/D64 is reliable at default loop lengths.
+
 ## UI ship gate
 
 Do **not** add a Movement menu entry until at least one of:
 
-1. **Bounded native profile** is documented and tested (e.g. per-column offset table replayed in the [procedural player](native-player-rewrite.md), not 24 full-screen diffs on a 40×24 loop), **or**
+1. **Bounded native profile** is documented and tested (e.g. per-column offset table replayed in the [procedural player](native-player-rewrite.md), not 40 full-screen diffs on a 40×24 loop), **or**
 2. Adaptive export is proven on **representative dense** 40×24 column-wave projects with margin under [`c64-capacity.md`](c64-capacity.md) (not only sparse 8×5).
 
 Until then, `column-wave` remains a **validated research effect** loadable from v3 JSON only.

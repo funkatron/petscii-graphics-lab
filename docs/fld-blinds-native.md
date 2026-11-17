@@ -14,6 +14,20 @@ Typical sparse checker rows: fits memory and timing (`fits: true`); renderer usu
 
 Dense full-screen art approaches **W × H** painted cells per frame when gaps are small — same worst-case class as column-wave.
 
+## 40 × 24 capacity matrix (2026-11-17)
+
+```sh
+npx playwright test tests/research-motion-capacity.spec.cjs --workers=1
+```
+
+Uses the shared [`c64-capacity-fixtures.cjs`](../tests/c64-capacity-fixtures.cjs) profiles; result attachment `research-motion-capacity.json`.
+
+| Finding | Detail |
+| --- | --- |
+| Sample count | **24 frames** (same family as `wave`, independent of width) |
+| Sparse checker @ 2 s | Adaptive export **fits** memory and timing (CI assertion in `research-motion-capacity.spec.cjs`) |
+| Dense / mixed-bank | Treat like other full-screen motions: watch `worstUpdateRatio` and custom `glyphBits` paths in the JSON matrix |
+
 ## UI ship gate
 
 Do not expose in the Movement menu until:

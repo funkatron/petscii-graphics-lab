@@ -413,8 +413,8 @@ Diagonal sampling targets max(24,W,H), retaining the existing shared budget, ind
 
 ### FLD blinds (research only)
 
-`fld-blinds` inserts variable blank rows between source rows on a fixed **W × H** grid using per-row `waveValue` plus motion phase. Uses movement height/wavelength controls; no scroll direction. Validates in v3 projects; no Movement menu option. See [fld-blinds-spike.md](fld-blinds-spike.md). Coverage: `tests/fld-blinds.unit.mjs`, `tests/fld-blinds.spec.cjs`.
+`fld-blinds` inserts variable blank rows between source rows on a fixed **W × H** grid using per-row `waveValue` plus motion phase. Uses movement height/wavelength controls; no scroll direction. Validates in v3 projects; no Movement menu option. See [fld-blinds-spike.md](fld-blinds-spike.md) and [fld-blinds-native.md](fld-blinds-native.md). Coverage: `tests/fld-blinds.unit.mjs`, `tests/fld-blinds.spec.cjs`, `tests/research-motion-capacity.spec.cjs` (40×24 matrix).
 
 ### Column-wave (research only)
 
-`column-wave` scrolls horizontally (`left` / `right` only) and adds a per-column vertical offset from `waveValue(waveShape, (x/W)×50/waveLength + phase)` scaled like Sine scroller bend. Samples `max(24,W)`. Validates in v3 projects but **no Movement menu option**; `researchMotionEffect` in `index.html` preserves export/save effect ids absent from the picker. See [column-wave-spike.md](column-wave-spike.md) and [column-wave-native.md](column-wave-native.md). Coverage: `tests/column-wave.unit.mjs`, `tests/column-wave.spec.cjs`.
+`column-wave` scrolls horizontally (`left` / `right` only) and adds a per-column vertical offset from `waveValue(waveShape, (x/W)×50/waveLength + phase)` scaled like Sine scroller bend. Samples `max(24,W)`. Validates in v3 projects but **no Movement menu option**; `researchMotionEffect` in `index.html` preserves export/save effect ids absent from the picker. See [column-wave-spike.md](column-wave-spike.md) and [column-wave-native.md](column-wave-native.md). Coverage: `tests/column-wave.unit.mjs`, `tests/column-wave.spec.cjs`, `tests/research-motion-capacity.spec.cjs` (40×24 matrix; sparse @ 2s exceeds generic timing budget).
