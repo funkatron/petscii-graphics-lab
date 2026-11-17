@@ -41,10 +41,11 @@ export const SOLID_CAMERA_VALUES = {
 };
 /** Research spike only — not exposed in the Movement menu until native export is designed. */
 export const COLUMN_WAVE_EFFECT = 'column-wave';
+export const FLD_BLINDS_EFFECT = 'fld-blinds';
 
 export const MOTION_EFFECTS = [
   'none', 'bonfire', 'replay', 'scroll-x', 'scroll-y', 'scroll-diagonal',
-  'wave', 'sine-scroll', COLUMN_WAVE_EFFECT, 'ripple', 'parallax',
+  'wave', 'sine-scroll', COLUMN_WAVE_EFFECT, FLD_BLINDS_EFFECT, 'ripple', 'parallax',
   ...DEPTH_EFFECTS,
   ...SOLID_EFFECTS,
   ...INTRO_MOTIONS,

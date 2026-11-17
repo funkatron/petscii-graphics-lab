@@ -243,6 +243,9 @@ function samplesPerMotionCycle(source) {
   if (source.effect === 'column-wave') {
     return Math.max(24, source.W);
   }
+  if (source.effect === 'fld-blinds') {
+    return 24;
+  }
   if (source.effect === 'wave' || source.effect === 'ripple') {
     return 24;
   }
@@ -261,7 +264,7 @@ function minimumFrameCount(source, motionCycles, cellColorSteps, colorCycles, ba
       || DEPTH_EFFECTS.includes(source.effect)
       || SOLID_EFFECTS.includes(source.effect);
     const intro = INTRO_MOTIONS.includes(source.effect);
-    const waveLike = ['wave', 'ripple', 'replay', 'sine-scroll', 'column-wave'].includes(source.effect);
+    const waveLike = ['wave', 'ripple', 'replay', 'sine-scroll', 'column-wave', 'fld-blinds'].includes(source.effect);
     if (needsManySamples) {
       motionMinimum = 12;
     } else if (intro) {
@@ -345,6 +348,34 @@ export function animationDelay(frameIndex, source) {
 export function cyclePhase(frame, frameCount, cycles) {
   const samplesPerCycle = frameCount / cycles;
   return (frame % samplesPerCycle) / samplesPerCycle;
+}
+
+export function fldBlindsFrame(phase, source) {
+  const cells = Array(source.W * source.H).fill('');
+  const inks = source.inks.slice();
+  const amplitude = (source.waveAmplitude ?? 100) / 100;
+  const maxGap = Math.min(3, Math.max(0, Math.round((source.H / 3) * amplitude)));
+  const spacing = 50 / (source.waveLength ?? 50);
+  let displayRow = 0;
+  for (let sy = 0; sy < source.H; sy++) {
+    const openness = (waveValue(source.waveShape ?? 'sine', sy / Math.max(1, source.H) * spacing + phase) + 1) / 2;
+    const gap = sy === 0 ? 0 : Math.round(maxGap * (1 - openness));
+    displayRow += gap;
+    if (displayRow >= source.H) {
+      break;
+    }
+    for (let x = 0; x < source.W; x++) {
+      const sourceIndex = sy * source.W + x;
+      const destIndex = displayRow * source.W + x;
+      cells[destIndex] = source.grid[sourceIndex];
+      inks[destIndex] = source.inks[sourceIndex];
+    }
+    displayRow++;
+    if (displayRow >= source.H) {
+      break;
+    }
+  }
+  return {cells, inks};
 }
 
 export function introMotionFrame(phase, source) {
@@ -937,6 +968,10 @@ export function animationCells(frame, source) {
     const picture = introMotionFrame(phase, normalized);
     cells.splice(0, cells.length, ...picture.cells);
     inks.splice(0, inks.length, ...picture.inks);
+  } else if (normalized.effect === 'fld-blinds') {
+    const picture = fldBlindsFrame(phase, normalized);
+    cells.splice(0, cells.length, ...picture.cells);
+    inks.splice(0, cells.length, ...picture.inks);
   } else {
     applyGridMotion(frame, phase, normalized, cells, inks);
   }

@@ -411,6 +411,10 @@ New Project confirms replacement when artwork, replay events or unplaced text ex
 
 Diagonal sampling targets max(24,W,H), retaining the existing shared budget, independent rates and four-sample minimum. Preview, GIF, ZIP, video and C64 exports consume the shared frame function. Missing direction still defaults to left. Save/open and autosave keep the diagonal value; older app versions reject this newly supported combination. `sine-scroll.unit.mjs` covers cardinal regression frames, diagonal geometry, narrow canvases, source preservation, sampling warnings and loop closure; focused browser coverage is in `sine-scroll.spec.cjs` and `diagonal-scroll.spec.cjs`.
 
+### FLD blinds (research only)
+
+`fld-blinds` inserts variable blank rows between source rows on a fixed **W × H** grid using per-row `waveValue` plus motion phase. Uses movement height/wavelength controls; no scroll direction. Validates in v3 projects; no Movement menu option. See [fld-blinds-spike.md](fld-blinds-spike.md). Coverage: `tests/fld-blinds.unit.mjs`, `tests/fld-blinds.spec.cjs`.
+
 ### Column-wave (research only)
 
 `column-wave` scrolls horizontally (`left` / `right` only) and adds a per-column vertical offset from `waveValue(waveShape, (x/W)×50/waveLength + phase)` scaled like Sine scroller bend. Samples `max(24,W)`. Validates in v3 projects but **no Movement menu option**; `researchMotionEffect` in `index.html` preserves export/save effect ids absent from the picker. See [column-wave-spike.md](column-wave-spike.md) and [column-wave-native.md](column-wave-native.md). Coverage: `tests/column-wave.unit.mjs`, `tests/column-wave.spec.cjs`.
