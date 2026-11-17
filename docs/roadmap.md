@@ -81,7 +81,7 @@ Most of the app still lives in one `index.html` module script; smaller areas alr
 
 **Algorithmic VIC research (optional prototypes)**
 
-- [ ] Read [algorithmic VIC feasibility](algorithmic-vic-feasibility.md); spike **column-offset wave** and **FLD blinds** on derived frames before new depth effects. **Column-wave** derived-frame spike is in progress (`column-wave` effect id, no UI).
+- [x] **Column-wave** derived-frame spike validated in browser ([column-wave-spike.md](column-wave-spike.md), [column-wave-native.md](column-wave-native.md)); **no UI** until native gate cleared. **FLD blinds** spike still open.
 - [ ] Keep **VSP/FLI/AGSP** as documentation-only unless requirements change.
 
 **Checklist (not started)**

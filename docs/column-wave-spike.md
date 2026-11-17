@@ -8,8 +8,13 @@
 
 ## Native export
 
-Requires a [native player plan](native-player-rewrite.md) before any UI ship; worst case is full-screen updates each sample ([algorithmic VIC feasibility](algorithmic-vic-feasibility.md)).
+See [column-wave-native.md](column-wave-native.md). UI ship remains blocked until dense-grid native margin or a procedural player profile is specified ([native player rewrite](native-player-rewrite.md)).
 
 ## Tests
 
-`tests/column-wave.unit.mjs` — loop closure, validation, and distinction from `scroll-x`.
+| Suite | Coverage |
+| --- | --- |
+| `tests/column-wave.unit.mjs` | Loop closure, validation, ≠ `scroll-x` |
+| `tests/column-wave.spec.cjs` | GIF/ZIP parity, reload, C64 adaptive spot-check (Chromium + iPad WebKit in CI) |
+
+Research projects load via JSON; `index.html` keeps `researchMotionEffect` so exports use the saved effect without a menu option.
