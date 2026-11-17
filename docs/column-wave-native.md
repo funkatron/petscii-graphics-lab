@@ -42,11 +42,14 @@ Playwright attaches `research-motion-capacity.json` (Chromium/WebKit use the rea
 | Finding | Detail |
 | --- | --- |
 | Sample count | `max(24, W)` → **40 frames** at 40 columns (unlike `wave` at 24) |
-| Sparse @ 2 s | `generic` renderer ~31k bytes, **memory fits**, `worstUpdateRatio` > 1 → **playback speed** rejection |
-| Sparse @ 12 s | Same program bytes; longer per-frame ticks reduce `worstUpdateRatio` (timing headroom grows) |
-| `native-rows` fallback | Meets timing on sparse art but **~220k program bytes** — far above the 38911-byte budget, so adaptive export keeps `generic` diagnostics |
+| Sparse @ 2 s (replay) | `generic` ~31k bytes, `worstUpdateRatio` > 1 without `motionSource` — **playback speed** |
+| Sparse @ 2 s (procedural-v2) | With `motionSource`, adaptive export selects **`procedural-v2`** (~3.4k bytes, timing fits) via `c64-procedural-vic.js` |
+| Sparse @ 12 s | Longer ticks still help replay timing; procedural timing estimate is already within budget at 2 s |
+| `native-rows` fallback | Meets timing on sparse art but **~220k program bytes** — not selected when procedural-v2 fits |
 
-Small canvases (e.g. 8×5 in `column-wave.spec.cjs`) still pass adaptive export; full-screen column-wave needs a **procedural column-offset player** or a shorter sample policy before PRG/D64 is reliable at default loop lengths.
+**Download:** procedural analysis passes readiness checks, but PRG/D64 still require the v2 6502 runtime (download throws until codegen lands). Small canvases (8×5) continue to pass replay adaptive export.
+
+Table encoding and round-trip: `tests/c64-procedural-vic.unit.mjs`.
 
 ## UI ship gate
 

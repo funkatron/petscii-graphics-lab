@@ -81,7 +81,7 @@ Plus/4 and VDC must keep **replay fallback** even if VIC procedural path ships.
 
 1. **Design native** for the effect (replay vs procedural ops); reject spikes with no C64 story.
 2. **Browser:** Implement derived-frame logic and export analysis (“would procedural profile fit?”).
-3. **VIC runtime v2 spike:** One effect behind `renderer: procedural-v2` in tests + VICE before UI.
+3. **VIC runtime v2 spike:** `c64-procedural-vic.js` emits `renderer: procedural-v2` in analysis for `column-wave` / `fld-blinds` (table encode + budgets; PRG codegen + VICE still open).
 4. **Productize:** Expose in Animation picker only when **Native program** readiness passes for representative art.
 5. **Capacity track:** REU / C128 bank-1 ([roadmap](roadmap.md)) remains **optional**; procedural tables may reduce need for extra RAM.
 

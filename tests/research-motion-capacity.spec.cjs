@@ -63,13 +63,13 @@ test('40 × 24 research motions report adaptive C64 capacity',async({page},testI
   if(!row.fits)expect(row.error).toMatch(/playback speed|memory budget/);
   expect(row.playerBytes===undefined||row.programBytes+row.sharedBlockCount>=0).toBe(true);
  }
- // 40 samples @ 2s: generic diff player exceeds CPU budget; native-rows would fit timing but not RAM.
+ // 40 samples @ 2s: replay generic fails timing; procedural-v2 profile fits within budgets.
  const columnSparse2=results.find(r=>r.effect==='column-wave'&&r.profile==='sparse'&&r.seconds===2);
  expect(columnSparse2.frameCount).toBe(40);
- expect(columnSparse2.renderer).toBe('generic');
- expect(columnSparse2.fits).toBe(false);
- expect(columnSparse2.error).toBe('playback speed');
- expect(columnSparse2.worstUpdateRatio).toBeGreaterThan(1);
+ expect(columnSparse2.renderer).toBe('procedural-v2');
+ expect(columnSparse2.fits).toBe(true);
+ expect(columnSparse2.error).toBe('');
+ expect(columnSparse2.worstUpdateRatio).toBeLessThanOrEqual(1);
  expect(columnSparse2.programBytes).toBeLessThan(columnSparse2.memoryLimit);
  // fld-blinds stays on 24 samples like wave; sparse checker should fit adaptive export.
  const blindsSparse2=results.find(r=>r.effect==='fld-blinds'&&r.profile==='sparse'&&r.seconds===2);
