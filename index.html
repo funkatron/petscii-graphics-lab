@@ -140,6 +140,7 @@
 const {APP_VERSION}=await import('./app-version.js');
 const {validateProject,normalizeAnimation,ANIMATION_CYCLES,FIELD_RAMPS,FIELD_RAMP_LABELS,DEPTH_EFFECTS,INTRO_MOTIONS,WIPE_PATTERNS,WAVE_AMPLITUDES,WAVE_LENGTHS,WAVE_SHAPES,WAVE_DIRECTIONS,DIAGONAL_DIRECTIONS,COLOR_WAVE_DIRECTIONS,SOLID_CAMERA_VALUES}=await import('./project-validation.js');
 const {randomProjectFilename,regenerateProjectFilename}=await import('./project-naming.js');
+const {animationRasterFilename,nativeProgramFilename}=await import('./export-filename.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
 function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareNativeBackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}
@@ -997,8 +998,7 @@ async function exportAnimation(kind){
    zip.end();blob=new Blob(zipChunks,{type:'application/zip'});
   }
   checkpoint();const old=animationDownloads[kind],url=URL.createObjectURL(blob);
-  const effectTag=s.effect!=='none'?s.effect:(s.colorEffect!=='none'?s.colorEffect:'still');
-  const name=snapshot.name+'-'+effectTag+'-'+width+'x'+height+(kind==='video'&&repetitions>1?'-'+repetitions+'x':'')+(kind==='gif'?'.gif':kind==='video'?'.'+video.extension:'-frames.zip');
+  const name=animationRasterFilename(snapshot.name,s,width,height,kind,repetitions,kind==='video'?video.extension:'webm');
   const file={key,url,name};animationDownloads[kind]=file;
   if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);
   button.dataset.downloadUrl=url;button.dataset.downloadName=name;downloadReadyFile(file);
@@ -1267,7 +1267,7 @@ $('exportC64').onclick=async()=>{
    result=mod.createC64AdaptiveProgram({machine,columns:s.W,rows:s.H,charset:0,background:s.colors.background,ink:s.colors.ink,frames,repetitions,allowTimingOverrun,...(needsGlyphBits?{glyphBits}:{}) ,...(motionSource?{motionSource}:{})});
   }
   const bytes=format==='d64'?createD64Disk(result.bytes,moving?'ANIMATION':'PICTURE'):result.bytes;
-  const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:name+'-'+machine+'-'+(moving?'animation':'still')+'-'+s.W+'x'+s.H+'.'+format},old=animationDownloads.c64;
+  const file={key,url:URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'})),name:nativeProgramFilename(name,machine,s,{moving,columns:s.W,rows:s.H,extension:format})},old=animationDownloads.c64;
   animationDownloads.c64=file;$('exportC64').dataset.downloadUrl=file.url;$('exportC64').dataset.downloadName=file.name;if(old)setTimeout(()=>URL.revokeObjectURL(old.url),60000);downloadReadyFile(file);$('exportBadge').textContent=format==='d64'?host+' disk ready':host+' program ready';setStatus(host+' '+(format==='d64'?'disk':'program')+': '+result.frameCount+' frame'+(result.frameCount===1?'':'s')+', '+bytes.length+' bytes. RUN/STOP exits.'+(allowTimingOverrun?' Timing warning overridden.':''));
  }catch(e){setStatus(host+' export failed: '+e.message)}
  finally{animationExportTask=null;for(const id of Object.values(animationDownloadButtons))$(id).disabled=false;updateNativeExportAvailability();$('exportC64').textContent=animationDownloadLabels.c64;$('cancelAnimationExport').hidden=true;$('cancelAnimationExport').disabled=false;$('cancelSheetDownload').hidden=true}

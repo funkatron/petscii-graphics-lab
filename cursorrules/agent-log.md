@@ -2,8 +2,8 @@
 
 ## Issue #66 — name collision space (2026-11-17)
 
-**What:** `project-naming.js` — 48×48 adjective–noun pool (2 304 stems), shared regenerate with retry.  
-**Tested:** `tests/project-naming.unit.mjs` (4/4); Chromium `project-naming` + `project-save` (14/14). iPad WebKit awaits CI.
+**What:** `project-naming.js` — 48×48 adjective–noun pool (2 304 stems), shared regenerate with retry. `export-filename.js` — effect slugs on GIF/video/ZIP and native PRG/D64 (`machine` + movement/color/backdrop ids).  
+**Tested:** `project-naming` + `export-filename` unit; Chromium `project-naming` + `project-save` + `d64` (15/15). iPad WebKit awaits CI.
 
 ## Download flake (item 2)
 

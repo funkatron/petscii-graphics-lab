@@ -55,7 +55,7 @@ test('all export families use the sanitized project name and retain valid conten
   if(extension==='txt')expect(file.bytes.toString()).toContain('0A0 000');
   if(extension==='svg')expect(file.bytes.toString()).toContain('<svg');
   if(extension==='png')expect(PNG.sync.read(file.bytes).width).toBeGreaterThan(0);
-  if(extension==='gif')expect(new GifReader(file.bytes).numFrames()).toBeGreaterThan(1);
+  if(extension==='gif'){expect(new GifReader(file.bytes).numFrames()).toBeGreaterThan(1);expect(file.name).toMatch(/^Electric_Raven-inverse-\d+x\d+\.gif$/)}
   if(extension==='zip')expect(JSON.parse(new AdmZip(file.bytes).readAsText('project.json')).grid).toEqual([160,0]);
   if(selector==='#screenCodes')expect([...file.bytes]).toEqual([160,0,0,0]);
   if(selector==='#colorRam')expect([...file.bytes]).toEqual([2,3]);
@@ -76,9 +76,9 @@ test('in-flight animation keeps captured name; renamed cached export gets the ne
  await page.route('**/vendor/gifenc.esm.js',async route=>{started();await gate;await route.continue()});
  const waiting=page.waitForEvent('download');await ui(page,'#exportGif');await loading;
  await ui(page,'#projectFilename','fill','Second flame');release();
- const file=await waiting;expect(file.suggestedFilename()).toMatch(/^First flame-/);const before=await contents(file);
+ const file=await waiting;expect(file.suggestedFilename()).toMatch(/^First flame-inverse-\d+x\d+\.gif$/);const before=await contents(file);
  await expect(page.locator('#exportGif')).toBeEnabled();
- const next=await namedDownload(page,'#exportGif');expect(next.name).toMatch(/^Second flame-/);expect(next.bytes).toEqual(before);
+ const next=await namedDownload(page,'#exportGif');expect(next.name).toMatch(/^Second flame-inverse-\d+x\d+\.gif$/);expect(next.bytes).toEqual(before);
 });
 test('invalid names block artwork exports and focus the name field',async({page})=>{
  let requests=0;page.on('download',()=>requests++);

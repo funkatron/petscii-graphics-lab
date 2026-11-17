@@ -24,7 +24,7 @@ test('C64 export rejects unsupported geometry, shapes, invalid loops, excessive 
 });
 test('C64 export snapshots the selected combination and supports cancellation during lazy loading',async({page})=>{
  await loadProject(page,project([160,''],2,1,{cellColors:[2,14],animation:{effect:'scroll-x',colorEffect:'color-wave',seconds:1,scale:1,background:'dark'}}));await ui(page,'#c64Mode','selectOption','animation');let release,started;const gate=new Promise(r=>release=r),loading=new Promise(r=>started=r);await page.route('**/c64-export.js',async route=>{started();await gate;await route.continue()});await ui(page,'#exportC64');await loading;await ui(page,'#cancelSheetDownload');release();await expect(page.locator('#status')).toContainText('Export canceled');await expect(page.locator('#exportC64')).toBeEnabled();
- const waiting=page.waitForEvent('download');await ui(page,'#exportC64');const file=await waiting;expect(file.suggestedFilename()).toContain('animation');
+ const waiting=page.waitForEvent('download');await ui(page,'#exportC64');const file=await waiting;expect(file.suggestedFilename()).toMatch(/scroll-x\+color-wave/);
 });
 test('C64 lazy loading captures both effects and ink before later editing',async({page})=>{
  const {contents}=require('./helpers.cjs');await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,14,14,14],animation:{effect:'scroll-x',colorEffect:'color-wave',seconds:1,scale:1,background:'dark'}}));await ui(page,'#c64Mode','selectOption','animation');await ui(page,'#c64Repeats','fill','1');
