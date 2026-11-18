@@ -128,7 +128,7 @@ The **Background** color is shared by the whole canvas.
 | **Ink** | Brush color for future strokes |
 | **Background** | Shared canvas background |
 | **Swap brush / background** | Those two settings; existing cell ink stays the same |
-| **Colors → Whole drawing** | **Recolor entire drawing** sets every painted cell to brush ink. **Replace ink** and **Replace glyph** swap one value for another across the grid (magic replace); one undo per action |
+| **Canvas** (drawing strip) | **Recolor with current brush ink**, **Replace ink**, **Replace glyph**, **Border**, **Checkerboard**, and **Clear drawing**; one undo per action. Tap **?** in the panel for details. |
 
 The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic/2001/), an RGB approximation of C64 color. The default is Light blue ink on Blue. Glyph thumbnails stay white on black so their shapes remain visible at any brush color.
 
@@ -136,9 +136,7 @@ The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic
 
 **Symmetry** places the selected glyph in matching cell positions across the chosen axis. It repeats the glyph without flipping its pixels.
 
-For **Border**, **Checkerboard**, or **Clear drawing**, open **Canvas setup → Whole drawing actions**. Each operation can be undone.
-
-Canvas setup groups dimensions and staged resizing under **Canvas size**. The bar above the canvas offers editor zoom (fit through 300%) and **Guides** for the middle column and row when working with symmetry; both affect the editor only, not PNG/SVG/animation exports. Hold **Ctrl** or **⌘** and scroll on the canvas to step zoom. When zoomed in, **two-finger drag on the canvas pans**; one finger still paints or erases. Colors groups brush/background selection and swapping under **Paint colors**, with whole-drawing recoloring kept in its own disclosure.
+Canvas setup groups dimensions and staged resizing under **Canvas size**. The bar above the canvas offers **Canvas** whole-grid tools (after **Ink**), editor zoom (fit through 300%), and **Guides** for the middle column and row when working with symmetry; zoom and guides affect the editor only, not PNG/SVG/animation exports. Hold **Ctrl** or **⌘** and scroll on the canvas to step zoom. When zoomed in, **two-finger drag on the canvas pans**; one finger still paints or erases. **Colors** keeps brush, background, swap, and screen look only.
 
 ### Resize the canvas
 

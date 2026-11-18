@@ -80,7 +80,7 @@ The drawing strip stays in place as panels open. Navigation changes do not edit 
 
 ### Separate brush changes from broad edits
 
-- Brush ink changes future strokes; Recolor applies to the whole drawing.
+- Brush ink changes future strokes; **Canvas** on the drawing strip holds whole-grid recolor, replace, border, checker, and clear.
 - Preview width and height together before applying a resize.
 - Make reversible edits recoverable with Undo.
 - Keep exact codes, both banks, inverse selection, accessible.

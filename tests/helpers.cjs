@@ -6,7 +6,9 @@ const test=base.extend({page:async({page},use)=>{
 async function contents(download){const chunks=[];for await(const c of await download.createReadStream())chunks.push(c);return Buffer.concat(chunks)}
 async function reveal(page,selector){
  const target=page.locator(selector).first();
- const location=await target.evaluate(e=>({dialog:!!e.closest('#downloadDialog'),picker:!!e.closest('#glyphPicker'),sidebar:!!e.closest('#sidebar'),mode:e.closest('[data-export-mode]')?.dataset.exportMode,format:e.closest('[data-motion-format]')?.dataset.motionFormat}));
+ const location=await target.evaluate(e=>({dialog:!!e.closest('#downloadDialog'),picker:!!e.closest('#glyphPicker'),sidebar:!!e.closest('#sidebar'),canvas:!!e.closest('#canvasPopover'),mode:e.closest('[data-export-mode]')?.dataset.exportMode,format:e.closest('[data-motion-format]')?.dataset.motionFormat}));
+ const opensCanvas=selector==='#canvasTool';
+ if(!location.canvas&&!opensCanvas&&await page.locator('#canvasPopover').evaluate(el=>el.matches(':popover-open')))await page.evaluate(()=>document.getElementById('canvasPopover').hidePopover());
  if(location.dialog){if(!await page.locator('#downloadDialog').evaluate(e=>e.open))await page.locator('#downloadOpen').click()}
  else if(await page.locator('#downloadDialog').evaluate(e=>e.open)){
   // Prefer the dialog API: WebKit can keep the ✕ control unstable while the
@@ -14,6 +16,9 @@ async function reveal(page,selector){
   await page.evaluate(()=>document.getElementById('downloadDialog').close());
  }
  if(location.picker){if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click()}
+ else if(location.canvas){
+  if(!await page.locator('#canvasPopover').evaluate(el=>el.matches(':popover-open')))await page.locator('#canvasTool').click();
+ }
  else if(location.sidebar){
   if(await page.locator('#glyphBackdrop').isVisible())await page.locator('#glyphClose').click();
   if(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed')))await page.locator('#toggle').click();

@@ -71,7 +71,7 @@ For drawing instructions, start with the [user guide](../README.md).
 
 - **Coverage.** Regression tests cover all 512 SVG symbols/fingerprint, known glyph shapes, both banks/inverse pixels in canvas/SVG/PNG, real Chromium touch dragging, real WebKit taps plus synthetic touch/pen streams, exports, storage, input rejection, resize, sidebar and undo. Physical iPad/Pencil verification remains a hardware check.
 
-Canvas size and Paint colors use named sidebar fieldsets. Keep staged Apply/Cancel resizing with dimensions, and whole-drawing actions/recoloring in separate disclosures. Preserve all control IDs, bindings and project data during layout changes.
+Canvas size uses a sidebar fieldset; whole-grid actions live in `#canvasPopover` (opened from `#canvasTool` on the drawing strip). Paint colors keep ink/background/swap/screen look only. Preserve control IDs (`#recolorDrawing`, `#border`, etc.) and project data during layout changes.
 
 ## Animation and export
 

@@ -8,7 +8,7 @@ test.beforeEach(async ({page}) => {
 test('replace ink and glyph with one undo each', async ({page}) => {
   await loadProject(page, project([160, 102], 2, 1, {cellColors: [1, 2]}));
   const before = JSON.parse(await download(page, '#saveProject'));
-  await ui(page, '#wholeDrawingDetails');
+  await ui(page, '#canvasTool');
   await page.locator('#replaceInkFrom').selectOption('1');
   await page.locator('#replaceInkTo').selectOption('3');
   await ui(page, '#applyReplaceInk');
