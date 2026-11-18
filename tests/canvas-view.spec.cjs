@@ -8,6 +8,9 @@ test.beforeEach(async({page})=>{
 test('zoom and guides live in the stage bar above the canvas',async({page})=>{
   await expect(page.locator('#stageCanvasView #editorZoom')).toBeVisible();
   await expect(page.locator('#stageCanvasView #centerGuides')).toBeVisible();
+  await expect(page.locator('#stageCanvasView #symmetryMenu')).toBeVisible();
+  await expect(page.locator('#stageCanvasView #tapPoints')).toBeVisible();
+  await expect(page.locator('.drawing-strip #symmetryMenu')).toHaveCount(0);
   await expect(page.locator('#canvasViewGroup')).toHaveCount(0);
 });
 

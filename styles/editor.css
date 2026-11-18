@@ -83,6 +83,13 @@ textarea{resize:vertical;width:100%;min-height:80px;background:var(--case-surfac
  max-width:7.5rem;flex-shrink:1}
 .stage-view-guides{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;color:var(--stage-caption);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
 .stage-view-guides input[type=checkbox]{width:17px;height:17px;margin:0;flex:none}
+.stage-view-tap{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;color:var(--stage-caption);white-space:nowrap;cursor:pointer;user-select:none;-webkit-user-select:none}
+.stage-view-tap input[type=checkbox]{width:17px;height:17px;margin:0;flex:none}
+.stage-view-tap.tool-slot-inactive{opacity:.42;cursor:not-allowed}
+.stage-canvas-view #symmetryMenu::before{display:none}
+.stage-canvas-view .stage-view-symmetry-label{font-size:.72rem;font-weight:600;color:var(--stage-caption);text-shadow:var(--stage-caption-shadow)}
+.stage-canvas-view #symmetryMenu>summary{height:44px;padding:0 8px!important;color:var(--stage-caption);text-shadow:var(--stage-caption-shadow);background:transparent;border-color:transparent}
+.stage-canvas-view #symmetryMenu>summary.symmetry-on{border-color:var(--sym-summary-on-border);background:var(--sym-summary-on-bg);color:var(--sym-summary-on-fg);text-shadow:none}
 .status{font-size:.77rem;color:var(--case-text)}
 #dimensions{font-size:.77rem;color:var(--stage-caption)}
 .canvas-frame{flex:1;min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:12px;padding:9px;touch-action:none;overscroll-behavior:contain}
@@ -581,7 +588,7 @@ dialog input:not([type=checkbox]):not([type=radio]):not([type=range]):focus{
  inset 0 4px 13px #000c,inset 4px 0 9px #0008,
  0 7px 16px #62594955;
 }
-.stagebar,.stagefoot,.stagebar #dimensions,.stagebar #status,.stagebar #quickglyph,.stage-canvas-view,.stage-view-guides,
+.stagebar,.stagefoot,.stagebar #dimensions,.stagebar #status,.stagebar #quickglyph,.stage-canvas-view,.stage-view-guides,.stage-view-tap,.stage-canvas-view .stage-view-symmetry-label,
 .stage #stageHint,.preview-banner,#previewLabel{
  color:var(--stage-caption);text-shadow:var(--stage-caption-shadow);
 }

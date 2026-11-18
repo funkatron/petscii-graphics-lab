@@ -44,6 +44,7 @@ test('unfinished previews stay out of files; Escape cancels and selection delete
 });
 test('symmetry slot stays put; only active for paint and eraser',async({page})=>{
  const inactive=async()=>page.locator('#symmetryMenu').evaluate(e=>e.inert);
+ await expect(page.locator('#stageCanvasView #symmetryMenu')).toBeVisible();
  await expect(page.locator('#symmetryMenu')).toBeVisible();
  await ui(page,'#tool-line');await expect(page.locator('#symmetryMenu')).toBeVisible();expect(await inactive()).toBe(true);
  await ui(page,'#erase');await expect(page.locator('#symmetryMenu')).toBeVisible();expect(await inactive()).toBe(false);
@@ -94,7 +95,8 @@ test('rectangle and selection corner taps only enter two-tap mode when explicitl
  await expect(page.locator('#selectionInfo')).toHaveText('1 × 1 selected');
  await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
  await ui(page,'#tool-rectangle');
- await expect(page.locator('#tapPoints')).toBeVisible();
+ await expect(page.locator('#stageCanvasView #tapPoints')).toBeVisible();
+ await expect(page.locator('#tapEndpointsSlot')).not.toHaveAttribute('inert','');
  await ui(page,'#tapPoints','check');
  await tap(0,0);await tap(3,3);
  expect((await saved(page)).grid.filter(g=>g===160)).toHaveLength(12);
