@@ -29,24 +29,22 @@ header .header-actions{
  padding-inline-start:10px;
  border-inline-start:1px solid color-mix(in srgb,var(--case-seam) 70%,transparent);
 }
+.header-save-wrap{display:inline-flex;align-items:center;gap:4px}
 header #saveStatus{
- display:inline-flex;align-items:center;gap:0;max-width:160px;
+ display:inline-flex;align-items:center;justify-content:center;gap:0;min-width:36px;min-height:36px;padding:0;
+ border-radius:999px;border:1px solid var(--header-control-border,var(--case-seam));
+ background:var(--header-control-bg,transparent);
 }
-header #saveStatus .save-status-compact{display:none}
-@media(max-width:800px){
- header #saveStatus{display:inline-flex;max-width:none}
- header #saveStatus .save-status-full{display:none}
- header #saveStatus .save-status-compact{
-  display:inline-flex;align-items:center;min-height:28px;padding:0 8px;border-radius:999px;
-  font-size:.7rem;font-weight:650;letter-spacing:.02em;
-  border:1px solid var(--header-control-border,var(--case-seam));
-  background:var(--header-control-bg,transparent);
-  color:var(--header-control-fg,var(--case-text));
- }
- header #saveStatus[data-state=failed] .save-status-compact{
-  border-color:#b44;background:#4a1e1e;color:#ffe8e8;
- }
+header #saveStatus .save-status-icon{
+ display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;font-size:1rem;font-weight:700;line-height:1;
 }
+header #saveStatus[data-state=saved] .save-status-icon{color:var(--header-control-fg,var(--case-text))}
+header #saveStatus[data-state=failed]{border-color:#b44;background:#4a1e1e}
+header #saveStatus[data-state=failed] .save-status-icon{color:#ffe8e8}
+header #saveStatus .save-status-full,header #saveStatus .save-status-compact{
+ position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+}
+header .header-save-wrap .help-trigger{width:28px;height:28px;min-width:28px;min-height:28px;padding:0}
 .text-entry{flex:none;max-height:35%;overflow:auto;border:1px solid var(--panel-well-border);border-radius:9px;padding:8px}
 .text-entry textarea{min-height:48px;max-height:90px;font:1rem/1.3 ui-monospace,monospace;resize:vertical}
 .text-entry .row{align-items:center;margin:4px 0 0}
@@ -70,6 +68,9 @@ header #saveStatus .save-status-compact{display:none}
 .sidebar{transition:none}
 /* Compact help affordance geometry (colors in editor.css). */
 .help-trigger{width:28px;min-width:28px;min-height:28px;height:28px;padding:2px!important;border-radius:50%;font-size:.75rem;font-weight:bold}
+.menu-help-row{display:flex;justify-content:flex-end;margin:-2px 0 6px}
+.machine-menu .menu-help-row .help-trigger{position:static}
+.field-help-anchor{display:flex;justify-content:flex-end;margin-top:6px}
 .help-section{position:relative}
 .help-section>details>summary,.help-section>#projectMenu>summary{padding-right:40px}
 .help-section>.help-trigger{position:absolute;right:5px;top:7px}

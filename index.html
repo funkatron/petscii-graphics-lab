@@ -21,7 +21,7 @@
 <div class="app-title"><h1>PETSCII Graphics Lab</h1><p id="appVersion" class="subtitle" aria-label="Application version"></p></div>
 </div>
 <div class="header-system" role="group" aria-label="System">
-<details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><div class="field"><label for="workspaceCellAspect">Cell shape</label><select id="workspaceCellAspect"><option value="square">Square cells</option><option value="crt">CRT proportion</option></select></div><p class="note" id="machineHelp">System setting for the host computer, editor chrome, and VIC display RGB. Cell inks stay put when only the display palette changes. Drawing colors live under Colors. Cell shape applies to the editor and to PNG, SVG, GIF, and video. Native programs stay hardware-true.</p></div></details>
+<details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div id="machineHelpAnchor" class="menu-help-row"></div><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><div class="field"><label for="workspaceCellAspect">Cell shape</label><select id="workspaceCellAspect"><option value="square">Square cells</option><option value="crt">CRT proportion</option></select></div><p class="note" id="machineHelp">System setting for the host computer, editor chrome, and VIC display RGB. Cell inks stay put when only the display palette changes. Drawing colors live under Colors. Cell shape applies to the editor and to PNG, SVG, GIF, and video. Native programs stay hardware-true.</p></div></details>
 </div>
 <div class="header-project" role="group" aria-label="Project">
 <details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><p class="note" id="editorVersion" aria-label="Application version"></p><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
@@ -29,7 +29,7 @@
 <div class="row"><button id="openReferenceImage" type="button">Reference image…</button></div><input id="referenceImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/*" hidden>
 <p class="note">Text grids replace the drawing and can be undone. You can also paste a grid under <strong>Download artwork → Raw bytes &amp; text</strong>. A <strong>reference image</strong> is a temporary overlay for approximate import (not a saved layer). Project files keep editable art and replay. Changes also autosave on this device.</p></fieldset>
 </div></details>
-<span id="saveStatus" class="note" role="status" data-state="saved" title="Saved on this device"><span class="save-status-full">Saved on this device</span><span class="save-status-compact" aria-hidden="true">Saved</span></span>
+<span id="saveStatusWrap" class="header-save-wrap"><span id="saveStatus" class="note save-status-chip" role="status" data-state="saved" aria-label="Saved on this device" title="Saved on this device"><span class="save-status-icon" aria-hidden="true">✓</span><span class="save-status-full">Saved on this device</span><span class="save-status-compact" aria-hidden="true">Saved</span></span></span>
 </div>
 <div class="header-actions" role="group" aria-label="Download and preview">
 <button id="downloadOpen">Download artwork</button>
@@ -105,7 +105,7 @@
 <div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="editAnimationFromPreview" type="button">Animation settings</button><button id="returnDrawing">Return to drawing</button></div>
 <div id="referenceOverlayBar" class="preview-banner reference-overlay-bar" hidden><span>Reference overlay · approximate colors and blocks</span><label class="reference-opacity">Opacity <input type="range" id="referenceOpacity" min="10" max="100" value="50" aria-label="Reference opacity"></label><button type="button" id="referenceApply">Apply as import</button><button type="button" id="referenceCancel">Remove overlay</button></div>
 <div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
-<div class="task-progress"><div id="stageExportProgressWrap" class="export-progress-wrap" hidden><progress id="stageExportProgress" class="export-progress" max="100" value="0" aria-label="Animation export progress"></progress><span id="stageExportStatus" class="export-progress-label status" aria-live="polite"></span></div><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot">Draw by dragging. Tap ☰ to show or hide tools.</div>
+<div class="task-progress"><div id="stageExportProgressWrap" class="export-progress-wrap" hidden><progress id="stageExportProgress" class="export-progress" max="100" value="0" aria-label="Animation export progress"></progress><span id="stageExportStatus" class="export-progress-label status" aria-live="polite"></span></div><button id="cancelAnimationExport" hidden>Cancel export</button></div><p id="saveFailure" class="note" role="alert" hidden>Changes could not be saved on this device. Download an editable project to keep your work.</p><div id="stageHint" class="stagefoot" aria-live="polite">Paint</div>
 </main><button id="glyphBackdrop" class="glyph-backdrop" aria-label="Close glyph picker" tabindex="-1" hidden></button>
 <aside id="glyphPicker" class="glyph-picker" aria-label="Glyph picker" hidden>
 <div class="picker-heading"><div class="picker-title"><h2>Glyphs</h2><button id="glyphPin" aria-pressed="false" aria-label="Pin glyph picker" title="Keep glyph picker open"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5-4 1-3 4 1 4-2 2-5-5-5 7 3-9-3-3 2-2 4 1 4-3 1-4Z"/></svg></button><button id="glyphClose" aria-label="Close glyph picker">✕</button></div>
@@ -487,7 +487,7 @@ function setWorkspaceMachine(next,{recordHistory=true}={}){
  if(crossesIndexSpace(from,to)&&$('animationColor').value!=='none'&&effectIsTed!==isTedMachine(to))$('animationColor').value='none';
  writeWorkspacePrefs(prefsPayload());
  selectActiveRom();syncMachineControls();tileCache.clear();updateColorUI();updateAnimationOptions();updateSourceInfo();drawPalette();fit();redraw();autosave();
- setStatus(getMachine(to).label+' mode');
+ updateDrawingHint();
 }
 $('workspaceMachine').onchange=()=>{setWorkspaceMachine($('workspaceMachine').value);$('machineMenu').open=false};
 $('workspacePalette').onchange=()=>{setWorkspacePalette($('workspacePalette').value);$('machineMenu').open=false};
@@ -1229,7 +1229,7 @@ function paintHint(){const mode=PAINT_MODES.find(m=>m.id===paintMode);return (mo
 function pickerHint(){const mode=PICKER_MODES.find(m=>m.id===pickerMode);return (mode?.label??'Pick')+' · Tap a cell on the canvas.'}
 function symmetryHint(){const mode=$('sym').selectedOptions[0]?.textContent;return $('sym').value==='none'?'':(' Symmetry: '+mode+'.')}
 function zoomPanHint(){return editorZoomed()?' Two-finger drag pans when zoomed.':'';}
-function updateDrawingHint(){updateToolPalette();$('stageHint').textContent=animationPreview?'Preview is read-only. Choose Return to drawing to edit.':!['paint','erase'].includes(drawingTool)?(toolNames[drawingTool]??drawingTool)+' · '+(drawingTool==='text'?'Tap a starting cell, type, then Apply text.':drawingTool==='fill'?fillHint():drawingTool==='picker'?pickerHint():'Drag on the canvas. Escape cancels a preview or selection.')+zoomPanHint():erasing?'Eraser · Drag to remove cells. Choose Paint to draw.'+symmetryHint()+zoomPanHint():'Paint · '+inkLabel(colors.ink)+' ink · '+paintHint()+' Drag to draw.'+symmetryHint()+zoomPanHint()}
+function updateDrawingHint(){updateToolPalette();if(animationPreview){$('stageHint').textContent='Preview (read-only)';return}if(!['paint','erase'].includes(drawingTool)){const name=toolNames[drawingTool]??drawingTool;let hint=name;if(drawingTool==='fill'){const mode=FILL_MODES.find(m=>m.id===fillMode);hint=name+(mode?': '+mode.label:'')}else if(drawingTool==='picker'){const mode=PICKER_MODES.find(m=>m.id===pickerMode);hint=name+(mode?': '+mode.label:'')}$('stageHint').textContent=hint;return}if(erasing){$('stageHint').textContent='Eraser'+($('sym').value!=='none'?' · Symmetry':'')}else{$('stageHint').textContent='Paint · '+inkLabel(colors.ink)+($('sym').value!=='none'?' · Symmetry':'')}}
 function refresh(){refreshModeMenuSummaries();updateDrawingHint();updateSymmetryChrome();updateWholeDrawingActions();updateReplaceGlyphUI();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(drawingTool==='paint'));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===0&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};
 $('erase').onclick=()=>setDrawingTool('erase');
@@ -1291,7 +1291,7 @@ $('c64Mode').onchange=()=>{$('c64LoopSettings').hidden=$('c64Mode').value!=='ani
 let c64TimingConsentKey=null;
 const c64TimingKey=()=>JSON.stringify({project:projectData(),moving:$('c64Mode').value==='animation'});
 $('c64TimingOverride').onchange=()=>{c64TimingConsentKey=$('c64TimingOverride').checked?c64TimingKey():null};
-function updateC64Format(){updateNativeExportLabels();$('c64DiskHelp').hidden=$('c64Format').value!=='d64'}
+function updateC64Format(){updateNativeExportLabels();$('c64DiskHelp').hidden=true}
 $('c64Format').onchange=updateC64Format;
 $('exportC64').onclick=async()=>{
  if(animationExportTask)return;
@@ -1372,8 +1372,11 @@ function setSaveStatus(state,fullText,compactText){
  const el=$('saveStatus');
  el.dataset.state=state;
  el.title=fullText;
+ el.setAttribute('aria-label',fullText);
  el.querySelector('.save-status-full').textContent=fullText;
  el.querySelector('.save-status-compact').textContent=compactText;
+ const icon=el.querySelector('.save-status-icon');
+ if(icon)icon.textContent=state==='failed'?'!':'✓';
 }
 function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()));setSaveStatus('saved','Saved on this device','Saved');$('saveFailure').hidden=true}catch{setSaveStatus('failed','Not saved — download a project backup','Error');$('saveFailure').hidden=false;setStatus('Autosave unavailable; download JSON to keep your work')}}
 function applyProject(data){
@@ -1499,7 +1502,8 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  const helpSections=[
  ['projectMenu','Projects',helpList('Keep editable artwork and animation settings together.',[
  bullet('Project files','Preserve editable artwork and replay.'),
- bullet('Automatic drafts','Stay on the current device.'),
+ bullet('Device autosave','Changes autosave in this browser only. Download a project file before switching devices or clearing site data.'),
+ bullet('Text grids & reference','Open text grid replaces the drawing (undoable). Reference image is a temporary import overlay, not a saved layer. Paste grids under Download → Raw bytes &amp; text.'),
  bullet('Moving devices','Download your project file before switching devices.')
  ])],
  ['animationDetails','Animation timing',helpList('Control how your animation moves, changes color, and repeats.',[
@@ -1524,8 +1528,35 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  ])]
  ];
  for(const [id,title,body] of helpSections){const section=$(id),anchor=document.createElement('div');if(section.tagName==='DETAILS'){anchor.className='help-section';section.before(anchor);anchor.append(section)}else{anchor.className='section-heading';const heading=document.createElement('h3');heading.textContent='C64 exports';anchor.append(heading);section.prepend(anchor)}helpFor(anchor,title,body)}
- $('animationInfo').parentElement.hidden=true;const c64Explanation=document.querySelector('#exportC64 + p.note');c64Explanation.hidden=true;document.querySelector('button[aria-label="Help about c64 exports"]').addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const copy=c64Explanation.cloneNode(true);copy.hidden=false;$('contextHelpBody').append(copy)});
- for(const selector of ['#projectMenu .note','#colorDetails .note','#animationInfo','#helpDetails','#downloadDescription'])document.querySelectorAll(selector).forEach(e=>e.hidden=true);
+ $('animationInfo').parentElement.hidden=true;
+ helpFor($('machineHelpAnchor'),'Machine and display',helpList('Host computer, editor chrome, and color index spaces.',[
+  bullet('Machine','C64 and C128 (40-col) share VIC color indices and the C64 glyph sheet. Plus/4 uses TED colors and glyphs. C128 80-col adds VDC RGBI drawing colors and a wider canvas.'),
+  bullet('Display palette','Changes VIC RGB look only (Pepto, Colodore, VICE, RGB). Hidden on Plus/4 and 80-col.'),
+  bullet('Cell shape','Square or CRT proportion for the editor and raster exports. Native programs stay hardware-true.')
+ ]));
+ document.querySelector('button[aria-label="Help about machine and display"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const copy=$('machineHelp').cloneNode(true);copy.hidden=false;copy.removeAttribute('id');$('contextHelpBody').append(copy)});
+ helpFor($('inkPopover').querySelector('.dialog-heading'),'Brush ink',helpList('',[bullet('','For your next strokes. Existing cells keep their colors.')]));
+ const screenNote=$('screenGroup').querySelector('.note'),screenAnchor=document.createElement('div');screenAnchor.className='field-help-anchor';$('screenGroup').append(screenAnchor);helpFor(screenAnchor,'Screen look',helpList(screenNote.textContent,[]));
+ const glyphOpts=$('glyphOptions'),glyphAtlasNote=glyphOpts.querySelector('p.note:not(#romInfo)'),glyphHelpAnchor=document.createElement('div');glyphHelpAnchor.className='field-help-anchor';glyphOpts.insertBefore(glyphHelpAnchor,glyphAtlasNote);helpFor(glyphHelpAnchor,'Glyph artwork',helpList(glyphAtlasNote.innerHTML,[]));
+ const downloadHeading=$('downloadTitle'),downloadHeadingWrap=document.createElement('div');downloadHeadingWrap.className='dialog-heading-lead';downloadHeading.parentElement.insertBefore(downloadHeadingWrap,downloadHeading);downloadHeadingWrap.append(downloadHeading);
+ helpFor(downloadHeading.parentElement,'Download artwork',helpList('Preview on the right matches still and animation exports.',[
+  bullet('PNG / SVG','Grid-free artwork with each cell’s ink color. Background applies to PNG and SVG.'),
+  bullet('GIF','Loops automatically. Supports transparency.'),
+  bullet('Video','Silent video with the chosen loop count. MP4 where supported; WebM otherwise.'),
+  bullet('Frame ZIP','Numbered PNGs, frame timings, and an editable project.')
+ ]));
+ const c64Explanation=document.querySelector('#exportC64 + p.note');c64Explanation.hidden=true;const c64ExportsHelp=document.querySelector('button[aria-label="Help about c64 exports"]');
+ c64ExportsHelp?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const appendNote=n=>{const copy=n.cloneNode(true);copy.hidden=false;copy.removeAttribute('id');$('contextHelpBody').append(copy)};appendNote(c64Explanation);appendNote($('c64DiskHelp'));appendNote($('c64TimingOverrideHelp'))});
+ document.querySelector('button[aria-label="Help about colors"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const colors=$('colorsHelp').cloneNode(true);colors.hidden=false;$('contextHelpBody').append(colors);const screen=screenNote.cloneNode(true);screen.hidden=false;$('contextHelpBody').append(screen)});
+ document.querySelector('button[aria-label="Help about animation timing"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const append=n=>{const copy=n.cloneNode(true);copy.hidden=false;copy.removeAttribute?.('id');$('contextHelpBody').append(copy)};append($('vdcBackdropNote'));const glossary=$('animationGlossary');if(glossary){const block=document.createElement('div');block.className='help-glossary';block.innerHTML=glossary.innerHTML;$('contextHelpBody').append(block)}const replay=$('animationInfo');if(replay){append(replay)}});
+ helpFor($('saveStatusWrap'),'Device save',helpList('Editable drafts stay on this device between visits.',[
+  bullet('Autosave','Updates after each edit in this browser’s storage.'),
+  bullet('Backup','Use Project → Download editable project before switching devices or clearing site data.'),
+  bullet('Failure','When autosave fails, download a project file; your current canvas is still in memory.')
+ ]));
+ for(const selector of ['#projectMenu .note','#colorDetails .note','#animationInfo','#helpDetails','#downloadDescription','#machineHelp','#screenGroup > .note','#inkPopover .note:not(#inkSelection)','#canvasPopover > .note','#export-still > .note','[data-motion-format="gif"] > .note','[data-motion-format="video"] > .note:not(#videoDuration)','[data-motion-format="frames"] > .note','#glyphOptions > .note:not(#romInfo)','#c64DiskHelp','#c64TimingOverrideHelp','#vdcBackdropNote','#rawDataDetails > .note','#animationGlossary','#export-data details.help-disclosure:not(#rawDataDetails)'])document.querySelectorAll(selector).forEach(e=>e.hidden=true);
+ document.querySelector('button[aria-label="Help about download artwork"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const formats=document.querySelector('#export-data details.help-disclosure:not(#rawDataDetails) p.note');if(formats){const copy=formats.cloneNode(true);copy.hidden=false;copy.removeAttribute('id');$('contextHelpBody').append(copy)}const importNote=document.querySelector('#rawDataDetails > .note');if(importNote){const copy=importNote.cloneNode(true);copy.hidden=false;copy.removeAttribute('id');$('contextHelpBody').append(copy)}});
+ $('helpDetails').hidden=true;
  canvas.addEventListener('pointerdown',e=>{if(help.matches(':popover-open')){e.stopImmediatePropagation();e.preventDefault();closeHelp()}},true);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&help.matches(':popover-open')){e.stopImmediatePropagation();closeHelp()}},true);
  canvas.tabIndex=0;let cursor=[0,0];canvas.setAttribute('aria-label','Drawing canvas. Arrow keys move; Enter draws, marks endpoints or opens text entry; Escape cancels.');

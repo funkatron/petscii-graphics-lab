@@ -114,6 +114,32 @@ test('default C64C look matches ivory baseline; machine switches map to themes w
  expect(c128.theme).toBe('c128');
  expect(c128.caseBg).toBe('#c5c0b4');
  expect(c128.artInk).toBe(painted.artInk);
+ const c128Accent=await page.evaluate(()=>{
+  const root=getComputedStyle(document.documentElement);
+  return {
+   keyActive:root.getPropertyValue('--key-active').trim(),
+   keyEdge:root.getPropertyValue('--key-active-edge').trim(),
+   caseHighlight:root.getPropertyValue('--case-highlight').trim(),
+   textOnAccent:root.getPropertyValue('--text-on-accent').trim(),
+   paint:getComputedStyle(document.querySelector('#paint[aria-pressed=true]')||document.querySelector('#paint')).backgroundColor
+  };
+ });
+ await page.locator('#paint').click();
+ const c128Pressed=await page.evaluate(()=>{
+  const paint=getComputedStyle(document.querySelector('#paint'));
+  return {
+   keyActive:getComputedStyle(document.documentElement).getPropertyValue('--key-active').trim(),
+   paintBg:paint.backgroundColor,
+   paintColor:paint.color
+  };
+ });
+ expect(c128Accent.keyActive).toBe('#9ec27a');
+ expect(c128Accent.keyEdge).toBe('#6a8a4a');
+ expect(c128Accent.caseHighlight).toBe('#9ec27a');
+ expect(c128Accent.textOnAccent).toBe('#1a2414');
+ expect(c128Pressed.keyActive).toBe('#9ec27a');
+ expect(c128Pressed.paintBg).toMatch(/rgb\(\s*158,\s*194,\s*122\s*\)/);
+ expect(c128Pressed.paintColor).toMatch(/rgb\(\s*26,\s*36,\s*20\s*\)/);
  await testInfo.attach('theme-c128-'+testInfo.project.name,{
   body:await page.screenshot({animations:'disabled',fullPage:true}),
   contentType:'image/png'
