@@ -70,6 +70,9 @@ header #saveStatus .save-status-compact{display:none}
 .sidebar{transition:none}
 /* Compact help affordance geometry (colors in editor.css). */
 .help-trigger{width:28px;min-width:28px;min-height:28px;height:28px;padding:2px!important;border-radius:50%;font-size:.75rem;font-weight:bold}
+.menu-help-row{display:flex;justify-content:flex-end;margin:-2px 0 6px}
+.machine-menu .menu-help-row .help-trigger{position:static}
+.field-help-anchor{display:flex;justify-content:flex-end;margin-top:6px}
 .help-section{position:relative}
 .help-section>details>summary,.help-section>#projectMenu>summary{padding-right:40px}
 .help-section>.help-trigger{position:absolute;right:5px;top:7px}

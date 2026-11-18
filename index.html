@@ -21,7 +21,7 @@
 <div class="app-title"><h1>PETSCII Graphics Lab</h1><p id="appVersion" class="subtitle" aria-label="Application version"></p></div>
 </div>
 <div class="header-system" role="group" aria-label="System">
-<details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><div class="field"><label for="workspaceCellAspect">Cell shape</label><select id="workspaceCellAspect"><option value="square">Square cells</option><option value="crt">CRT proportion</option></select></div><p class="note" id="machineHelp">System setting for the host computer, editor chrome, and VIC display RGB. Cell inks stay put when only the display palette changes. Drawing colors live under Colors. Cell shape applies to the editor and to PNG, SVG, GIF, and video. Native programs stay hardware-true.</p></div></details>
+<details id="machineMenu"><summary id="machineSummary" aria-label="Machine and display palette">C64 · Pepto</summary><div class="machine-menu"><div id="machineHelpAnchor" class="menu-help-row"></div><div class="field"><label for="workspaceMachine">Machine</label><select id="workspaceMachine"><option value="c64">Commodore 64</option><option value="c128">Commodore 128 (40-col)</option><option value="c128-80">Commodore 128 (80-col)</option><option value="plus4">Commodore Plus/4</option></select></div><div class="field" id="displayPaletteField"><label for="workspacePalette">Display palette</label><select id="workspacePalette"><option value="pepto">Pepto PAL</option><option value="colodore">Colodore</option><option value="vice">VICE</option><option value="rgb">RGB</option></select></div><div class="field"><label for="workspaceCellAspect">Cell shape</label><select id="workspaceCellAspect"><option value="square">Square cells</option><option value="crt">CRT proportion</option></select></div><p class="note" id="machineHelp">System setting for the host computer, editor chrome, and VIC display RGB. Cell inks stay put when only the display palette changes. Drawing colors live under Colors. Cell shape applies to the editor and to PNG, SVG, GIF, and video. Native programs stay hardware-true.</p></div></details>
 </div>
 <div class="header-project" role="group" aria-label="Project">
 <details id="projectMenu"><summary>Project</summary><div class="project-menu"><div class="row"><button id="newProject">New Project</button></div><fieldset id="projectSaveGroup"><legend>Save editable project</legend><div class="field"><label for="projectFilename">Project name</label><div class="project-name"><input id="projectFilename" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="projectExtension"><span id="projectExtension">.json</span><button id="regenerateProjectName" class="tool-icon" aria-label="Generate new project name" title="Generate new project name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5 M4 17v-5h5 M19 12a7 7 0 0 0-12-5L4 10 M5 12a7 7 0 0 0 12 5l3-3"/></svg></button></div></div><div class="row"><button id="saveProject">Download editable project</button></div><div class="row"><button id="shareProject" hidden>Share / Save project</button></div><p class="save-hint" id="projectSaveHint"></p></fieldset><p class="note" id="editorVersion" aria-label="Application version"></p><fieldset id="projectOpenGroup"><legend>Open artwork</legend><div class="row"><button id="loadProject">Open project</button></div><input id="projectFile" type="file" accept=".json,application/json" hidden>
@@ -487,7 +487,7 @@ function setWorkspaceMachine(next,{recordHistory=true}={}){
  if(crossesIndexSpace(from,to)&&$('animationColor').value!=='none'&&effectIsTed!==isTedMachine(to))$('animationColor').value='none';
  writeWorkspacePrefs(prefsPayload());
  selectActiveRom();syncMachineControls();tileCache.clear();updateColorUI();updateAnimationOptions();updateSourceInfo();drawPalette();fit();redraw();autosave();
- setStatus(getMachine(to).label+' mode');
+ updateDrawingHint();
 }
 $('workspaceMachine').onchange=()=>{setWorkspaceMachine($('workspaceMachine').value);$('machineMenu').open=false};
 $('workspacePalette').onchange=()=>{setWorkspacePalette($('workspacePalette').value);$('machineMenu').open=false};
@@ -1291,7 +1291,7 @@ $('c64Mode').onchange=()=>{$('c64LoopSettings').hidden=$('c64Mode').value!=='ani
 let c64TimingConsentKey=null;
 const c64TimingKey=()=>JSON.stringify({project:projectData(),moving:$('c64Mode').value==='animation'});
 $('c64TimingOverride').onchange=()=>{c64TimingConsentKey=$('c64TimingOverride').checked?c64TimingKey():null};
-function updateC64Format(){updateNativeExportLabels();$('c64DiskHelp').hidden=$('c64Format').value!=='d64'}
+function updateC64Format(){updateNativeExportLabels();$('c64DiskHelp').hidden=true}
 $('c64Format').onchange=updateC64Format;
 $('exportC64').onclick=async()=>{
  if(animationExportTask)return;
@@ -1524,8 +1524,29 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  ])]
  ];
  for(const [id,title,body] of helpSections){const section=$(id),anchor=document.createElement('div');if(section.tagName==='DETAILS'){anchor.className='help-section';section.before(anchor);anchor.append(section)}else{anchor.className='section-heading';const heading=document.createElement('h3');heading.textContent='C64 exports';anchor.append(heading);section.prepend(anchor)}helpFor(anchor,title,body)}
- $('animationInfo').parentElement.hidden=true;const c64Explanation=document.querySelector('#exportC64 + p.note');c64Explanation.hidden=true;document.querySelector('button[aria-label="Help about c64 exports"]').addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const copy=c64Explanation.cloneNode(true);copy.hidden=false;$('contextHelpBody').append(copy)});
- for(const selector of ['#projectMenu .note','#colorDetails .note','#animationInfo','#helpDetails','#downloadDescription'])document.querySelectorAll(selector).forEach(e=>e.hidden=true);
+ $('animationInfo').parentElement.hidden=true;
+ helpFor($('machineHelpAnchor'),'Machine and display',helpList('Host computer, editor chrome, and color index spaces.',[
+  bullet('Machine','C64 and C128 (40-col) share VIC color indices and the C64 glyph sheet. Plus/4 uses TED colors and glyphs. C128 80-col adds VDC RGBI drawing colors and a wider canvas.'),
+  bullet('Display palette','Changes VIC RGB look only (Pepto, Colodore, VICE, RGB). Hidden on Plus/4 and 80-col.'),
+  bullet('Cell shape','Square or CRT proportion for the editor and raster exports. Native programs stay hardware-true.')
+ ]));
+ document.querySelector('button[aria-label="Help about machine and display"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const copy=$('machineHelp').cloneNode(true);copy.hidden=false;copy.removeAttribute('id');$('contextHelpBody').append(copy)});
+ helpFor($('inkPopover').querySelector('.dialog-heading'),'Brush ink',helpList('',[bullet('','For your next strokes. Existing cells keep their colors.')]));
+ const screenNote=$('screenGroup').querySelector('.note'),screenAnchor=document.createElement('div');screenAnchor.className='field-help-anchor';$('screenGroup').append(screenAnchor);helpFor(screenAnchor,'Screen look',helpList(screenNote.textContent,[]));
+ const glyphOpts=$('glyphOptions'),glyphAtlasNote=glyphOpts.querySelector('p.note:not(#romInfo)'),glyphHelpAnchor=document.createElement('div');glyphHelpAnchor.className='field-help-anchor';glyphOpts.insertBefore(glyphHelpAnchor,glyphAtlasNote);helpFor(glyphHelpAnchor,'Glyph artwork',helpList(glyphAtlasNote.innerHTML,[]));
+ const downloadHeading=$('downloadTitle'),downloadHeadingWrap=document.createElement('div');downloadHeadingWrap.className='dialog-heading-lead';downloadHeading.parentElement.insertBefore(downloadHeadingWrap,downloadHeading);downloadHeadingWrap.append(downloadHeading);
+ helpFor(downloadHeading.parentElement,'Download artwork',helpList('Preview on the right matches still and animation exports.',[
+  bullet('PNG / SVG','Grid-free artwork with each cell’s ink color. Background applies to PNG and SVG.'),
+  bullet('GIF','Loops automatically. Supports transparency.'),
+  bullet('Video','Silent video with the chosen loop count. MP4 where supported; WebM otherwise.'),
+  bullet('Frame ZIP','Numbered PNGs, frame timings, and an editable project.')
+ ]));
+ const c64Explanation=document.querySelector('#exportC64 + p.note');c64Explanation.hidden=true;const c64ExportsHelp=document.querySelector('button[aria-label="Help about c64 exports"]');
+ c64ExportsHelp?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const appendNote=n=>{const copy=n.cloneNode(true);copy.hidden=false;copy.removeAttribute('id');$('contextHelpBody').append(copy)};appendNote(c64Explanation);appendNote($('c64DiskHelp'));appendNote($('c64TimingOverrideHelp'))});
+ document.querySelector('button[aria-label="Help about colors"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const colors=$('colorsHelp').cloneNode(true);colors.hidden=false;$('contextHelpBody').append(colors);const screen=screenNote.cloneNode(true);screen.hidden=false;$('contextHelpBody').append(screen)});
+ document.querySelector('button[aria-label="Help about animation timing"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const vdc=$('vdcBackdropNote').cloneNode(true);vdc.hidden=false;$('contextHelpBody').append(vdc)});
+ for(const selector of ['#projectMenu .note','#colorDetails .note','#animationInfo','#helpDetails','#downloadDescription','#machineHelp','#screenGroup > .note','#inkPopover .note:not(#inkSelection)','#canvasPopover > .note','#export-still > .note','[data-motion-format="gif"] > .note','[data-motion-format="video"] > .note:not(#videoDuration)','[data-motion-format="frames"] > .note','#glyphOptions > .note:not(#romInfo)','#c64DiskHelp','#c64TimingOverrideHelp','#vdcBackdropNote','#rawDataDetails > .note:not(:has(textarea))'])document.querySelectorAll(selector).forEach(e=>e.hidden=true);
+ $('helpDetails').hidden=true;
  canvas.addEventListener('pointerdown',e=>{if(help.matches(':popover-open')){e.stopImmediatePropagation();e.preventDefault();closeHelp()}},true);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&help.matches(':popover-open')){e.stopImmediatePropagation();closeHelp()}},true);
  canvas.tabIndex=0;let cursor=[0,0];canvas.setAttribute('aria-label','Drawing canvas. Arrow keys move; Enter draws, marks endpoints or opens text entry; Escape cancels.');

@@ -28,7 +28,8 @@ test('D64 downloads contain the exact runnable still and composite PRG, with sta
   await loadProject(page,project([0,160,'',255],4,1,{charset:1,cellColors:[0,2,14,15],animation:{effect:'scroll-x',colorEffect:'color-wave',motionCycles:2,colorCycles:4,seconds:4,scale:1,background:'dark'}}));
   await ui(page,'#c64Mode','selectOption',moving?'animation':'still');if(moving)await ui(page,'#c64Repeats','fill','2');await ui(page,'#c64Format','selectOption','prg');
   const prg=await download(page,'#exportC64'),before=await download(page,'#saveProject');
-  await ui(page,'#c64Format','selectOption','d64');await expect(page.locator('#exportC64')).toHaveText('Download C64 disk (.d64)');await expect(page.locator('#c64DiskHelp')).toBeVisible();
+  await ui(page,'#c64Format','selectOption','d64');await expect(page.locator('#exportC64')).toHaveText('Download C64 disk (.d64)');await expect(page.locator('#c64DiskHelp')).toBeHidden();
+ await page.getByRole('button',{name:'Help about c64 exports'}).click();await expect(page.locator('#downloadDialog #contextHelp')).toContainText('Virtual 1541');
   const wait=page.waitForEvent('download');await ui(page,'#exportC64');const file=await wait;const stem=await page.locator('#projectFilename').inputValue();
   expect(file.suggestedFilename()).toBe(stem+'-c64-'+(moving?'scroll-x+color-wave':'still')+'-4x1.d64');
   const disk=await contents(file),extracted=readDisk(disk,moving?'ANIMATION':'PICTURE');expect(extracted).toEqual(prg);
