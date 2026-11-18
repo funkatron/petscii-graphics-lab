@@ -132,6 +132,10 @@ header #saveStatus .save-status-compact{display:none}
 
 #inkPopover .dialog-heading,#canvasPopover .dialog-heading{align-items:center;gap:8px}
 #inkPopover .dialog-heading>button,#canvasPopover .dialog-heading>button{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;display:grid;place-items:center}
+#canvasPopover .dialog-heading-lead{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto}
+#canvasPopover .dialog-heading-lead h2{flex:0 1 auto}
+#canvasPopover .dialog-heading-lead .help-trigger{flex:0 0 auto}
+#canvasPopover .dialog-heading>#canvasClose{margin-left:auto;flex:0 0 auto}
 .picker-title{justify-content:flex-start;gap:8px}
 .picker-title #glyphPin,.picker-title #glyphClose{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
 .picker-title #glyphPin{margin-left:auto}
