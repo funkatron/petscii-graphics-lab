@@ -49,7 +49,7 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 ## Drawing and interaction
 
-- iPad Safari is a primary target; desktop keyboard/mouse should also work.
+- iPad Safari is a primary target; desktop keyboard/mouse should also work. Layout regressions use default browser text size, not OS/browser 200% page text scaling (editor **canvas** zoom through 300% is separate).
 
 - Dragging a finger/stylus across the canvas must paint every crossed cell (interpolate between samples). Keep pointer capture and suppress page scrolling **only inside the active drawing region**; ordinary scrolling elsewhere should work.
 

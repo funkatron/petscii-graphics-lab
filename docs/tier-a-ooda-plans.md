@@ -211,7 +211,7 @@ Animation (details)
 | --- | --- |
 | Expand glossary, assert 3+ `<dt>` strings | Chromium |
 | Collapsed by default on load | Chromium |
-| Open ☰ → Animation at 200% font, expand glossary in viewport | `ipad-portrait` |
+| Open ☰ → Animation, expand glossary in viewport | `ipad-portrait` |
 | Preview playing: glossary still expandable, Movement select stays disabled | Chromium |
 
 Spec file: `tests/animation-glossary.spec.cjs`.
