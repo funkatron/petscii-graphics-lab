@@ -239,8 +239,8 @@ Wave height shipped in PR #24; doubled movement range and independent color-wave
 - [x] Put compact tappable help beside headings; keep selection actions below the canvas.
 - [x] Show C64 export readiness and offer only exporter-tested longer-loop remedies.
 - [x] Add automated pointer, keyboard and iPad layout regressions.
-- [ ] Verify physical finger reach and larger text on an iPad.
-- [x] Validate 200% text in both iPad orientations, including header controls, glyph selection, download navigation and saved artwork; flexible-header change released with PR #20. Physical device text testing remains open.
+- [ ] Verify physical finger reach on an iPad at default text size.
+- [x] iPad layout regressions at default browser text size (portrait and landscape). **Browser/OS 200% page text scaling is not a design target**; editor **canvas** zoom through 300% remains supported.
 
 ## C64 animation capacity — priority #2 follow-ups
 

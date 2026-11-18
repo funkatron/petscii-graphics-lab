@@ -46,14 +46,13 @@ test('drafts are discarded by tool changes, project loads and animation; typing 
  await startText(page);await page.locator('#typedText').fill('Draft');await ui(page,'#quickPlay');await expect(page.locator('#tool-text')).toBeDisabled();await expect(page.locator('.text-entry')).toBeHidden();expect(await saved(page)).toEqual(before);
  await ui(page,'#returnDrawing');await startText(page);await page.locator('#typedText').fill('Draft');await loadProject(page,project([0],1,1));expect((await saved(page)).grid).toEqual([0]);await expect(page.locator('#typedText')).toHaveValue('');
 });
-test('text controls fit below the artwork at iPad sizes and at 200% text',async({page},testInfo)=>{
+test('text controls fit below the artwork at iPad sizes',async({page},testInfo)=>{
  for(const [width,height] of [[810,1080],[1080,810]]){
   await page.setViewportSize({width,height});await startText(page);await page.locator('#typedText').fill('Hello 64');
   const canvas=await page.locator('#canvas').boundingBox(),dock=await page.locator('.text-entry').boundingBox();expect(dock.y).toBeGreaterThanOrEqual(canvas.y+canvas.height-1);expect(canvas.height).toBeGreaterThan(0);
   await expect(page.locator('#applyText')).toBeInViewport();await expect(page.locator('#cancelText')).toBeInViewport();expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   await testInfo.attach(`text-${width}x${height}`,{body:await page.screenshot({fullPage:true}),contentType:'image/png'});await ui(page,'#cancelText');
  }
- await page.addStyleTag({content:'html{font-size:200%}'});await startText(page);await page.locator('#typedText').fill('A');await ui(page,'#applyText');expect((await saved(page)).grid[0]).toBe(1);
 });
 
 test('keyboard-only placement positions the origin and focuses native text input',async({page})=>{

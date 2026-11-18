@@ -130,8 +130,8 @@ header #saveStatus .save-status-compact{display:none}
 .tool-mode-menu>summary.active{border-color:var(--ui-focus-border)}
 .tool-mode-menu .tool-mode-popover{top:calc(100% + 4px);right:0;left:auto}
 
-#inkPopover .dialog-heading{align-items:center;gap:8px}
-#inkPopover .dialog-heading>button{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;display:grid;place-items:center}
+#inkPopover .dialog-heading,#canvasPopover .dialog-heading{align-items:center;gap:8px}
+#inkPopover .dialog-heading>button,#canvasPopover .dialog-heading>button{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;display:grid;place-items:center}
 .picker-title{justify-content:flex-start;gap:8px}
 .picker-title #glyphPin,.picker-title #glyphClose{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
 .picker-title #glyphPin{margin-left:auto}

@@ -8,6 +8,8 @@ This record explains the recent workspace changes and identifies follow-up work.
 
 The editor is a **tool**: users build muscle memory for where controls live. When a control is inactive, **siblings must not shift**. Prefer a **fixed slot** that is dimmed, `inert`, or `disabled` over `hidden` or conditional DOM that changes strip width. Stage chrome (zoom, guides; future symmetry / tap-endpoint moves) and the drawing strip follow this rule. Document new UI against [Playwright layout checks](tests/drawing-tools.spec.cjs) where tool changes previously collapsed slots.
 
+**Text scaling:** iPad and desktop layouts are validated at **default browser text size**. OS/browser **200% page text zoom** is not a product target (it is distinct from **editor canvas zoom**, which still supports fit through 300%).
+
 ## What the review found
 
 Frequent drawing actions were spread across settings panels. Choosing a glyph, changing ink, and recovering from a stroke required repeated navigation.
@@ -80,7 +82,7 @@ The drawing strip stays in place as panels open. Navigation changes do not edit 
 
 ### Separate brush changes from broad edits
 
-- Brush ink changes future strokes; Recolor applies to the whole drawing.
+- Brush ink changes future strokes; **Canvas** on the drawing strip holds whole-grid recolor, replace, border, checker, and clear.
 - Preview width and height together before applying a resize.
 - Make reversible edits recoverable with Undo.
 - Keep exact codes, both banks, inverse selection, accessible.
