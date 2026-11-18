@@ -28,5 +28,7 @@ test('glossary readable during animation preview',async({page})=>{
  await openAnimationGroup(page);
  await page.getByRole('button',{name:'Help about animation timing'}).click();
  await expect(page.locator('#contextHelp dt').first()).toBeVisible();
+ await page.locator('#closeHelp').click();
+ await expect(page.locator('#contextHelp')).toBeHidden();
  await ui(page,'#returnDrawing');
 });
