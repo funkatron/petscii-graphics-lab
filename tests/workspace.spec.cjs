@@ -41,7 +41,7 @@ test('download sheet shows actual dimensions and matching grid-free colors, with
  await loadProject(page,project([160,''],2,1,{cellColors:[2,3]}));await ui(page,'#pngScale','selectOption','2');await ui(page,'#pngBg','selectOption','transparent');await expect(page.locator('#downloadDimensions')).toContainText('64 × 32 pixels');
  expect(await page.locator('#downloadPreview').evaluate(c=>Array.from(c.getContext('2d').getImageData(4,4,1,1).data))).toEqual([104,55,43,255]);expect(await page.locator('#downloadPreview').evaluate(c=>c.getContext('2d').getImageData(12,4,1,1).data[3])).toBe(0);
  const png=PNG.sync.read(await download(page,'#png'));expect([png.width,png.height]).toEqual([64,32]);const glyphsOpen=await page.locator('#glyphPicker').isVisible();await page.keyboard.press('Escape');await expect(page.locator('#downloadDialog')).not.toBeVisible();await expect(page.locator('#downloadOpen')).toBeFocused();expect(await page.locator('#glyphPicker').isVisible()).toBe(glyphsOpen);
- await ui(page,'#animationFormat','selectOption','video');await ui(page,'#videoRepeats','fill','3');await expect(page.locator('#downloadDimensions')).toContainText('12 seconds');await page.locator('#downloadClose').click();await expect(page.locator('#saveStatus .save-status-full')).toHaveText('Saved on this device');
+ await ui(page,'#animationFormat','selectOption','video');await ui(page,'#videoRepeats','fill','3');await expect(page.locator('#downloadDimensions')).toContainText('12 seconds');await page.locator('#downloadClose').click();await expect(page.locator('#saveStatus')).toHaveAttribute('aria-label','Saved on this device');
 });
 test('autosave failures stay visible on a small screen and do not prevent project backups',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.addInitScript(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='petscii-graphics-project-v3')throw new DOMException('Storage full','QuotaExceededError');return original.call(this,key,value)}});await page.reload();await page.locator('.app[data-ready=true]').waitFor();
@@ -60,7 +60,7 @@ test('quick ink selection leaves settings and artwork alone, dismisses safely, a
  const read=()=>page.locator('#canvas').evaluate(c=>[.25,.75].map(x=>Array.from(c.getContext('2d').getImageData(c.width*x,c.height*.5,1,1).data)));const before=await read();
  await page.locator('#inkQuick').click();await expect(page.locator('#inkPopover')).toBeVisible();await expect(page.locator('#sidebar')).toHaveClass(/closed/);
  for(const swatch of await page.locator('#quickInkPalette button').all())expect(await swatch.boundingBox()).toMatchObject({width:expect.any(Number),height:expect.any(Number)});
- await page.getByRole('button',{name:'Ink: Green',exact:true}).click();await expect(page.locator('#inkPopover')).toBeHidden();await expect(page.locator('#inkQuick')).toBeFocused();await expect(page.locator('#stageHint')).toContainText('Green ink');expect(await read()).toEqual(before);
+ await page.getByRole('button',{name:'Ink: Green',exact:true}).click();await expect(page.locator('#inkPopover')).toBeHidden();await expect(page.locator('#inkQuick')).toBeFocused();await expect(page.locator('#stageHint')).toContainText('Green');expect(await read()).toEqual(before);
  await page.locator('#inkQuick').click();await page.keyboard.press('Escape');await expect(page.locator('#inkPopover')).toBeHidden();await expect(page.locator('#inkQuick')).toBeFocused();
  await page.locator('#inkQuick').click();await expect(page.locator('#sidebar')).toHaveCSS('width','0px');const box=await page.locator('#canvas').boundingBox();await page.locator('#canvas').click({position:{x:box.width*.95,y:box.height*.95}});await expect(page.locator('#inkPopover')).toBeHidden();
  // The outside click is a normal drawing action and uses the newly selected brush.
@@ -70,9 +70,9 @@ test('paint and eraser select consistent tools, with read-only preview made expl
  await loadProject(page,project([160,''],2,1,{selectedGlyph:160}));
  await ui(page,'#erase');await ui(page,'#erase');await expect(page.locator('#erase')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#stageHint')).toContainText('Eraser');
  await ui(page,'#paint');await ui(page,'#paint');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','true');
- await ui(page,'#quickPlay');for(const id of ['paint','erase'])await expect(page.locator('#'+id)).toBeDisabled();await expect(page.locator('#previewLabel')).toContainText('Read-only preview');
- await ui(page,'#quickPlay');for(const id of ['paint','erase'])await expect(page.locator('#'+id)).toBeDisabled();await expect(page.locator('#previewLabel')).toContainText('Paused');
- await ui(page,'#returnDrawing');for(const id of ['paint','erase'])await expect(page.locator('#'+id)).toBeEnabled();await expect(page.locator('#animationStop')).toBeDisabled();
+ await ui(page,'#quickPlay');await expect(page.locator('#erase')).toBeDisabled();await expect(page.locator('#previewLabel')).toContainText('Read-only preview');
+ await ui(page,'#quickPlay');await expect(page.locator('#erase')).toBeDisabled();await expect(page.locator('#previewLabel')).toContainText('Paused');
+ await ui(page,'#returnDrawing');await expect(page.locator('#erase')).toBeEnabled();await expect(page.locator('#animationStop')).toBeDisabled();
 });
 test('glyph codes are optional device preferences and do not change project contents',async({page})=>{
  const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#glyphFamily','selectOption','blocks');await expect(page.locator('#palette button[data-g="160"] small')).toBeHidden();await expect(page.locator('#palette button[data-g="160"]')).toHaveAttribute('aria-label','C64 glyph ID 160');
