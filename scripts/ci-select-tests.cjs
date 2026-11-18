@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Pure change-scope selector. No GitHub API access or side effects.
+const fs = require('node:fs');
 const path = require('node:path');
 // Specs that decode MP4/WebM via tests/video-utils.cjs (ffprobe/ffmpeg).
 const FFMPEG_SPECS = new Set([
@@ -89,7 +90,7 @@ function select(files, {full=false, motionOnly=false, light=false}={}) {
   if (changed(/^space-warp\.js$/)) set.add('tests/space-warp.spec.cjs');
   // Run directly modified browser tests as well.
   for (const file of files) {
-    if (/^tests\/[a-zA-Z0-9._-]+\.spec\.cjs$/.test(file)) set.add(file);
+    if (/^tests\/[a-zA-Z0-9._-]+\.spec\.cjs$/.test(file) && fs.existsSync(file)) set.add(file);
   }
   // Unknown source changes get a smoke check instead of silently passing.
   if (!set.size) set.add('tests/layout.spec.cjs');
@@ -119,7 +120,6 @@ function select(files, {full=false, motionOnly=false, light=false}={}) {
 }
 module.exports = {select, toolNeeds, FFMPEG_SPECS, PY65_SPECS};
 if (require.main === module) {
-  const fs = require('node:fs');
   const files = fs.readFileSync(0,'utf8').split('\n').filter(Boolean);
   const result = select(files,{
     full:process.env.FULL_REQUEST==='true',

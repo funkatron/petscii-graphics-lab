@@ -877,9 +877,9 @@ function animationButtons(){
  for(const id of ['animationPlay','quickPlay']){$(id).setAttribute('aria-pressed',String(animationPlaying));$(id).setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation')}
  for(const id of ['motionPreview','c64Preview']){$(id).textContent=animationPreview?'■ Stop preview':'▶ Play preview';$(id).setAttribute('aria-pressed',String(animationPreview))}
  canvas.classList.toggle('preview-locked',animationPreview);
- $('paint').disabled=animationPreview||!rom;$('erase').disabled=animationPreview;
+ $('erase').disabled=animationPreview;
  for(const id of ['paint','erase'])$(id).title=animationPreview?'Choose Return to drawing to edit':id==='paint'?'Paint with the selected glyph':'Erase cells';
- $('animationStop').disabled=!animationPreview;updateDrawingHint();updateSymmetryChrome();
+ $('animationStop').disabled=!animationPreview;updateDrawingHint();updateSymmetryChrome();updateToolPalette();
 }
 function stopAnimation(){
  animationPlaying=false;animationPreview=false;animationElapsed=0;animationFrame=0;cancelAnimationFrame(animationRAF);animationRAF=null;
@@ -1169,7 +1169,7 @@ function updateToolPalette(){updateTextUI();for(const name of Object.keys(toolNa
  for(const btn of $('pickerMenu').querySelectorAll('.tool-mode-option')){const on=btn.dataset.mode===pickerMode;btn.setAttribute('aria-pressed',String(on));btn.classList.toggle('active',on);btn.disabled=toolLock}
  for(const btn of $('fillMenu').querySelectorAll('.tool-mode-option')){const on=btn.dataset.mode===fillMode;btn.setAttribute('aria-pressed',String(on));btn.classList.toggle('active',on);btn.disabled=toolLock}
  const paintOn=drawingTool==='paint';
- $('paint').setAttribute('aria-pressed',String(paintOn));$('paint').classList.toggle('active',paintOn);$('paint').setAttribute('aria-disabled',String(toolLock));
+ $('paint').setAttribute('aria-pressed',String(paintOn));$('paint').classList.toggle('active',paintOn);$('paint').toggleAttribute('disabled',toolLock);$('paint').setAttribute('aria-disabled',String(toolLock));
  for(const btn of $('paintMenu').querySelectorAll('.tool-mode-option')){const on=btn.dataset.mode===paintMode;btn.setAttribute('aria-pressed',String(on));btn.classList.toggle('active',on);btn.disabled=toolLock}
  selectionBar.hidden=!selection||animationPreview;$('selectionInfo').textContent=selection?selection.w+' × '+selection.h+' selected':'';}
 function selectionData(){return {w:selection.w,h:selection.h,cells:Array.from({length:selection.w*selection.h},(_,i)=>grid[(selection.y+Math.floor(i/selection.w))*W+selection.x+i%selection.w]),inks:Array.from({length:selection.w*selection.h},(_,i)=>cellColors[(selection.y+Math.floor(i/selection.w))*W+selection.x+i%selection.w])}}
