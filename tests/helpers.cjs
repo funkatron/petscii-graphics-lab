@@ -15,7 +15,10 @@ async function reveal(page,selector){
   // readiness panel reflows and recenters the modal.
   await page.evaluate(()=>document.getElementById('downloadDialog').close());
  }
- if(location.picker){if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click()}
+ if(location.picker){
+  if(await page.locator('#canvasPopover').evaluate(el=>el.matches(':popover-open')))await page.evaluate(()=>document.getElementById('canvasPopover').hidePopover());
+  if(await page.locator('#glyphPicker').isHidden())await page.locator('#glyphToggle').click();
+ }
  else if(location.canvas){
   if(!await page.locator('#canvasPopover').evaluate(el=>el.matches(':popover-open')))await page.locator('#canvasTool').click();
  }
