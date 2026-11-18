@@ -99,7 +99,7 @@ header #saveStatus .save-status-compact{display:none}
 .glyph-picker .picker-heading{padding-inline:12px}
 
 /* Symmetry disclosure geometry (colors in editor.css). */
-#symmetryMenu{position:relative;display:flex;align-items:center;min-height:44px;margin-left:9px;border:0!important;background:transparent!important}
+#symmetryMenu{position:relative;display:flex;align-items:center;min-height:44px;margin-left:0;border:0!important;background:transparent!important}
 #symmetryMenu.tool-slot-inactive{opacity:.42}
 #symmetryMenu.tool-slot-inactive>summary{cursor:not-allowed}
 #symmetryMenu>summary{
@@ -140,7 +140,8 @@ header #saveStatus .save-status-compact{display:none}
 .picker-title{justify-content:flex-start;gap:8px}
 .picker-title #glyphPin,.picker-title #glyphClose{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:8px}
 .picker-title #glyphPin{margin-left:auto}
-.drawing-strip>button,.drawing-strip>#symmetryMenu>summary{min-height:44px;box-sizing:border-box}
+.drawing-strip>button{min-height:44px;box-sizing:border-box}
+.stage-canvas-view #symmetryMenu>summary{min-height:44px;box-sizing:border-box}
 @media(max-width:800px){.drawing-strip{gap:6px}}
 @media(max-width:600px){.drawing-strip{gap:4px}}
 

@@ -6,7 +6,7 @@ This record explains the recent workspace changes and identifies follow-up work.
 
 ## Layout stability (owner priority)
 
-The editor is a **tool**: users build muscle memory for where controls live. When a control is inactive, **siblings must not shift**. Prefer a **fixed slot** that is dimmed, `inert`, or `disabled` over `hidden` or conditional DOM that changes strip width. Stage chrome (zoom, guides; future symmetry / tap-endpoint moves) and the drawing strip follow this rule. Document new UI against [Playwright layout checks](tests/drawing-tools.spec.cjs) where tool changes previously collapsed slots.
+The editor is a **tool**: users build muscle memory for where controls live. When a control is inactive, **siblings must not shift**. Prefer a **fixed slot** that is dimmed, `inert`, or `disabled` over `hidden` or conditional DOM that changes strip width. Stage chrome (zoom, guides, symmetry, tap endpoints) and the drawing strip follow this rule. Document new UI against [Playwright layout checks](tests/drawing-tools.spec.cjs) where tool changes previously collapsed slots.
 
 **Text scaling:** iPad and desktop layouts are validated at **default browser text size**. OS/browser **200% page text zoom** is not a product target (it is distinct from **editor canvas zoom**, which still supports fit through 300%).
 
@@ -29,7 +29,7 @@ The review aimed to preserve:
 | Decision | Status | What it helps the user do |
 | --- | --- | --- |
 | One Download action for the selected format | Implemented | Download without managing separate Generate and Save steps |
-| Persistent drawing strip | Implemented | Reach glyph, ink, Paint/Eraser, symmetry, Undo, and Redo with settings hidden |
+| Persistent drawing strip | Implemented | Reach glyph, ink, Canvas, Paint/Eraser, Undo, and Redo with settings hidden |
 | Explicit animation preview state | Implemented | See the effect and paused state, then Return to drawing |
 | Separate Download artwork panel | Implemented | Choose Image, Animation, or C64 data without scrolling settings |
 | Project menu for editable backups | Implemented | Distinguish a file for later editing from artwork for sharing |
@@ -52,9 +52,9 @@ Controls follow outer→inner application layers. Exploration notes: [`.cursorru
 | **System** | Header Machine menu | Host computer (C64 / C128 40-col / C128 80-col / Plus/4) and VIC Display palette. System-level chrome: changes capabilities, glyphs, export paths, and shell theme. |
 | **Project** | Header Project menu + save status | New / Open / Save / Share, project name, Open text grid, device autosave status |
 | **Editor quick** | Header Download + Play | Download artwork (outputs); Play/Pause animation preview |
-| **Editor tools** | Drawing strip | Selected glyph, ink, Paint/Eraser and other tools, symmetry, Undo/Redo |
+| **Editor tools** | Drawing strip | Selected glyph, ink, Canvas, Paint/Eraser and other tools, Undo/Redo |
 | **Editor panels** | Sidebar (editor settings) | Canvas setup, colors (cell ink/background), animation effect and duration, help |
-| **Editor focus** | Main workspace | Canvas, dimensions, preview state, Return to drawing |
+| **Editor focus** | Main workspace | Canvas stage bar (zoom, guides, symmetry, tap endpoints), dimensions, preview state, Return to drawing |
 | **Editor material** | Glyph panel | Families, recents, favorites, letter toggle, character options |
 | **Transient / modal** | Download dialog, ink popover, help popovers | Output type, format, options, preview, dimensions/timing, Download; raw bytes & paste import |
 

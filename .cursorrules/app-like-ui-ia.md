@@ -20,15 +20,14 @@ Do **not** fold IA chrome changes into the C128 80-col feature PR. Keep strip pe
 └──────────────────────────────────────────────────────────────────┘
 ┌─ .drawing-strip (persistent toolbar) ────────────────────────────┐
 │ #glyphToggle │ #inkQuick → #inkPopover │ #paint #erase │ │
-│ #tool-* (fill/line/rect/select/text, JS-injected) │ #symmetryMenu│
-│ #tapPoints │ .recovery-group #undo #redo │
+│ #tool-* (fill/line/rect/select/text, JS-injected) │ .recovery-group #undo #redo │
 └──────────────────────────────────────────────────────────────────┘
 ┌─ .selection-dock (contextual; reserved then reclaimed) ──────────┐
 │ Move / Duplicate / Delete / Deselect / Cancel │
 └──────────────────────────────────────────────────────────────────┘
 ┌─ .layout ────────────────────────────────────────────────────────┐
 │ #sidebar │ main.stage │
-│ #canvasDetails │ .stagebar (#dimensions #status) │
+│ #canvasDetails │ .stagebar (#dimensions #stageCanvasView #status) │
 │ #colorDetails │ #previewBanner + #returnDrawing │
 │ #animationDetails│ #frame #canvas │
 │ #helpDetails │ #stageHint / saveFailure / export cancel │
