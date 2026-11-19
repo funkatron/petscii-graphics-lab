@@ -4,7 +4,7 @@ This page tracks requested work and completed milestones. For current controls, 
 
 ## Project workflow — complete (issue #66)
 
-Shipped on `main` (PR #163): **New Project** with confirm/Undo; 48×48 adjective–noun names (`project-naming.js`); shared export filenames with effect slugs and machine on PRG/D64 (`export-filename.js`). Names stay outside v3 project data.
+Shipped on `main` (PR #163): **New Project** with confirm/Undo; 48×48 adjective–noun names (`project-naming.js`); shared export filenames with effect slugs and machine on PRG/D64 (`export-filename.js`). v3 adds optional `projectName` (PR #180 follow-up) so open/load restores the export stem.
 
 **Validation:** `tests/project-naming.spec.cjs` and `tests/project-save.spec.cjs` green on Chromium and both iPad WebKit layouts in CI (2026-11-17).
 

@@ -6,6 +6,12 @@ const base={format:'petscii-stencil-lab',version:3,columns:2,rows:2,grid:[160,''
 
 test('accepts minimal v3 project',()=>{validateProject(base)});
 
+test('accepts optional projectName and rejects invalid values',()=>{
+ assert.doesNotThrow(()=>validateProject({...base,projectName:'electric-raven'}));
+ assert.throws(()=>validateProject({...base,projectName:123}),/Invalid project name/);
+ assert.throws(()=>validateProject({...base,projectName:'...'}),/Invalid project name/);
+});
+
 test('rejects legacy charset field',()=>{
  assert.throws(()=>validateProject({...base,charset:1}),/character sets/);
 });

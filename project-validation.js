@@ -1,5 +1,6 @@
 import {isDisplayPaletteId} from './c64-colors.js';
 import {MACHINE, isMachineId, isValidInkForMachine, maxColumnsForMachine} from './machine-modes.js';
+import {sanitizeProjectStem} from './project-naming.js';
 import {SOLID_EFFECTS} from './solid-motion.js';
 import {SCREEN_LOOKS} from './screen-look.js';
 
@@ -379,5 +380,19 @@ export function validateProject(data, {fallbackMachine = MACHINE.C64} = {}) {
   validateAnimationField(data);
   if (data.screen !== undefined && !SCREEN_LOOKS.includes(data.screen)) {
     throw Error('Invalid screen look');
+  }
+  validateProjectNameField(data);
+}
+
+function validateProjectNameField(data) {
+  if (data.projectName === undefined) {
+    return;
+  }
+  if (typeof data.projectName !== 'string') {
+    throw Error('Invalid project name');
+  }
+  const stem = sanitizeProjectStem(data.projectName);
+  if (!stem || stem.length > 100) {
+    throw Error('Invalid project name');
   }
 }

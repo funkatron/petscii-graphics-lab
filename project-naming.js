@@ -1,4 +1,42 @@
-/** Adjective–noun export stems for the Project name field (session-only, not in v3 JSON). */
+/** Adjective–noun export stems for the Project name field (device-local, not in v3 JSON). */
+
+export const PROJECT_STEM_KEY = 'petscii-project-stem';
+
+/** Sanitize a project file stem (no .json suffix). Returns empty when invalid. */
+export function sanitizeProjectStem(raw) {
+  const name = String(raw ?? '')
+    .trim()
+    .replace(/(?:\.json)+$/i, '')
+    .trim()
+    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_')
+    .replace(/[. ]+$/g, '');
+  if (!name || /^\.+$/.test(name)) {
+    return '';
+  }
+  return name;
+}
+
+export function readStoredProjectStem() {
+  try {
+    const stem = sanitizeProjectStem(localStorage.getItem(PROJECT_STEM_KEY));
+    return stem || null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeStoredProjectStem(raw) {
+  try {
+    const stem = sanitizeProjectStem(raw);
+    if (!stem) {
+      localStorage.removeItem(PROJECT_STEM_KEY);
+      return;
+    }
+    localStorage.setItem(PROJECT_STEM_KEY, stem);
+  } catch {
+    // Device storage may be unavailable.
+  }
+}
 
 export const PROJECT_NAME_ADJECTIVES = [
   'amber', 'azure', 'bright', 'cosmic', 'crimson', 'electric', 'golden', 'gentle',

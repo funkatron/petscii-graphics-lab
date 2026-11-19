@@ -1,9 +1,14 @@
-const {test,expect,ui,reveal,contents,loadProject,project}=require('./helpers.cjs');
+const {test,expect,ui,reveal,contents,download,loadProject,project}=require('./helpers.cjs');
 const {PNG}=require('pngjs');
 const {GifReader}=require('omggif');
 const AdmZip=require('adm-zip');
+function withoutProjectName(data){const{projectName,...rest}={...data};return rest}
 test.beforeEach(async({page})=>{
- await page.addInitScript(()=>{Object.defineProperty(navigator,'canShare',{value:()=>false,configurable:true})});
+ await page.addInitScript(()=>{
+  localStorage.removeItem('petscii-graphics-project-v3');
+  localStorage.removeItem('petscii-project-stem');
+  Object.defineProperty(navigator,'canShare',{value:()=>false,configurable:true});
+ });
  await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
 });
 async function namedDownload(page,selector){
@@ -14,6 +19,33 @@ async function namedDownload(page,selector){
  else await page.locator(selector).click();
  const file=await waiting;return {name:file.suggestedFilename(),bytes:await contents(file)};
 }
+test('autosave draft upgrades to include projectName after the field is set',async({page})=>{
+ await ui(page,'#projectFilename','fill','Ribbon Fox');
+ await page.locator('#projectFilename').dispatchEvent('input');
+ await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('petscii-graphics-project-v3')).projectName)).toBe('Ribbon Fox');
+});
+test('projectName in JSON restores the name field on open',async({page})=>{
+ await loadProject(page,project([160,''],2,1,{projectName:'Castle Quest'}));
+ await expect(page.locator('#status')).toContainText('Project loaded');
+ await expect(page.locator('#projectFilename')).toHaveValue('Castle Quest');
+ await ui(page,'#projectFilename','fill','Temporary');
+ const bytes=await download(page,'#saveProject');
+ const saved=JSON.parse(bytes);
+ expect(saved.projectName).toBe('Temporary');
+ await loadProject(page,saved);
+ await expect(page.locator('#status')).toContainText('Project loaded');
+ await expect(page.locator('#projectFilename')).toHaveValue('Temporary');
+});
+test('project menu opens under the Project control on iPad landscape',async({page})=>{
+ const summary=page.locator('#projectMenu > summary');
+ await summary.click();
+ const panel=page.locator('.project-menu');
+ await expect(panel).toBeVisible();
+ const s=await summary.boundingBox();
+ const p=await panel.boundingBox();
+ expect(p.y).toBeGreaterThanOrEqual(s.y+s.height-2);
+ expect(Math.abs(p.x-s.x)).toBeLessThan(48);
+});
 test('two-word regeneration changes only the name and stays accessible',async({page})=>{
  await loadProject(page,project([160,257],2,1,{cellColors:[2,3]}));
  const before=JSON.parse((await namedDownload(page,'#saveProject')).bytes);
@@ -22,12 +54,13 @@ test('two-word regeneration changes only the name and stays accessible',async({p
  expect(name).toMatch(/^[a-z]+-[a-z]+$/);
  await expect(page.locator('#regenerateProjectName')).toHaveAccessibleName('Generate new project name');
  await expect(page.locator('#regenerateProjectName')).toHaveAttribute('title','Generate new project name');
- const saved=await namedDownload(page,'#saveProject');expect(saved.name).toBe(name+'.json');expect(JSON.parse(saved.bytes)).toEqual(before);
+ const saved=await namedDownload(page,'#saveProject');expect(saved.name).toBe(name+'.json');expect(withoutProjectName(JSON.parse(saved.bytes))).toEqual(withoutProjectName(before));
  await ui(page,'#regenerateProjectName');expect(await page.locator('#projectFilename').inputValue()).not.toBe(name);
 });
 test('New Project cancel preserves source; confirm resets defaults and Undo restores it',async({page})=>{
  await loadProject(page,project([160,257,'',0],2,2,{cellColors:[2,3,4,5],colors:{ink:5,background:0},animation:{effect:'ripple',colorEffect:'plasma',seconds:4,scale:1,background:'white'}}));
  await ui(page,'#projectFilename','fill','Previous artwork');
+ await page.locator('#projectFilename').dispatchEvent('input');
  const before=JSON.parse((await namedDownload(page,'#saveProject')).bytes);
  page.once('dialog',d=>d.dismiss());await ui(page,'#newProject');
  expect(JSON.parse((await namedDownload(page,'#saveProject')).bytes)).toEqual(before);
@@ -39,9 +72,9 @@ test('New Project cancel preserves source; confirm resets defaults and Undo rest
  expect(fresh.colors).toEqual({ink:14,background:6});expect(fresh.drawingReplay.events).toEqual([]);
  expect(fresh.animation).toMatchObject({effect:'replay',colorEffect:'none',seconds:2});
  await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');
- await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('petscii-graphics-project-v3')))).toEqual(fresh);
- await ui(page,'#undo');expect(JSON.parse((await namedDownload(page,'#saveProject')).bytes)).toEqual(before);
- await ui(page,'#redo');expect(JSON.parse((await namedDownload(page,'#saveProject')).bytes)).toEqual(fresh);
+ await expect.poll(async()=>withoutProjectName(await page.evaluate(()=>JSON.parse(localStorage.getItem('petscii-graphics-project-v3'))))).toEqual(withoutProjectName(fresh));
+ await ui(page,'#undo');expect(withoutProjectName(JSON.parse((await namedDownload(page,'#saveProject')).bytes))).toEqual(withoutProjectName(before));
+ await ui(page,'#redo');expect(withoutProjectName(JSON.parse((await namedDownload(page,'#saveProject')).bytes))).toEqual(withoutProjectName(fresh));
 });
 test('all export families use the sanitized project name and retain valid contents',async({page})=>{
  test.setTimeout(120000);

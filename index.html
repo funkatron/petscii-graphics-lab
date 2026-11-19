@@ -155,7 +155,7 @@
 (async()=>{
 const {APP_VERSION}=await import('./app-version.js');
 const {validateProject,normalizeAnimation,ANIMATION_CYCLES,FIELD_RAMPS,FIELD_RAMP_LABELS,DEPTH_EFFECTS,INTRO_MOTIONS,WIPE_PATTERNS,WAVE_AMPLITUDES,WAVE_LENGTHS,WAVE_SHAPES,WAVE_DIRECTIONS,DIAGONAL_DIRECTIONS,COLOR_WAVE_DIRECTIONS,SOLID_CAMERA_VALUES}=await import('./project-validation.js');
-const {randomProjectFilename,regenerateProjectFilename}=await import('./project-naming.js');
+const {randomProjectFilename,regenerateProjectFilename,readStoredProjectStem,writeStoredProjectStem,sanitizeProjectStem}=await import('./project-naming.js');
 const {animationRasterFilename,nativeProgramFilename}=await import('./export-filename.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
@@ -1425,7 +1425,19 @@ $('textGridFile').onchange=async e=>{
  }catch(err){setStatus('Import failed: '+err.message)}
  finally{input.value=''}
 };
-function projectData(){return {format:'petscii-stencil-lab',version:3,machine:workspaceMachine,palette:workspacePalette,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},screen:$('screenLook').value,animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()}}}
+function editorProjectName(){return sanitizeProjectStem($('projectFilename').value)}
+function projectData(){
+ const projectName=editorProjectName();
+ return {format:'petscii-stencil-lab',version:3,machine:workspaceMachine,palette:workspacePalette,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},screen:$('screenLook').value,animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()},...(projectName?{projectName}:{})};
+}
+function applyProjectName(data){
+ if(data.projectName===undefined)return;
+ const stem=sanitizeProjectStem(data.projectName);
+ if(!stem)return;
+ $('projectFilename').value=stem;
+ $('projectFilename').removeAttribute('aria-invalid');
+ writeStoredProjectStem(stem);
+}
 function setSaveStatus(state,fullText,compactText){
  const el=$('saveStatus');
  el.dataset.state=state;
@@ -1447,21 +1459,43 @@ function applyProject(data){
  // Projects may omit colors; fall back to the machine's boot defaults.
  setColors(data.colors??{ink:getMachine(workspaceMachine).defaultInk,background:getMachine(workspaceMachine).defaultBackground});W=data.columns;H=data.rows;grid=[...data.grid];cellColors=data.cellColors?.slice()??Array(grid.length).fill(colors.ink);if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice());replayBaseColors=data.drawingReplay.baseColors?.slice()??Array(grid.length).fill(colors.ink);replayEventColors=data.drawingReplay.eventColors?.slice()??Array(replayEvents.length).fill(colors.ink)}else resetReplay();setAnimationSettings(data.animation);$('screenLook').value=SCREEN_LOOKS.includes(data.screen)?data.screen:'none';$('columns').value=String(W);$('rows').value=String(H);
  glyph=Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=511?data.selectedGlyph:64;
- erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';drawPalette();fit();
+ erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';applyProjectName(data);
+ if(data.projectName===undefined){const stem=readStoredProjectStem();if(stem){$('projectFilename').value=stem;$('projectFilename').removeAttribute('aria-invalid')}}
+ drawPalette();fit();
 }
 window.addEventListener('pagehide',autosave);
+function persistProjectStem(){writeStoredProjectStem($('projectFilename').value)}
 function regenerateProjectName(){
  $('projectFilename').value=regenerateProjectFilename($('projectFilename').value);
  $('projectFilename').removeAttribute('aria-invalid');
+ writeStoredProjectStem($('projectFilename').value);
+ autosave();
 }
-$('projectFilename').value=randomProjectFilename();
+$('projectFilename').value=readStoredProjectStem()||randomProjectFilename();
 $('regenerateProjectName').onclick=()=>{regenerateProjectName();setStatus('New project name: '+$('projectFilename').value)};
-$('projectFilename').oninput=()=>{$('projectFilename').removeAttribute('aria-invalid')};
+$('projectFilename').oninput=()=>{$('projectFilename').removeAttribute('aria-invalid');persistProjectStem();autosave()};
 function projectStem(){
- const name=$('projectFilename').value.trim().replace(/(?:\.json)+$/i,'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').replace(/[. ]+$/g,'');
- if(!name||/^\.+$/.test(name)){if($('downloadDialog').open)$('downloadDialog').close();$('projectMenu').open=true;$('projectFilename').setAttribute('aria-invalid','true');$('projectFilename').focus();throw Error('Enter a project file name')}
- $('projectFilename').removeAttribute('aria-invalid');return name;
+ const name=sanitizeProjectStem($('projectFilename').value);
+ if(!name){if($('downloadDialog').open)$('downloadDialog').close();$('projectMenu').open=true;$('projectFilename').setAttribute('aria-invalid','true');$('projectFilename').focus();throw Error('Enter a project file name')}
+ $('projectFilename').removeAttribute('aria-invalid');writeStoredProjectStem(name);return name;
 }
+function positionProjectMenu(){
+ const menu=$('projectMenu').querySelector('.project-menu');
+ if(!menu||!$('projectMenu').open)return;
+ const summary=$('projectMenu').querySelector('summary'),sr=summary.getBoundingClientRect();
+ const width=Math.min(340,innerWidth-24);
+ let left=sr.left;
+ if(left+width>innerWidth-12)left=innerWidth-12-width;
+ if(left<12)left=12;
+ menu.style.position='fixed';
+ menu.style.width=width+'px';
+ menu.style.left=left+'px';
+ menu.style.top=Math.max(12,sr.bottom+6)+'px';
+ menu.style.right='auto';
+ menu.style.maxHeight=Math.max(120,innerHeight-Math.max(12,sr.bottom+6)-14)+'px';
+}
+$('projectMenu').addEventListener('toggle',()=>{if($('projectMenu').open)requestAnimationFrame(positionProjectMenu);else{const menu=$('projectMenu').querySelector('.project-menu');menu.style.position='';menu.style.left='';menu.style.top='';menu.style.width='';menu.style.right='';menu.style.maxHeight=''}});
+window.addEventListener('resize',()=>{if($('projectMenu').open)positionProjectMenu()});
 function projectFilename(){return projectStem()+'.json'}
 $('newProject').onclick=()=>{
  if(animationExportTask){setStatus('Finish or cancel the current export before starting a new project');return}
@@ -1561,7 +1595,8 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  const helpSections=[
  ['projectMenu','Projects',helpList('Keep editable artwork and animation settings together.',[
  bullet('Project files','Preserve editable artwork and replay.'),
- bullet('Device autosave','Changes autosave in this browser only. Download a project file before switching devices or clearing site data.'),
+ bullet('Project name','Saved inside editable JSON project files and in this browser’s autosave draft. Exports use the current name in the field.'),
+ bullet('Device autosave','Drawing changes autosave in this browser only. Download a project file before switching devices or clearing site data.'),
  bullet('Text grids & reference','Open text grid replaces the drawing (undoable). Reference image is a temporary import overlay, not a saved layer. Paste grids under Download → Raw bytes &amp; text.'),
  bullet('Moving devices','Download your project file before switching devices.')
  ])],
@@ -1656,7 +1691,7 @@ try{const saved=JSON.parse(localStorage.getItem(PROJECT_KEY));if(saved){validate
 $('editorZoom').replaceChildren(...CANVAS_ZOOM_LEVELS.map(z=>new Option(z===1?'Fit (100%)':Math.round(z*100)+'%',String(z))));$('editorZoom').value=String(canvasZoom);$('editorZoom').onchange=()=>setCanvasZoom($('editorZoom').value);
 $('centerGuides').checked=centerGuidesEnabled;$('centerGuides').onchange=()=>{centerGuidesEnabled=$('centerGuides').checked;writeWorkspacePrefs(prefsPayload());redraw()};
 frame.addEventListener('wheel',e=>{if(animationPreview||(!e.ctrlKey&&!e.metaKey))return;e.preventDefault();let i=CANVAS_ZOOM_LEVELS.indexOf(canvasZoom);if(i<0)i=Math.max(0,CANVAS_ZOOM_LEVELS.findIndex(z=>z>=canvasZoom));setCanvasZoom(CANVAS_ZOOM_LEVELS[Math.max(0,Math.min(CANVAS_ZOOM_LEVELS.length-1,i+(e.deltaY<0?1:-1)))]);},{passive:false});
-$('showAlphanumerics').checked=false;syncMachineControls();updateAnimationOptions();updateColorUI();updateCanvasViewChrome();initialized=true;$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
+$('showAlphanumerics').checked=false;syncMachineControls();updateAnimationOptions();updateColorUI();updateCanvasViewChrome();initialized=true;autosave();$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
 })();
 </script>
 </body>

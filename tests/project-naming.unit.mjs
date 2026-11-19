@@ -6,6 +6,10 @@ import {
   projectNameCombinationCount,
   randomProjectFilename,
   regenerateProjectFilename,
+  sanitizeProjectStem,
+  writeStoredProjectStem,
+  readStoredProjectStem,
+  PROJECT_STEM_KEY,
 } from '../project-naming.js';
 
 test('default name uses first adjective and noun when random is zero', () => {
@@ -33,6 +37,32 @@ test('random names match adjective-noun pattern', () => {
     const [adj, noun] = name.split('-');
     assert.ok(PROJECT_NAME_ADJECTIVES.includes(adj));
     assert.ok(PROJECT_NAME_NOUNS.includes(noun));
+  }
+});
+
+test('sanitizeProjectStem strips json suffix and illegal characters', () => {
+  assert.equal(sanitizeProjectStem('  Evening waves.JSON  '), 'Evening waves');
+  assert.equal(sanitizeProjectStem('art/work'), 'art_work');
+  assert.equal(sanitizeProjectStem('...'), '');
+});
+
+test('stored project stem round-trips in localStorage', () => {
+  const store = new Map();
+  const mock = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, v),
+    removeItem: (k) => store.delete(k),
+  };
+  const prior = globalThis.localStorage;
+  globalThis.localStorage = mock;
+  try {
+    writeStoredProjectStem('quiet-valley');
+    assert.equal(readStoredProjectStem(), 'quiet-valley');
+    writeStoredProjectStem('bad/name');
+    assert.equal(readStoredProjectStem(), 'bad_name');
+    assert.equal(mock.getItem(PROJECT_STEM_KEY), 'bad_name');
+  } finally {
+    globalThis.localStorage = prior;
   }
 });
 
