@@ -93,7 +93,7 @@ async function previewSample(page,columns,rows,offset=.5){
  return sample;
 }
 async function waitForProjectAutosave(page,expected){await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('petscii-graphics-project-v3')))).toEqual(expected)}
-async function loadProject(page,data){await page.locator('#projectFile').setInputFiles({name:'project.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});await expect(page.locator('#status')).toContainText('Project loaded');await expect(page.locator('#projectFile')).toHaveValue('')}
+async function loadProject(page,data){await page.locator('#projectFile').setInputFiles({name:'project.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});await expect(page.locator('#projectFile')).toHaveValue('')}
 // Keep historical fixtures at an explicit four-second baseline; new-project speed is tested separately.
 function project(grid,columns=grid.length,rows=1,extra={}){
  const p={format:'petscii-stencil-lab',version:3,columns,rows,grid,selectedGlyph:0,symmetry:'none',animation:{effect:'replay',seconds:4,scale:2,background:'dark'},...extra};

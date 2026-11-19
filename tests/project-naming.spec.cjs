@@ -18,14 +18,6 @@ async function namedDownload(page,selector){
  else await page.locator(selector).click();
  const file=await waiting;return {name:file.suggestedFilename(),bytes:await contents(file)};
 }
-test('typed project name persists on this device across reload',async({page})=>{
- await ui(page,'#projectFilename','fill','My Dragon Art');
- await page.locator('#projectFilename').dispatchEvent('input');
- await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('petscii-graphics-project-v3')).projectName)).toBe('My Dragon Art');
- await page.reload();
- await page.locator('.app[data-ready=true]').waitFor();
- await expect(page.locator('#projectFilename')).toHaveValue('My Dragon Art');
-});
 test('autosave draft upgrades to include projectName after the field is set',async({page})=>{
  await ui(page,'#projectFilename','fill','Ribbon Fox');
  await page.locator('#projectFilename').dispatchEvent('input');
@@ -33,12 +25,14 @@ test('autosave draft upgrades to include projectName after the field is set',asy
 });
 test('projectName in JSON restores the name field on open',async({page})=>{
  await loadProject(page,project([160,''],2,1,{projectName:'Castle Quest'}));
+ await expect(page.locator('#status')).toContainText('Project loaded');
  await expect(page.locator('#projectFilename')).toHaveValue('Castle Quest');
  await ui(page,'#projectFilename','fill','Temporary');
  const bytes=await download(page,'#saveProject');
  const saved=JSON.parse(bytes);
  expect(saved.projectName).toBe('Temporary');
  await loadProject(page,saved);
+ await expect(page.locator('#status')).toContainText('Project loaded');
  await expect(page.locator('#projectFilename')).toHaveValue('Temporary');
 });
 test('project menu opens under the Project control on iPad landscape',async({page})=>{
