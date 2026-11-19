@@ -1187,7 +1187,9 @@ function toolPreview(p){const d=toolDrag,cells=grid.slice(),inks=cellColors.slic
  else if(d.kind==='line'){const n=Math.max(x1-x0,y1-y0,1);for(let i=0;i<=n;i++)put(Math.round(d.start[0]+(p[0]-d.start[0])*i/n),Math.round(d.start[1]+(p[1]-d.start[1])*i/n))}
  else if(d.kind==='rectangle'){for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(x===x0||x===x1||y===y0||y===y1)put(x,y)}
  else if(d.data){const s=d.data,x=Math.max(0,Math.min(W-s.w,p[0]-(d.offset?.[0]??0))),y=Math.max(0,Math.min(H-s.h,p[1]-(d.offset?.[1]??0)));d.rect={x,y,w:s.w,h:s.h};if(d.kind==='move')for(let yy=selection.y;yy<selection.y+selection.h;yy++)for(let xx=selection.x;xx<selection.x+selection.w;xx++)put(xx,yy,'');s.cells.forEach((g,i)=>{if(g!==''||d.kind==='move')put(x+i%s.w,y+Math.floor(i/s.w),g,s.inks[i])})}
- d.cells=cells;d.inks=inks;renderGrid(cells,inks);toolOutline(d.rect);
+ d.cells=cells;d.inks=inks;renderGrid(cells,inks);
+ if(!animationPreview){paintReferenceOverlay();drawCenterGuides()}
+ toolOutline(d.rect);
 }
 function position(e){return canvasCell(canvas,W,H,e.clientX,e.clientY)}
 canvas.addEventListener('pointerdown',e=>{
