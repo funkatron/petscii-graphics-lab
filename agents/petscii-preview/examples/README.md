@@ -34,3 +34,7 @@ Legacy saves may still have `colorEffect: "field"`; the lab and MCP migrate that
 ## Drawing references
 
 `IMG_0343` through `IMG_0360` are pictures to study before painting with the MCP. The drawing skill in `.cursor/skills/petscii-draw/SKILL.md` says which file to open for a face, a figure, or a place. They are references, not files to trace.
+
+## Op-art abstracts
+
+No photo references — use MCP `list_op_art_recipes` / `op_art_recipe` and the **Op-art** section in `.cursor/skills/petscii-draw/SKILL.md`. Study Riley/Vasarely composition mentally, then `stamp_op_art` + animation stacks (parallax, plasma, fld-blinds).

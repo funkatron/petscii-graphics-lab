@@ -15,7 +15,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from mcp.server.mcpserver import MCPServer
 
 from color_anim import render_color_animation_gif
+import craft
 import drawing
+import op_art
+import world_art
+import rug_styles
 import pgl_export
 import project_io
 from machines import MACHINES, get_machine
@@ -532,7 +536,12 @@ def get_tool_state(project_path: str) -> dict:
 
 @mcp.tool()
 def paint_cells(project_path: str, cells: list[dict]) -> dict:
-    """Paint cells. Each cell is {x, y, glyph?, ink?}. Missing glyph or ink uses the brush."""
+    """
+    Paint cells in batches. Each cell is {x, y, glyph?, ink?}; missing fields use the brush.
+
+    Work in passes (silhouette → light → focal → texture). After texture, call render_still
+    and critique_drawing. Prefer checker 102 and diagonals 77/78 over sprinkling solids.
+    """
     return drawing.paint_cells(project_path, cells)
 
 
@@ -653,20 +662,157 @@ def create_canvas(
     background: int = 0,
     ink: int = 1,
 ) -> dict:
-    """Start a blank PETSCII picture. columns 40 or 80, rows 25. background and ink are color numbers."""
+    """
+    Start a blank PETSCII picture (40×25 or 80×25).
+
+    Before painting: list_drawing_references or illustration_brief for the subject.
+    Study the reference JPG/PNG paths in agents/petscii-preview/examples/ — do not trace.
+    """
     return drawing.create_canvas(project_path, columns, rows, background, ink)
 
 
 @mcp.tool()
 def glyph_families() -> dict:
-    """Atlas ids grouped as blocks, lines, corners, diagonals, and symbols, plus their inverses."""
-    return drawing.glyph_families()
+    """Atlas ids by role, plus a shading ladder for fill (160, 102, 77/78, halves, quarters)."""
+    families = drawing.glyph_families()
+    families["shading_ladder"] = craft.SHADING_LADDER
+    families["outline"] = craft.OUTLINE_GLYPHS
+    families["accent_only_glyphs"] = craft.ACCENT_GLYPHS
+    return families
 
 
 @mcp.tool()
 def read_grid(project_path: str) -> dict:
     """Read occupied cells. Empty cells are omitted."""
     return drawing.read_grid(project_path)
+
+
+@mcp.tool()
+def list_drawing_references(category: str | None = None) -> dict:
+    """
+  Gallery craft notes for master PETSCII art in agents/petscii-preview/examples/.
+
+  category: portrait, face, figure, animal, place, landscape, architecture, scene, panels, ui.
+  Open the returned paths and study lighting and glyph texture before painting.
+  """
+    return craft.list_drawing_references(category)
+
+
+@mcp.tool()
+def shading_ladder(background_ink: int = 0) -> dict:
+    """Brightness steps from solid 160 down to quarter blocks on a given screen background ink."""
+    return craft.shading_ladder(background_ink)
+
+
+@mcp.tool()
+def illustration_brief(subject: str) -> dict:
+    """
+    Plan a picture: inferred category, palette hint, layout, reference ids, pass order, tool sequence.
+
+    Example subjects: "tiger in profile", "noir city portrait", "haunted house at night".
+    """
+    return craft.illustration_brief(subject)
+
+
+@mcp.tool()
+def critique_drawing(project_path: str, style: str = "auto") -> dict:
+    """
+    Heuristic review vs reference-artist habits: coverage, ink count, texture pass, focal band.
+
+    style: auto, illustration, op-art (abstract/geometric). Run after each pass and after render_still.
+    """
+    return craft.critique_drawing(project_path, style=style)
+
+
+@mcp.tool()
+def list_op_art_recipes() -> dict:
+    """Op-art / abstract recipe catalog (Riley bars, Vasarely targets, moiré lines, plasma fields)."""
+    return op_art.list_op_art_recipes()
+
+
+@mcp.tool()
+def op_art_recipe(recipe_id: str) -> dict:
+    """
+    Full craft notes + animation_suggest for one recipe.
+
+    recipe_id: line-moire, diagonal-weave, nested-squares, vertical-bars, ring-bands,
+    triangle-tessellation, plasma-field, dual-checker,
+    islamic-girih-8, islamic-interlace, arabesque-band,
+    mandala-lotus, yantra-triangles, kolam-pulli.
+    """
+    return op_art.op_art_recipe(recipe_id)
+
+
+@mcp.tool()
+def study_world_art(tradition: str = "all") -> dict:
+    """
+    Craft study for Islamic geometric / arabesque and Hindu mandala-yantra-kolam traditions.
+
+    tradition: islamic, hindu, or all. Pair with stamp_op_art recipes from the study notes.
+    """
+    return world_art.study_world_art(tradition)
+
+
+@mcp.tool()
+@mcp.tool()
+def list_style_combinations() -> dict:
+    """Oriental rug presets that layer Islamic, Hindu, and kilim recipes (border + field + medallion)."""
+    return rug_styles.list_style_combinations()
+
+
+@mcp.tool()
+def combine_styles(combination: str) -> dict:
+    """
+    Layer plan for a multi-tradition carpet.
+
+    combination: ardabil-medallion, konya-gul, garden-charbagh, indo-persian-fusion, kilim-band-stack.
+    """
+    return rug_styles.combine_styles(combination)
+
+
+@mcp.tool()
+def stamp_combined_style(
+    project_path: str,
+    combination: str,
+    period: int | None = None,
+    ink_a: int | None = None,
+    ink_b: int | None = None,
+) -> dict:
+    """
+    Paint a merged carpet: field, border, medallion, and optional corner layers.
+
+    Call combine_styles first; then update_project with animation_suggest.
+    """
+    return drawing.stamp_combined_style(
+        project_path, combination, period=period, ink_a=ink_a, ink_b=ink_b
+    )
+
+
+@mcp.tool()
+def list_world_art_references(tradition: str | None = None) -> dict:
+    """
+    Local study images under examples/world-art/ plus Wikimedia Commons page URLs.
+
+    tradition: islamic, hindu, all, or a tag (girih, yantra, kolam). Read images before painting.
+    """
+    return world_art.list_world_art_references(tradition)
+
+
+@mcp.tool()
+def stamp_op_art(
+    project_path: str,
+    recipe: str,
+    period: int | None = None,
+    ink_a: int | None = None,
+    ink_b: int | None = None,
+) -> dict:
+    """
+    Fill the canvas with an op-art lattice (pass 1).
+
+    Returns animation_suggest when applicable — pass to update_project on animation.
+    Add focal breaks with paint_cells, then render_animation or export_gif.
+    """
+    return drawing.stamp_op_art(project_path, recipe, period=period, ink_a=ink_a, ink_b=ink_b)
 
 
 if __name__ == "__main__":
