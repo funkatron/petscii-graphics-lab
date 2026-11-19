@@ -1,5 +1,8 @@
 /** Filename slugs for artwork downloads (session project stem + effect tags). */
 
+/** Between movement / color / backdrop ids in export filenames (not UI labels). */
+export const EXPORT_EFFECT_SEPARATOR = '_';
+
 function activeEffect(id) {
   return id && id !== 'none';
 }
@@ -10,7 +13,7 @@ export function exportAnimationEffectSlug(s) {
   if (activeEffect(s.effect)) parts.push(s.effect);
   if (activeEffect(s.colorEffect)) parts.push(s.colorEffect);
   if (activeEffect(s.backgroundEffect)) parts.push(s.backgroundEffect);
-  return parts.length ? parts.join('+') : 'still';
+  return parts.length ? parts.join(EXPORT_EFFECT_SEPARATOR) : 'still';
 }
 
 /**
