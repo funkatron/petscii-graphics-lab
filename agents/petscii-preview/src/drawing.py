@@ -9,6 +9,9 @@ from typing import Any
 
 from node_bridge import find_node
 
+import op_art
+import rug_styles
+
 TOOL_STATE_NAME = 'tool-state.json'
 HISTORY_NAME = 'history.json'
 LAB_ROOT = Path(__file__).resolve().parents[3]
@@ -499,6 +502,71 @@ def stamp_checkerboard(project_path: str | None) -> dict[str, Any]:
         return {'changed': changed}
 
     return _mutate(project_path, mutate)
+
+
+def stamp_op_art(
+    project_path: str | None,
+    recipe: str,
+    period: int | None = None,
+    ink_a: int | None = None,
+    ink_b: int | None = None,
+) -> dict[str, Any]:
+    """Paint a full-canvas op-art lattice from op_art.generate_pattern_cells."""
+    path = resolve_project(project_path)
+    if not path.is_file():
+        return {'ok': False, 'error': f'project not found: {path}'}
+    data = _load(path)
+    generated = op_art.generate_pattern_cells(
+        recipe,
+        data['columns'],
+        data['rows'],
+        period=period,
+        ink_a=ink_a,
+        ink_b=ink_b,
+    )
+    if not generated.get('ok'):
+        return generated
+    painted = paint_cells(project_path, generated['cells'])
+    painted['recipe'] = generated['recipe']
+    painted['cell_count'] = generated['cell_count']
+    if generated.get('animation_suggest'):
+        painted['animation_suggest'] = generated['animation_suggest']
+    return painted
+
+
+def stamp_combined_style(
+    project_path: str | None,
+    combination: str,
+    period: int | None = None,
+    ink_a: int | None = None,
+    ink_b: int | None = None,
+) -> dict[str, Any]:
+    """Merge layered rug / multi-tradition recipes onto one canvas."""
+    path = resolve_project(project_path)
+    if not path.is_file():
+        return {"ok": False, "error": f"project not found: {path}"}
+    data = _load(path)
+    generated = rug_styles.generate_combined_cells(
+        combination,
+        data["columns"],
+        data["rows"],
+        period=period,
+        ink_a=ink_a,
+        ink_b=ink_b,
+    )
+    if not generated.get("ok"):
+        return generated
+    painted = paint_cells(project_path, generated["cells"])
+    painted["combination"] = generated["combination"]
+    painted["layers"] = generated.get("layers")
+    painted["cell_count"] = generated["cell_count"]
+    if generated.get("animation_suggest"):
+        painted["animation_suggest"] = generated["animation_suggest"]
+    if generated.get("palette_hint"):
+        painted["palette_hint"] = generated["palette_hint"]
+    if generated.get("study"):
+        painted["study"] = generated["study"]
+    return painted
 
 
 def undo(project_path: str | None = None) -> dict[str, Any]:

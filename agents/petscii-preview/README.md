@@ -84,6 +84,21 @@ Operate on a workspace project path. Brush state lives in a sidecar.
 | `clear_drawing` / `recolor_drawing` / `stamp_border` / `stamp_checkerboard` | Whole-canvas |
 | `undo` / `redo` | History (≤60 steps) |
 
+### Illustration craft + op-art
+
+| Tool | Purpose |
+| --- | --- |
+| `list_drawing_references` | Master portrait/figure/place references + craft notes |
+| `illustration_brief` | Plan subject (incl. op-art): palette, passes, recipes |
+| `shading_ladder` | Glyph brightness steps on a background ink |
+| `glyph_families` | Atlas groups + shading ladder |
+| `critique_drawing` | Heuristic review (`style`: auto, illustration, op-art) |
+| `list_op_art_recipes` / `op_art_recipe` | Op-art + Islamic girih / Hindu mandala recipes |
+| `stamp_op_art` | Fill canvas with a recipe lattice (+ `animation_suggest`) |
+| `study_world_art` | Islamic & Hindu geometric craft notes |
+| `list_world_art_references` | Local Commons study images + category URLs |
+| `list_style_combinations` / `combine_styles` / `stamp_combined_style` | Oriental rug multi-layer presets |
+
 ### Video (ffmpeg)
 
 | Tool | Purpose |
