@@ -8,6 +8,7 @@ test.beforeEach(async({page})=>{
 test('zoom and guides live in the stage bar above the canvas',async({page})=>{
   await expect(page.locator('#stageCanvasView #editorZoom')).toBeVisible();
   await expect(page.locator('#stageCanvasView #centerGuides')).toBeVisible();
+  await expect(page.locator('.stage-view-guides span')).toHaveText('Grid');
   await expect(page.locator('#stageCanvasView #symmetryMenu')).toBeVisible();
   await expect(page.locator('#stageCanvasView #tapPoints')).toBeVisible();
   await expect(page.locator('.drawing-strip #symmetryMenu')).toHaveCount(0);
@@ -70,6 +71,16 @@ test('center guides stay visible during rectangle preview drag',async({page})=>{
     const r=c.getBoundingClientRect();
     c.dispatchEvent(new PointerEvent('pointerup',{pointerId:42,bubbles:true,clientX:r.left+r.width*.5,clientY:r.top+r.height*.5}));
   });
+});
+
+test('animation derived frame summary appears when movement is enabled',async({page})=>{
+  await page.locator('#animationDetails').evaluate(d=>{d.open=true});
+  await page.locator('#animationEffect').selectOption('wave');
+  const summary=page.locator('#animationDerivedSummary');
+  await expect(summary).toBeVisible();
+  await expect(summary).toContainText(/derived frames per loop/);
+  await page.locator('#animationEffect').selectOption('none');
+  await expect(summary).toBeHidden();
 });
 
 test('center guides preference survives reload',async({page})=>{

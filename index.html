@@ -38,7 +38,7 @@
 </header>
 <div class="drawing-strip" role="toolbar" aria-label="Drawing controls"><button id="glyphToggle" aria-expanded="false" aria-controls="glyphPicker" title="Choose a glyph"><canvas id="glyphPreview" width="24" height="24" aria-hidden="true"></canvas><span>Glyphs</span></button><button id="inkQuick" aria-label="Choose ink color" popovertarget="inkPopover" aria-controls="inkPopover"><span id="inkChip" class="color-chip"></span><span class="tool-label">Ink</span></button><button id="canvasTool" class="tool-icon" type="button" popovertarget="canvasPopover" aria-controls="canvasPopover" aria-label="Canvas tools" title="Canvas tools"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 12h18M12 4v16"/></svg></button><button id="paint" aria-pressed="true">Paint</button><button id="erase" aria-pressed="false">Eraser</button><button id="undo" aria-label="Undo" disabled>↶<span class="tool-label"> Undo</span></button><button id="redo" aria-label="Redo" disabled>↷<span class="tool-label"> Redo</span></button></div><section id="inkPopover" popover="auto" aria-labelledby="inkTitle"><div class="dialog-heading"><h2 id="inkTitle">Brush ink</h2><button id="inkClose" popovertarget="inkPopover" popovertargetaction="hide" aria-label="Close ink palette">✕</button></div><p id="inkSelection" class="note"></p><p class="note">For your next strokes. Existing cells keep their colors.</p><div id="quickInkPalette" class="color-grid" role="group" aria-label="Brush ink colors"></div></section><section id="canvasPopover" popover="auto" class="canvas-popover" aria-labelledby="canvasPopoverTitle"><div class="dialog-heading" id="canvasPopoverHeading"><div class="dialog-heading-lead"><h2 id="canvasPopoverTitle">Canvas</h2></div><button id="canvasClose" type="button" popovertarget="canvasPopover" popovertargetaction="hide" aria-label="Close canvas tools">✕</button></div><p class="note">Whole-grid actions. Each button is one undo step.</p><button id="recolorDrawing" type="button" class="full-width">Recolor with current brush ink</button><fieldset class="replace-fieldset"><legend>Replace ink</legend><div class="row"><div class="field"><label for="replaceInkFrom">From ink</label><select id="replaceInkFrom"></select></div><div class="field"><label for="replaceInkTo">To ink</label><select id="replaceInkTo"></select></div></div><button id="applyReplaceInk" type="button" class="full-width">Replace ink</button></fieldset><fieldset class="replace-fieldset"><legend>Replace glyph</legend><div class="replace-glyph-pair"><div class="replace-glyph-slot"><span class="replace-glyph-label">From</span><button type="button" id="replaceGlyphFromPick" class="replace-glyph-btn"><canvas id="replaceGlyphFromPreview" width="24" height="24" aria-hidden="true"></canvas><span id="replaceGlyphFromLabel">Glyphs…</span></button></div><div class="replace-glyph-slot"><span class="replace-glyph-label">To</span><button type="button" id="replaceGlyphToPick" class="replace-glyph-btn"><canvas id="replaceGlyphToPreview" width="24" height="24" aria-hidden="true"></canvas><span id="replaceGlyphToLabel">Glyphs…</span></button></div></div><button id="applyReplaceGlyph" type="button" class="full-width">Replace glyph</button></fieldset><fieldset class="replace-fieldset"><legend>Patterns</legend><div class="row"><button id="border" type="button">Border</button><button id="checker" type="button">Checkerboard</button></div><button id="clear" type="button" class="full-width">Clear drawing</button></fieldset></section><div class="layout">
 <aside id="sidebar" class="sidebar" aria-label="Editor settings">
-<details id="canvasDetails" class="tool-group"><summary>Canvas setup</summary><div class="group-body">
+<details id="canvasDetails" class="tool-group"><summary>Canvas size</summary><div class="group-body">
 <fieldset class="sidebar-section" id="canvasSizeGroup"><legend>Canvas size</legend>
 <div class="row"><div class="field"><label for="columns">Columns</label><select id="columns"><option selected>16</option></select></div><div class="field"><label for="rows">Rows</label><select id="rows"><option selected>16</option></select></div></div>
 <button id="c64CanvasPreset" type="button" class="full-width">Full screen · 40 × 25</button>
@@ -47,13 +47,15 @@
 <details id="colorDetails" class="tool-group"><summary>Colors <span id="colorSummary" class="summary-badge" aria-hidden="true"></span></summary><div class="group-body">
 <fieldset class="sidebar-section" id="paintColorsGroup"><legend>Paint colors</legend>
 <div class="row"><button id="inkTarget" aria-pressed="true">Ink<span id="inkName" class="color-name"></span></button><button id="backgroundTarget" aria-pressed="false">Background<span id="backgroundName" class="color-name"></span></button></div>
-<div id="colorPalette" class="color-grid" role="group" aria-label="C64 color palette"></div><button id="swapColors" class="full-width">Swap brush / background</button></fieldset><fieldset class="sidebar-section" id="screenGroup"><legend>Screen</legend><div class="field"><label for="screenLook">Look</label><select id="screenLook" aria-label="Screen look"><option value="none" selected>None</option><option value="monitor">Monitor</option><option value="tv">Television</option><option value="green">Green</option><option value="amber">Amber</option></select></div><p class="note">Thin scanlines and a little phosphor. Monitor and television keep color, with a slight color edge. Green and amber are one phosphor. PNG, GIF, video, and frame ZIP match the canvas. SVG, PRG, and disk images stay clean.</p></fieldset><p class="note" id="colorsHelp">Ink sets the brush color. Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.</p></div></details>
+<div id="colorPalette" class="color-grid" role="group" aria-label="C64 color palette"></div><button id="swapColors" class="full-width">Swap brush / background</button></fieldset><fieldset class="sidebar-section" id="screenGroup"><legend>Screen</legend><div class="field"><label for="screenLook">Look</label><select id="screenLook" aria-label="Screen look"><option value="none" selected>None</option><option value="monitor">Monitor</option><option value="tv">Television</option><option value="green">Green</option><option value="amber">Amber</option></select></div><p class="note">Thin scanlines and a little phosphor. Monitor and television keep color, with a slight color edge. Green and amber are one phosphor. PNG, GIF, video, and frame ZIP match the canvas. SVG, PRG, and disk images stay clean.</p></fieldset><p class="note" id="colorsHelp">Ink sets the brush color (character color / color RAM on C64). Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.</p>
+<p class="note" id="vicRegistersNote" hidden>On C64 and C128 VIC modes, border color is register <code>$D020</code> and screen background is <code>$D021</code>. Brush <strong>Background</strong> here is empty-cell paper in the editor. <strong>Backdrop effect</strong> under Animation animates paper separately from your drawing.</p></div></details>
 <details id="animationDetails" class="tool-group"><summary>Animation</summary><div class="group-body">
 <fieldset class="animation-section" id="animationTimeline"><legend>Timeline &amp; preview</legend>
 <div class="field"><label for="animationSeconds">Loop duration</label><select id="animationSeconds"><option value="0.5">½ second</option><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="4">4 seconds</option><option value="8">8 seconds</option><option value="12">12 seconds</option></select></div>
 <div id="movementCyclesOptions" class="field cycle-rate" hidden><label for="animationCycles">Movement cycles</label><select id="animationCycles" aria-label="Movement cycles per loop"></select></div>
 <div id="colorCyclesOptions" class="field cycle-rate" hidden><label for="animationColorCycles">Color cycles</label><select id="animationColorCycles" aria-label="Color cycles per loop"></select></div>
 <div class="row"><button id="animationPlay" aria-pressed="false">▶ Play</button><button id="animationStop">Return to drawing</button></div>
+<p id="animationDerivedSummary" class="note" role="status" hidden></p>
 </fieldset>
 <fieldset class="animation-section" id="animationMovement"><legend>Movement</legend>
 <div class="field"><label for="animationEffect">Movement</label><select id="animationEffect"><option value="none">Still drawing</option><option value="replay">Replay drawing</option><option value="scroll">Scroll</option><option value="parallax">Parallax</option><option value="wave">Wave rows / columns</option><option value="column-wave">Column wave (DYCP-style)</option><option value="fld-blinds">Row blinds (FLD-style)</option><option value="sine-scroll">Sine scroller</option><option value="ripple">Ripple</option><option value="logo-bounce">Bouncing logo</option><option value="logo-stretch">Stretching logo</option><option value="starfield">Starfield</option><option value="space-warp">Space warp</option><option value="perspective-floor">Perspective floor</option><option value="curved-road">Curved road</option><option value="tunnel-flight">Tunnel flight</option><option value="rotating-cube">Rotating cube</option><option value="spinning-globe">Spinning globe</option><option value="rolling-drum">Rolling drum</option><option value="bonfire">Bonfire</option><option value="wipe">Patterned wipe</option></select></div>
@@ -101,7 +103,7 @@
 
 </div></details></aside>
 <main class="stage">
-<div class="stagebar"><span id="dimensions">16 × 16</span><div class="stage-canvas-view" id="stageCanvasView"><select id="editorZoom" aria-label="Canvas zoom" title="Editor zoom"></select><label class="stage-view-guides"><input type="checkbox" id="centerGuides"><span>Guides</span></label><details id="symmetryMenu"><summary aria-label="Symmetry options" id="symmetrySummary">↔<span class="stage-view-symmetry-label" id="symmetryLabel">Symmetry</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div></div></details><label class="stage-view-tap tool-slot-inactive" id="tapEndpointsSlot" inert><input type="checkbox" id="tapPoints"><span>Tap endpoints</span></label></div><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
+<div class="stagebar"><span id="dimensions">16 × 16</span><div class="stage-canvas-view" id="stageCanvasView"><select id="editorZoom" aria-label="Canvas zoom" title="Editor zoom"></select><label class="stage-view-guides"><input type="checkbox" id="centerGuides" aria-label="Show grid"><span>Grid</span></label><details id="symmetryMenu"><summary aria-label="Symmetry options" id="symmetrySummary">↔<span class="stage-view-symmetry-label" id="symmetryLabel">Symmetry</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div></div></details><label class="stage-view-tap tool-slot-inactive" id="tapEndpointsSlot" inert><input type="checkbox" id="tapPoints"><span>Tap endpoints</span></label></div><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
 <div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="editAnimationFromPreview" type="button">Animation settings</button><button id="returnDrawing">Return to drawing</button></div>
 <div id="referenceOverlayBar" class="preview-banner reference-overlay-bar" hidden><span>Reference overlay · approximate colors and blocks</span><label class="reference-opacity">Opacity <input type="range" id="referenceOpacity" min="10" max="100" value="50" aria-label="Reference opacity"></label><button type="button" id="referenceApply">Apply as import</button><button type="button" id="referenceCancel">Remove overlay</button></div>
 <div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
@@ -255,7 +257,22 @@ function updateVideoDuration(){
 }
 $('videoRepeats').oninput=()=>{const count=Number($('videoRepeats').value);if(validVideoRepeats(count)){videoRepeats=count;autosave()}updateVideoDuration()};
 function animationName(){const motion=$('animationEffect').value==='scroll'?'Scroll '+$('scrollDirection').value:$('animationEffect').selectedOptions[0].textContent,color=$('animationColor').value==='none'?null:$('animationColor').selectedOptions[0].textContent,backdrop=backdropEffectActive()?$('backdropEffect').selectedOptions[0].textContent:null,parts=[];if($('animationEffect').value!=='none')parts.push(motion);if(backdrop)parts.push(backdrop);if(color)parts.push(color);if(!parts.length)return 'Still drawing';return parts.join(' + ')}
-function updateMotionSummary(){$('motionSummary').textContent=animationName()+' · '+$('animationSeconds').value+' s / loop';$('c64MotionSummary').textContent=$('motionSummary').textContent;updateVideoDuration();updateExportScrollerCopy()}
+function updateMotionSummary(){
+ const sec=Number($('animationSeconds').value);
+ $('motionSummary').textContent=animationName()+' · '+sec+' s / loop';
+ $('c64MotionSummary').textContent=$('motionSummary').textContent;
+ const derived=$('animationDerivedSummary');
+ const movement=$('animationEffect').value,color=$('animationColor').value,backdrop=backdropEffectActive();
+ if(movement==='none'&&color==='none'&&!backdrop){
+  derived.hidden=true;derived.textContent='';
+ }else{
+  const count=animationCount(animationSource());
+  const avgMs=count>0?Math.round(sec*1000/count):sec*1000;
+  derived.hidden=false;
+  derived.textContent=count+' derived frames per loop · about '+avgMs+' ms per frame. Effects generate these automatically — not a cel-by-cel strip.';
+ }
+ updateVideoDuration();updateExportScrollerCopy();
+}
 // Ordered color ramps, using C64 hardware palette indices. Repeated warm shades form a return path.
 const COLOR_CYCLES={
  'bonfire':BONFIRE_COLORS,
@@ -437,13 +454,13 @@ function syncMachineControls(){
  const cellShapeNote=' Cell shape (Square or CRT) applies to the editor and to PNG, SVG, GIF, and video. Native programs stay hardware-true.';
  if(ted){
   $('machineHelp').textContent='System host: Plus/4 uses the TED character set and full TED drawing palette (121 colors). Native Plus/4 program/disk download is available; C64 color RAM export is not.'+cellShapeNote;
-  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. Plus/4 uses all 121 TED colors (chroma × luma). Display palette is hidden in this mode.';
+  $('colorsHelp').textContent='Ink sets the brush color (per-cell foreground on TED). Each cell keeps its own ink; the background is shared. Plus/4 uses all 121 TED colors (chroma × luma). Display palette is hidden in this mode.';
  }else if(vdc){
   $('machineHelp').textContent='System host: C128 80-col uses VDC RGBI drawing colors (not Pepto) and the C64 glyph atlas. Canvas width up to 80. Native 80-col PRG/D64 download is available. Backdrop preview and raster exports paint animated paper behind glyphs; native 80-col programs do not use block-paper backdrop.'+cellShapeNote;
-  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. C128 80-col uses 16 VDC RGBI colors. Display palette is under Machine on VIC hosts only.';
+  $('colorsHelp').textContent='Ink sets the brush color (VDC foreground). Each cell keeps its own ink; the background is shared. C128 80-col uses 16 VDC RGBI colors. Display palette is under Machine on VIC hosts only.';
  }else{
   $('machineHelp').textContent='System host: Display palette changes how the same VIC color indices look. Switching machines remaps inks (and glyphs when crossing Plus/4) and can be undone.'+cellShapeNote;
-  $('colorsHelp').textContent='Ink sets the brush color. Each cell keeps its own ink; the background is shared. VIC RGB look (Pepto / Colodore / VICE / RGB) is chosen under Machine → Display palette — not here.';
+  $('colorsHelp').textContent='Ink sets the brush color (character color / color RAM on C64). Each cell keeps its own ink; the background is shared. VIC RGB look (Pepto / Colodore / VICE / RGB) is chosen under Machine → Display palette — not here.';
  }
  syncRasterScaleLabels();
  refreshColumnOptions();
@@ -847,6 +864,7 @@ function updateAnimationOptions(){
  const warning=animationPlan(animationSource()).warning;
  $('animationWarning').hidden=!warning;$('animationWarning').textContent=warning;
  for(const id of ['animationPlay','quickPlay'])$(id).disabled=!!warning;
+ updateMotionSummary();
 }
 const solidCameraSettings=s=>Object.fromEntries(Object.keys(SOLID_CAMERA_VALUES).map(key=>[key,s?s[key]:Number($(key).value)]));
 // Preserves effect ids absent from the Movement menu (legacy JSON).
@@ -1231,7 +1249,26 @@ function paintHint(){const mode=PAINT_MODES.find(m=>m.id===paintMode);return (mo
 function pickerHint(){const mode=PICKER_MODES.find(m=>m.id===pickerMode);return (mode?.label??'Pick')+' · Tap a cell on the canvas.'}
 function symmetryHint(){const mode=$('sym').selectedOptions[0]?.textContent;return $('sym').value==='none'?'':(' Symmetry: '+mode+'.')}
 function zoomPanHint(){return editorZoomed()?' Two-finger drag pans when zoomed.':'';}
-function updateDrawingHint(){updateToolPalette();if(animationPreview){$('stageHint').textContent='Preview (read-only)';return}if(!['paint','erase'].includes(drawingTool)){const name=toolNames[drawingTool]??drawingTool;let hint=name;if(drawingTool==='fill'){const mode=FILL_MODES.find(m=>m.id===fillMode);hint=name+(mode?': '+mode.label:'')}else if(drawingTool==='picker'){const mode=PICKER_MODES.find(m=>m.id===pickerMode);hint=name+(mode?': '+mode.label:'')}$('stageHint').textContent=hint;return}if(erasing){$('stageHint').textContent='Eraser'+($('sym').value!=='none'?' · Symmetry':'')}else{$('stageHint').textContent='Paint · '+inkLabel(colors.ink)+($('sym').value!=='none'?' · Symmetry':'')}}
+function updateDrawingHint(){
+ updateToolPalette();
+ if(animationPreview){$('stageHint').textContent='Preview (read-only)';return}
+ if(!['paint','erase'].includes(drawingTool)){
+  const name=toolNames[drawingTool]??drawingTool;
+  let hint=name;
+  if(drawingTool==='fill'){const mode=FILL_MODES.find(m=>m.id===fillMode);hint=fillHint()}
+  else if(drawingTool==='picker'){hint=pickerHint()}
+  else if(['line','rectangle','select'].includes(drawingTool)){
+   hint=name+(tapPoints&&['line','rectangle'].includes(drawingTool)?' · Tap endpoints':' · Drag');
+   if(toolDrag)hint+=' · Cancel to abandon';
+  }else if(['move','duplicate'].includes(drawingTool)){
+   hint=name+(tapPoints?' · Tap destination':' · Drag destination');
+  }
+  $('stageHint').textContent=hint+zoomPanHint();
+  return;
+ }
+ if(erasing){$('stageHint').textContent='Eraser'+symmetryHint()+zoomPanHint()}
+ else{$('stageHint').textContent=paintHint()+inkLabel(colors.ink)+symmetryHint()+zoomPanHint()}
+}
 function refresh(){refreshModeMenuSummaries();updateDrawingHint();updateSymmetryChrome();updateWholeDrawingActions();updateReplaceGlyphUI();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(drawingTool==='paint'));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===0&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};
 $('erase').onclick=()=>setDrawingTool('erase');
@@ -1477,11 +1514,12 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  const drawingHelp=helpList('Choose a character using '+control('Glyphs')+', select an ink color, and draw directly on the canvas.',[
  bullet('Pick','Open the menu to choose picking brush ink, brush glyph, or canvas background from a cell.'),
  bullet('Fill','Open the menu to fill glyph and ink, glyph only, or ink only in a connected region.'),
- bullet('Line, Rectangle &amp; Select','Drag across the canvas, or enable '+control('Tap endpoints')+' to select two points.'),
+ bullet('Line &amp; Rectangle','Drag from corner to corner for an outline. Enable '+control('Tap endpoints')+' to mark two corners without dragging.'),
+ bullet('Select','Drag a rectangle, or use '+control('Tap endpoints')+' for two corners.'),
  bullet('Move &amp; Duplicate','Drag an existing selection, or choose '+control('Move')+' or '+control('Duplicate')+' and tap its destination.'),
  bullet('Text','Tap a starting cell, enter your text, then press '+control('Apply text')+'.'),
  bullet('Symmetry','In the bar above the canvas (with zoom and guides). Available with '+control('Paint')+' and '+control('Eraser')+'. Mirrors freehand strokes across the canvas.'),
- bullet('Center guides','Toggle Guides above the canvas to mark the middle column and row for symmetry. Editor only.'),
+ bullet('Grid','Toggle '+control('Grid')+' above the canvas for dashed center lines when aligning symmetry. Editor only; exports stay clean.'),
  bullet('Canvas','Whole-grid tools: recolor with brush ink, replace ink or glyph, border, checkerboard, and clear. One undo per action.'),
  bullet('Zoom','Choose zoom above the canvas, or '+key('Ctrl')+' / '+key('⌘')+' + scroll on the canvas. When zoomed in, two-finger drag on the canvas pans; one finger still draws.')
  ],'<h4>Keyboard shortcuts</h4><ul class="help-points">'+[
@@ -1549,14 +1587,14 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  ]));
  const c64Explanation=document.querySelector('#exportC64 + p.note');c64Explanation.hidden=true;const c64ExportsHelp=document.querySelector('button[aria-label="Help about c64 exports"]');
  c64ExportsHelp?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const appendNote=n=>{const copy=n.cloneNode(true);copy.hidden=false;copy.removeAttribute('id');$('contextHelpBody').append(copy)};appendNote(c64Explanation);appendNote($('c64DiskHelp'));appendNote($('c64TimingOverrideHelp'))});
- document.querySelector('button[aria-label="Help about colors"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const colors=$('colorsHelp').cloneNode(true);colors.hidden=false;$('contextHelpBody').append(colors);const screen=screenNote.cloneNode(true);screen.hidden=false;$('contextHelpBody').append(screen)});
+ document.querySelector('button[aria-label="Help about colors"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const colors=$('colorsHelp').cloneNode(true);colors.hidden=false;$('contextHelpBody').append(colors);const vic=$('vicRegistersNote').cloneNode(true);vic.hidden=false;$('contextHelpBody').append(vic);const screen=screenNote.cloneNode(true);screen.hidden=false;$('contextHelpBody').append(screen)});
  document.querySelector('button[aria-label="Help about animation timing"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const append=n=>{const copy=n.cloneNode(true);copy.hidden=false;copy.removeAttribute?.('id');$('contextHelpBody').append(copy)};append($('vdcBackdropNote'));const glossary=$('animationGlossary');if(glossary){const block=document.createElement('div');block.className='help-glossary';block.innerHTML=glossary.innerHTML;$('contextHelpBody').append(block)}const replay=$('animationInfo');if(replay){append(replay)}});
  helpFor($('saveStatusWrap'),'Device save',helpList('Editable drafts stay on this device between visits.',[
   bullet('Autosave','Updates after each edit in this browser’s storage.'),
   bullet('Backup','Use Project → Download editable project before switching devices or clearing site data.'),
   bullet('Failure','When autosave fails, download a project file; your current canvas is still in memory.')
  ]));
- for(const selector of ['#projectMenu .note','#colorDetails .note','#animationInfo','#helpDetails','#downloadDescription','#machineHelp','#screenGroup > .note','#inkPopover .note:not(#inkSelection)','#canvasPopover > .note','#export-still > .note','[data-motion-format="gif"] > .note','[data-motion-format="video"] > .note:not(#videoDuration)','[data-motion-format="frames"] > .note','#glyphOptions > .note:not(#romInfo)','#c64DiskHelp','#c64TimingOverrideHelp','#vdcBackdropNote','#rawDataDetails > .note','#animationGlossary','#export-data details.help-disclosure:not(#rawDataDetails)'])document.querySelectorAll(selector).forEach(e=>e.hidden=true);
+ for(const selector of ['#projectMenu .note','#colorDetails .note','#animationInfo','#helpDetails','#downloadDescription','#machineHelp','#screenGroup > .note','#inkPopover .note:not(#inkSelection)','#canvasPopover > .note','#export-still > .note','[data-motion-format="gif"] > .note','[data-motion-format="video"] > .note:not(#videoDuration)','[data-motion-format="frames"] > .note','#glyphOptions > .note:not(#romInfo)','#c64DiskHelp','#c64TimingOverrideHelp','#vdcBackdropNote','#vicRegistersNote','#rawDataDetails > .note','#animationGlossary','#export-data details.help-disclosure:not(#rawDataDetails)'])document.querySelectorAll(selector).forEach(e=>e.hidden=true);
  document.querySelector('button[aria-label="Help about download artwork"]')?.addEventListener('click',()=>{if(!help.matches(':popover-open'))return;const formats=document.querySelector('#export-data details.help-disclosure:not(#rawDataDetails) p.note');if(formats){const copy=formats.cloneNode(true);copy.hidden=false;copy.removeAttribute('id');$('contextHelpBody').append(copy)}const importNote=document.querySelector('#rawDataDetails > .note');if(importNote){const copy=importNote.cloneNode(true);copy.hidden=false;copy.removeAttribute('id');$('contextHelpBody').append(copy)}});
  $('helpDetails').hidden=true;
  canvas.addEventListener('pointerdown',e=>{if(help.matches(':popover-open')){e.stopImmediatePropagation();e.preventDefault();closeHelp()}},true);

@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-19 — Polish + Tier B #3 (0.35.14, branch cursor/track3-polish-tierb-6ab6)
+
+**What:** Stage **Grid** label; animation derived-frame summary; Colors **?** $D020/$D021 note; Canvas size sidebar title; line/rect/select stage hints. Added [owner-program-queue.md](../docs/owner-program-queue.md) and [modularization-slices.md](../docs/modularization-slices.md) for polish → #3 → #1 → #2 → #7 plan.  
+**Tested:** `tests/canvas-view.spec.cjs` Chromium 7/7.
+
 ## 2026-11-16 — Pick/Fill toolbar polish and screenshot smoke (0.34.1)
 
 **What:** Uniform 44px Pick/Fill triggers and mode options; redrawn mode icons; `smoke/tool-mode-screenshots.mjs` + workflow artifact upload; `tests/tool-mode-screenshots.spec.cjs` in focused CI. Release **0.34.1**.  

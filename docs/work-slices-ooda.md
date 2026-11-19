@@ -1,17 +1,17 @@
 # Work slice queue (owner order)
 
-One slice is planned, approved, implemented, and merged before the next begins. **Current:** slice **1b** (grid labeling) after **1a′** (Canvas toolbar).
+One slice is planned, approved, implemented, and merged before the next begins. **Current:** [owner-program-queue.md](owner-program-queue.md) phases **0–1** (polish + Tier B #3).
 
 | # | Track | Slice | Status |
 | ---: | --- | --- | --- |
 | 1 | Tier B drawing | **1a** Magic replace (ink + glyph) | **Merged** (v0.35.5) |
-| 1 | | **1a′** Canvas toolbar panel | **In PR** (v0.35.6) |
-| 1 | | 1b Grid labeling | Planned |
-| 1 | | 1c Line/rect polish | Planned |
-| 2 | Zoom / selection polish | TBD | Outline |
-| 3 | Motif / stamp spike | TBD | Outline |
-| 4 | Animation research → ship | TBD | Outline |
-| 5 | Modularization (`canvas-view.js`, …) | TBD | Outline |
+| 1 | | **1a′** Canvas toolbar panel | **Merged** (v0.35.6+) |
+| 1 | | **1b** Grid labeling + derived-frame summary | **In PR** |
+| 1 | | **1c** Line/rect stage hints + help | **In PR** (with 1b) |
+| 2 | Roadmap **#3** | Colors/register help, Canvas size label | **In PR** (with 1b) |
+| 3 | Roadmap **#1** | Next animation prototype (native gate) | Queued |
+| 4 | Roadmap **#2** | VICE / capacity for shipped effect | Queued |
+| 5 | Roadmap **#7** | `canvas-view.js` first slice — see [modularization-slices.md](modularization-slices.md) | Queued |
 
 ---
 
