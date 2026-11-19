@@ -60,10 +60,10 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 **Tier B — after Tier A or with #5**
 
 - [x] **Magic replace** ink + glyph (**Colors → Whole drawing**, v0.35.4).
-- [ ] Line, rectangle polish; grid labeling (**Show grid**).
-- [ ] **Show grid** label (retain center guides).
-- [ ] Optional animation **timeline** disclosure (effect-generated frames, not Wizard cel strip).
-- [ ] Krissz-style **$D020 / $D021** help (border vs background).
+- [x] Line, rectangle polish; grid labeling (**Show grid** / **Grid** stage label) — v0.35.14.
+- [x] **Show grid** label (retain center guides).
+- [x] Optional animation **timeline** disclosure (derived frame count in Timeline & preview).
+- [x] Krissz-style **$D020 / $D021** help (border vs background) in Colors **?**.
 
 **Explicitly defer (document only):** layers, quarter-block grid, Ultimate 64 live port, SID ([editor borrowings](editor-borrowings.md) Tier B/C).
 
