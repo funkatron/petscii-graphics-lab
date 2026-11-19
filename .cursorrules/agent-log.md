@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-19 — Canvas replace UX (0.35.15, branch cursor/canvas-replace-ux-6ab6)
+
+**What:** Merged PR #178 (v0.35.14). Replace ink in Canvas tools uses palette swatches (like brush ink), not selects. Glyph pick for replace keeps or restores the Canvas popover after each choice.  
+**Tested:** `tests/magic-replace.spec.cjs` Chromium.
+
 ## 2026-11-19 — Polish + Tier B #3 (0.35.14, branch cursor/track3-polish-tierb-6ab6)
 
 **What:** Stage **Grid** label; animation derived-frame summary; Colors **?** $D020/$D021 note; Canvas size sidebar title; line/rect/select stage hints. Added [owner-program-queue.md](../docs/owner-program-queue.md) and [modularization-slices.md](../docs/modularization-slices.md) for polish → #3 → #1 → #2 → #7 plan.  
