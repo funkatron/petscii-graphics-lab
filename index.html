@@ -1561,7 +1561,8 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  const helpSections=[
  ['projectMenu','Projects',helpList('Keep editable artwork and animation settings together.',[
  bullet('Project files','Preserve editable artwork and replay.'),
- bullet('Device autosave','Changes autosave in this browser only. Download a project file before switching devices or clearing site data.'),
+ bullet('Project name','The name field is remembered on this browser for exports. It is not stored inside downloadable JSON project files.'),
+ bullet('Device autosave','Drawing changes autosave in this browser only. Download a project file before switching devices or clearing site data.'),
  bullet('Text grids & reference','Open text grid replaces the drawing (undoable). Reference image is a temporary import overlay, not a saved layer. Paste grids under Download → Raw bytes &amp; text.'),
  bullet('Moving devices','Download your project file before switching devices.')
  ])],
