@@ -242,7 +242,7 @@ test('C128 80-col enables VDC width, RGBI drawing, and native download',async({p
  await expect(page.locator('html')).toHaveAttribute('data-palette','vdc');
  await expect(page.locator('#displayPaletteField')).toBeHidden();
  await expect(page.locator('#machineSummary')).toHaveText('C128-80 · RGBI');
- // Reveal Canvas setup (closed details / possibly closed sidebar) before the preset.
+ // Reveal Canvas size (closed details / possibly closed sidebar) before the preset.
  await ui(page,'#c64CanvasPreset');
  await expect(page.locator('#c64CanvasPreset')).toHaveText('VDC screen · 80 × 25');
  await expect(page.locator('#columns')).toHaveValue('80');

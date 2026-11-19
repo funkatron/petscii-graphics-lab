@@ -73,8 +73,15 @@ test('center guides stay visible during rectangle preview drag',async({page})=>{
   });
 });
 
-test('animation derived frame summary appears when movement is enabled',async({page})=>{
+async function openAnimationGroup(page){
+  if(test.info().project.name==='ipad-portrait'){
+    if(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed')))await ui(page,'#toggle');
+  }
   await page.locator('#animationDetails').evaluate(d=>{d.open=true});
+}
+
+test('animation derived frame summary appears when movement is enabled',async({page})=>{
+  await openAnimationGroup(page);
   await page.locator('#animationEffect').selectOption('wave');
   const summary=page.locator('#animationDerivedSummary');
   await expect(summary).toBeVisible();
