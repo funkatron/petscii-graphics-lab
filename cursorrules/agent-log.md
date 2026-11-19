@@ -1,5 +1,10 @@
 # Agent log (2026-11-07)
 
+## Export effect slug separator (2026-11-19)
+
+**What:** `EXPORT_EFFECT_SEPARATOR` is `_` instead of `+` in `export-filename.js` (compound ids like `scroll-x_color-wave`). UI “Animation” labels still use ` + `. App **0.35.17**.  
+**Tested:** `export-filename.unit.mjs`; Chromium `d64.spec` (still/composite stem) + `c64.spec` (snapshot download name).
+
 ## Tier A housekeeping (2026-11-17)
 
 **What:** Roadmap marks #66 done; `docs/tier-a-ooda-plans.md` for ordered Tier A work; app 0.35.1.  

@@ -31,7 +31,7 @@ test('D64 downloads contain the exact runnable still and composite PRG, with sta
   await ui(page,'#c64Format','selectOption','d64');await expect(page.locator('#exportC64')).toHaveText('Download C64 disk (.d64)');await expect(page.locator('#c64DiskHelp')).toBeHidden();
  await page.getByRole('button',{name:'Help about c64 exports'}).click();await expect(page.locator('#downloadDialog #contextHelp')).toContainText('Virtual 1541');
   const wait=page.waitForEvent('download');await ui(page,'#exportC64');const file=await wait;const stem=await page.locator('#projectFilename').inputValue();
-  expect(file.suggestedFilename()).toBe(stem+'-c64-'+(moving?'scroll-x+color-wave':'still')+'-4x1.d64');
+  expect(file.suggestedFilename()).toBe(stem+'-c64-'+(moving?'scroll-x_color-wave':'still')+'-4x1.d64');
   const disk=await contents(file),extracted=readDisk(disk,moving?'ANIMATION':'PICTURE');expect(extracted).toEqual(prg);
   const result=spawnSync('python3',['tests/c64-emulate.py'],{input:JSON.stringify({prg:[...extracted],stopAfterTicks:8}),encoding:'utf8'});expect(result.status,result.stderr).toBe(0);const shot=JSON.parse(result.stdout).snapshots[0];for(const [x,id] of [[0,256],[1,416],[2,288],[3,511]])expect(shot.characters.slice(shot.screen[498+x]*8,shot.screen[498+x]*8+8)).toEqual(glyphRows(id));
   const url=await page.locator('#exportC64').getAttribute('data-download-url');expect(await download(page,'#exportC64')).toEqual(disk);await expect(page.locator('#status')).toHaveText('C64 disk download requested');await expect(page.locator('#exportC64')).toHaveAttribute('data-download-url',url);expect(await download(page,'#saveProject')).toEqual(before);
