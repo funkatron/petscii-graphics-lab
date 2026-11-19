@@ -50,6 +50,28 @@ test('center guides render on the canvas but not in PNG export',async({page})=>{
   expect(pngOn.data.slice(i,i+3)).toEqual(pngOff.data.slice(i,i+3));
 });
 
+test('center guides stay visible during rectangle preview drag',async({page})=>{
+  await ui(page,'#centerGuides','check');
+  await ui(page,'#tool-rectangle');
+  const sampleGuide=()=>page.locator('#canvas').evaluate(c=>{
+    const x=Math.floor(c.width/2),px=c.getContext('2d');
+    return px.getImageData(x,2,1,1).data[0];
+  });
+  const baseline=await sampleGuide();
+  expect(baseline).toBeGreaterThan(200);
+  await page.locator('#canvas').evaluate(c=>{
+    const r=c.getBoundingClientRect();
+    const fire=(type,x,y)=>c.dispatchEvent(new PointerEvent(type,{pointerId:42,pointerType:'pen',isPrimary:true,bubbles:true,cancelable:true,clientX:r.left+r.width*x,clientY:r.top+r.height*y}));
+    fire('pointerdown',.1,.1);
+    fire('pointermove',.5,.5);
+  });
+  expect(await sampleGuide()).toBeGreaterThan(200);
+  await page.locator('#canvas').evaluate(c=>{
+    const r=c.getBoundingClientRect();
+    c.dispatchEvent(new PointerEvent('pointerup',{pointerId:42,bubbles:true,clientX:r.left+r.width*.5,clientY:r.top+r.height*.5}));
+  });
+});
+
 test('center guides preference survives reload',async({page})=>{
   await ui(page,'#centerGuides','check');
   await page.reload();await page.locator('.app[data-ready=true]').waitFor();
