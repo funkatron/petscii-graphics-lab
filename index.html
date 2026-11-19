@@ -155,7 +155,7 @@
 (async()=>{
 const {APP_VERSION}=await import('./app-version.js');
 const {validateProject,normalizeAnimation,ANIMATION_CYCLES,FIELD_RAMPS,FIELD_RAMP_LABELS,DEPTH_EFFECTS,INTRO_MOTIONS,WIPE_PATTERNS,WAVE_AMPLITUDES,WAVE_LENGTHS,WAVE_SHAPES,WAVE_DIRECTIONS,DIAGONAL_DIRECTIONS,COLOR_WAVE_DIRECTIONS,SOLID_CAMERA_VALUES}=await import('./project-validation.js');
-const {randomProjectFilename,regenerateProjectFilename}=await import('./project-naming.js');
+const {randomProjectFilename,regenerateProjectFilename,readStoredProjectStem,writeStoredProjectStem,sanitizeProjectStem}=await import('./project-naming.js');
 const {animationRasterFilename,nativeProgramFilename}=await import('./export-filename.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
@@ -1431,18 +1431,37 @@ function applyProject(data){
  erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';drawPalette();fit();
 }
 window.addEventListener('pagehide',autosave);
+function persistProjectStem(){writeStoredProjectStem($('projectFilename').value)}
 function regenerateProjectName(){
  $('projectFilename').value=regenerateProjectFilename($('projectFilename').value);
  $('projectFilename').removeAttribute('aria-invalid');
+ writeStoredProjectStem($('projectFilename').value);
 }
-$('projectFilename').value=randomProjectFilename();
+$('projectFilename').value=readStoredProjectStem()||randomProjectFilename();
 $('regenerateProjectName').onclick=()=>{regenerateProjectName();setStatus('New project name: '+$('projectFilename').value)};
-$('projectFilename').oninput=()=>{$('projectFilename').removeAttribute('aria-invalid')};
+$('projectFilename').oninput=()=>{$('projectFilename').removeAttribute('aria-invalid');persistProjectStem()};
 function projectStem(){
- const name=$('projectFilename').value.trim().replace(/(?:\.json)+$/i,'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').replace(/[. ]+$/g,'');
- if(!name||/^\.+$/.test(name)){if($('downloadDialog').open)$('downloadDialog').close();$('projectMenu').open=true;$('projectFilename').setAttribute('aria-invalid','true');$('projectFilename').focus();throw Error('Enter a project file name')}
- $('projectFilename').removeAttribute('aria-invalid');return name;
+ const name=sanitizeProjectStem($('projectFilename').value);
+ if(!name){if($('downloadDialog').open)$('downloadDialog').close();$('projectMenu').open=true;$('projectFilename').setAttribute('aria-invalid','true');$('projectFilename').focus();throw Error('Enter a project file name')}
+ $('projectFilename').removeAttribute('aria-invalid');writeStoredProjectStem(name);return name;
 }
+function positionProjectMenu(){
+ const menu=$('projectMenu').querySelector('.project-menu');
+ if(!menu||!$('projectMenu').open)return;
+ const summary=$('projectMenu').querySelector('summary'),sr=summary.getBoundingClientRect();
+ const width=Math.min(340,innerWidth-24);
+ let left=sr.left;
+ if(left+width>innerWidth-12)left=innerWidth-12-width;
+ if(left<12)left=12;
+ menu.style.position='fixed';
+ menu.style.width=width+'px';
+ menu.style.left=left+'px';
+ menu.style.top=Math.max(12,sr.bottom+6)+'px';
+ menu.style.right='auto';
+ menu.style.maxHeight=Math.max(120,innerHeight-Math.max(12,sr.bottom+6)-14)+'px';
+}
+$('projectMenu').addEventListener('toggle',()=>{if($('projectMenu').open)requestAnimationFrame(positionProjectMenu);else{const menu=$('projectMenu').querySelector('.project-menu');menu.style.position='';menu.style.left='';menu.style.top='';menu.style.width='';menu.style.right='';menu.style.maxHeight=''}});
+window.addEventListener('resize',()=>{if($('projectMenu').open)positionProjectMenu()});
 function projectFilename(){return projectStem()+'.json'}
 $('newProject').onclick=()=>{
  if(animationExportTask){setStatus('Finish or cancel the current export before starting a new project');return}

@@ -14,6 +14,22 @@ async function namedDownload(page,selector){
  else await page.locator(selector).click();
  const file=await waiting;return {name:file.suggestedFilename(),bytes:await contents(file)};
 }
+test('typed project name persists on this device across reload',async({page})=>{
+ await ui(page,'#projectFilename','fill','My Dragon Art');
+ await page.reload();
+ await page.locator('.app[data-ready=true]').waitFor();
+ await expect(page.locator('#projectFilename')).toHaveValue('My Dragon Art');
+});
+test('project menu opens under the Project control on iPad landscape',async({page})=>{
+ const summary=page.locator('#projectMenu > summary');
+ await summary.click();
+ const panel=page.locator('.project-menu');
+ await expect(panel).toBeVisible();
+ const s=await summary.boundingBox();
+ const p=await panel.boundingBox();
+ expect(p.y).toBeGreaterThanOrEqual(s.y+s.height-2);
+ expect(Math.abs(p.x-s.x)).toBeLessThan(48);
+});
 test('two-word regeneration changes only the name and stays accessible',async({page})=>{
  await loadProject(page,project([160,257],2,1,{cellColors:[2,3]}));
  const before=JSON.parse((await namedDownload(page,'#saveProject')).bytes);
