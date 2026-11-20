@@ -34,4 +34,9 @@ Phases 0–1 are complete; slice **1a** may land while validation and animation 
 - [x] **2b:** `initDrawingTools` — vector pointer listeners; index keeps paint/fill/picker/text.
 - [x] `tests/drawing-tools.unit.mjs`.
 
-CI: `canvas-view.spec.cjs`, `drawing-tools.spec.cjs` (guides during rect).
+### Slice 3 (`stage-hint.js`)
+
+- [x] `buildDrawingHintText`, `syncSymmetryChrome`, `syncTapEndpointsChrome`.
+- [x] `index.html` `drawingHintState()` bag; `tests/stage-hint.unit.mjs`.
+
+CI: `workspace.spec.cjs` (stage hint), `animation.spec.cjs`, drawing/canvas specs.

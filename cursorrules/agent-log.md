@@ -1,5 +1,10 @@
 # Agent log (2026-11-07)
 
+## Mod slice 3 stage-hint (2026-11-20)
+
+**What:** `editor/stage-hint.js` — stage foot hint + symmetry/tap chrome. **0.35.22** (stacked on slice 2).  
+**Tested:** `stage-hint.unit.mjs`; Chromium workspace + drawing-tools specs.
+
 ## Mod slice 2 drawing-tools (2026-11-20)
 
 **What:** `editor/drawing-tools.js` — `applyToolPreview`, `initDrawingTools`, vector listeners. **0.35.21**.  

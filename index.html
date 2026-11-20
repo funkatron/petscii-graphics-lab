@@ -159,6 +159,7 @@ const {randomProjectFilename,regenerateProjectFilename,readStoredProjectStem,wri
 const {animationRasterFilename,nativeProgramFilename,stillPngFilename,preferredVideoExtension}=await import('./export-filename.js');
 const canvasView=await import('./editor/canvas-view.js');
 const drawingTools=await import('./editor/drawing-tools.js');
+const stageHint=await import('./editor/stage-hint.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
 function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareNativeBackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}
@@ -1095,15 +1096,7 @@ const {paint,stroke}=createPainter({getW:()=>W,getH:()=>H,getSymmetry:()=>$('sym
 let drawingTool='paint',selection=null,toolDrag=null;
 function brushToolActive(){return ['paint','erase'].includes(drawingTool)&&!animationPreview}
 function updateSymmetryChrome(){
- const menu=$('symmetryMenu'),summary=$('symmetrySummary'),show=brushToolActive();
- menu.inert=!show;
- summary.setAttribute('aria-disabled',String(!show));
- menu.classList.toggle('tool-slot-inactive',!show);
- if(!show)menu.open=false;
- if(!show){summary.title='Symmetry: Paint or Eraser only';summary.setAttribute('aria-label','Symmetry: Paint or Eraser only');return}
- summary.title='Symmetry: '+$('sym').selectedOptions[0].textContent;
- summary.classList.toggle('symmetry-on',$('sym').value!=='none');
- summary.setAttribute('aria-label','Symmetry: '+$('sym').selectedOptions[0].textContent);
+ stageHint.syncSymmetryChrome({menu:$('symmetryMenu'),summary:$('symmetrySummary'),symSelect:$('sym')},brushToolActive());
 }
 let tapPoints=false,textOrigin=null;
 const EYEDROPPER='M7 21l3-1.5 M4 14l12-12 M16 2l2 2 M17.5 7.5l2.5 2.5';
@@ -1251,30 +1244,29 @@ canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.poin
 function cancelStroke(){const active=pointer;painting=false;pointer=null;last=null;if(active!==null)try{canvas.releasePointerCapture(active)}catch{}}
 function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview&&e.type==='pointerup')strokeAndRedraw(last,position(e));cancelStroke();if(!animationPreview)setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
-function fillHint(){const mode=FILL_MODES.find(m=>m.id===fillMode);return (mode?.label??'Fill')+' · Tap a connected region of matching glyph and ink.'+(fillMode==='glyph'?' Changes glyph only.':fillMode==='ink'?' Changes ink only.':'')}
-function paintHint(){const mode=PAINT_MODES.find(m=>m.id===paintMode);return (mode?.label??'Paint')+' · '+(paintMode==='glyph'?'Changes glyph only.':paintMode==='ink'?'Changes ink on existing cells only.':'')} 
-function pickerHint(){const mode=PICKER_MODES.find(m=>m.id===pickerMode);return (mode?.label??'Pick')+' · Tap a cell on the canvas.'}
-function symmetryHint(){const mode=$('sym').selectedOptions[0]?.textContent;return $('sym').value==='none'?'':(' Symmetry: '+mode+'.')}
-function zoomPanHint(){return canvasView.editorZoomed(canvasZoom)?' Two-finger drag pans when zoomed.':'';}
+function drawingHintState(){
+ return {
+  animationPreview,
+  drawingTool,
+  erasing,
+  toolDrag,
+  tapPoints,
+  toolNames,
+  fillMode,
+  fillModes:FILL_MODES,
+  paintMode,
+  paintModes:PAINT_MODES,
+  pickerMode,
+  pickerModes:PICKER_MODES,
+  symmetryValue:$('sym').value,
+  symmetryOptionText:$('sym').selectedOptions[0]?.textContent??'',
+  editorZoomed:canvasView.editorZoomed(canvasZoom),
+  inkLabelText:inkLabel(colors.ink),
+ };
+}
 function updateDrawingHint(){
  updateToolPalette();
- if(animationPreview){$('stageHint').textContent='Preview (read-only)';return}
- if(!['paint','erase'].includes(drawingTool)){
-  const name=toolNames[drawingTool]??drawingTool;
-  let hint=name;
-  if(drawingTool==='fill'){const mode=FILL_MODES.find(m=>m.id===fillMode);hint=fillHint()}
-  else if(drawingTool==='picker'){hint=pickerHint()}
-  else if(['line','rectangle','select'].includes(drawingTool)){
-   hint=name+(tapPoints&&['line','rectangle'].includes(drawingTool)?' · Tap endpoints':' · Drag');
-   if(toolDrag)hint+=' · Cancel to abandon';
-  }else if(['move','duplicate'].includes(drawingTool)){
-   hint=name+(tapPoints?' · Tap destination':' · Drag destination');
-  }
-  $('stageHint').textContent=hint+zoomPanHint();
-  return;
- }
- if(erasing){$('stageHint').textContent='Eraser'+symmetryHint()+zoomPanHint()}
- else{$('stageHint').textContent=paintHint()+inkLabel(colors.ink)+symmetryHint()+zoomPanHint()}
+ $('stageHint').textContent=stageHint.buildDrawingHintText(drawingHintState());
 }
 function refresh(){refreshModeMenuSummaries();updateDrawingHint();updateSymmetryChrome();updateWholeDrawingActions();updateReplaceGlyphUI();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(drawingTool==='paint'));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===0&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};
@@ -1542,7 +1534,7 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  const selectionDock=document.createElement('div');selectionDock.className='selection-dock';selectionDock.setAttribute('aria-label','Selection actions');frame.after(selectionDock);selectionDock.append(selectionBar);selectionBar.classList.add('selection-actions');
  const cancel=document.createElement('button');cancel.id='cancelTool';cancel.textContent='Cancel';cancel.onclick=()=>{cancelToolDrag();if(['move','duplicate'].includes(drawingTool))drawingTool='select';refresh();redraw();canvas.focus()};selectionBar.append(cancel);
  $('tapPoints').onchange=()=>{tapPoints=$('tapPoints').checked;cancelToolDrag();redraw()};
- const originalPalette=updateToolPalette;updateToolPalette=function(){originalPalette();selectionBar.hidden=animationPreview||(!selection&&!toolDrag);for(const id of ['moveSelection','duplicateSelection','deleteSelection','deselect'])$(id).hidden=!selection;cancel.hidden=!toolDrag;const tapOn=['line','rectangle','select','move','duplicate'].includes(drawingTool);const tapSlot=$('tapEndpointsSlot');tapSlot.inert=!tapOn;tapSlot.classList.toggle('tool-slot-inactive',!tapOn);if(!tapOn&&$('tapPoints').checked){$('tapPoints').checked=false;tapPoints=false}};
+ const originalPalette=updateToolPalette;updateToolPalette=function(){originalPalette();selectionBar.hidden=animationPreview||(!selection&&!toolDrag);for(const id of ['moveSelection','duplicateSelection','deleteSelection','deselect'])$(id).hidden=!selection;cancel.hidden=!toolDrag;stageHint.syncTapEndpointsChrome({slot:$('tapEndpointsSlot'),checkbox:$('tapPoints')},drawingTool,(on)=>{tapPoints=on})};
  const originalPreview=toolPreview;toolPreview=function(p){originalPreview(p);updateToolPalette()};
  const help=document.createElement('section');help.id='contextHelp';help.className='context-help';help.setAttribute('popover','manual');help.setAttribute('role','dialog');help.setAttribute('aria-labelledby','contextHelpTitle');help.innerHTML='<button id="closeHelp" aria-label="Close help">✕</button><h3 id="contextHelpTitle"></h3><div id="contextHelpBody"></div>';document.body.append(help);let helpButton;
  function closeHelp(){if(!help.matches(':popover-open'))return;help.hidePopover();helpButton?.setAttribute('aria-expanded','false');helpButton?.focus({preventScroll:true})}
