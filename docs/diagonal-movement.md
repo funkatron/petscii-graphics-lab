@@ -10,7 +10,7 @@ Diagonal scrolling is feasible in the existing derived-frame pipeline. It requir
 | --- | --- | --- |
 | Horizontal/vertical scroll | First implementation: add four diagonal choices | Both source coordinates can wrap independently while glyphs and inks move together. |
 | Starfield | Released in PR #62 | Each depth uses two-axis travel with preserved collision order. |
-| Sine scroller | Implemented; browser validation pending | Travel across width and height; bend perpendicular to the canvas diagonal. See the [renderer contract](maintainer-reference.md#diagonal-sine-scroller). |
+| Sine scroller | Implemented; automated browser matrix in [validation-debt-status.md](validation-debt-status.md) | Travel across width and height; bend perpendicular to the canvas diagonal. See the [renderer contract](maintainer-reference.md#diagonal-sine-scroller). |
 | Patterned wipe | **Diagonal wipe directions shipped** | Eight wipe directions; diagonal/checkerboard/blinds use corner-weighted sweep ranks (cardinals unchanged). |
 | Wave | **Diagonal directions shipped** | Phase runs along the chosen diagonal; displacement is perpendicular (cardinals unchanged). |
 | Ripple, logos, replay, inverse | Keep existing controls | Ripple is radial; logos have their own paths; the other effects do not translate by direction. |
@@ -44,4 +44,5 @@ Adding a new effect identifier extends the supported v3 settings; older app vers
 - [x] Verify glyph/ink pairing, independent color cycles, loop closure and warning boundaries (`diagonal-scroll.spec.cjs`, color-cycle cases).
 - [x] Check preview, decoded GIF/PNG ZIP and C64 frame inputs against the same independent expectations; retain cardinal byte regressions.
 - [x] Check exact save/open, autosave, Undo, invalid combinations and export snapshots/cache invalidation (`diagonal-scroll.spec.cjs` persistence block).
-- [ ] Validate Chromium and both iPad WebKit layouts before release (WebKit covered in CI; physical device optional).
+- [x] Automated: `sine-scroll`, `diagonal-scroll`, `diagonal-wave` specs on Chromium + iPad WebKit in CI ([validation-debt-status.md](validation-debt-status.md)).
+- [ ] Physical device spot-check (optional).

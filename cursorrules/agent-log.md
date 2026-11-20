@@ -1,5 +1,10 @@
 # Agent log (2026-11-07)
 
+## Program queue 1b + mod slice 1a (2026-11-20)
+
+**What:** Owner queue + validation-debt-status + diagonal-wave-wipe-prep docs; `editor/canvas-view.js` (guides/zoom helpers). **0.35.19**.  
+**Tested:** Chromium validation matrix (36 specs); `canvas-view.unit.mjs`; iPad WebKit via CI (not on bare agent VM).
+
 ## Export effect slug separator (2026-11-19)
 
 **What:** `EXPORT_EFFECT_SEPARATOR` is `_` instead of `+` in `export-filename.js` (compound ids like `scroll-x_color-wave`). Download dialog shows the real name via `updateExportFilenameNote()`. App **0.35.18**.  
