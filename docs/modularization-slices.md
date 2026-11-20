@@ -28,4 +28,10 @@ Phases 0–1 are complete; slice **1a** may land while validation and animation 
 - [x] **1b:** `initCanvasView` — `fit`, `setCanvasZoom`, wheel zoom, two-finger pan, `updateCanvasViewChrome`.
 - [x] `index.html` wires `stageView`; `tests/canvas-view.unit.mjs` covers fit/zoom helpers.
 
-CI: existing `canvas-view.spec.cjs`, `drawing-tools.spec.cjs` (guides during rect).
+### Slice 2 (`drawing-tools.js`)
+
+- [x] **2a:** `applyToolPreview`, `normalizeSelectionRect`, `strokeToolOutline`.
+- [x] **2b:** `initDrawingTools` — vector pointer listeners; index keeps paint/fill/picker/text.
+- [x] `tests/drawing-tools.unit.mjs`.
+
+CI: `canvas-view.spec.cjs`, `drawing-tools.spec.cjs` (guides during rect).

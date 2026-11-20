@@ -158,6 +158,7 @@ const {validateProject,normalizeAnimation,ANIMATION_CYCLES,FIELD_RAMPS,FIELD_RAM
 const {randomProjectFilename,regenerateProjectFilename,readStoredProjectStem,writeStoredProjectStem,sanitizeProjectStem}=await import('./project-naming.js');
 const {animationRasterFilename,nativeProgramFilename,stillPngFilename,preferredVideoExtension}=await import('./export-filename.js');
 const canvasView=await import('./editor/canvas-view.js');
+const drawingTools=await import('./editor/drawing-tools.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
 function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareNativeBackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}
@@ -1194,32 +1195,37 @@ $('moveSelection').onclick=()=>{drawingTool='move';setStatus('Drag the selection
 $('duplicateSelection').onclick=()=>{drawingTool='duplicate';setStatus('Drag the selection to place a copy.');updateToolPalette()};
 $('deselect').onclick=()=>{selection=null;setDrawingTool('select')};
 $('deleteSelection').onclick=()=>{const cells=grid.slice(),inks=cellColors.slice();for(let y=selection.y;y<selection.y+selection.h;y++)for(let x=selection.x;x<selection.x+selection.w;x++){cells[y*W+x]='';inks[y*W+x]=colors.ink}commitTool(cells,inks);selection=null;updateToolPalette();redraw()};
-function toolOutline(r){if(!r)return;ctx.save();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.setLineDash([5,3]);ctx.strokeRect(r.x*canvas.width/W+1,r.y*canvas.height/H+1,r.w*canvas.width/W-2,r.h*canvas.height/H-2);ctx.restore()}
-function cancelToolDrag(){toolDrag=null;textOrigin=null;$('typedText').value='';if(['move','duplicate'].includes(drawingTool))drawingTool='select';}
-function toolPreview(p){const d=toolDrag,cells=grid.slice(),inks=cellColors.slice(),put=(x,y,g=glyph,c=colors.ink)=>{if(x>=0&&y>=0&&x<W&&y<H){cells[y*W+x]=g;inks[y*W+x]=c}};
- const x0=Math.min(d.start[0],p[0]),y0=Math.min(d.start[1],p[1]),x1=Math.max(d.start[0],p[0]),y1=Math.max(d.start[1],p[1]);
- if(d.kind==='select')d.rect={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};
- else if(d.kind==='line'){const n=Math.max(x1-x0,y1-y0,1);for(let i=0;i<=n;i++)put(Math.round(d.start[0]+(p[0]-d.start[0])*i/n),Math.round(d.start[1]+(p[1]-d.start[1])*i/n))}
- else if(d.kind==='rectangle'){for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(x===x0||x===x1||y===y0||y===y1)put(x,y)}
- else if(d.data){const s=d.data,x=Math.max(0,Math.min(W-s.w,p[0]-(d.offset?.[0]??0))),y=Math.max(0,Math.min(H-s.h,p[1]-(d.offset?.[1]??0)));d.rect={x,y,w:s.w,h:s.h};if(d.kind==='move')for(let yy=selection.y;yy<selection.y+selection.h;yy++)for(let xx=selection.x;xx<selection.x+selection.w;xx++)put(xx,yy,'');s.cells.forEach((g,i)=>{if(g!==''||d.kind==='move')put(x+i%s.w,y+Math.floor(i/s.w),g,s.inks[i])})}
- d.cells=cells;d.inks=inks;renderGrid(cells,inks);
- if(!animationPreview){paintReferenceOverlay();drawCenterGuides()}
- toolOutline(d.rect);
-}
+function toolOutline(r){drawingTools.strokeToolOutline(ctx,canvas,r,W,H)}
+function cancelToolDrag(){toolSession.clearDrag();textOrigin=null;$('typedText').value='';if(['move','duplicate'].includes(drawingTool))drawingTool='select';}
 function position(e){return canvasCell(canvas,W,H,e.clientX,e.clientY)}
-canvas.addEventListener('pointerdown',e=>{
- if(document.querySelector('#contextHelp')?.matches(':popover-open'))return;
- if(['paint','erase'].includes(drawingTool))return;e.stopImmediatePropagation();if(toolDrag?.anchor){if(animationPreview||!rom||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;toolDrag.id=e.pointerId;toolDrag.anchor=false;toolDrag.second=true;try{canvas.setPointerCapture(e.pointerId)}catch{}toolPreview(position(e));return;}if(animationPreview||!rom||toolDrag||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;e.preventDefault();const p=position(e);
- if(drawingTool==='text'){textOrigin=p;updateTextUI();redraw();$('typedText').focus({preventScroll:true});return}
- if(drawingTool==='picker'){pickFromCanvas(p[1]*W+p[0]);return}
- if(drawingTool==='fill'){const {cells,inks}=floodFillAt(p[1]*W+p[0],fillMode);commitTool(cells,inks);return}
- let kind=drawingTool,data,offset;if(['select','move','duplicate'].includes(kind)&&selection&&p[0]>=selection.x&&p[0]<selection.x+selection.w&&p[1]>=selection.y&&p[1]<selection.y+selection.h){data=selectionData();offset=[p[0]-selection.x,p[1]-selection.y];kind=kind==='duplicate'?'duplicate':'move'}else if(['select','move','duplicate'].includes(kind)){kind='select';selection=null}
-
- toolDrag={kind,data,offset,start:p,id:e.pointerId};try{canvas.setPointerCapture(e.pointerId)}catch{}toolPreview(p);
-},true);
-canvas.addEventListener('pointermove',e=>{if(!toolDrag||toolDrag.anchor||toolDrag.id!==e.pointerId)return;e.stopImmediatePropagation();e.preventDefault();toolPreview(position(e))},true);
-function endTool(e){if(!toolDrag||toolDrag.id!==e.pointerId||(toolDrag.anchor&&e.type==='lostpointercapture'))return;e.stopImmediatePropagation();const d=toolDrag;if(e.type==='pointerup'&&tapPoints&&!d.second){d.anchor=true;try{canvas.releasePointerCapture(e.pointerId)}catch{}return;}if(e.type==='pointerup')toolPreview(position(e));toolDrag=null;try{canvas.releasePointerCapture(e.pointerId)}catch{}if(e.type==='pointerup'){if(d.kind!=='select')commitTool(d.cells,d.inks);if(d.rect&&['select','move','duplicate'].includes(d.kind)){selection=d.rect;drawingTool='select';erasing=false;refresh()}updateToolPalette()}redraw()}
-for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,endTool,true);
+const toolSession=drawingTools.initDrawingTools({
+ canvas,
+ getToolDrag:()=>toolDrag,
+ setToolDrag:(d)=>{toolDrag=d},
+ getDrawingTool:()=>drawingTool,
+ setDrawingTool:(name)=>{drawingTool=name},
+ setErasing:(on)=>{erasing=on},
+ getTapPoints:()=>tapPoints,
+ getAnimationPreview:()=>animationPreview,
+ getRomReady:()=>!!rom,
+ isContextHelpOpen:()=>document.querySelector('#contextHelp')?.matches(':popover-open'),
+ positionFromEvent:position,
+ getPreviewContext:()=>({columns:W,rows:H,grid,cellInks:cellColors,glyph,ink:colors.ink,selection}),
+ onPreviewFrame:({cells,inks,rect})=>{renderGrid(cells,inks);if(!animationPreview){paintReferenceOverlay();drawCenterGuides()}toolOutline(rect)},
+ commitTool,
+ afterToolCommit:()=>updateToolPalette(),
+ onSelectionFromDrag:()=>refresh(),
+ redraw,
+ onTextCell:(p)=>{textOrigin=p;updateTextUI();redraw();$('typedText').focus({preventScroll:true})},
+ onPickerCell:(p)=>pickFromCanvas(p[1]*W+p[0]),
+ onFillCell:(p)=>{const {cells,inks}=floodFillAt(p[1]*W+p[0],fillMode);commitTool(cells,inks)},
+ getSelection:()=>selection,
+ setSelection:(rect)=>{selection=rect},
+ selectionData,
+ clearSelection:()=>{selection=null},
+});
+function toolPreview(p){toolSession.toolPreview(p)}
+toolSession.attachToolListeners();
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawingTool==='text'&&textOrigin&&!$('downloadDialog').open){$('cancelText').click();return}if(e.key==='Escape'&&(toolDrag||selection)){cancelToolDrag();selection=null;if(['move','duplicate'].includes(drawingTool))drawingTool='select';refresh();redraw()}});
 function editingShortcutTarget(){const el=document.activeElement;if(!el||el===document.body||el===document.documentElement)return false;if(el.isContentEditable)return true;if(el.tagName==='TEXTAREA'){if(el.id==='output')return false;return !el.readOnly}if(el.tagName==='SELECT')return true;if(el.tagName==='INPUT'){const type=(el.getAttribute('type')||'text').toLowerCase();if(!['button','checkbox','radio','submit','reset','range','color','hidden'].includes(type))return true}return $('downloadDialog').open||$('inkPopover').matches(':popover-open')||$('canvasPopover').matches(':popover-open')}
 document.addEventListener('keydown',e=>{if(editingShortcutTarget())return;const mod=e.metaKey||e.ctrlKey;if(!mod)return;const key=e.key.toLowerCase();if(key==='z'&&!e.shiftKey){if($('undo').disabled)return;e.preventDefault();$('undo').click()}else if((key==='z'&&e.shiftKey)||key==='y'){if($('redo').disabled)return;e.preventDefault();$('redo').click()}});
