@@ -22,10 +22,10 @@ Phases 0–1 are complete; slice **1a** may land while validation and animation 
 
 ## Slice 1 checklist (`canvas-view.js`)
 
-### Slice 1a (shipped incrementally)
+### Slice 1 (`canvas-view.js`)
 
-- [x] `editor/canvas-view.js`: `drawCenterGuides`, `centerFrameScroll`, `editorZoomed`.
-- [x] `index.html` imports module; `tests/canvas-view.unit.mjs`.
-- [ ] Slice 1b: `fit`, `setCanvasZoom`, pan pointers, wheel zoom — `initCanvasView({...})`.
+- [x] **1a:** `drawCenterGuides`, `centerFrameScroll`, `editorZoomed`.
+- [x] **1b:** `initCanvasView` — `fit`, `setCanvasZoom`, wheel zoom, two-finger pan, `updateCanvasViewChrome`.
+- [x] `index.html` wires `stageView`; `tests/canvas-view.unit.mjs` covers fit/zoom helpers.
 
 CI: existing `canvas-view.spec.cjs`, `drawing-tools.spec.cjs` (guides during rect).

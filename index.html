@@ -536,8 +536,6 @@ let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).f
 let cellColors=Array(256).fill(colors.ink);
 let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0;
 let W=16,H=16,grid=Array(256).fill(''),glyph=64,erasing=false,painting=false,last=null,pointer=null,unit=20;
-const panPointers=new Map();
-let panScrollAnchor=null;
 function setStatus(s){$('status').textContent=s;if(!animationExportTask)$('downloadStatus').textContent=s}
 function romGlyphRows(code){
  if(!rom||!Number.isInteger(code)||code<0||code>511)return null;
@@ -641,51 +639,7 @@ $('retryGlyphs').onclick=async()=>{
  try{await loadBuiltinGlyphs();if(typeof glyph!=='number')glyph=64;updateSourceInfo();drawPalette();redraw();setStatus((isTedMachine(workspaceMachine)?'Plus/4 TED':'C64')+' glyphs loaded')}
  catch(e){setStatus(e.message)}
 };
-// Last grid shape that fit() painted. Same CSS box can host 16×16 or 2×2; skip only
- // when both the box and the grid key match, so ResizeObserver cannot thrash forever.
-let fittedGridKey='';
-function fit(){
- const r=frame.getBoundingClientRect();
- const availableW=Math.max(20,r.width-22),availableH=Math.max(20,r.height-22);
- const {aw,ah}=cellAspectUnits(workspaceMachine,workspaceCellAspect);
- const fitScale=Math.max(1,Math.min(availableW/(W*aw),availableH/(H*ah)));
- const scale=fitScale*canvasZoom;
- // Integer CSS pixels: float style strings can oscillate and re-trigger ResizeObserver.
- const width=Math.round(W*aw*scale),height=Math.round(H*ah*scale),dpr=Math.min(devicePixelRatio||1,3);
- const styleW=width+'px',styleH=height+'px';
- const pixelWidth=Math.round(width*dpr),pixelHeight=Math.round(height*dpr);
- const unchangedSize=canvas.style.width===styleW&&canvas.style.height===styleH&&canvas.width===pixelWidth&&canvas.height===pixelHeight;
- const gridKey=W+'x'+H+'x'+workspaceCellAspect+'x'+workspaceMachine+'x'+canvasZoom;
- unit=width/W;
- if(!unchangedSize){
-  canvas.style.width=styleW;canvas.style.height=styleH;
-  if(canvas.width!==pixelWidth)canvas.width=pixelWidth;
-  if(canvas.height!==pixelHeight)canvas.height=pixelHeight;
- }
- if(unchangedSize&&fittedGridKey===gridKey)return;
- fittedGridKey=gridKey;
- redraw();
- updateCanvasViewChrome();
-}
-function updateCanvasViewChrome(){
- const zoomed=canvasZoom>1.001;
- frame.classList.toggle('canvas-zoomed',zoomed);
- frame.setAttribute('data-zoom',String(canvasZoom));
- if($('editorZoom').value!==String(canvasZoom))$('editorZoom').value=String(canvasZoom);
- updateDrawingHint();
- if(zoomed)requestAnimationFrame(centerFrameScroll);
-}
-function centerFrameScroll(){canvasView.centerFrameScroll(frame,canvasZoom)}
 function drawCenterGuides(){canvasView.drawCenterGuides(ctx,canvas,W,H,centerGuidesEnabled,animationPreview)}
-function setCanvasZoom(next,opts={persist:true,scroll:true}){
- const value=isCanvasZoom(next)?Number(next):1;
- if(value===canvasZoom)return;
- canvasZoom=value;
- if(opts.persist){writeWorkspacePrefs(prefsPayload());}
- fittedGridKey='';
- fit();
- if(opts.scroll&&canvasZoom>1)requestAnimationFrame(centerFrameScroll);
-}
 // Square cells stay 8×scale (stills pass 2×pngScale so they remain 16×pngScale).
 // CRT cells are aw×scale by ah×scale (VIC/TED 5×6, VDC 5×12).
 function exportCellSize(machine,aspect,scale){
@@ -1269,29 +1223,33 @@ for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addE
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawingTool==='text'&&textOrigin&&!$('downloadDialog').open){$('cancelText').click();return}if(e.key==='Escape'&&(toolDrag||selection)){cancelToolDrag();selection=null;if(['move','duplicate'].includes(drawingTool))drawingTool='select';refresh();redraw()}});
 function editingShortcutTarget(){const el=document.activeElement;if(!el||el===document.body||el===document.documentElement)return false;if(el.isContentEditable)return true;if(el.tagName==='TEXTAREA'){if(el.id==='output')return false;return !el.readOnly}if(el.tagName==='SELECT')return true;if(el.tagName==='INPUT'){const type=(el.getAttribute('type')||'text').toLowerCase();if(!['button','checkbox','radio','submit','reset','range','color','hidden'].includes(type))return true}return $('downloadDialog').open||$('inkPopover').matches(':popover-open')||$('canvasPopover').matches(':popover-open')}
 document.addEventListener('keydown',e=>{if(editingShortcutTarget())return;const mod=e.metaKey||e.ctrlKey;if(!mod)return;const key=e.key.toLowerCase();if(key==='z'&&!e.shiftKey){if($('undo').disabled)return;e.preventDefault();$('undo').click()}else if((key==='z'&&e.shiftKey)||key==='y'){if($('redo').disabled)return;e.preventDefault();$('redo').click()}});
+const stageView=canvasView.initCanvasView({
+ frame,canvas,editorZoom:$('editorZoom'),zoomLevels:CANVAS_ZOOM_LEVELS,isCanvasZoom,
+ getCanvasZoom:()=>canvasZoom,
+ setCanvasZoomState:(z)=>{canvasZoom=z},
+ persistZoom:()=>writeWorkspacePrefs(prefsPayload()),
+ getGridContext:()=>({columns:W,rows:H,machine:workspaceMachine,cellAspect:workspaceCellAspect}),
+ cellAspectUnits,
+ redraw,
+ updateDrawingHint:()=>updateDrawingHint(),
+ getAnimationPreview:()=>animationPreview,
+ onCancelStroke:()=>cancelStroke(),
+ setUnit:(u)=>{unit=u},
+});
+function fit(){stageView.fit()}
+function updateCanvasViewChrome(){stageView.updateCanvasViewChrome()}
+function setCanvasZoom(next,opts){stageView.setCanvasZoom(next,opts)}
 function strokeAndRedraw(a,b){stroke(a,b);redraw()}
-canvas.addEventListener('pointerdown',e=>{if(!rom){setStatus('Reload C64 glyphs to resume drawing');return}if(animationPreview||!brushToolActive()){if(e.cancelable&&animationPreview)e.preventDefault();return}if(panPointers.size>=2||painting||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}strokeAndRedraw(last,last);setStatus('Drawing…');});
-canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.pointerId!==pointer||panPointers.size>=2)return;if(e.cancelable)e.preventDefault();const p=position(e);strokeAndRedraw(last,p);last=p;});
+canvas.addEventListener('pointerdown',e=>{if(!rom){setStatus('Reload C64 glyphs to resume drawing');return}if(animationPreview||!brushToolActive()){if(e.cancelable&&animationPreview)e.preventDefault();return}if(stageView.panPointerCount()>=2||painting||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}strokeAndRedraw(last,last);setStatus('Drawing…');});
+canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.pointerId!==pointer||stageView.panPointerCount()>=2)return;if(e.cancelable)e.preventDefault();const p=position(e);strokeAndRedraw(last,p);last=p;});
 function cancelStroke(){const active=pointer;painting=false;pointer=null;last=null;if(active!==null)try{canvas.releasePointerCapture(active)}catch{}}
 function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview&&e.type==='pointerup')strokeAndRedraw(last,position(e));cancelStroke();if(!animationPreview)setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
-function editorZoomed(){return canvasView.editorZoomed(canvasZoom)}
-function panCentroid(){let x=0,y=0;for(const p of panPointers.values()){x+=p.x;y+=p.y;}const n=panPointers.size;return n?{x:x/n,y:y/n}:{x:0,y:0};}
-function syncPanScrollAnchor(){const c=panCentroid();panScrollAnchor={sl:frame.scrollLeft,st:frame.scrollTop,x:c.x,y:c.y};}
-function applyZoomPan(){if(!panScrollAnchor||panPointers.size<2)return;const c=panCentroid();frame.scrollLeft=Math.max(0,panScrollAnchor.sl-(c.x-panScrollAnchor.x));frame.scrollTop=Math.max(0,panScrollAnchor.st-(c.y-panScrollAnchor.y));}
-function trackPanPointer(e){panPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(panPointers.size>=2){cancelStroke();if(!panScrollAnchor)syncPanScrollAnchor();try{frame.setPointerCapture(e.pointerId)}catch{}}}
-function releasePanPointer(e){panPointers.delete(e.pointerId);try{frame.releasePointerCapture(e.pointerId)}catch{}if(panPointers.size<2)panScrollAnchor=null;}
-frame.addEventListener('pointerdown',e=>{if(!editorZoomed()||animationPreview||e.pointerType==='mouse')return;trackPanPointer(e);if(panPointers.size>=2&&e.cancelable)e.preventDefault();},true);
-frame.addEventListener('pointermove',e=>{if(panPointers.size<2||!panPointers.has(e.pointerId))return;panPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});applyZoomPan();if(e.cancelable)e.preventDefault();},true);
-for(const type of ['pointerup','pointercancel','lostpointercapture'])frame.addEventListener(type,e=>{if(panPointers.has(e.pointerId))releasePanPointer(e);},true);
-frame.addEventListener('touchstart',e=>{if(animationPreview){if(e.cancelable)e.preventDefault();return;}if(!editorZoomed()){if(e.cancelable)e.preventDefault();return;}if(e.touches.length>=2){if(e.cancelable)e.preventDefault();return;}if(e.target===canvas&&e.cancelable)e.preventDefault();},{passive:false});
-frame.addEventListener('touchmove',e=>{if(animationPreview){if(e.cancelable)e.preventDefault();return;}if(!editorZoomed()){if(e.cancelable)e.preventDefault();return;}if(e.touches.length>=2){if(e.cancelable)e.preventDefault();return;}if(e.target===canvas&&e.cancelable)e.preventDefault();},{passive:false});
-for(const type of ['gesturestart','gesturechange'])frame.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 function fillHint(){const mode=FILL_MODES.find(m=>m.id===fillMode);return (mode?.label??'Fill')+' · Tap a connected region of matching glyph and ink.'+(fillMode==='glyph'?' Changes glyph only.':fillMode==='ink'?' Changes ink only.':'')}
 function paintHint(){const mode=PAINT_MODES.find(m=>m.id===paintMode);return (mode?.label??'Paint')+' · '+(paintMode==='glyph'?'Changes glyph only.':paintMode==='ink'?'Changes ink on existing cells only.':'')} 
 function pickerHint(){const mode=PICKER_MODES.find(m=>m.id===pickerMode);return (mode?.label??'Pick')+' · Tap a cell on the canvas.'}
 function symmetryHint(){const mode=$('sym').selectedOptions[0]?.textContent;return $('sym').value==='none'?'':(' Symmetry: '+mode+'.')}
-function zoomPanHint(){return editorZoomed()?' Two-finger drag pans when zoomed.':'';}
+function zoomPanHint(){return canvasView.editorZoomed(canvasZoom)?' Two-finger drag pans when zoomed.':'';}
 function updateDrawingHint(){
  updateToolPalette();
  if(animationPreview){$('stageHint').textContent='Preview (read-only)';return}
@@ -1712,9 +1670,8 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
 $('sidebar').inert=true;$('glyphPicker').inert=true;$('glyphToggle').disabled=true;canvas.style.pointerEvents='none';
 try{await loadBuiltinGlyphs();glyph=64;updateSourceInfo()}catch{updateSourceInfo();setStatus('C64 glyphs unavailable. Reload glyphs to resume drawing.')}
 try{const saved=JSON.parse(localStorage.getItem(PROJECT_KEY));if(saved){validateProject(saved,{fallbackMachine:workspaceMachine});applyProject(saved);setStatus('Autosaved project restored'+(!rom&&grid.some(g=>typeof g==='number')?'; reload C64 glyphs to render codes':''))}}catch{setStatus('Saved draft could not be restored; load a JSON backup')}
-$('editorZoom').replaceChildren(...CANVAS_ZOOM_LEVELS.map(z=>new Option(z===1?'Fit (100%)':Math.round(z*100)+'%',String(z))));$('editorZoom').value=String(canvasZoom);$('editorZoom').onchange=()=>setCanvasZoom($('editorZoom').value);
+stageView.populateZoomSelect();stageView.attachWheelAndPan();
 $('centerGuides').checked=centerGuidesEnabled;$('centerGuides').onchange=()=>{centerGuidesEnabled=$('centerGuides').checked;writeWorkspacePrefs(prefsPayload());redraw()};
-frame.addEventListener('wheel',e=>{if(animationPreview||(!e.ctrlKey&&!e.metaKey))return;e.preventDefault();let i=CANVAS_ZOOM_LEVELS.indexOf(canvasZoom);if(i<0)i=Math.max(0,CANVAS_ZOOM_LEVELS.findIndex(z=>z>=canvasZoom));setCanvasZoom(CANVAS_ZOOM_LEVELS[Math.max(0,Math.min(CANVAS_ZOOM_LEVELS.length-1,i+(e.deltaY<0?1:-1)))]);},{passive:false});
 $('showAlphanumerics').checked=false;syncMachineControls();updateAnimationOptions();updateColorUI();updateCanvasViewChrome();initialized=true;autosave();$('glyphPicker').inert=false;$('glyphToggle').disabled=false;if(rom)setGlyphPicker(widePicker.matches);$('sidebar').inert=false;canvas.style.pointerEvents='';document.querySelector('.app').dataset.ready='true';drawPalette();requestAnimationFrame(fit);
 })();
 </script>

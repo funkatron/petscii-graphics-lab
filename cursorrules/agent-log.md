@@ -1,5 +1,10 @@
 # Agent log (2026-11-07)
 
+## Mod slice 1b canvas-view (2026-11-20)
+
+**What:** `initCanvasView` in `editor/canvas-view.js` — fit, setCanvasZoom, wheel zoom, two-finger pan, chrome sync. **0.35.20**.  
+**Tested:** `canvas-view.unit.mjs` (3); Chromium `canvas-view.spec.cjs` + `drawing-tools.spec.cjs` (17).
+
 ## Program queue 1b + mod slice 1a (2026-11-20)
 
 **What:** Owner queue + validation-debt-status + diagonal-wave-wipe-prep docs; `editor/canvas-view.js` (guides/zoom helpers). **0.35.19**.  
