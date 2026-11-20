@@ -3,6 +3,12 @@
 /** Between movement / color / backdrop ids in export filenames (not UI labels). */
 export const EXPORT_EFFECT_SEPARATOR = '_';
 
+/** Video download extension (matches createVideo mp4-first probe; safe at app boot). */
+export function preferredVideoExtension() {
+  if (typeof document !== 'undefined' && document.createElement('video').canPlayType('video/mp4')) return 'mp4';
+  return 'webm';
+}
+
 function activeEffect(id) {
   return id && id !== 'none';
 }

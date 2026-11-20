@@ -156,8 +156,7 @@
 const {APP_VERSION}=await import('./app-version.js');
 const {validateProject,normalizeAnimation,ANIMATION_CYCLES,FIELD_RAMPS,FIELD_RAMP_LABELS,DEPTH_EFFECTS,INTRO_MOTIONS,WIPE_PATTERNS,WAVE_AMPLITUDES,WAVE_LENGTHS,WAVE_SHAPES,WAVE_DIRECTIONS,DIAGONAL_DIRECTIONS,COLOR_WAVE_DIRECTIONS,SOLID_CAMERA_VALUES}=await import('./project-validation.js');
 const {randomProjectFilename,regenerateProjectFilename,readStoredProjectStem,writeStoredProjectStem,sanitizeProjectStem}=await import('./project-naming.js');
-const {animationRasterFilename,nativeProgramFilename,stillPngFilename}=await import('./export-filename.js');
-const {preferredVideoExtension}=await import('./video-export.js');
+const {animationRasterFilename,nativeProgramFilename,stillPngFilename,preferredVideoExtension}=await import('./export-filename.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
 function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareNativeBackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}

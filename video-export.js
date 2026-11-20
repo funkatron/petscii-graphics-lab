@@ -1,10 +1,4 @@
 // Native WebCodecs encoding with explicit timestamps; no screen recording or media permissions.
-/** Extension used when naming video downloads (matches first-choice mp4 probe). */
-export function preferredVideoExtension() {
-  if (typeof document !== 'undefined' && document.createElement('video').canPlayType('video/mp4')) return 'mp4';
-  return 'webm';
-}
-
 export async function createVideo(canvas, checkpoint){
  if(typeof VideoEncoder==='undefined'||typeof VideoFrame==='undefined')throw Error('Video encoding is unavailable in this browser. Use GIF or PNG frames instead.');
  // Initialize the media backend before WebCodecs probing (required by GTK/WPE WebKit).
