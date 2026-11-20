@@ -8,9 +8,9 @@ Shipped on `main` (PR #163): **New Project** with confirm/Undo; 48×48 adjective
 
 **Validation:** `tests/project-naming.spec.cjs` and `tests/project-save.spec.cjs` green on Chromium and both iPad WebKit layouts in CI (2026-11-17).
 
-## Tier A cross-editor UX — complete (pending stack merge)
+## Tier A cross-editor UX — complete
 
-Implement in order after owner review of each [OODA plan](tier-a-ooda-plans.md): (1) reference overlay import, (2) export/scroller copy, (3) animation glossary.
+Shipped through **0.35.18**: reference overlay, scroller export copy, animation glossary, export filename `_` slugs, download filename preview, project `projectName` in v3 JSON. See [tier-a-ooda-plans.md](tier-a-ooda-plans.md) and [owner-program-queue.md](owner-program-queue.md).
 
 ## Current priorities
 
