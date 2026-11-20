@@ -2,7 +2,7 @@
 
 **Goal:** Shrink the `index.html` module script without a bundler or build step. GitHub Pages keeps static ESM imports.
 
-**Do not start the big push until phases 0–3 in [owner-program-queue.md](owner-program-queue.md) are far enough along that animation/export contracts are stable.**
+Phases 0–1 are complete; slice **1a** may land while validation and animation prep continue ([owner-program-queue.md](owner-program-queue.md)).
 
 ## Proposed modules (order)
 
@@ -22,6 +22,10 @@
 
 ## Slice 1 checklist (`canvas-view.js`)
 
-- [ ] Export `initCanvasView({canvas, frame, getGrid, onRedraw, readPrefs, writePrefs})`.
-- [ ] `toolPreview` and `redraw` call imported `drawCenterGuides`.
-- [ ] CI: `canvas-view.spec.cjs`, `drawing-tools.spec.cjs` (guides during rect).
+### Slice 1a (shipped incrementally)
+
+- [x] `editor/canvas-view.js`: `drawCenterGuides`, `centerFrameScroll`, `editorZoomed`.
+- [x] `index.html` imports module; `tests/canvas-view.unit.mjs`.
+- [ ] Slice 1b: `fit`, `setCanvasZoom`, pan pointers, wheel zoom — `initCanvasView({...})`.
+
+CI: existing `canvas-view.spec.cjs`, `drawing-tools.spec.cjs` (guides during rect).

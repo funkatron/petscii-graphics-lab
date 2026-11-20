@@ -157,6 +157,7 @@ const {APP_VERSION}=await import('./app-version.js');
 const {validateProject,normalizeAnimation,ANIMATION_CYCLES,FIELD_RAMPS,FIELD_RAMP_LABELS,DEPTH_EFFECTS,INTRO_MOTIONS,WIPE_PATTERNS,WAVE_AMPLITUDES,WAVE_LENGTHS,WAVE_SHAPES,WAVE_DIRECTIONS,DIAGONAL_DIRECTIONS,COLOR_WAVE_DIRECTIONS,SOLID_CAMERA_VALUES}=await import('./project-validation.js');
 const {randomProjectFilename,regenerateProjectFilename,readStoredProjectStem,writeStoredProjectStem,sanitizeProjectStem}=await import('./project-naming.js');
 const {animationRasterFilename,nativeProgramFilename,stillPngFilename,preferredVideoExtension}=await import('./export-filename.js');
+const canvasView=await import('./editor/canvas-view.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
 function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareNativeBackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}
@@ -674,26 +675,8 @@ function updateCanvasViewChrome(){
  updateDrawingHint();
  if(zoomed)requestAnimationFrame(centerFrameScroll);
 }
-function centerFrameScroll(){
- if(canvasZoom<=1)return;
- const left=Math.max(0,(frame.scrollWidth-frame.clientWidth)/2),top=Math.max(0,(frame.scrollHeight-frame.clientHeight)/2);
- frame.scrollTo({left,top,behavior:'instant' in window?'instant':'auto'});
-}
-function drawCenterGuides(){
- if(!centerGuidesEnabled||animationPreview)return;
- const cellW=canvas.width/W,cellH=canvas.height/H,cx=canvas.width/2,cy=canvas.height/2;
- const stroke=Math.max(1,Math.min(cellW,cellH)/10);
- ctx.save();
- ctx.strokeStyle='rgba(255,132,48,.85)';
- ctx.lineWidth=stroke;
- const dash=Math.max(3,Math.round(Math.min(cellW,cellH)/4));
- ctx.setLineDash([dash,dash]);
- ctx.beginPath();
- ctx.moveTo(cx+.5,0);ctx.lineTo(cx+.5,canvas.height);
- ctx.moveTo(0,cy+.5);ctx.lineTo(canvas.width,cy+.5);
- ctx.stroke();
- ctx.restore();
-}
+function centerFrameScroll(){canvasView.centerFrameScroll(frame,canvasZoom)}
+function drawCenterGuides(){canvasView.drawCenterGuides(ctx,canvas,W,H,centerGuidesEnabled,animationPreview)}
 function setCanvasZoom(next,opts={persist:true,scroll:true}){
  const value=isCanvasZoom(next)?Number(next):1;
  if(value===canvasZoom)return;
@@ -1292,7 +1275,7 @@ canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.poin
 function cancelStroke(){const active=pointer;painting=false;pointer=null;last=null;if(active!==null)try{canvas.releasePointerCapture(active)}catch{}}
 function stop(e){if(!painting||pointer!==e.pointerId)return;if(!animationPreview&&e.type==='pointerup')strokeAndRedraw(last,position(e));cancelStroke();if(!animationPreview)setStatus('Stroke complete')}
 canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('lostpointercapture',e=>{if(pointer===e.pointerId)cancelStroke()});
-function editorZoomed(){return canvasZoom>1.001;}
+function editorZoomed(){return canvasView.editorZoomed(canvasZoom)}
 function panCentroid(){let x=0,y=0;for(const p of panPointers.values()){x+=p.x;y+=p.y;}const n=panPointers.size;return n?{x:x/n,y:y/n}:{x:0,y:0};}
 function syncPanScrollAnchor(){const c=panCentroid();panScrollAnchor={sl:frame.scrollLeft,st:frame.scrollTop,x:c.x,y:c.y};}
 function applyZoomPan(){if(!panScrollAnchor||panPointers.size<2)return;const c=panCentroid();frame.scrollLeft=Math.max(0,panScrollAnchor.sl-(c.x-panScrollAnchor.x));frame.scrollTop=Math.max(0,panScrollAnchor.st-(c.y-panScrollAnchor.y));}

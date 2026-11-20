@@ -38,7 +38,7 @@ The program includes a small 6502 player (tiny BASIC `SYS` stub) and your charac
 3. Open **Download artwork → Native program**.
 4. Under the host **program** control, choose **Still drawing** or **Selected animation**.
 
-For **Scroll**, **Sine scroller**, or **Column wave (DYCP-style)** movement, the download panel shows scroller-style guidance. Animated PRG and D64 filenames include the movement (and color/backdrop) effect ids, for example `my-project-c64-scroll-x-40x25.prg`.
+For **Scroll**, **Sine scroller**, or **Column wave (DYCP-style)** movement, the download panel shows scroller-style guidance. Animated PRG and D64 filenames include the movement (and color/backdrop) effect ids joined with `_` when several are active, for example `my-project-c64-scroll-x_color-wave-40x25.prg` or a single-effect `my-project-c64-scroll-x-40x25.prg`. The **Downloads as:** line in the download dialog shows the exact name before you save.
 5. For animation, set **repetitions**. **0** repeats continuously. **1–100** plays that many complete loops, then holds the last frame.
 6. Set **file format** to **Program (.prg)** or **Disk image (.d64)**, then use the Download button.
 
