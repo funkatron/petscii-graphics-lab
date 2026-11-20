@@ -27,6 +27,11 @@ export function nativeProgramFilename(stem, machine, s, {moving, columns, rows, 
   return `${stem}-${machine}-${slug}-${columns}x${rows}.${extension}`;
 }
 
+/** Still PNG download stem (matches index.html PNG export). */
+export function stillPngFilename(stem, width, height) {
+  return `${stem}-${width}x${height}.png`;
+}
+
 /** GIF / video / frame ZIP outer download name (before extension suffix). */
 export function animationRasterFilename(stem, s, width, height, kind, repetitions = 1, videoExtension = 'webm') {
   const slug = exportAnimationEffectSlug(s);
