@@ -3,6 +3,12 @@
 /** Between movement / color / backdrop ids in export filenames (not UI labels). */
 export const EXPORT_EFFECT_SEPARATOR = '_';
 
+/** Video download extension (matches createVideo mp4-first probe; safe at app boot). */
+export function preferredVideoExtension() {
+  if (typeof document !== 'undefined' && document.createElement('video').canPlayType('video/mp4')) return 'mp4';
+  return 'webm';
+}
+
 function activeEffect(id) {
   return id && id !== 'none';
 }
@@ -25,6 +31,11 @@ export function exportAnimationEffectSlug(s) {
 export function nativeProgramFilename(stem, machine, s, {moving, columns, rows, extension}) {
   const slug = moving ? exportAnimationEffectSlug(s) : 'still';
   return `${stem}-${machine}-${slug}-${columns}x${rows}.${extension}`;
+}
+
+/** Still PNG download stem (matches index.html PNG export). */
+export function stillPngFilename(stem, width, height) {
+  return `${stem}-${width}x${height}.png`;
 }
 
 /** GIF / video / frame ZIP outer download name (before extension suffix). */

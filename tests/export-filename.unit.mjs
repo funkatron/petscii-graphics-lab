@@ -4,6 +4,7 @@ import {
   exportAnimationEffectSlug,
   nativeProgramFilename,
   animationRasterFilename,
+  stillPngFilename,
 } from '../export-filename.js';
 
 test('effect slug lists movement, color, and backdrop', () => {
@@ -25,6 +26,10 @@ test('native program name includes machine and effect slug', () => {
     nativeProgramFilename('demo', 'plus4', s, {moving: false, columns: 2, rows: 2, extension: 'd64'}),
     'demo-plus4-still-2x2.d64',
   );
+});
+
+test('still PNG name matches export dimensions', () => {
+  assert.equal(stillPngFilename('stem', 320, 200), 'stem-320x200.png');
 });
 
 test('raster animation name uses shared slug', () => {

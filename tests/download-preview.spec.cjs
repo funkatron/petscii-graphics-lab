@@ -4,6 +4,18 @@ test.beforeEach(async({page})=>{
  await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();
  await loadProject(page,project([160,'','',''],4,1,{cellColors:[2,3,4,5],animation:{effect:'scroll-x',colorEffect:'color-wave',seconds:1,scale:2,background:'transparent'}}));
 });
+test('download dialog shows the exact animation export filename for the active tab',async({page})=>{
+ await ui(page,'#projectFilename','fill','quiet-river');
+ await page.locator('#projectFilename').dispatchEvent('input');
+ await ui(page,'#downloadOpen');
+ await page.locator('#export-tab-motion').click();
+ await expect(page.locator('#exportFilenameText')).toHaveText('quiet-river-scroll-x_color-wave-64x16.gif');
+ await page.locator('#export-tab-data').click();
+ await ui(page,'#c64Mode','selectOption','animation');
+ await expect(page.locator('#exportFilenameText')).toHaveText('quiet-river-c64-scroll-x_color-wave-4x1.prg');
+ await page.locator('#c64Format').selectOption('d64');
+ await expect(page.locator('#exportFilenameText')).toHaveText('quiet-river-c64-scroll-x_color-wave-4x1.d64');
+});
 test('Animation plays the output preview in the modal and Stop restores its first frame without editing the project',async({page})=>{
  await page.clock.install();
  const before=await download(page,'#saveProject');await ui(page,'#animationFormat','selectOption','gif');

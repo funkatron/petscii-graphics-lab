@@ -2,7 +2,7 @@
 
 ## Export effect slug separator (2026-11-19)
 
-**What:** `EXPORT_EFFECT_SEPARATOR` is `_` instead of `+` in `export-filename.js` (compound ids like `scroll-x_color-wave`). UI “Animation” labels still use ` + `. App **0.35.17**.  
+**What:** `EXPORT_EFFECT_SEPARATOR` is `_` instead of `+` in `export-filename.js` (compound ids like `scroll-x_color-wave`). Download dialog shows the real name via `updateExportFilenameNote()`. App **0.35.18**.  
 **Tested:** `export-filename.unit.mjs`; Chromium `d64.spec` (still/composite stem) + `c64.spec` (snapshot download name).
 
 ## Tier A housekeeping (2026-11-17)
