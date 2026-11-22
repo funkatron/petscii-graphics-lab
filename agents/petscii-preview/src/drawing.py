@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import base64
 import json
 from pathlib import Path
 from typing import Any
 
 import op_art
 import rug_styles
-from node_bridge import WORKSPACE
+from node_bridge import PGL_CLI, WORKSPACE, parse_json_stdout, run_node
 from project_store import ProjectError, atomic_save, load, session_dir
 
 TOOL_STATE_NAME = 'tool-state.json'
@@ -269,8 +270,31 @@ def _mutate(project_path: str | None, mutator) -> dict[str, Any]:
     return out
 
 
-def paint_cells(project_path: str | None, cells: list[dict[str, Any]] | None) -> dict[str, Any]:
-    """cells: [{x,y,glyph?,ink?}, ...]"""
+def expand_runs(runs: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """Horizontal runs → cells. A run is {x, y, glyphs: [id | '' | null, ...], ink?}; null skips a cell."""
+    cells: list[dict[str, Any]] = []
+    for number, run in enumerate(runs or []):
+        if not isinstance(run, dict) or not isinstance(run.get('glyphs'), list) or 'x' not in run or 'y' not in run:
+            raise ProjectError(f'runs[{number}] must be an object with x, y and a glyphs list')
+        x = _int(run['x'], f'runs[{number}].x')
+        y = _int(run['y'], f'runs[{number}].y')
+        for offset, glyph in enumerate(run['glyphs']):
+            if glyph is None:
+                continue
+            cell = {'x': x + offset, 'y': y, 'glyph': glyph}
+            if run.get('ink') is not None:
+                cell['ink'] = run['ink']
+            cells.append(cell)
+    return cells
+
+
+def paint_cells(
+    project_path: str | None,
+    cells: list[dict[str, Any]] | None = None,
+    runs: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """cells: [{x,y,glyph?,ink?}, ...]; runs: [{x,y,glyphs:[...],ink?}, ...] (one undo step for both)."""
+    cells = list(cells or []) + expand_runs(runs)
 
     def mutate(data, state):
         planned = []
@@ -385,70 +409,35 @@ def draw_rect(project_path: str | None, x0: int, y0: int, x1: int, y1: int, fill
     return _mutate(project_path, mutate)
 
 
-def typed_glyph(character: str) -> int | None:
-    if not character:
-        return None
-    code = ord(character)
-    if 65 <= code <= 90:
-        return code - 64
-    if 97 <= code <= 122:
-        return 256 + code - 96
-    if 32 <= code <= 63:
-        return code
-    if character == '@':
-        return 0
-    if character == '[':
-        return 27
-    if character == ']':
-        return 29
-    return None
-
-
 def place_text(project_path: str | None, text: str, x: int, y: int, ink: int | None = None) -> dict[str, Any]:
-    path, state_path, history_path = _session_paths(project_path)
+    """Typed C64 text, planned by the editor's typed-text.js (same characters, wrapping and errors)."""
+    path = resolve_project(project_path)
     data = _load(path)
-    _ensure_inks(data)
-    state = default_tool_state()
-    if state_path.exists():
-        state.update(_load(state_path))
-    brush = state['ink'] if ink is None else _ink(ink)
     x = _int(x, 'x')
     y = _int(y, 'y')
-    columns = data['columns']
-    rows = data['rows']
-    planned = []
-    column = x
-    row = y
-    for character in text.replace('\r\n', '\n').replace('\r', '\n'):
-        if character == '\n':
-            column = x
-            row += 1
-            continue
-        glyph_id = typed_glyph(character)
-        if glyph_id is None:
-            raise ProjectError(f'Unsupported character: {character!r}. Use A–Z, a–z, 0–9 or C64 punctuation.')
-        if column >= columns:
-            column = x
-            row += 1
-        if row >= rows:
-            raise ProjectError('Text does not fit. Shorten it or start earlier.')
-        planned.append((column, row, glyph_id))
-        column += 1
     if not _in_bounds(data, x, y):
-        raise ProjectError(f'text start ({x},{y}) is outside the {columns}×{rows} canvas')
-    if not planned:
-        return {'ok': True, 'project': str(path), 'changed': 0}
-    before = _snapshot(data)
-    for column, row, glyph_id in planned:
-        index = row * columns + column
-        data['grid'][index] = glyph_id
-        data['cellColors'][index] = brush
-    _record_replay(data, before)
-    save = save_project(data, str(path))
-    if not save.get('ok'):
-        return save
-    _push_history(history_path, before)
-    return {'ok': True, 'project': str(path), 'changed': len(planned)}
+        raise ProjectError(f'text start ({x},{y}) is outside the {data["columns"]}×{data["rows"]} canvas')
+    state = get_tool_state(project_path)
+    brush = state['ink'] if ink is None else _ink(ink)
+    encoded = base64.b64encode(text.encode('utf-8')).decode('ascii')
+    planned = parse_json_stdout(run_node(
+        PGL_CLI,
+        ['plan-text', f'--project={path}', f'--x={x}', f'--y={y}', f'--ink={brush}', f'--text-b64={encoded}'],
+        check=False,
+    ))
+    if not planned.get('ok'):
+        raise ProjectError(planned.get('error', 'text could not be placed'))
+
+    def mutate(data, state):
+        changed = 0
+        for index, (glyph, cell_ink) in enumerate(zip(planned['cells'], planned['inks'])):
+            if data['grid'][index] != glyph or data['cellColors'][index] != cell_ink:
+                data['grid'][index] = glyph
+                data['cellColors'][index] = cell_ink
+                changed += 1
+        return {'changed': changed, 'characters': planned['count']}
+
+    return _mutate(project_path, mutate)
 
 
 def _clamp_selection(data: dict[str, Any], selection: dict[str, int] | None) -> dict[str, int] | None:
@@ -730,15 +719,30 @@ def redo(project_path: str | None = None) -> dict[str, Any]:
     return saved
 
 
+def machine_info() -> dict[str, Any]:
+    """Machine limits and boot colours from the editor's machine-modes.js (cached)."""
+    global _MACHINE_INFO
+    if _MACHINE_INFO is None:
+        listing = parse_json_stdout(run_node(PGL_CLI, ['list-effects'], check=False))
+        if not listing.get('ok'):
+            raise ProjectError(f"could not read machine modes: {listing.get('error')}")
+        _MACHINE_INFO = listing['machines']
+    return _MACHINE_INFO
+
+
+_MACHINE_INFO: dict[str, Any] | None = None
+
+
 def create_canvas(
     project_path: str | None,
     columns: int = 40,
     rows: int = 25,
-    background: int = 0,
-    ink: int = 1,
+    background: int | None = None,
+    ink: int | None = None,
     machine: str | None = None,
+    name: str | None = None,
 ) -> dict[str, Any]:
-    """Blank picture. 80-column canvases default to the C128 80-col (VDC) machine."""
+    """Blank picture. Colours default to the machine's boot screen; 80 columns default to C128 80-col."""
     path = resolve_project(project_path)
     columns = _int(columns, 'columns')
     rows = _int(rows, 'rows')
@@ -746,6 +750,13 @@ def create_canvas(
         machine = 'c128-80' if columns > 40 else 'c64'
     if machine not in MACHINES:
         raise ProjectError(f'unknown machine {machine!r}; expected one of: {", ".join(MACHINES)}')
+    info = machine_info()[machine]
+    if not 1 <= columns <= info['maxColumns'] or not 1 <= rows <= info['maxRows']:
+        raise ProjectError(
+            f"{info['label']} canvases are 1–{info['maxColumns']} columns by 1–{info['maxRows']} rows; got {columns}×{rows}"
+        )
+    background = info['defaultBackground'] if background is None else _int(background, 'background')
+    ink = info['defaultInk'] if ink is None else _int(ink, 'ink')
     count = columns * rows
     data = {
         'format': 'petscii-stencil-lab',
@@ -761,6 +772,7 @@ def create_canvas(
         'glyphSource': 'builtin',
         'colors': {'ink': ink, 'background': background},
         'animation': dict(DEFAULT_ANIMATION),
+        **({'name': name} if name else {}),
     }
     _reset_replay(data)
     saved = save_project(data, str(path))
@@ -773,10 +785,50 @@ def create_canvas(
     return saved
 
 
-def read_grid(project_path: str | None = None) -> dict[str, Any]:
+def _grid_runs(data: dict[str, Any]) -> list[dict[str, Any]]:
+    """Painted cells as horizontal runs of one ink: the same shape paint_cells(runs=...) accepts."""
+    columns = data['columns']
+    runs: list[dict[str, Any]] = []
+    for y in range(data['rows']):
+        x = 0
+        while x < columns:
+            index = y * columns + x
+            if data['grid'][index] == '':
+                x += 1
+                continue
+            ink = data['cellColors'][index]
+            glyphs = []
+            start = x
+            while x < columns and data['grid'][y * columns + x] != '' and data['cellColors'][y * columns + x] == ink:
+                glyphs.append(data['grid'][y * columns + x])
+                x += 1
+            runs.append({'x': start, 'y': y, 'ink': ink, 'glyphs': glyphs})
+    return runs
+
+
+def read_grid(project_path: str | None = None, format: str = 'runs') -> dict[str, Any]:
+    """Painted cells as `runs` (compact, default), `cells` ({x,y,glyph,ink} each), or the editor's `text` grid."""
+    if format not in ('runs', 'cells', 'text'):
+        raise ProjectError(f"format must be runs, cells or text, got {format!r}")
     path = resolve_project(project_path)
     data = _load(path)
     columns = data['columns']
+    summary = {
+        'ok': True,
+        'project': str(path),
+        'machine': data.get('machine', 'c64'),
+        'columns': columns,
+        'rows': data['rows'],
+        'colors': data.get('colors'),
+        'painted': sum(1 for glyph in data['grid'] if glyph != ''),
+    }
+    if format == 'runs':
+        return {**summary, 'runs': _grid_runs(data)}
+    if format == 'text':
+        result = parse_json_stdout(run_node(PGL_CLI, ['export-text-grid', f'--project={path}'], check=False))
+        if not result.get('ok'):
+            raise ProjectError(result.get('error', 'text grid failed'))
+        return {**summary, 'encoding': 'PETSCII-GLYPHS text grid (atlas glyph IDs, not PETSCII bytes)', 'text': result['text']}
     occupied = []
     for index, glyph in enumerate(data['grid']):
         if glyph == '':
@@ -787,14 +839,7 @@ def read_grid(project_path: str | None = None) -> dict[str, Any]:
             'glyph': glyph,
             'ink': data['cellColors'][index],
         })
-    return {
-        'ok': True,
-        'project': str(path),
-        'columns': columns,
-        'rows': data['rows'],
-        'colors': data.get('colors'),
-        'occupied': occupied,
-    }
+    return {**summary, 'occupied': occupied}
 
 
 GLYPH_FAMILIES = {

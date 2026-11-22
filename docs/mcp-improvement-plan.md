@@ -1,6 +1,6 @@
 # PETSCII preview MCP — review and improvement plan
 
-Status: **approved**. Phases 0 and 1 done (see below); Phases 2–3 not started. Reviewed 2026-11-22.
+Status: **approved**. Phases 0–2 done (see below); Phase 3 not started. Reviewed 2026-11-22.
 
 Scope: the `petscii-preview` MCP server in `agents/petscii-preview/` (Python, started by `.cursor/mcp.json` → `run-mcp.sh` → `src/server.py`).
 
@@ -84,6 +84,15 @@ Follow `docs/machine-modes.md`.
 7. Deterministic tests: render known glyphs (e.g. solid 160, checker 102) on C64 and Plus/4 and compare pixel hashes with the editor's exports.
 
 ### Phase 2 — Agent ergonomics
+
+**Done.** 60 tools → 41, plus 12 `petscii://` catalogs (6 resources, 6 templates) and 2 prompts. Evidence: `tests/test_mcp_protocol.py` drives the server through an MCP client (tool list and annotations, enum schemas, unknown-key rejection, image previews, runs round trip, resources vs `read_catalog`, prompts).
+
+- Previews: `render_still`, `render_animation` (4-frame sheet) and `render_petscii_screen` return a PNG image block next to the JSON summary (`preview: false` to skip). `render_petscii_screen` no longer returns base64 inside JSON.
+- Removed tools: `export_png`, `export_svg`, `export_gif` (aliases), `create_project` (use `create_canvas`), `export_glyph_bin` + `export_color_ram_bin` (now `export_binary(kind)`), `render_color_animation`, `render_color_animation_set`, `render_themed_examples`, `render_machine_comparison` (now `generate_demos.py --themes --colors`), and the 11 catalog tools (now resources, also readable through `read_catalog`).
+- Typed arguments: `AnimationSettings` is generated from the editor's enumerations at start-up and rejects unknown keys; `ProjectPatch`, `Cell`, `Run`, `Point` replace JSON strings and free-form dicts. Animation overrides are also checked by `project-validation.js`.
+- `paint_cells(runs=…)` and `read_grid(format="runs")` share one compact shape. `place_text` uses the editor's `typed-text.js`. `create_canvas` colours default to the machine's boot screen.
+- Also fixed: text-grid export for Plus/4 projects (TED inks need two hex digits); `render_pgl_examples.py` now uses the shared exporter and writes to `out/`.
+- Guidance strings in the craft modules and `.cursor/skills/petscii-draw/SKILL.md` name resources and current tools.
 
 1. **Let the agent see its work.** `render_still` (and a first-frame preview from `render_animation`) return an MCP image content block (small PNG) besides `saved_to`. This makes the paint → look → critique loop work without extra file reads.
 2. **Fewer, clearer tools (60 → ~35).**

@@ -9,6 +9,7 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
   ROOT, loadProject, validateProject, renderPlan, nativeProgram, animationSource, animationPlan,
+  colorTable, glyphSheet,
 } from './pgl-shared.mjs';
 
 const command = process.argv[2];
@@ -28,6 +29,8 @@ function writeOut(out, contents) {
 }
 
 const validation = await import(pathToFileURL(join(ROOT, 'project-validation.js')).href);
+const { MACHINES, maxInkIndex } = await import(pathToFileURL(join(ROOT, 'machine-modes.js')).href);
+const { DISPLAY_PALETTE_IDS } = await import(pathToFileURL(join(ROOT, 'c64-colors.js')).href);
 const { SOLID_EFFECTS } = await import(pathToFileURL(join(ROOT, 'solid-motion.js')).href);
 
 const commands = {
@@ -53,7 +56,23 @@ const commands = {
       allowedSeconds: [0.5, 1, 2, 4, 8, 12],
       allowedScale: [1, 2, 4, 8],
       allowedBackgrounds: ['dark', 'white', 'transparent'],
-      machines: ['c64', 'c128', 'c128-80', 'plus4'],
+      fieldDirections: validation.FIELD_DIRECTIONS,
+      fieldLeads: validation.FIELD_LEADS,
+      parallaxGroups: validation.PARALLAX_GROUPS,
+      parallaxSpreads: validation.PARALLAX_SPREADS,
+      parallaxTravels: validation.PARALLAX_TRAVELS,
+      depthTravels: ['toward', 'away'],
+      machines: Object.fromEntries(Object.values(MACHINES).map((m) => [m.id, {
+        label: m.label,
+        maxColumns: m.maxColumns,
+        maxRows: 40,
+        defaultInk: m.defaultInk,
+        defaultBackground: m.defaultBackground,
+        maxInk: maxInkIndex(m.id),
+        glyphSheet: glyphSheet(m.id),
+        colorTable: colorTable(m.id, 'pepto').id,
+      }])),
+      displayPalettes: DISPLAY_PALETTE_IDS,
       cellShapes: ['square', 'crt'],
     };
   },
@@ -78,6 +97,8 @@ const commands = {
       cellColors: data.cellColors || Array(data.columns * data.rows).fill(data.colors?.ink ?? 14),
       colors: data.colors || { ink: 14, background: 0 },
       includeColors: flag('include-colors') !== '0',
+      // index.html textGrid(): TED inks (0–120) need two hex digits (PETSCII-GLYPHS 3).
+      colorDigits: glyphSheet(data.machine ?? 'c64') === 'ted' ? 2 : 1,
     });
     const out = flag('out');
     if (out) writeOut(out, `${text}\n`);

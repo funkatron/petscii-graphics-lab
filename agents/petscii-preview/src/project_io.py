@@ -145,12 +145,17 @@ def update_project(
 
     if "name" in patch:
         data["name"] = patch["name"]
+    if "palette" in patch:
+        data["palette"] = patch["palette"]
     if "colors" in patch and isinstance(patch["colors"], dict):
         data.setdefault("colors", {})
         data["colors"].update(patch["colors"])
     if "animation" in patch and isinstance(patch["animation"], dict):
+        animation = dict(patch["animation"])
+        if "motionEffect" in animation:  # tool alias; projects store it as effect
+            animation["effect"] = animation.pop("motionEffect")
         data.setdefault("animation", dict(DEFAULT_ANIMATION))
-        data["animation"].update(patch["animation"])
+        data["animation"].update(animation)
 
     old_w = data["columns"]
     old_h = data["rows"]

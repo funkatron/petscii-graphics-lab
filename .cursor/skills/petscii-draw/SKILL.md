@@ -7,7 +7,7 @@ description: Draw PETSCII through the petscii-preview MCP — portraits and scen
 
 Paint cells with the `petscii-preview` MCP. A sentence does not become a picture by itself.
 
-**MCP craft tools (use before painting):** `illustration_brief`, `list_drawing_references`, `shading_ladder`, `glyph_families`, `critique_drawing`, and for abstracts `list_op_art_recipes`, `op_art_recipe`, `stamp_op_art`.
+**Before painting:** call `illustration_brief`, then read the catalogs `petscii://references/drawing/{category}`, `petscii://glyphs/families` and `petscii://glyphs/shading-ladder/{background_ink}` (MCP resources; clients without resource support use the `read_catalog` tool with the same URI). For abstracts read `petscii://op-art/recipes` and `petscii://op-art/recipes/{id}`, then `stamp_op_art`. `critique_drawing` reviews each pass. The `draw_picture` and `op_art_piece` prompts list the whole workflow.
 
 Before the first stroke, open the reference pictures in `agents/petscii-preview/examples/`. Read the image files. They are the quality bar. Study the craft in them. Do not trace them into the project.
 
@@ -54,14 +54,14 @@ Keep the outline as `160` or a half-block (`225` on a left edge, `97` on a right
 1. Silhouette. Block the mass with solid 160. One background, usually black (color 0).
 2. Light. Split the form into a lit ink and a shadow ink.
 3. Face or focal detail. Eyes, mouth, the one accent.
-4. Texture. This pass is part of the picture. Replace interior solids: lit interior becomes checker `102` with a few `160` highlights left, the middle band becomes diagonals `77` and `78`, and the shadow band stays solid `160` in the darker ink, with one checker column where the middle band meets it. Then `read_grid`, `render_still`, and compare the still with the references.
+4. Texture. This pass is part of the picture. Replace interior solids: lit interior becomes checker `102` with a few `160` highlights left, the middle band becomes diagonals `77` and `78`, and the shadow band stays solid `160` in the darker ink, with one checker column where the middle band meets it. Then `read_grid`, `render_still` (it returns a preview image), and compare the still with the references.
 
 ## Canvas
 
 - C64 and Plus/4: 40 columns by 25 rows.
 - C128 80-column: 80 by 25, only when the picture needs the width.
-- `glyph_families` lists atlas ids. Add 128 for the inverse of a bank-0 shape. 160 is solid.
-- `create_canvas`, then `set_tool_state`, then `paint_cells`, `draw_line`, `draw_rect`, `fill`, or `place_text`.
+- `petscii://glyphs/families` lists atlas ids. Add 128 for the inverse of a bank-0 shape. 160 is solid.
+- `create_canvas` (pick `machine`: c64, c128, c128-80, plus4; colours default to its boot screen), then `set_tool_state`, then `paint_cells` (`runs` paint a row segment in one entry), `draw_line`, `draw_rect`, `fill`, or `place_text`.
 - `undo` if a pass goes wrong.
 
 Screen look stays off while drawing.
@@ -80,11 +80,11 @@ Train on **Bridget Riley** (high-contrast bar fields, one deliberate symmetry sl
 
 ### MCP workflow (abstract)
 
-1. `illustration_brief("op-art …")` or `op_art_recipe("line-moire")`.
+1. `illustration_brief("op-art …")` or read `petscii://op-art/recipes/line-moire`.
 2. `create_canvas` → `stamp_op_art(recipe)` (lattice).
 3. `paint_cells` for the symmetry break only.
-4. `update_project` with returned `animation_suggest`.
-5. `render_animation` / `export_gif`; `critique_drawing(style='op-art')`.
+4. `update_project(patch={"animation": animation_suggest})`.
+5. `render_animation` (GIF + preview sheet); `critique_drawing(style='op-art')`.
 
 ### Recipe picks
 
@@ -102,7 +102,7 @@ Editor help: two line glyphs under **Parallax** make moiré; two inks on a check
 
 ## Islamic & Hindu geometric art
 
-Call `list_world_art_references` and open the local files in `agents/petscii-preview/examples/world-art/` (MET girih star, Wazir Khan arch, girih construction SVG, Sri Yantra, 32-dot kolam). Then `study_world_art('islamic')` or `study_world_art('hindu')`. These traditions are **symmetry and repetition**, not random texture.
+Read `petscii://world-art/references/all` and open the local files in `agents/petscii-preview/examples/world-art/` (MET girih star, Wazir Khan arch, girih construction SVG, Sri Yantra, 32-dot kolam). Then read `petscii://world-art/islamic` or `petscii://world-art/hindu`. These traditions are **symmetry and repetition**, not random texture.
 
 ### Islamic (girih, arabesque, interlace)
 
@@ -132,11 +132,11 @@ Call `list_world_art_references` and open the local files in `agents/petscii-pre
 
 ## Oriental rugs & combining styles
 
-Study rugs with `list_world_art_references('rug')` and `study_world_art('oriental-rug')`. Open Ardabil, Konya gül, and Isfahan garden references in `examples/world-art/`.
+Study rugs with `petscii://world-art/references/rug` and `petscii://world-art/rug`. Open Ardabil, Konya gül, and Isfahan garden references in `examples/world-art/`.
 
 **Layout law:** field (repeat) → **border** (margin overwrite) → **medallion** (center overwrite) → optional **corners** (kolam dots).
 
-**Combinations** (`list_style_combinations` / `stamp_combined_style`):
+**Combinations** (`petscii://rugs`, `petscii://rugs/{combination}`, then `stamp_combined_style`):
 
 | Preset | What it blends |
 | --- | --- |

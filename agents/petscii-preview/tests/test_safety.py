@@ -126,8 +126,8 @@ class MachineCanvasTests(unittest.TestCase):
     def test_80_columns_rejected_for_c64(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "bad.json"
-            result = drawing.create_canvas(str(path), 80, 25, machine="c64")
-            self.assertFalse(result["ok"])
+            with self.assertRaisesRegex(ProjectError, "1–40 columns"):
+                drawing.create_canvas(str(path), 80, 25, machine="c64")
             self.assertFalse(path.exists())
 
     def test_create_project_accepts_machine(self):

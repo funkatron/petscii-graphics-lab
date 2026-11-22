@@ -17,7 +17,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from glyphs import load_glyph_rows
 from node_bridge import PGL_CLI, ensure_workspace, parse_json_stdout, resolve_project, run_node
@@ -145,6 +145,38 @@ def _still_background(plan: dict[str, Any], background: str) -> tuple[int, int, 
     return plan["rgb"][plan["projectBackground"]]
 
 
+PREVIEW_MAX_WIDTH = 640
+
+
+def fit_preview(image: Image.Image, max_width: int = PREVIEW_MAX_WIDTH) -> Image.Image:
+    """Whole-number nearest-neighbour scale so glyph pixels stay crisp; never wider than max_width."""
+    image = image.convert("RGBA") if image.mode == "RGBA" else image.convert("RGB")
+    if image.width > max_width:
+        factor = -(-image.width // max_width)
+        return image.resize((image.width // factor, image.height // factor), Image.NEAREST)
+    factor = max(1, min(4, max_width // image.width))
+    return image.resize((image.width * factor, image.height * factor), Image.NEAREST) if factor > 1 else image
+
+
+def frame_sheet(plan: dict[str, Any], frames: list[Image.Image], count: int = 4) -> Image.Image:
+    """Evenly spaced frames in a 2-column sheet, each labelled with its frame number and time."""
+    picks = sorted({round(i * (len(frames) - 1) / max(1, count - 1)) for i in range(count)}) if frames else []
+    tiles = [fit_preview(frames[i].convert("RGB"), PREVIEW_MAX_WIDTH // 2) for i in picks]
+    width, height = tiles[0].size
+    label = 14
+    columns = 2 if len(tiles) > 1 else 1
+    rows = -(-len(tiles) // columns)
+    sheet = Image.new("RGB", (columns * width + (columns + 1) * 6, rows * (height + label) + (rows + 1) * 6), (32, 32, 36))
+    draw = ImageDraw.Draw(sheet)
+    for slot, (index, tile) in enumerate(zip(picks, tiles)):
+        x = 6 + (slot % columns) * (width + 6)
+        y = 6 + (slot // columns) * (height + label + 6)
+        frame = plan["frames"][index]
+        draw.text((x, y), f"frame {index + 1}/{len(frames)} · {frame['startMs']} ms", fill=(225, 225, 225))
+        sheet.paste(tile, (x, y + label))
+    return sheet
+
+
 def _hex(color: tuple[int, int, int]) -> str:
     return "#%02x%02x%02x" % color
 
@@ -168,11 +200,13 @@ def render_still(
     if fmt == "svg":
         svg, width, height = make_svg(plan, bg)
         out.write_text(svg, encoding="utf-8")
+        image = rasterize_frame(plan, plan["frames"][0], 2, bg)
     else:
         image = rasterize_frame(plan, plan["frames"][0], scale, bg)
         image.save(out)
         width, height = image.size
     return {
+        "preview_image": fit_preview(image),
         "ok": True,
         "saved_to": str(out),
         "width": width,
@@ -296,6 +330,7 @@ def render_animation_gif(
     )
     result = _summary(plan, out)
     result["width"], result["height"] = frames[0].size
+    result["preview_image"] = frame_sheet(plan, frames)
     return result
 
 

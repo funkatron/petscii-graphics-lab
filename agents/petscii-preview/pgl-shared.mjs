@@ -96,6 +96,15 @@ export function animationSource(data, settings = {}) {
     background: data.colors?.background ?? machine.defaultBackground,
   };
   const anim = mergeAnimationSettings(data, settings);
+  if (Object.keys(settings).length) {
+    // Overrides get the same check as a saved project's animation object.
+    const { motionEffect, motion, ...stored } = anim;
+    try {
+      validateProject({ ...data, animation: stored });
+    } catch (error) {
+      throw Error(`${error.message}: check the animation settings against petscii://effects`);
+    }
+  }
   const cellCount = data.columns * data.rows;
   return {
     W: data.columns,

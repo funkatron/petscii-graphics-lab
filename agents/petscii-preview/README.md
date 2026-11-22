@@ -24,91 +24,79 @@ Cursor starts the server from `.cursor/mcp.json` via `agents/petscii-preview/run
 
 ## Generate demos locally
 
+Demo renders are scripts, not MCP tools:
+
 ```bash
-agents/petscii-preview/.venv/bin/python agents/petscii-preview/generate_demos.py
+agents/petscii-preview/.venv/bin/python agents/petscii-preview/generate_demos.py --themes --colors
+agents/petscii-preview/.venv/bin/python agents/petscii-preview/render_pgl_examples.py
 ```
 
 Outputs land in `agents/petscii-preview/out/`.
 
-## MCP tools
+## What the server offers
 
-### Machine chrome (exploratory)
+| Kind | What | How to use it |
+| --- | --- | --- |
+| Tools (41) | Change or export a project | Call by name |
+| Resources (`petscii://…`) | Read-only catalogs | Read the URI, or call `read_catalog(uri)` if your client cannot read resources |
+| Prompts | Whole workflows | `draw_picture(subject, machine)`, `op_art_piece(recipe, machine)` |
+
+Every tool takes typed arguments. Animation settings are an object with the same keys as `project.animation`; effect names, durations, cycles and wave values are enums taken from the editor. Unknown keys are rejected.
+
+### Catalogs (resources)
+
+| URI | Contents |
+| --- | --- |
+| `petscii://effects` | Motion, colour and backdrop effects, ramps, waves, cycles, seconds, scales |
+| `petscii://machines` | Column limits, boot colours, ink range, glyph sheet and colour table per machine |
+| `petscii://glyphs/families` | Atlas glyph IDs by role, shading ladder, outline and accent glyphs |
+| `petscii://glyphs/shading-ladder/{background_ink}` | Brightness steps on a background ink |
+| `petscii://op-art/recipes`, `petscii://op-art/recipes/{recipe_id}` | Op-art, girih, mandala and rug recipes |
+| `petscii://world-art/{tradition}` | Islamic, Hindu or rug craft study (`all` for everything) |
+| `petscii://world-art/references/{tradition}` | Local study images and Commons links |
+| `petscii://references/drawing`, `petscii://references/drawing/{category}` | Master PETSCII references with craft notes |
+| `petscii://rugs`, `petscii://rugs/{combination}` | Layered rug presets |
+
+### Project tools
 
 | Tool | Purpose |
 | --- | --- |
-| `list_machines` | Mode chrome metadata |
-| `render_petscii_screen` | One machine PNG (`png_base64`, optional `save_path`) |
-| `render_machine_comparison` | C64/C128/Plus4 stills + mode-switch GIF |
-| `render_themed_examples` | Themed machine-chrome example pack + GIF |
-
-### Project document
-
-| Tool | Purpose |
-| --- | --- |
-| `list_effects` | Motion, color, and backdrop enums + ramp/camera/wave/wipe values from the lab UI |
-| `validate_project` | Validate v3 JSON |
-| `load_project` / `save_project` / `create_project` / `update_project` | Project CRUD |
-| `copy_project_to_workspace` | Copy into `out/workspace/` for drawing sessions |
-| `export_text_grid` / `import_text_grid` | PETSCII-GLYPHS text exchange |
-
-### Animation + image exports
-
-| Tool | Purpose |
-| --- | --- |
-| `plan_animation` | Frame count, readiness, and `suggestedSeconds` when the settings are too fast |
-| `render_still` / `export_png` / `export_svg` | Still artwork. SVG uses one vector path per glyph shape |
-| `render_animation` / `export_gif` | Movement × cell colour × backdrop GIF. Refuses settings that would alias (see `plan_animation`) |
-| `render_color_animation` / `render_color_animation_set` | Compat helpers (cube + color pack) |
-| `export_png_frames_zip` | PNG frame ZIP + `timing.json` (editor manifest v2) + `project.json` |
-| `export_video` | MP4/WebM, exact frame timing, 1–100 loops (needs ffmpeg) |
-| `export_native` | `.prg` / `.d64` for the project's machine: C64, C128 40/80-col, Plus/4 |
-| `export_glyph_bin` | Glyph atlas IDs (bank × 256 + screen code), 16-bit LE, `FFFF` = empty. Not PETSCII bytes |
-| `export_color_ram_bin` | One VIC colour index per cell (C64 / C128 40-col only) |
-
-Animation settings use the same object shape as `project.animation` (pass
-`animation={...}` or `settings_json='{...}'`). Keys include `effect` /
-`motionEffect`, `colorEffect`, `backgroundEffect`, `seconds`, `motionCycles`,
-`colorCycles`, `backgroundCycles`, backdrop ramp knobs (`fieldRamp`,
-`fieldDirection`, `fieldLead`, `fieldWaveDirection`, `fieldWaveShape`,
-`fieldWaveLength`, `fieldWaveAmplitude`), scroll/wave/color-wave, wipe, depth,
-parallax,
-and solid-camera fields.
-
-Movement, cell color, and backdrop stack independently. For a stepped shared
-background, set `backgroundEffect` to `'field'` (VIC) or `'plus4-field'` (TED) —
-do not use `colorEffect: 'field'` in new JSON; the editor and MCP still migrate
-that legacy shape on load.
+| `create_canvas` | New blank picture for a `machine`; colours default to its boot screen |
+| `load_project` / `save_project` / `update_project` / `validate_project` | Read, write, patch (typed `patch`) and check v3 JSON |
+| `copy_project_to_workspace` | Copy a project (for example from `examples/`) into `out/workspace/` |
+| `export_text_grid` / `import_text_grid` | PETSCII-GLYPHS text exchange (TED inks use two hex digits) |
 
 ### Drawing tools
 
-Operate on a workspace project path. Brush state lives in a sidecar.
+Brush state and undo history live beside each project in `out/workspace/sessions/`.
 
 | Tool | Purpose |
 | --- | --- |
-| `create_canvas` | Blank picture; `machine` is c64, c128, c128-80 (80 columns) or plus4 |
-| `glyph_families` / `read_grid` | Atlas ids, then the cells you have painted |
-| `set_tool_state` / `get_tool_state` | Glyph, ink, symmetry, selection |
-| `paint_cells` / `erase_cells` / `fill` | Brush ops |
-| `draw_line` / `draw_rect` | Geometry |
-| `place_text` | Typed C64 text |
+| `set_tool_state` / `get_tool_state` | Brush glyph, ink, symmetry; selection |
+| `paint_cells` | `cells` ([{x, y, glyph?, ink?}]) and/or `runs` ([{x, y, glyphs: [...], ink?}], `null` skips a cell) |
+| `erase_cells` / `fill` / `draw_line` / `draw_rect` | Brush operations |
+| `place_text` | Typed C64 text, planned by the editor's `typed-text.js` |
 | `select_rect` / `deselect` / `move_selection` / `duplicate_selection` / `delete_selection` | Selection |
-| `clear_drawing` / `recolor_drawing` / `stamp_border` / `stamp_checkerboard` | Whole-canvas |
-| `undo` / `redo` | History (≤60 steps) |
+| `clear_drawing` / `recolor_drawing` / `stamp_border` / `stamp_checkerboard` | Whole canvas |
+| `stamp_op_art` / `stamp_combined_style` | Recipe lattices and layered rugs |
+| `read_grid` | Painted cells as `runs` (default, same shape as `paint_cells`), `cells`, or `text` |
+| `undo` / `redo` | History (60 steps) |
+| `illustration_brief` / `critique_drawing` | Plan a picture; review each pass |
 
-### Illustration craft + op-art
+### Render and export tools
 
 | Tool | Purpose |
 | --- | --- |
-| `list_drawing_references` | Master portrait/figure/place references + craft notes |
-| `illustration_brief` | Plan subject (incl. op-art): palette, passes, recipes |
-| `shading_ladder` | Glyph brightness steps on a background ink |
-| `glyph_families` | Atlas groups + shading ladder |
-| `critique_drawing` | Heuristic review (`style`: auto, illustration, op-art) |
-| `list_op_art_recipes` / `op_art_recipe` | Op-art + Islamic girih / Hindu mandala recipes |
-| `stamp_op_art` | Fill canvas with a recipe lattice (+ `animation_suggest`) |
-| `study_world_art` | Islamic & Hindu geometric craft notes |
-| `list_world_art_references` | Local Commons study images + category URLs |
-| `list_style_combinations` / `combine_styles` / `stamp_combined_style` | Oriental rug multi-layer presets |
+| `render_still` | PNG or SVG; returns a preview image. SVG uses one vector path per glyph shape |
+| `render_animation` | GIF of movement × cell colour × backdrop; returns a 4-frame preview sheet |
+| `plan_animation` | Frame count, readiness, and `suggestedSeconds` when the settings are too fast |
+| `export_png_frames_zip` | PNG frame ZIP + `timing.json` (editor manifest v2) + `project.json` |
+| `export_video` | MP4/WebM, exact frame timing, 1–100 loops (needs ffmpeg) |
+| `export_native` | `.prg` / `.d64` for the project's machine: C64, C128 40/80-col, Plus/4 |
+| `export_binary` | `glyph-ids` (atlas IDs, 16-bit LE, `FFFF` = empty; not PETSCII bytes) or `color-ram` (VIC only) |
+| `render_petscii_screen` | Boot-style text screen with machine chrome, returned as an image |
+
+Movement, cell colour and backdrop stack independently. For a stepped shared background set `backgroundEffect` to `field` (VIC) or `plus4-field` (TED); `colorEffect: "field"` is a legacy shape the editor migrates on load.
 
 ### Video (ffmpeg)
 
@@ -177,3 +165,5 @@ Known difference: for CRT cells the editor's still PNG is an anti-aliased raster
 node agents/petscii-preview/make_pgl_examples.mjs
 agents/petscii-preview/.venv/bin/python agents/petscii-preview/render_pgl_examples.py
 ```
+
+The example projects predate the `machine` field, so they load as C64.
