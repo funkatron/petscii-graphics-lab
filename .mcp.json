@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "petscii-preview": {
+      "command": "agents/petscii-preview/run-mcp.sh"
+    }
+  }
+}

@@ -33,7 +33,7 @@ OP_ART_PASSES = [
     {
         "pass": 5,
         "name": "review",
-        "action": "render_still, critique_drawing(style='op-art'), export_gif if animated.",
+        "action": "render_still, critique_drawing(style='op-art'), render_animation if animated.",
     },
 ]
 
@@ -392,7 +392,7 @@ def list_op_art_recipes() -> dict[str, Any]:
             }
             for key, spec in OP_ART_RECIPES.items()
         ],
-        "note": "Call op_art_recipe(id) for craft + animation_suggest. stamp_op_art paints the lattice.",
+        "note": "Read petscii://op-art/recipes/{id} for craft + animation_suggest. stamp_op_art paints the lattice.",
     }
 
 
@@ -720,7 +720,7 @@ def critique_op_art(
                 "message": f"{unique_glyphs} different glyphs — op-art needs 1–3 glyphs in a rigid period.",
             }
         )
-        next_steps.append("Pick one recipe from list_op_art_recipes; reduce to its glyph list.")
+        next_steps.append("Pick one recipe from petscii://op-art/recipes; reduce to its glyph list.")
 
     if unique_inks > 4:
         issues.append(
@@ -754,7 +754,7 @@ def critique_op_art(
             "top_glyphs": sorted(glyph_hist.items(), key=lambda x: -x[1])[:6],
         },
         "issues": issues,
-        "next_steps": next_steps or ["render_animation with recipe animation_suggest; export_gif."],
+        "next_steps": next_steps or ["update_project(patch={animation: animation_suggest}), then render_animation."],
         "study": [
             "Riley: high-contrast bars, one deliberate symmetry break.",
             "Vasarely: concentric geometry, alternating solid/checker rings.",

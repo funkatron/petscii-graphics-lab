@@ -432,8 +432,8 @@ def illustration_brief(subject: str) -> dict[str, Any]:
             "layout_hints": plan.get("study", []),
             "passes": op_art.OP_ART_PASSES,
             "tools_sequence": [
-                "list_world_art_references('rug')",
-                "combine_styles",
+                "read petscii://world-art/references/rug",
+                "read petscii://rugs/{combination}",
                 "create_canvas",
                 "stamp_combined_style",
                 "update_project (animation_suggest)",
@@ -546,7 +546,7 @@ def illustration_brief(subject: str) -> dict[str, Any]:
         "references": refs.get("references", [])[:6],
         "shading": shading_ladder(0),
         "tools_sequence": [
-            "illustration_brief or list_drawing_references",
+            "illustration_brief or petscii://references/drawing/{category}",
             "create_canvas",
             "set_tool_state",
             "paint_cells / fill / draw_line (passes 1–4)",

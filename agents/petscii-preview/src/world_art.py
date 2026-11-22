@@ -275,8 +275,8 @@ def study_world_art(tradition: str | None = None) -> dict[str, Any]:
             "studies": WORLD_ART_STUDY,
             "reference_examples": list_world_art_references(),
             "mcp_workflow": [
-                "list_world_art_references — open local study images",
-                "study_world_art('islamic' | 'hindu')",
+                "petscii://world-art/references/{tradition} — open local study images",
+                "petscii://world-art/islamic | petscii://world-art/hindu",
                 "illustration_brief('Islamic girih star' | 'Hindu mandala')",
                 "stamp_op_art(recipe from stamp_recipes)",
                 "paint_cells (bindu, border calligraphy accent, or one petal break)",

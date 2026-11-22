@@ -2,21 +2,21 @@
 
 from __future__ import annotations
 
+import base64
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
-from node_bridge import find_node
-
 import op_art
 import rug_styles
+from node_bridge import PGL_CLI, WORKSPACE, parse_json_stdout, run_node
+from project_store import ProjectError, atomic_save, load, session_dir
 
 TOOL_STATE_NAME = 'tool-state.json'
 HISTORY_NAME = 'history.json'
-LAB_ROOT = Path(__file__).resolve().parents[3]
-AGENT_ROOT = Path(__file__).resolve().parents[1]
-WORKSPACE = AGENT_ROOT / 'out' / 'workspace'
+HISTORY_LIMIT = 60
+SYMMETRY_MODES = ('none', 'horizontal', 'vertical', 'both')
+MACHINES = ('c64', 'c128', 'c128-80', 'plus4')
 
 DEFAULT_ANIMATION = {
     'effect': 'none',
@@ -40,16 +40,14 @@ def resolve_project(project_path: str | None) -> Path:
 
 
 def _session_paths(project_path: str | None) -> tuple[Path, Path, Path]:
+    """Project path plus its brush-state and history sidecars (keyed by absolute path)."""
     path = resolve_project(project_path)
-    workspace = ensure_workspace()
-    if path.parent == workspace:
-        return path, workspace / TOOL_STATE_NAME, workspace / HISTORY_NAME
-    stem = path.stem
-    return path, workspace / f'{stem}-{TOOL_STATE_NAME}', workspace / f'{stem}-{HISTORY_NAME}'
+    folder = session_dir(path)
+    return path, folder / TOOL_STATE_NAME, folder / HISTORY_NAME
 
 
 def _load(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding='utf-8'))
+    return load(path)
 
 
 def _write(path: Path, data: Any) -> None:
@@ -57,36 +55,51 @@ def _write(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
 
 
-def _validate(path: Path) -> dict[str, Any]:
-    script = (
-        "import {readFileSync} from 'node:fs';"
-        "import {validateProject} from './project-validation.js';"
-        "const data = JSON.parse(readFileSync(process.argv[1], 'utf8'));"
-        "try { validateProject(data); console.log(JSON.stringify({ok:true})); }"
-        "catch (error) { console.log(JSON.stringify({ok:false, error:String(error.message || error)})); }"
-    )
-    result = subprocess.run(
-        [find_node(), '--input-type=module', '-e', script, str(path)],
-        cwd=LAB_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    line = result.stdout.strip().splitlines()
-    if not line:
-        message = result.stderr.strip() or f'validation failed with code {result.returncode}'
-        return {'ok': False, 'error': message}
-    return json.loads(line[-1])
-
-
 def save_project(data: dict[str, Any], save_path: str) -> dict[str, Any]:
-    path = Path(save_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
-    check = _validate(path)
-    if not check.get('ok'):
-        return {'ok': False, 'error': check.get('error', 'validation failed'), 'project': str(path)}
-    return {'ok': True, 'project': str(path)}
+    """Validate and atomically replace the project file; an invalid project is never written."""
+    return atomic_save(data, Path(save_path).expanduser().resolve())
+
+
+# --- argument checks (raise ProjectError before anything is changed) ---
+
+
+def _int(value: Any, name: str) -> int:
+    if isinstance(value, bool):
+        raise ProjectError(f'{name} must be an integer, got {value!r}')
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str) and value.strip().lstrip('-').isdigit():
+        return int(value)
+    raise ProjectError(f'{name} must be an integer, got {value!r}')
+
+
+def _glyph(value: Any) -> int | str:
+    """An atlas glyph id 0–511, or '' for an empty cell."""
+    if value == '' or value is None:
+        return ''
+    glyph = _int(value, 'glyph')
+    if not 0 <= glyph <= 511:
+        raise ProjectError(f'glyph must be an atlas id 0–511 (bank × 256 + screen code), got {glyph}')
+    return glyph
+
+
+def _ink(value: Any) -> int:
+    ink = _int(value, 'ink')
+    if ink < 0:
+        raise ProjectError(f'ink must be a non-negative color number, got {ink}')
+    return ink
+
+
+def _symmetry(value: Any) -> str:
+    if value not in SYMMETRY_MODES:
+        raise ProjectError(f'symmetry must be one of {", ".join(SYMMETRY_MODES)}, got {value!r}')
+    return value
+
+
+def _in_bounds(data: dict[str, Any], x: int, y: int) -> bool:
+    return 0 <= x < data['columns'] and 0 <= y < data['rows']
 
 
 def default_tool_state() -> dict[str, Any]:
@@ -102,11 +115,18 @@ def get_tool_state(project_path: str | None = None) -> dict[str, Any]:
 
 
 def set_tool_state(project_path: str | None, patch: dict[str, Any]) -> dict[str, Any]:
+    clean = dict(patch)
+    if 'glyph' in clean:
+        clean['glyph'] = _glyph(clean['glyph'])
+    if 'ink' in clean:
+        clean['ink'] = _ink(clean['ink'])
+    if 'symmetry' in clean:
+        clean['symmetry'] = _symmetry(clean['symmetry'])
     _, state_path, _ = _session_paths(project_path)
     state = default_tool_state()
     if state_path.exists():
         state.update(_load(state_path))
-    state.update(patch)
+    state.update(clean)
     _write(state_path, state)
     return state
 
@@ -123,8 +143,8 @@ def _history(history_path: Path) -> dict[str, list]:
 def _push_history(history_path: Path, snapshot: dict[str, Any]) -> None:
     hist = _history(history_path)
     hist['undo'].append(snapshot)
-    if len(hist['undo']) > 60:
-        hist['undo'] = hist['undo'][-60:]
+    if len(hist['undo']) > HISTORY_LIMIT:
+        hist['undo'] = hist['undo'][-HISTORY_LIMIT:]
     hist['redo'] = []
     _write(history_path, hist)
 
@@ -142,12 +162,50 @@ def _apply_snapshot(data: dict[str, Any], snap: dict[str, Any]) -> None:
             data[key] = snap[key]
 
 
-def _sync_replay(data: dict[str, Any]) -> None:
-    ink = data.get('colors', {}).get('ink', 14)
-    replay = {'base': list(data['grid']), 'events': []}
-    if any(color != ink for color in data['cellColors']):
-        replay['baseColors'] = list(data['cellColors'])
-    data['drawingReplay'] = replay
+REPLAY_EVENT_LIMIT = 20000
+
+
+def _reset_replay(data: dict[str, Any]) -> None:
+    """Editor resetReplay(): empty base, then one event per painted cell in index order."""
+    events = []
+    event_colors = []
+    for index, glyph in enumerate(data['grid']):
+        if glyph != '':
+            events.append([index, glyph])
+            event_colors.append(data['cellColors'][index])
+    data['drawingReplay'] = {
+        'base': [''] * len(data['grid']),
+        'events': events,
+        'baseColors': list(data['cellColors']),
+        'eventColors': event_colors,
+    }
+
+
+def _record_replay(data: dict[str, Any], before: dict[str, Any] | None) -> None:
+    """Editor recordCell(): append one [index, glyph] event per changed cell, in edit order.
+
+    Reveal/draw-on animations replay these events, so the order an agent paints in is kept.
+    Whole-canvas changes (no `before`, or a different size) reset the replay instead.
+    """
+    replay = data.get('drawingReplay')
+    if (
+        before is None
+        or not isinstance(replay, dict)
+        or len(before.get('grid', [])) != len(data['grid'])
+        or len(replay.get('base', [])) != len(data['grid'])
+    ):
+        _reset_replay(data)
+        return
+    count = len(data['grid'])
+    events = replay.setdefault('events', [])
+    replay.setdefault('baseColors', list(before['cellColors']))
+    event_colors = replay.setdefault('eventColors', [data.get('colors', {}).get('ink', 14)] * len(events))
+    for index in range(count):
+        if data['grid'][index] != before['grid'][index] or data['cellColors'][index] != before['cellColors'][index]:
+            events.append([index, data['grid'][index]])
+            event_colors.append(data['cellColors'][index])
+    if len(events) > REPLAY_EVENT_LIMIT:
+        _reset_replay(data)
 
 
 def _symmetry_points(x: int, y: int, columns: int, rows: int, mode: str) -> list[tuple[int, int]]:
@@ -186,33 +244,74 @@ def _ensure_inks(data: dict[str, Any]) -> None:
 
 
 def _mutate(project_path: str | None, mutator) -> dict[str, Any]:
+    """Apply one undoable edit.
+
+    The mutator returns {'changed': n, ...} or raises ProjectError. Nothing is saved and
+    no undo step is recorded when nothing changed or the result fails validation.
+    """
     path, state_path, history_path = _session_paths(project_path)
     data = _load(path)
     _ensure_inks(data)
     state = default_tool_state()
     if state_path.exists():
         state.update(_load(state_path))
-    _push_history(history_path, _snapshot(data))
+    before = _snapshot(data)
     result = mutator(data, state)
-    _sync_replay(data)
+    reset_replay = result.pop('reset_replay', False)
+    out = {'ok': True, 'project': str(path)}
+    out.update(result)
+    if not result.get('changed'):
+        return out
+    _record_replay(data, None if reset_replay else before)
     save = save_project(data, str(path))
     if not save.get('ok'):
         return save
-    out = {'ok': True, 'project': str(path)}
-    out.update(result)
+    _push_history(history_path, before)
     return out
 
 
-def paint_cells(project_path: str | None, cells: list[dict[str, Any]] | None) -> dict[str, Any]:
-    """cells: [{x,y,glyph?,ink?}, ...]"""
+def expand_runs(runs: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """Horizontal runs → cells. A run is {x, y, glyphs: [id | '' | null, ...], ink?}; null skips a cell."""
+    cells: list[dict[str, Any]] = []
+    for number, run in enumerate(runs or []):
+        if not isinstance(run, dict) or not isinstance(run.get('glyphs'), list) or 'x' not in run or 'y' not in run:
+            raise ProjectError(f'runs[{number}] must be an object with x, y and a glyphs list')
+        x = _int(run['x'], f'runs[{number}].x')
+        y = _int(run['y'], f'runs[{number}].y')
+        for offset, glyph in enumerate(run['glyphs']):
+            if glyph is None:
+                continue
+            cell = {'x': x + offset, 'y': y, 'glyph': glyph}
+            if run.get('ink') is not None:
+                cell['ink'] = run['ink']
+            cells.append(cell)
+    return cells
+
+
+def paint_cells(
+    project_path: str | None,
+    cells: list[dict[str, Any]] | None = None,
+    runs: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """cells: [{x,y,glyph?,ink?}, ...]; runs: [{x,y,glyphs:[...],ink?}, ...] (one undo step for both)."""
+    cells = list(cells or []) + expand_runs(runs)
 
     def mutate(data, state):
+        planned = []
+        for number, cell in enumerate(cells or []):
+            if not isinstance(cell, dict) or 'x' not in cell or 'y' not in cell:
+                raise ProjectError(f'cells[{number}] must be an object with x and y')
+            x = _int(cell['x'], f'cells[{number}].x')
+            y = _int(cell['y'], f'cells[{number}].y')
+            if not _in_bounds(data, x, y):
+                raise ProjectError(
+                    f'cells[{number}] ({x},{y}) is outside the {data["columns"]}×{data["rows"]} canvas'
+                )
+            glyph = _glyph(cell.get('glyph', state['glyph']))
+            ink = _ink(cell.get('ink', state['ink']))
+            planned.append((x, y, glyph, ink))
         changed = 0
-        for cell in cells or []:
-            x = int(cell['x'])
-            y = int(cell['y'])
-            glyph = cell.get('glyph', state['glyph'])
-            ink = int(cell.get('ink', state['ink']))
+        for x, y, glyph, ink in planned:
             changed += _paint_point(data, x, y, glyph, ink, state.get('symmetry', 'none'))
         return {'changed': changed}
 
@@ -221,10 +320,21 @@ def paint_cells(project_path: str | None, cells: list[dict[str, Any]] | None) ->
 
 def erase_cells(project_path: str | None, cells: list[dict[str, Any]] | None) -> dict[str, Any]:
     def mutate(data, state):
-        changed = 0
         ink = data.get('colors', {}).get('ink', state['ink'])
-        for cell in cells or []:
-            changed += _paint_point(data, int(cell['x']), int(cell['y']), '', ink, state.get('symmetry', 'none'))
+        planned = []
+        for number, cell in enumerate(cells or []):
+            if not isinstance(cell, dict) or 'x' not in cell or 'y' not in cell:
+                raise ProjectError(f'cells[{number}] must be an object with x and y')
+            x = _int(cell['x'], f'cells[{number}].x')
+            y = _int(cell['y'], f'cells[{number}].y')
+            if not _in_bounds(data, x, y):
+                raise ProjectError(
+                    f'cells[{number}] ({x},{y}) is outside the {data["columns"]}×{data["rows"]} canvas'
+                )
+            planned.append((x, y))
+        changed = 0
+        for x, y in planned:
+            changed += _paint_point(data, x, y, '', ink, state.get('symmetry', 'none'))
         return {'changed': changed}
 
     return _mutate(project_path, mutate)
@@ -234,8 +344,8 @@ def fill(project_path: str | None, x: int, y: int) -> dict[str, Any]:
     def mutate(data, state):
         columns = data['columns']
         rows = data['rows']
-        if x < 0 or y < 0 or x >= columns or y >= rows:
-            return {'changed': 0, 'error': 'out of bounds'}
+        if not _in_bounds(data, x, y):
+            raise ProjectError(f'fill start ({x},{y}) is outside the {columns}×{rows} canvas')
         start = y * columns + x
         target_glyph = data['grid'][start]
         target_ink = data['cellColors'][start]
@@ -299,75 +409,72 @@ def draw_rect(project_path: str | None, x0: int, y0: int, x1: int, y1: int, fill
     return _mutate(project_path, mutate)
 
 
-def typed_glyph(character: str) -> int | None:
-    if not character:
-        return None
-    code = ord(character)
-    if 65 <= code <= 90:
-        return code - 64
-    if 97 <= code <= 122:
-        return 256 + code - 96
-    if 32 <= code <= 63:
-        return code
-    if character == '@':
-        return 0
-    if character == '[':
-        return 27
-    if character == ']':
-        return 29
-    return None
-
-
 def place_text(project_path: str | None, text: str, x: int, y: int, ink: int | None = None) -> dict[str, Any]:
-    path, state_path, history_path = _session_paths(project_path)
+    """Typed C64 text, planned by the editor's typed-text.js (same characters, wrapping and errors)."""
+    path = resolve_project(project_path)
     data = _load(path)
-    _ensure_inks(data)
-    state = default_tool_state()
-    if state_path.exists():
-        state.update(_load(state_path))
-    brush = state['ink'] if ink is None else int(ink)
-    columns = data['columns']
-    rows = data['rows']
-    planned = []
-    column = x
-    row = y
-    for character in text.replace('\r\n', '\n').replace('\r', '\n'):
-        if character == '\n':
-            column = x
-            row += 1
-            continue
-        glyph_id = typed_glyph(character)
-        if glyph_id is None:
-            return {'ok': False, 'error': f'Unsupported character: {character}. Use A–Z, a–z, 0–9 or C64 punctuation.'}
-        if column >= columns:
-            column = x
-            row += 1
-        if row >= rows:
-            return {'ok': False, 'error': 'Text does not fit. Shorten it or start earlier.'}
-        planned.append((column, row, glyph_id))
-        column += 1
-    _push_history(history_path, _snapshot(data))
-    for column, row, glyph_id in planned:
-        index = row * columns + column
-        data['grid'][index] = glyph_id
-        data['cellColors'][index] = brush
-    _sync_replay(data)
-    save = save_project(data, str(path))
-    if not save.get('ok'):
-        return save
-    return {'ok': True, 'project': str(path), 'changed': len(planned)}
+    x = _int(x, 'x')
+    y = _int(y, 'y')
+    if not _in_bounds(data, x, y):
+        raise ProjectError(f'text start ({x},{y}) is outside the {data["columns"]}×{data["rows"]} canvas')
+    state = get_tool_state(project_path)
+    brush = state['ink'] if ink is None else _ink(ink)
+    encoded = base64.b64encode(text.encode('utf-8')).decode('ascii')
+    planned = parse_json_stdout(run_node(
+        PGL_CLI,
+        ['plan-text', f'--project={path}', f'--x={x}', f'--y={y}', f'--ink={brush}', f'--text-b64={encoded}'],
+        check=False,
+    ))
+    if not planned.get('ok'):
+        raise ProjectError(planned.get('error', 'text could not be placed'))
+
+    def mutate(data, state):
+        changed = 0
+        for index, (glyph, cell_ink) in enumerate(zip(planned['cells'], planned['inks'])):
+            if data['grid'][index] != glyph or data['cellColors'][index] != cell_ink:
+                data['grid'][index] = glyph
+                data['cellColors'][index] = cell_ink
+                changed += 1
+        return {'changed': changed, 'characters': planned['count']}
+
+    return _mutate(project_path, mutate)
+
+
+def _clamp_selection(data: dict[str, Any], selection: dict[str, int] | None) -> dict[str, int] | None:
+    """Clip a selection to the canvas; None when nothing of it remains."""
+    if not selection:
+        return None
+    left = max(0, selection['x0'])
+    top = max(0, selection['y0'])
+    right = min(data['columns'] - 1, selection['x1'])
+    bottom = min(data['rows'] - 1, selection['y1'])
+    if left > right or top > bottom:
+        return None
+    return {'x0': left, 'y0': top, 'x1': right, 'y1': bottom}
 
 
 def select_rect(project_path: str | None, x0: int, y0: int, x1: int, y1: int) -> dict[str, Any]:
-    left, right = sorted((int(x0), int(x1)))
-    top, bottom = sorted((int(y0), int(y1)))
-    state = set_tool_state(project_path, {'selection': {'x0': left, 'y0': top, 'x1': right, 'y1': bottom}})
+    path = resolve_project(project_path)
+    data = _load(path)
+    left, right = sorted((_int(x0, 'x0'), _int(x1, 'x1')))
+    top, bottom = sorted((_int(y0, 'y0'), _int(y1, 'y1')))
+    selection = _clamp_selection(data, {'x0': left, 'y0': top, 'x1': right, 'y1': bottom})
+    if selection is None:
+        raise ProjectError(f'selection is entirely outside the {data["columns"]}×{data["rows"]} canvas')
+    state = set_tool_state(project_path, {'selection': selection})
     return {'ok': True, 'selection': state['selection']}
 
 
 def deselect(project_path: str | None = None) -> dict[str, Any]:
     set_tool_state(project_path, {'selection': None})
     return {'ok': True, 'selection': None}
+
+
+def _require_selection(data: dict[str, Any], state: dict[str, Any]) -> dict[str, int]:
+    selection = _clamp_selection(data, state.get('selection'))
+    if selection is None:
+        raise ProjectError('no selection: call select_rect first')
+    return selection
 
 
 def _selection_cells(data: dict[str, Any], selection: dict[str, int]) -> list[tuple[int, int, Any, int]]:
@@ -381,9 +488,7 @@ def _selection_cells(data: dict[str, Any], selection: dict[str, int]) -> list[tu
 
 def move_selection(project_path: str | None, dx: int, dy: int) -> dict[str, Any]:
     def mutate(data, state):
-        selection = state.get('selection')
-        if not selection:
-            return {'changed': 0, 'error': 'no selection'}
+        selection = _require_selection(data, state)
         cells = _selection_cells(data, selection)
         ink = data.get('colors', {}).get('ink', state['ink'])
         columns = data['columns']
@@ -398,6 +503,8 @@ def move_selection(project_path: str | None, dx: int, dy: int) -> dict[str, Any]
                 changed += _paint_point(data, nx, ny, glyph, cell_ink, 'none')
         return {'changed': changed}
 
+    dx = _int(dx, 'dx')
+    dy = _int(dy, 'dy')
     selection = get_tool_state(project_path).get('selection')
     result = _mutate(project_path, mutate)
     if result.get('ok') and selection:
@@ -413,10 +520,11 @@ def move_selection(project_path: str | None, dx: int, dy: int) -> dict[str, Any]
 
 
 def duplicate_selection(project_path: str | None, dx: int, dy: int) -> dict[str, Any]:
+    dx = _int(dx, 'dx')
+    dy = _int(dy, 'dy')
+
     def mutate(data, state):
-        selection = state.get('selection')
-        if not selection:
-            return {'changed': 0, 'error': 'no selection'}
+        selection = _require_selection(data, state)
         cells = _selection_cells(data, selection)
         columns = data['columns']
         rows = data['rows']
@@ -433,9 +541,7 @@ def duplicate_selection(project_path: str | None, dx: int, dy: int) -> dict[str,
 
 def delete_selection(project_path: str | None) -> dict[str, Any]:
     def mutate(data, state):
-        selection = state.get('selection')
-        if not selection:
-            return {'changed': 0, 'error': 'no selection'}
+        selection = _require_selection(data, state)
         ink = data.get('colors', {}).get('ink', state['ink'])
         changed = 0
         for x, y, _, _ in _selection_cells(data, selection):
@@ -449,22 +555,30 @@ def clear_drawing(project_path: str | None) -> dict[str, Any]:
     def mutate(data, state):
         ink = data.get('colors', {}).get('ink', state['ink'])
         count = data['columns'] * data['rows']
+        changed = sum(
+            1 for glyph, cell_ink in zip(data['grid'], data['cellColors']) if glyph != '' or cell_ink != ink
+        )
         data['grid'] = [''] * count
         data['cellColors'] = [ink] * count
-        return {'changed': count}
+        return {'changed': changed, 'reset_replay': True}
 
     return _mutate(project_path, mutate)
 
 
 def recolor_drawing(project_path: str | None, ink: int) -> dict[str, Any]:
+    ink = _ink(ink)
+
     def mutate(data, state):
         changed = 0
         for index, glyph in enumerate(data['grid']):
-            if glyph == '':
+            if glyph == '' or data['cellColors'][index] == ink:
                 continue
             data['cellColors'][index] = ink
             changed += 1
-        data.setdefault('colors', {})['ink'] = ink
+        colors = data.setdefault('colors', {})
+        if colors.get('ink') != ink:
+            colors['ink'] = ink
+            changed = max(changed, 1)
         return {'changed': changed}
 
     return _mutate(project_path, mutate)
@@ -575,11 +689,14 @@ def undo(project_path: str | None = None) -> dict[str, Any]:
     if not hist['undo']:
         return {'ok': False, 'error': 'nothing to undo'}
     data = _load(path)
-    hist['redo'].append(_snapshot(data))
-    snap = hist['undo'].pop()
-    _apply_snapshot(data, snap)
-    _write(history_path, hist)
+    current = _snapshot(data)
+    _apply_snapshot(data, hist['undo'][-1])
     saved = save_project(data, str(path))
+    if not saved.get('ok'):
+        return saved
+    hist['undo'].pop()
+    hist['redo'].append(current)
+    _write(history_path, hist)
     saved['undone'] = True
     return saved
 
@@ -590,23 +707,61 @@ def redo(project_path: str | None = None) -> dict[str, Any]:
     if not hist['redo']:
         return {'ok': False, 'error': 'nothing to redo'}
     data = _load(path)
-    hist['undo'].append(_snapshot(data))
-    snap = hist['redo'].pop()
-    _apply_snapshot(data, snap)
-    _write(history_path, hist)
+    current = _snapshot(data)
+    _apply_snapshot(data, hist['redo'][-1])
     saved = save_project(data, str(path))
+    if not saved.get('ok'):
+        return saved
+    hist['redo'].pop()
+    hist['undo'].append(current)
+    _write(history_path, hist)
     saved['redone'] = True
     return saved
 
 
-def create_canvas(project_path: str | None, columns: int = 40, rows: int = 25, background: int = 0, ink: int = 1) -> dict[str, Any]:
+def machine_info() -> dict[str, Any]:
+    """Machine limits and boot colours from the editor's machine-modes.js (cached)."""
+    global _MACHINE_INFO
+    if _MACHINE_INFO is None:
+        listing = parse_json_stdout(run_node(PGL_CLI, ['list-effects'], check=False))
+        if not listing.get('ok'):
+            raise ProjectError(f"could not read machine modes: {listing.get('error')}")
+        _MACHINE_INFO = listing['machines']
+    return _MACHINE_INFO
+
+
+_MACHINE_INFO: dict[str, Any] | None = None
+
+
+def create_canvas(
+    project_path: str | None,
+    columns: int = 40,
+    rows: int = 25,
+    background: int | None = None,
+    ink: int | None = None,
+    machine: str | None = None,
+    name: str | None = None,
+) -> dict[str, Any]:
+    """Blank picture. Colours default to the machine's boot screen; 80 columns default to C128 80-col."""
     path = resolve_project(project_path)
+    columns = _int(columns, 'columns')
+    rows = _int(rows, 'rows')
+    if machine is None:
+        machine = 'c128-80' if columns > 40 else 'c64'
+    if machine not in MACHINES:
+        raise ProjectError(f'unknown machine {machine!r}; expected one of: {", ".join(MACHINES)}')
+    info = machine_info()[machine]
+    if not 1 <= columns <= info['maxColumns'] or not 1 <= rows <= info['maxRows']:
+        raise ProjectError(
+            f"{info['label']} canvases are 1–{info['maxColumns']} columns by 1–{info['maxRows']} rows; got {columns}×{rows}"
+        )
+    background = info['defaultBackground'] if background is None else _int(background, 'background')
+    ink = info['defaultInk'] if ink is None else _int(ink, 'ink')
     count = columns * rows
     data = {
         'format': 'petscii-stencil-lab',
         'version': 3,
-        'machine': 'c64',
-        'palette': 'pepto',
+        'machine': machine,
         'columns': columns,
         'rows': rows,
         'grid': [''] * count,
@@ -617,18 +772,63 @@ def create_canvas(project_path: str | None, columns: int = 40, rows: int = 25, b
         'glyphSource': 'builtin',
         'colors': {'ink': ink, 'background': background},
         'animation': dict(DEFAULT_ANIMATION),
+        **({'name': name} if name else {}),
     }
-    _sync_replay(data)
-    set_tool_state(str(path), default_tool_state())
+    _reset_replay(data)
+    saved = save_project(data, str(path))
+    if not saved.get('ok'):
+        return saved
+    set_tool_state(str(path), {**default_tool_state(), 'ink': ink})
     _, _, history_path = _session_paths(str(path))
     _write(history_path, {'undo': [], 'redo': []})
-    return save_project(data, str(path))
+    saved['machine'] = machine
+    return saved
 
 
-def read_grid(project_path: str | None = None) -> dict[str, Any]:
+def _grid_runs(data: dict[str, Any]) -> list[dict[str, Any]]:
+    """Painted cells as horizontal runs of one ink: the same shape paint_cells(runs=...) accepts."""
+    columns = data['columns']
+    runs: list[dict[str, Any]] = []
+    for y in range(data['rows']):
+        x = 0
+        while x < columns:
+            index = y * columns + x
+            if data['grid'][index] == '':
+                x += 1
+                continue
+            ink = data['cellColors'][index]
+            glyphs = []
+            start = x
+            while x < columns and data['grid'][y * columns + x] != '' and data['cellColors'][y * columns + x] == ink:
+                glyphs.append(data['grid'][y * columns + x])
+                x += 1
+            runs.append({'x': start, 'y': y, 'ink': ink, 'glyphs': glyphs})
+    return runs
+
+
+def read_grid(project_path: str | None = None, format: str = 'runs') -> dict[str, Any]:
+    """Painted cells as `runs` (compact, default), `cells` ({x,y,glyph,ink} each), or the editor's `text` grid."""
+    if format not in ('runs', 'cells', 'text'):
+        raise ProjectError(f"format must be runs, cells or text, got {format!r}")
     path = resolve_project(project_path)
     data = _load(path)
     columns = data['columns']
+    summary = {
+        'ok': True,
+        'project': str(path),
+        'machine': data.get('machine', 'c64'),
+        'columns': columns,
+        'rows': data['rows'],
+        'colors': data.get('colors'),
+        'painted': sum(1 for glyph in data['grid'] if glyph != ''),
+    }
+    if format == 'runs':
+        return {**summary, 'runs': _grid_runs(data)}
+    if format == 'text':
+        result = parse_json_stdout(run_node(PGL_CLI, ['export-text-grid', f'--project={path}'], check=False))
+        if not result.get('ok'):
+            raise ProjectError(result.get('error', 'text grid failed'))
+        return {**summary, 'encoding': 'PETSCII-GLYPHS text grid (atlas glyph IDs, not PETSCII bytes)', 'text': result['text']}
     occupied = []
     for index, glyph in enumerate(data['grid']):
         if glyph == '':
@@ -639,14 +839,7 @@ def read_grid(project_path: str | None = None) -> dict[str, Any]:
             'glyph': glyph,
             'ink': data['cellColors'][index],
         })
-    return {
-        'ok': True,
-        'project': str(path),
-        'columns': columns,
-        'rows': data['rows'],
-        'colors': data.get('colors'),
-        'occupied': occupied,
-    }
+    return {**summary, 'occupied': occupied}
 
 
 GLYPH_FAMILIES = {

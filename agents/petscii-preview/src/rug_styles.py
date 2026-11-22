@@ -181,8 +181,8 @@ def list_style_combinations() -> dict[str, Any]:
             for key, spec in STYLE_COMBINATIONS.items()
         ],
         "combine_workflow": [
-            "list_world_art_references('rug')",
-            "combine_styles(combo_id) — read layers",
+            "petscii://world-art/references/rug",
+            "petscii://rugs/{combination} — read layers",
             "stamp_combined_style(project_path, combo_id)",
             "critique_drawing(style='op-art')",
         ],

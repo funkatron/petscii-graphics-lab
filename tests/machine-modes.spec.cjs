@@ -361,6 +361,50 @@ test('CRT rasters match full-screen presets and square PNG stays 16 px/cell',asy
  expect([vdcPng.width,vdcPng.height]).toEqual([800,600]);
 });
 
+test('CRT still PNG is crisp: only project colors, glyph pixels sampled like GIF/ZIP',async({page})=>{
+ test.setTimeout(60000);
+ page.on('dialog',dialog=>dialog.accept());
+ // C64 checker $66 and solid $A0 rows; the PNG must reproduce them with nearest sampling, no blended edges.
+ const checker=[0xcc,0xcc,0x33,0x33,0xcc,0xcc,0x33,0x33];
+ const rgbOf=png=>(x,y)=>Array.from(png.data.subarray((y*png.width+x)*4,(y*png.width+x)*4+4));
+ const expectCrisp=(png,cellW,cellH,ink,paper)=>{
+  const at=rgbOf(png),colors=new Set();
+  for(let y=0;y<png.height;y++)for(let x=0;x<png.width;x++)colors.add(at(x,y).join());
+  expect([...colors].sort()).toEqual([[...ink,255].join(),[...paper,255].join()].sort());
+  for(let y=0;y<cellH;y++)for(let x=0;x<cellW;x++){
+   expect(at(x,y)).toEqual([...ink,255]);
+   const lit=checker[Math.floor(y*8/cellH)]&(0x80>>Math.floor(x*8/cellW));
+   expect(at(cellW+x,y)).toEqual([...(lit?ink:paper),255]);
+  }
+ };
+ const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+ await loadProject(page,baseProject([160,102],2,1,{cellColors:[7,7],colors:{ink:7,background:6}}));
+ await ui(page,'#pngScale','selectOption','1');
+ const square=PNG.sync.read(await download(page,'#png'));
+ expect([square.width,square.height]).toEqual([32,16]);
+ expectCrisp(square,16,16,hex('#b8c76f'),hex('#352879'));
+ await page.keyboard.press('Escape');
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceCellAspect','selectOption','crt');
+ await ui(page,'#pngScale','selectOption','1');
+ const crt=PNG.sync.read(await download(page,'#png'));
+ expect([crt.width,crt.height]).toEqual([20,12]);
+ expectCrisp(crt,10,12,hex('#b8c76f'),hex('#352879'));
+ await ui(page,'#pngScale','selectOption','2');
+ const crt2=PNG.sync.read(await download(page,'#png'));
+ expectCrisp(crt2,20,24,hex('#b8c76f'),hex('#352879'));
+ await page.keyboard.press('Escape');
+ await page.locator('#machineMenu > summary').click();
+ await ui(page,'#workspaceMachine','selectOption','c128-80');
+ await expect(page.locator('#machineSummary')).toContainText('C128-80');
+ await ui(page,'#pngScale','selectOption','1');
+ const vdc=PNG.sync.read(await download(page,'#png'));
+ expect([vdc.width,vdc.height]).toEqual([20,24]);
+ const vdcColors=new Set();const at=rgbOf(vdc);
+ for(let y=0;y<vdc.height;y++)for(let x=0;x<vdc.width;x++)vdcColors.add(at(x,y).join());
+ expect(vdcColors.size).toBe(2);
+});
+
 test('raster export offers larger cell sizes and labels CRT pixels',async({page})=>{
  await loadProject(page,baseProject([160],1,1));
  await page.locator('#downloadOpen').click();

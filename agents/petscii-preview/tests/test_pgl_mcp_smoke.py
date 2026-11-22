@@ -103,7 +103,7 @@ class PglMcpSmokeTests(unittest.TestCase):
             project_io.create_project(16, 10, save_path=str(project))
             drawing.set_tool_state(str(project), {"glyph": 1, "ink": 1})
             drawing.place_text(str(project), "OK", 1, 1)
-            result = pgl_export.export_c64(
+            result = pgl_export.export_native(
                 str(project),
                 mode="still",
                 format="prg",

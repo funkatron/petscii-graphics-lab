@@ -1,194 +1,221 @@
 #!/usr/bin/env node
 /**
- * Small Node bridge for MCP: validate, text-grid, C64 export, place-text.
+ * Node bridge for the MCP: validate, text grids, typed text, render plans, plans, native export.
  * Usage: node pgl_cli.mjs <command> [--flags]
+ * Every command prints one JSON line: {ok: true, ...} or {ok: false, error}.
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { buildAnimationSource, mergeAnimationSettings } from './animation-source.mjs';
+import { pathToFileURL } from 'node:url';
+import {
+  ROOT, loadProject, validateProject, renderPlan, nativeProgram, animationSource, animationPlan,
+  colorTable, glyphSheet,
+} from './pgl-shared.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const command = process.argv[2];
 const args = process.argv.slice(3);
 const flag = (name) => {
   const hit = args.find((a) => a.startsWith(`--${name}=`));
   return hit ? hit.slice(name.length + 3) : null;
 };
+const settingsFlag = () => (flag('settings') ? JSON.parse(flag('settings')) : {});
 
-const { validateProject } = await import(pathToFileURL(join(root, 'project-validation.js')).href);
-const { formatTextGrid, parseTextGrid } = await import(pathToFileURL(join(root, 'text-grid.js')).href);
-const { planTypedText } = await import(pathToFileURL(join(root, 'typed-text.js')).href);
-const { animationCells, animationCount, animationPlan, animationDelay } = await import(
-  pathToFileURL(join(root, 'animation-frames.js')).href
-);
-const { createC64AdaptiveProgram, createD64Disk } = await import(
-  pathToFileURL(join(root, 'c64-export.js')).href
-);
+const { formatTextGrid, parseTextGrid } = await import(pathToFileURL(join(ROOT, 'text-grid.js')).href);
+const { planTypedText } = await import(pathToFileURL(join(ROOT, 'typed-text.js')).href);
 
-function loadProject(path) {
-  const data = JSON.parse(readFileSync(path, 'utf8'));
-  validateProject(data);
-  return data;
-}
-
-function animationSource(data, overrides = {}) {
-  const anim = mergeAnimationSettings(data, overrides);
-  return buildAnimationSource(data, anim);
-}
-
-if (command === 'validate') {
-  const path = flag('project');
-  try {
-    loadProject(path);
-    console.log(JSON.stringify({ ok: true, project: path }));
-  } catch (error) {
-    console.log(JSON.stringify({ ok: false, project: path, error: error.message }));
-    process.exitCode = 1;
-  }
-} else if (command === 'export-text-grid') {
-  const data = loadProject(flag('project'));
-  const includeColors = flag('include-colors') !== '0';
-  const text = formatTextGrid({
-    columns: data.columns,
-    rows: data.rows,
-    grid: data.grid,
-    cellColors: data.cellColors || Array(data.columns * data.rows).fill(data.colors?.ink ?? 14),
-    colors: data.colors || { ink: 14, background: 0 },
-    includeColors,
-  });
-  const out = flag('out');
-  if (out) {
-    mkdirSync(dirname(out), { recursive: true });
-    writeFileSync(out, `${text}\n`);
-  }
-  console.log(JSON.stringify({ ok: true, out, text: out ? undefined : text }));
-} else if (command === 'import-text-grid') {
-  const textPath = flag('text');
-  const projectPath = flag('project');
-  const out = flag('out') || projectPath;
-  const text = readFileSync(textPath, 'utf8');
-  const existing = projectPath ? JSON.parse(readFileSync(projectPath, 'utf8')) : null;
-  const defaults = existing?.colors || { ink: 14, background: 0 };
-  const parsed = parseTextGrid(text, defaults);
-  const next = {
-    format: 'petscii-stencil-lab',
-    version: 3,
-    columns: parsed.columns,
-    rows: parsed.rows,
-    grid: parsed.grid,
-    cellColors: parsed.cellColors,
-    colors: parsed.colors,
-    animation: existing?.animation || {
-      effect: 'none',
-      colorEffect: 'none',
-      backgroundEffect: 'none',
-      seconds: 2,
-      scale: 2,
-      background: 'dark',
-      motionCycles: 1,
-      colorCycles: 1,
-      backgroundCycles: 1,
-    },
-    name: existing?.name || 'Imported text grid',
-  };
-  validateProject(next);
+function writeOut(out, contents) {
   mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, `${JSON.stringify(next, null, 2)}\n`);
-  console.log(JSON.stringify({ ok: true, out, columns: next.columns, rows: next.rows }));
-} else if (command === 'place-text') {
-  const projectPath = flag('project');
-  const out = flag('out') || projectPath;
-  const data = loadProject(projectPath);
-  const x = Number(flag('x') || 0);
-  const y = Number(flag('y') || 0);
-  let text = flag('text') ?? '';
-  const textB64 = flag('text-b64');
-  if (textB64) {
-    text = Buffer.from(textB64, 'base64').toString('utf8');
-  }
-  const ink = Number(flag('ink') ?? data.colors?.ink ?? 14);
-  const plan = planTypedText(
-    text,
-    [x, y],
-    data.columns,
-    data.rows,
-    data.grid,
-    data.cellColors || Array(data.columns * data.rows).fill(ink),
-    ink,
-  );
-  if (plan.error) {
-    console.log(JSON.stringify({ ok: false, error: plan.error }));
-    process.exitCode = 1;
-  } else {
-    data.grid = plan.cells;
-    data.cellColors = plan.inks;
-    validateProject(data);
-    writeFileSync(out, `${JSON.stringify(data, null, 2)}\n`);
-    console.log(JSON.stringify({ ok: true, out, count: plan.count }));
-  }
-} else if (command === 'export-c64') {
-  try {
-    const projectPath = flag('project');
+  writeFileSync(out, contents);
+}
+
+const validation = await import(pathToFileURL(join(ROOT, 'project-validation.js')).href);
+const { MACHINES, maxInkIndex } = await import(pathToFileURL(join(ROOT, 'machine-modes.js')).href);
+const { DISPLAY_PALETTE_IDS } = await import(pathToFileURL(join(ROOT, 'c64-colors.js')).href);
+const { SOLID_EFFECTS } = await import(pathToFileURL(join(ROOT, 'solid-motion.js')).href);
+
+const commands = {
+  /** Enumerations the editor accepts in project.animation. */
+  'list-effects'() {
+    return {
+      ok: true,
+      motionEffects: validation.MOTION_EFFECTS,
+      colorEffects: validation.COLOR_EFFECTS,
+      backgroundEffects: validation.BACKGROUND_EFFECTS,
+      fieldRamps: validation.FIELD_RAMPS,
+      animationCycles: validation.ANIMATION_CYCLES,
+      waveDirections: validation.WAVE_DIRECTIONS,
+      waveShapes: validation.WAVE_SHAPES,
+      waveAmplitudes: validation.WAVE_AMPLITUDES,
+      waveLengths: validation.WAVE_LENGTHS,
+      colorWaveDirections: validation.COLOR_WAVE_DIRECTIONS,
+      wipePatterns: validation.WIPE_PATTERNS,
+      depthEffects: validation.DEPTH_EFFECTS,
+      introMotions: validation.INTRO_MOTIONS,
+      solidEffects: SOLID_EFFECTS,
+      solidCamera: validation.SOLID_CAMERA_VALUES,
+      allowedSeconds: [0.5, 1, 2, 4, 8, 12],
+      allowedScale: [1, 2, 4, 8],
+      allowedBackgrounds: ['dark', 'white', 'transparent'],
+      fieldDirections: validation.FIELD_DIRECTIONS,
+      fieldLeads: validation.FIELD_LEADS,
+      parallaxGroups: validation.PARALLAX_GROUPS,
+      parallaxSpreads: validation.PARALLAX_SPREADS,
+      parallaxTravels: validation.PARALLAX_TRAVELS,
+      depthTravels: ['toward', 'away'],
+      machines: Object.fromEntries(Object.values(MACHINES).map((m) => [m.id, {
+        label: m.label,
+        maxColumns: m.maxColumns,
+        maxRows: 40,
+        defaultInk: m.defaultInk,
+        defaultBackground: m.defaultBackground,
+        maxInk: maxInkIndex(m.id),
+        glyphSheet: glyphSheet(m.id),
+        colorTable: colorTable(m.id, 'pepto').id,
+      }])),
+      displayPalettes: DISPLAY_PALETTE_IDS,
+      cellShapes: ['square', 'crt'],
+    };
+  },
+
+  validate() {
+    const path = flag('project');
+    try {
+      loadProject(path);
+      return { ok: true, project: path };
+    } catch (error) {
+      process.exitCode = 1;
+      return { ok: false, project: path, error: error.message };
+    }
+  },
+
+  'export-text-grid'() {
+    const data = loadProject(flag('project'));
+    const text = formatTextGrid({
+      columns: data.columns,
+      rows: data.rows,
+      grid: data.grid,
+      cellColors: data.cellColors || Array(data.columns * data.rows).fill(data.colors?.ink ?? 14),
+      colors: data.colors || { ink: 14, background: 0 },
+      includeColors: flag('include-colors') !== '0',
+      // index.html textGrid(): TED inks (0–120) need two hex digits (PETSCII-GLYPHS 3).
+      colorDigits: glyphSheet(data.machine ?? 'c64') === 'ted' ? 2 : 1,
+    });
     const out = flag('out');
+    if (out) writeOut(out, `${text}\n`);
+    return { ok: true, out, text: out ? undefined : text };
+  },
+
+  'import-text-grid'() {
+    const projectPath = flag('project');
+    const out = flag('out') || projectPath;
+    const text = readFileSync(flag('text'), 'utf8');
+    const existing = projectPath ? JSON.parse(readFileSync(projectPath, 'utf8')) : null;
+    const parsed = parseTextGrid(text, existing?.colors || { ink: 14, background: 0 });
+    const next = {
+      format: 'petscii-stencil-lab',
+      version: 3,
+      ...(existing?.machine ? { machine: existing.machine } : {}),
+      ...(existing?.palette ? { palette: existing.palette } : {}),
+      columns: parsed.columns,
+      rows: parsed.rows,
+      grid: parsed.grid,
+      cellColors: parsed.cellColors,
+      colors: parsed.colors,
+      animation: existing?.animation || { effect: 'none', colorEffect: 'none', backgroundEffect: 'none', seconds: 2, scale: 2, background: 'dark' },
+      name: existing?.name || 'Imported text grid',
+    };
+    validateProject(next);
+    writeOut(out, `${JSON.stringify(next, null, 2)}\n`);
+    return { ok: true, out, columns: next.columns, rows: next.rows };
+  },
+
+  /** Typed C64 text using the editor's typed-text.js; prints the planned cells, writes nothing. */
+  'plan-text'() {
+    const data = loadProject(flag('project'));
+    const text = Buffer.from(flag('text-b64') || '', 'base64').toString('utf8');
+    const ink = Number(flag('ink') ?? data.colors?.ink ?? 14);
+    const cellCount = data.columns * data.rows;
+    const plan = planTypedText(
+      text,
+      [Number(flag('x') || 0), Number(flag('y') || 0)],
+      data.columns,
+      data.rows,
+      data.grid,
+      data.cellColors || Array(cellCount).fill(ink),
+      ink,
+    );
+    if (plan.error) return { ok: false, error: plan.error };
+    return { ok: true, cells: plan.cells, inks: plan.inks, count: plan.count };
+  },
+
+  /** Frames, colour table, glyph sheet and cell shape for the Python rasterizer. */
+  'render-plan'() {
+    const data = loadProject(flag('project'));
+    const mode = flag('mode') || 'still';
+    const plan = renderPlan(data, { mode, settings: settingsFlag(), cellAspect: flag('cell-shape') || 'square' });
+    if (mode === 'animation' && plan.warning) {
+      return { ok: false, error: plan.warning, readiness: 'needs_adjustment' };
+    }
+    writeOut(flag('out'), `${JSON.stringify(plan)}\n`);
+    const { frames, ...summary } = plan;
+    return { ok: true, out: flag('out'), ...summary };
+  },
+
+  /** Frame count and readiness for the requested settings (nothing is changed or bumped). */
+  plan() {
+    const data = loadProject(flag('project'));
+    const source = animationSource(data, settingsFlag());
+    const plan = animationPlan(source);
+    let suggestedSeconds = null;
+    if (plan.warning) {
+      for (const seconds of [0.5, 1, 2, 4, 8, 12]) {
+        if (seconds > source.seconds && !animationPlan({ ...source, seconds }).warning) {
+          suggestedSeconds = seconds;
+          break;
+        }
+      }
+    }
+    return {
+      ok: true,
+      machine: source.machine,
+      effect: source.effect,
+      colorEffect: source.colorEffect,
+      backgroundEffect: source.backgroundEffect,
+      seconds: source.seconds,
+      frameCount: plan.count,
+      warning: plan.warning || '',
+      readiness: plan.warning ? 'needs_adjustment' : 'ready',
+      suggestedSeconds,
+    };
+  },
+
+  /** Native PRG or D64 for the project's machine (C64, C128 40/80-col, Plus/4). */
+  async 'export-native'() {
+    const data = loadProject(flag('project'));
     const format = flag('format') || 'prg';
     const mode = flag('mode') || 'still';
-    const repetitions = Number(flag('repetitions') || 1);
-    const allowTimingOverrun = flag('allow-timing-overrun') === '1';
-    const settings = flag('settings') ? JSON.parse(flag('settings')) : {};
-    const data = loadProject(projectPath);
-    const source = animationSource(data, settings);
-    const moving = mode === 'animation';
-    if (moving) {
-      const plan = animationPlan(source);
-      if (plan.warning && !allowTimingOverrun) {
-        console.log(JSON.stringify({ ok: false, error: plan.warning, readiness: 'needs_adjustment' }));
-        process.exit(1);
-      }
-    }
-    const frames = [];
-    if (moving) {
-      const count = animationCount(source);
-      for (let i = 0; i < count; i++) {
-        const picture = animationCells(i, source);
-        frames.push({
-          cells: picture.cells,
-          inks: picture.inks,
-          durationMs: Math.max(10, Math.round(animationDelay(i, source))),
-        });
-      }
-    } else {
-      frames.push({ cells: source.grid, inks: source.inks, durationMs: 1000 / 60 });
-    }
-    const result = createC64AdaptiveProgram({
-      columns: source.W,
-      rows: source.H,
-      charset: 0,
-      background: source.colors.background,
-      ink: source.colors.ink,
-      frames,
-      repetitions: moving ? repetitions : 1,
-      allowTimingOverrun,
-    });
-    const bytes = format === 'd64'
-      ? createD64Disk(result.bytes, moving ? 'ANIMATION' : 'PICTURE')
-      : result.bytes;
-    mkdirSync(dirname(out), { recursive: true });
-    writeFileSync(out, Buffer.from(bytes));
-    console.log(JSON.stringify({
-      ok: true,
-      out,
-      format,
+    const { machine, result, createD64Disk, moving } = await nativeProgram(data, {
       mode,
-      frameCount: result.frameCount,
-      bytes: bytes.length,
-      readiness: 'ready',
-    }));
-  } catch (error) {
-    console.log(JSON.stringify({ ok: false, error: error.message, readiness: 'needs_adjustment' }));
-    process.exitCode = 1;
-  }
-} else {
-  console.error(JSON.stringify({ error: `unknown command: ${command}` }));
+      settings: settingsFlag(),
+      repetitions: Number(flag('repetitions') ?? 1),
+      allowTimingOverrun: flag('allow-timing-overrun') === '1',
+    });
+    const bytes = format === 'd64' ? createD64Disk(result.bytes, moving ? 'ANIMATION' : 'PICTURE') : result.bytes;
+    writeOut(flag('out'), Buffer.from(bytes));
+    return { ok: true, out: flag('out'), machine, format, mode, frameCount: result.frameCount, bytes: bytes.length, readiness: 'ready' };
+  },
+};
+
+const run = commands[command];
+if (!run) {
+  console.log(JSON.stringify({ ok: false, error: `unknown command: ${command}` }));
   process.exit(2);
+}
+try {
+  const result = await run();
+  if (result.ok === false && !process.exitCode) process.exitCode = 1;
+  console.log(JSON.stringify(result));
+} catch (error) {
+  console.log(JSON.stringify({ ok: false, error: error.message, readiness: 'needs_adjustment' }));
+  process.exitCode = 1;
 }

@@ -444,6 +444,7 @@ Playwright tests desktop Chromium and iPad WebKit in landscape and portrait. Tes
 ## Other documentation
 
 - [Planned work](docs/roadmap.md): completed animation/player milestones and requested follow-ups.
+- [Draw with an AI agent](agents/petscii-preview/README.md): let Cursor or Claude Code draw, animate, and export projects through the petscii-preview MCP server.
 
 - [C64 output guide](docs/c64-output.md): raw binary files and runnable still/animation programs.
 - [Maintainer reference](docs/maintainer-reference.md): implementation contracts and source references.
