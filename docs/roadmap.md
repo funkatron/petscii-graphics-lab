@@ -16,7 +16,7 @@ The `petscii-preview` MCP server ([user guide](../agents/petscii-preview/README.
 
 Found and fixed along the way: the editor's CRT still PNG was anti-aliased (blurred glyph edges, striped solid blocks); it now draws crisp pixels like the canvas and GIF/ZIP/video.
 
-**Follow-up:** example projects in `agents/petscii-preview/examples/` predate the `machine` field.
+The example projects in `agents/petscii-preview/examples/` set their machine; the Plus/4 card uses TED glyphs and colours.
 
 ## Tier A cross-editor UX — complete
 

@@ -1,16 +1,16 @@
 # Exploratory machine-feel examples
 
-Open these in PETSCII Graphics Lab with **Project → Open**.
+Open these in PETSCII Graphics Lab with **Project → Open project**. Each file sets its machine, so the editor switches to it when the project opens.
 
-| File | Feel |
-| --- | --- |
-| `c64-ready-card.json` | Light blue on blue |
-| `c128-ready-card.json` | Cyan on blue |
-| `plus4-ready-card.json` | Black on light gray |
-| `pgl-wordmark.json` | Yellow wordmark on black |
-| `mode-swatches.json` | Same glyphs, three palette moods |
+| File | Machine | Feel |
+| --- | --- | --- |
+| `c64-ready-card.json` | C64 | Light blue on blue |
+| `c128-ready-card.json` | C128 40-column | Cyan on blue |
+| `plus4-ready-card.json` | Plus/4 | Black on light gray, in TED colors and glyphs |
+| `pgl-wordmark.json` | C64 | Yellow wordmark on black |
+| `mode-swatches.json` | C64 | Same glyphs, three palette moods in VIC colors |
 
-PNG previews are in `png/` for a quick look without launching the lab.
+To regenerate the files, run `node agents/petscii-preview/make_pgl_examples.mjs`. For PNG previews, run `agents/petscii-preview/.venv/bin/python agents/petscii-preview/render_pgl_examples.py`; they land in `agents/petscii-preview/out/examples-png/`.
 
 ## Animation JSON (MCP)
 
@@ -37,4 +37,4 @@ Legacy saves may still have `colorEffect: "field"`; the lab and MCP migrate that
 
 ## Op-art abstracts
 
-No photo references — use MCP `list_op_art_recipes` / `op_art_recipe` and the **Op-art** section in `.cursor/skills/petscii-draw/SKILL.md`. Study Riley/Vasarely composition mentally, then `stamp_op_art` + animation stacks (parallax, plasma, fld-blinds).
+No photo references — read the MCP catalogs `petscii://op-art/recipes` and `petscii://op-art/recipes/{id}`, and the **Op-art** section in `.cursor/skills/petscii-draw/SKILL.md`. Study Riley/Vasarely composition mentally, then `stamp_op_art` + animation stacks (parallax, plasma, fld-blinds).

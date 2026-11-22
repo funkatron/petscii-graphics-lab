@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
  * Build a few exploratory PGL v3 projects for machine-mode feel.
- * Open them in the lab via Project → Open.
+ * Open them in the lab via Project → Open project. Each sets its machine; ink and
+ * background indices are in that machine's colour space (VIC 0–15, TED 0–120).
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { validateProject } from '../../project-validation.js';
+import { getMachine, isVicMachine } from '../../machine-modes.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = join(here, 'examples');
@@ -66,7 +68,7 @@ function flatten(rows) {
   return rows.flat();
 }
 
-function projectFromRows(rows, colors, name, cellColorFn) {
+function projectFromRows(rows, colors, name, cellColorFn, machine) {
   const columns = rows[0].length;
   const gridRows = rows.length;
   const grid = flatten(rows);
@@ -78,6 +80,9 @@ function projectFromRows(rows, colors, name, cellColorFn) {
   const data = {
     format: 'petscii-stencil-lab',
     version: 3,
+    machine,
+    // The display palette applies to VIC machines only (TED and VDC have fixed colours).
+    ...(isVicMachine(machine) ? { palette: 'pepto' } : {}),
     columns,
     rows: gridRows,
     grid,
@@ -126,6 +131,7 @@ const pieces = [
   {
     file: 'c64-ready-card.json',
     name: 'C64 ready card',
+    machine: 'c64',
     colors: { ink: 14, background: 6 }, // light blue on blue
     rows: [
       textRow('COMMODORE 64', 20),
@@ -138,6 +144,7 @@ const pieces = [
   {
     file: 'c128-ready-card.json',
     name: 'C128 ready card',
+    machine: 'c128',
     colors: { ink: 3, background: 6 }, // cyan on blue
     rows: [
       textRow('COMMODORE 128', 20),
@@ -151,8 +158,9 @@ const pieces = [
   {
     file: 'plus4-ready-card.json',
     name: 'Plus/4 ready card',
-    // Approximate TED paper with C64 light gray + black.
-    colors: { ink: 0, background: 15 },
+    machine: 'plus4',
+    // The Plus/4 boot colours from machine-modes.js: TED black ink (0) on light gray paper (6).
+    colors: { ink: getMachine('plus4').defaultInk, background: getMachine('plus4').defaultBackground },
     rows: [
       textRow('COMMODORE PLUS/4', 22),
       textRow('', 22),
@@ -164,6 +172,7 @@ const pieces = [
   {
     file: 'pgl-wordmark.json',
     name: 'PGL wordmark',
+    machine: 'c64',
     colors: { ink: 7, background: 0 }, // yellow on black
     rows: [
       hBar(18, TL, TR),
@@ -178,6 +187,8 @@ const pieces = [
     // One canvas, three ink moods. Shared black paper; swatches carry the feel.
     file: 'mode-swatches.json',
     name: 'Mode swatches',
+    // VIC colours on one C64 canvas suggest each machine's mood.
+    machine: 'c64',
     colors: { ink: 1, background: 0 },
     rows: [
       textRow('SAME GLYPHS', 24),
@@ -219,10 +230,10 @@ const pieces = [
 
 mkdirSync(outDir, { recursive: true });
 for (const piece of pieces) {
-  const data = projectFromRows(piece.rows, piece.colors, piece.name, piece.cellColorFn);
+  const data = projectFromRows(piece.rows, piece.colors, piece.name, piece.cellColorFn, piece.machine);
   const path = join(outDir, piece.file);
   writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
-  console.log('wrote', path, `${data.columns}x${data.rows}`);
+  console.log('wrote', path, `${data.machine} ${data.columns}x${data.rows}`);
 }
 
 console.log('validated', pieces.length, 'PGL projects');

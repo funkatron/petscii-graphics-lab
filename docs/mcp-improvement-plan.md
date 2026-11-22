@@ -71,7 +71,7 @@ What changed beyond the list below:
 
 **Editor finding, fixed afterwards:** at CRT proportion the editor's still PNG rasterized its SVG at 1.25×1.5 with anti-aliasing (52 colours instead of 5 in the C64 parity case), so glyph edges blurred and solid blocks showed seams. `index.html` now draws still PNG pixels directly with the GIF/ZIP/video sampling rule; a new Playwright test fails on the old code and passes on the new one, and the parity check now compares CRT stills pixel for pixel (28 comparisons, 0 mismatches).
 
-**Still open:** the example projects in `examples/` predate the `machine` field (all load as C64); `render_pgl_examples.py` keeps its own Pepto-only renderer until Phase 2 moves the demo tools out.
+**Since resolved:** the example projects in `examples/` now set `machine` (the Plus/4 card uses TED colours), and `render_pgl_examples.py` uses the shared exporter (Phase 2).
 
 Follow `docs/machine-modes.md`.
 
