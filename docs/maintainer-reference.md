@@ -17,6 +17,7 @@ For drawing instructions, start with the [user guide](../README.md).
 | Machine modes, display palettes, Plus/4 TED, chrome | [Machine modes design](machine-modes.md) |
 | Application chrome layers (System / Project / Editor) | [UI review](ui-review.md#where-controls-belong); [`.cursorrules/app-like-ui-ia.md`](../.cursorrules/app-like-ui-ia.md) |
 | Source data and rebuilding glyphs | [Glyph provenance](#glyph-provenance-and-rebuilding) |
+| Agent drawing server (MCP) | [MCP server](#mcp-server-agentspetscii-preview) |
 
 ## Terms used here
 
@@ -421,3 +422,69 @@ Diagonal sampling targets max(24,W,H), retaining the existing shared budget, ind
 ### Column-wave (research only)
 
 `column-wave` scrolls horizontally (`left` / `right` only) and adds a per-column vertical offset from `waveValue(waveShape, (x/W)×50/waveLength + phase)` scaled like Sine scroller bend. Samples `max(24,W)`. Movement menu: **Column wave (DYCP-style)**. `researchMotionEffect` in `index.html` still preserves effect ids absent from the picker. See [column-wave-spike.md](column-wave-spike.md) and [column-wave-native.md](column-wave-native.md). Coverage: `tests/column-wave.unit.mjs`, `tests/column-wave.spec.cjs`, `tests/research-motion-capacity.spec.cjs` (40×24 matrix; sparse @ 2s exceeds generic timing budget).
+
+## MCP server (agents/petscii-preview)
+
+The `petscii-preview` MCP server lets coding agents draw and export projects. User setup is in its [README](../agents/petscii-preview/README.md); the change history is in the [MCP improvement plan](mcp-improvement-plan.md). It runs locally over stdio only.
+
+### Layout and data flow
+
+| Part | Role |
+| --- | --- |
+| `run-mcp.sh` | Launcher used by `.mcp.json` (Claude Code) and `.cursor/mcp.json` (Cursor). Checks the virtualenv and Node.js 22+; `PGL_NODE` selects a Node binary |
+| `src/server.py` | Tool, resource and prompt surface (`mcp>=2.3,<3`, `MCPServer`). Typed arguments; failures become `is_error` results |
+| `pgl-shared.mjs` | Imports the editor's modules and mirrors named `index.html` functions (below). The only place frame, colour and native-export rules are decided |
+| `pgl_cli.mjs` | One-JSON-line Node commands: `validate`, `list-effects`, `plan`, `render-plan`, `export-native`, `export-text-grid`, `import-text-grid`, `plan-text` |
+| `src/pgl_export.py` | Rasterizes render plans to PNG/GIF/ZIP/video and writes SVG. No colour or timing decisions |
+| `src/drawing.py` | Cell edits, selection, undo/redo, replay recording |
+| `src/project_store.py` | Load, editor validation, atomic save, write guard, session folders |
+
+### Editor functions mirrored in `pgl-shared.mjs`
+
+Change these together with `index.html`; `smoke/editor_parity.py` catches drift.
+
+| `pgl-shared.mjs` | `index.html` |
+| --- | --- |
+| `animationSource()` + `replayFields()` | `animationSource()`, project load, `resetReplay()` |
+| `colorTable()` | `animationRaster()` table choice (TED if machine or `plus4-*` effect; VDC; else display palette) |
+| `exportFrameTimes()` | `animationExportFrames()` (10 ms rounding) |
+| `glyphBits()` / `glyphSheet()` | `loadGlyphSheet()`, `selectActiveRom()` |
+| `cellShape()` | `exportCellSize()` |
+| `nativeProgram()` / `motionSourceForExport()` | `$('exportC64').onclick`, `buildNativeExportFrames()`, `motionSourceForExport()` |
+
+Animation overrides passed to tools are merged over `project.animation` and checked with `validateProject`, like a saved project. Settings whose plan has a warning are refused (no silent loop lengthening); `plan` reports `suggestedSeconds`.
+
+### Rendering rules
+
+- GIF, ZIP and video frames sample each glyph to the cell with `floor(x × 8 / cellW)`, like the editor's `tileFor()`. Stills use the same sampling.
+- The editor's still PNG is a browser rasterization of its SVG. Square cells match the MCP pixel for pixel. CRT cells (1.25 × 1.5 scale) are anti-aliased in the editor, giving blended edges and seams in solid blocks; the MCP stays crisp like the canvas. This is a known editor difference, not an MCP target.
+- Per-frame `background` and backdrop `matte` come from `animationCells()`. Transparent GIFs keep alpha only where no matte applies.
+- Pillow merges identical consecutive GIF frames and adds their durations; playback timing is unchanged.
+- Video uses ffmpeg's concat demuxer with each frame's duration (variable frame rate), matching the editor's WebCodecs timestamps.
+
+### Encodings
+
+| Output | Encoding |
+| --- | --- |
+| `export_binary(kind="glyph-ids")` | Atlas glyph IDs (bank × 256 + screen code), 16-bit little-endian, `FFFF` empty. Not screen codes alone, not PETSCII |
+| `export_binary(kind="color-ram")` | One VIC colour index per cell, row-major; VIC machines only |
+| `export_text_grid` | `formatTextGrid()`; TED projects use two-digit inks (`PETSCII-GLYPHS 3`) |
+| `read_grid(format="runs")` | `{x, y, ink, glyphs[]}` runs; the same shape `paint_cells(runs=…)` accepts |
+
+### Safety contracts
+
+- Saves write a temporary file beside the target, validate it with `project-validation.js`, then rename. A rejected project leaves the original untouched.
+- Arguments (glyph 0–511, coordinates, symmetry, machine limits) are checked before any change. Edits that change nothing add no undo step.
+- Brush state and history live in `out/workspace/sessions/<stem>-<sha256 of absolute path>/`.
+- Tools refuse to write inside `agents/petscii-preview/examples/`.
+- Drawing edits append `[index, glyph]` events to `drawingReplay` in edit order; clear, resize and import reset it like the editor.
+
+### Tests
+
+| Check | Command | Runs in CI |
+| --- | --- | --- |
+| Unit and protocol tests (58) | `cd agents/petscii-preview && .venv/bin/python -m unittest discover -s tests -v` | Yes: **MCP server tests** job, Python 3.12, when MCP files, root `*.js` modules, `assets/` or the CI workflow change |
+| Editor parity (28 comparisons) | `agents/petscii-preview/.venv/bin/python agents/petscii-preview/smoke/editor_parity.py` | No: local, needs Playwright Chromium |
+
+`tests/test_mcp_protocol.py` imports the server fresh and fails on any registration warning, then drives it through an in-process MCP client. Last parity result: 28 comparisons, 0 mismatches (square PNGs and GIF playback pixel-identical; SVG cells, fills and sizes equal; PRGs byte-identical for C64, C128 40/80-col and Plus/4; CRT stills checked for size and palette only).
+

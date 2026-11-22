@@ -1,6 +1,6 @@
 # PETSCII preview MCP — review and improvement plan
 
-Status: **approved**. Phases 0–2 done (see below); Phase 3 not started. Reviewed 2026-11-22.
+Status: **complete**. Phases 0–3 done (see each phase). Reviewed 2026-11-22.
 
 Scope: the `petscii-preview` MCP server in `agents/petscii-preview/` (Python, started by `.cursor/mcp.json` → `run-mcp.sh` → `src/server.py`).
 
@@ -106,6 +106,14 @@ Follow `docs/machine-modes.md`.
 6. Use `typed-text.js` (via `pgl_cli place-text`) for `place_text`; delete the Python copy.
 
 ### Phase 3 — Packaging and docs
+
+**Done.**
+
+- `run-mcp.sh` no longer looks for a personal Node build. It checks the virtualenv and Node.js 22+ and prints a fix for each problem on stderr (stdout is the MCP channel); `PGL_NODE` still selects a Node binary. Each failure path was run.
+- `setup-venv.sh` checks for Python 3.10+, installs quietly and says how the server starts.
+- `.mcp.json` registers the server for Claude Code; launching its command lists 41 tools.
+- The MCP README is rewritten for novices (setup steps, first picture, machine choice, tools by job, troubleshooting). Architecture, mirrored editor functions, rendering rules, encodings, safety contracts and tests moved to the [maintainer reference](maintainer-reference.md#mcp-server-agentspetscii-preview).
+- The root README and the [roadmap](roadmap.md) link to the MCP guide.
 
 1. `run-mcp.sh`: drop the personal Node path; check Node version and print a clear setup message.
 2. Add a project `.mcp.json` for Claude Code next to `.cursor/mcp.json`.

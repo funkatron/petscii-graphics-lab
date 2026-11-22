@@ -1,169 +1,119 @@
-# PETSCII preview MCP
+# Draw with an AI agent (petscii-preview)
 
-Lets an agent paint, animate, and export a PETSCII Graphics Lab project, with the same glyphs, colours, timing and native programs as the editor.
+Ask an AI coding agent, such as Cursor or Claude Code, to draw, animate, and export PETSCII Graphics Lab pictures. The agent uses the same glyphs, colors, timing, and C64-family programs as the editor, and shows you previews as it works.
 
-Glyphs and colours follow the project's **machine**, exactly as in the editor:
+**Terms used here**
 
-| Machine (`machine`) | Glyph sheet | Colours |
-| --- | --- | --- |
-| `c64` | `assets/c64-glyphs.svg` | VIC, using the project `palette` (Pepto, Colodore, VICE, RGB) |
-| `c128` (40-col) | `assets/c64-glyphs.svg` | VIC, using the project `palette` |
-| `c128-80` (80-col) | `assets/c64-glyphs.svg` | VDC RGBI |
-| `plus4` | `assets/ted-glyphs.svg` | TED (121 colours) |
+- **MCP (Model Context Protocol):** the standard way an agent talks to an add-on program. This folder is one such program, called an *MCP server*.
+- **Tool:** an action the agent can take, such as "paint these cells" or "export a GIF".
+- **Resource:** a read-only reference list the agent can read, such as the list of animation effects.
+- **Prompt:** a ready-made set of instructions, such as "draw a picture of…".
+- **Project:** an editable `.json` file, the same format as **Project → Save editable project** in the editor.
 
-Every image export takes `cell_shape`: `square` (default) or `crt` (CRT proportion: 5∶6 cells on VIC/TED, 5∶12 on VDC).
+## Set up
 
-## Setup
+You do this once per computer.
 
-```bash
-agents/petscii-preview/setup-venv.sh
-node agents/petscii-preview/make_pgl_examples.mjs
-```
+1. Install **Node.js 22 or newer** and **Python 3.10 or newer**.
+2. Optional: install **FFmpeg** if you want MP4 or WebM videos (`brew install ffmpeg` or `sudo apt-get install -y ffmpeg`).
+3. In the repository folder, run:
 
-Cursor starts the server from `.cursor/mcp.json` via `agents/petscii-preview/run-mcp.sh`. Restart Cursor after cloning so the tools appear. If the server does not start, set that command to the absolute path of `run-mcp.sh`.
+   ```bash
+   agents/petscii-preview/setup-venv.sh
+   ```
 
-## Generate demos locally
+   It ends with "petscii-preview is ready".
+4. Open the repository in your agent. The server is already configured:
 
-Demo renders are scripts, not MCP tools:
+   | Agent | Configuration file | What to do |
+   | --- | --- | --- |
+   | Claude Code | `.mcp.json` | Start Claude Code in the repository folder and approve **petscii-preview** when asked |
+   | Cursor | `.cursor/mcp.json` | Restart Cursor, then turn on **petscii-preview** in MCP settings if it is off |
+
+5. Check it works: ask the agent "List the petscii-preview tools." It should list about 40 tools.
+
+## Draw your first picture
+
+1. Ask the agent, for example: "Use petscii-preview to draw a lighthouse at night on the C64, then show me a PNG."
+2. The agent creates a project in `agents/petscii-preview/out/workspace/`, paints in passes, and looks at a preview after each pass.
+3. Ask for changes in plain words: "make the beam brighter", "undo that", "add a slow color wave".
+4. Ask for the files you want: PNG or SVG still, GIF, MP4/WebM video, PNG frame ZIP, or a native program (PRG) or disk image (D64).
+5. To keep editing by hand, open the project `.json` in the editor with **Project → Open project**.
+
+If your agent supports prompts, choose **Draw a PETSCII picture** or **Make an op-art or pattern piece** to start with a full plan.
+
+## Choose a machine
+
+Say which machine you want when you ask for a picture. The agent sets it when it creates the canvas.
+
+| Machine | Canvas | Glyphs | Colors |
+| --- | --- | --- | --- |
+| C64 (default) | up to 40 × 40 | C64 character set | 16 VIC colors; Pepto unless you choose Colodore, VICE, or RGB |
+| C128 40-column | up to 40 × 40 | C64 character set | 16 VIC colors |
+| C128 80-column | up to 80 × 40 | C64 character set | 16 VDC RGBI colors |
+| Plus/4 | up to 40 × 40 | Plus/4 (TED) character set | 121 TED colors |
+
+New canvases start in the machine's boot-screen colors. Any image or video can use **square cells** (default) or **CRT proportion**: taller cells shaped like a real screen.
+
+## What the agent can do
+
+| Job | Tools |
+| --- | --- |
+| Start or open a project | `create_canvas`, `load_project`, `copy_project_to_workspace`, `import_text_grid` |
+| Paint | `paint_cells`, `erase_cells`, `fill`, `draw_line`, `draw_rect`, `place_text`, `set_tool_state` (brush and symmetry) |
+| Select and move | `select_rect`, `move_selection`, `duplicate_selection`, `delete_selection`, `deselect` |
+| Whole canvas | `clear_drawing`, `recolor_drawing`, `stamp_border`, `stamp_checkerboard`, `stamp_op_art`, `stamp_combined_style` |
+| Check and fix | `read_grid`, `critique_drawing`, `undo`, `redo`, `validate_project` |
+| Plan | `illustration_brief`, `plan_animation`, `read_catalog` |
+| Look | `render_still` (PNG/SVG + preview), `render_animation` (GIF + preview), `render_petscii_screen` |
+| Keep settings | `update_project` (name, palette, colors, animation, size) |
+| Export | `export_video`, `export_png_frames_zip`, `export_native` (PRG/D64), `export_binary`, `export_text_grid` |
+
+Reference lists the agent reads before drawing:
+
+| Resource | Contents |
+| --- | --- |
+| `petscii://effects` | Animation effects and their allowed settings |
+| `petscii://machines` | Canvas limits and colors for each machine |
+| `petscii://glyphs/families` | Glyphs grouped by shape, and a shading ladder |
+| `petscii://references/drawing` | Master PETSCII pictures with notes on how they were made |
+| `petscii://op-art/recipes` | Op-art, Islamic girih, Hindu mandala, and rug patterns |
+| `petscii://world-art/{tradition}` | Notes on Islamic, Hindu, and rug traditions |
+| `petscii://rugs` | Layered rug designs |
+
+Agents that cannot read resources use the `read_catalog` tool with the same address.
+
+## Where files go
+
+| Folder | Contents |
+| --- | --- |
+| `agents/petscii-preview/out/workspace/` | Projects and exports the agent makes (not committed to Git) |
+| `agents/petscii-preview/out/workspace/sessions/` | Brush settings and undo history for each project |
+| `agents/petscii-preview/examples/` | Example projects and reference pictures. The agent cannot change these; it copies them first |
+
+## If something does not work
+
+| What you notice | Next step |
+| --- | --- |
+| The agent has no petscii-preview tools | Run `agents/petscii-preview/setup-venv.sh`, then restart the agent. In Cursor, check that the server is switched on |
+| "The Python environment is missing" | Run `agents/petscii-preview/setup-venv.sh` |
+| "Node.js was not found" or "too old" | Install Node.js 22 or newer. To use a particular copy, set `PGL_NODE` to its path in the MCP configuration's `env` |
+| "ffmpeg not found" | Install FFmpeg, or ask for a GIF or PNG frame ZIP instead |
+| An animation is refused as too fast | Ask the agent to run `plan_animation`; it suggests a longer loop |
+| "refusing to overwrite a tracked example" | Expected: ask the agent to copy the example to the workspace first |
+| A tool reports an error | The message says what to change (for example a cell outside the canvas). The project file is never left half-written |
+
+## Make demo images
+
+These scripts are for trying the server out; they are not tools.
 
 ```bash
 agents/petscii-preview/.venv/bin/python agents/petscii-preview/generate_demos.py --themes --colors
 agents/petscii-preview/.venv/bin/python agents/petscii-preview/render_pgl_examples.py
 ```
 
-Outputs land in `agents/petscii-preview/out/`.
+Images land in `agents/petscii-preview/out/`. The example projects predate the machine setting, so they open as C64.
 
-## What the server offers
+## For maintainers
 
-| Kind | What | How to use it |
-| --- | --- | --- |
-| Tools (41) | Change or export a project | Call by name |
-| Resources (`petscii://…`) | Read-only catalogs | Read the URI, or call `read_catalog(uri)` if your client cannot read resources |
-| Prompts | Whole workflows | `draw_picture(subject, machine)`, `op_art_piece(recipe, machine)` |
-
-Every tool takes typed arguments. Animation settings are an object with the same keys as `project.animation`; effect names, durations, cycles and wave values are enums taken from the editor. Unknown keys are rejected.
-
-### Catalogs (resources)
-
-| URI | Contents |
-| --- | --- |
-| `petscii://effects` | Motion, colour and backdrop effects, ramps, waves, cycles, seconds, scales |
-| `petscii://machines` | Column limits, boot colours, ink range, glyph sheet and colour table per machine |
-| `petscii://glyphs/families` | Atlas glyph IDs by role, shading ladder, outline and accent glyphs |
-| `petscii://glyphs/shading-ladder/{background_ink}` | Brightness steps on a background ink |
-| `petscii://op-art/recipes`, `petscii://op-art/recipes/{recipe_id}` | Op-art, girih, mandala and rug recipes |
-| `petscii://world-art/{tradition}` | Islamic, Hindu or rug craft study (`all` for everything) |
-| `petscii://world-art/references/{tradition}` | Local study images and Commons links |
-| `petscii://references/drawing`, `petscii://references/drawing/{category}` | Master PETSCII references with craft notes |
-| `petscii://rugs`, `petscii://rugs/{combination}` | Layered rug presets |
-
-### Project tools
-
-| Tool | Purpose |
-| --- | --- |
-| `create_canvas` | New blank picture for a `machine`; colours default to its boot screen |
-| `load_project` / `save_project` / `update_project` / `validate_project` | Read, write, patch (typed `patch`) and check v3 JSON |
-| `copy_project_to_workspace` | Copy a project (for example from `examples/`) into `out/workspace/` |
-| `export_text_grid` / `import_text_grid` | PETSCII-GLYPHS text exchange (TED inks use two hex digits) |
-
-### Drawing tools
-
-Brush state and undo history live beside each project in `out/workspace/sessions/`.
-
-| Tool | Purpose |
-| --- | --- |
-| `set_tool_state` / `get_tool_state` | Brush glyph, ink, symmetry; selection |
-| `paint_cells` | `cells` ([{x, y, glyph?, ink?}]) and/or `runs` ([{x, y, glyphs: [...], ink?}], `null` skips a cell) |
-| `erase_cells` / `fill` / `draw_line` / `draw_rect` | Brush operations |
-| `place_text` | Typed C64 text, planned by the editor's `typed-text.js` |
-| `select_rect` / `deselect` / `move_selection` / `duplicate_selection` / `delete_selection` | Selection |
-| `clear_drawing` / `recolor_drawing` / `stamp_border` / `stamp_checkerboard` | Whole canvas |
-| `stamp_op_art` / `stamp_combined_style` | Recipe lattices and layered rugs |
-| `read_grid` | Painted cells as `runs` (default, same shape as `paint_cells`), `cells`, or `text` |
-| `undo` / `redo` | History (60 steps) |
-| `illustration_brief` / `critique_drawing` | Plan a picture; review each pass |
-
-### Render and export tools
-
-| Tool | Purpose |
-| --- | --- |
-| `render_still` | PNG or SVG; returns a preview image. SVG uses one vector path per glyph shape |
-| `render_animation` | GIF of movement × cell colour × backdrop; returns a 4-frame preview sheet |
-| `plan_animation` | Frame count, readiness, and `suggestedSeconds` when the settings are too fast |
-| `export_png_frames_zip` | PNG frame ZIP + `timing.json` (editor manifest v2) + `project.json` |
-| `export_video` | MP4/WebM, exact frame timing, 1–100 loops (needs ffmpeg) |
-| `export_native` | `.prg` / `.d64` for the project's machine: C64, C128 40/80-col, Plus/4 |
-| `export_binary` | `glyph-ids` (atlas IDs, 16-bit LE, `FFFF` = empty; not PETSCII bytes) or `color-ram` (VIC only) |
-| `render_petscii_screen` | Boot-style text screen with machine chrome, returned as an image |
-
-Movement, cell colour and backdrop stack independently. For a stepped shared background set `backgroundEffect` to `field` (VIC) or `plus4-field` (TED); `colorEffect: "field"` is a legacy shape the editor migrates on load.
-
-### Video (ffmpeg)
-
-`export_video` encodes MP4 or WebM with **ffmpeg** (not browser WebCodecs). Install it first:
-
-```bash
-sudo apt-get install -y ffmpeg   # or brew install ffmpeg
-```
-
-Each frame keeps its exact start time and duration (variable frame rate), matching the editor's video download. Frames are padded to even dimensions for `yuv420p`. Transparent backgrounds render black.
-
-## Workspace
-
-Default example artwork: `examples/pgl-wordmark.json`  
-Session files / exports: `out/workspace/` (gitignored under `out/`).
-
-## Cursor MCP config
-
-Registered in:
-
-- project: `.cursor/mcp.json`
-- user: `~/.cursor/mcp.json`
-
-Restart Cursor (or start a new agent session) after changing MCP config.
-
-## Screen text notes (machine chrome)
-
-- Plain characters map to screen codes.
-- Explicit codes: `{{#70}}` or `{{112}}`
-- Reverse video: `{{!A}}` or `{{!#20}}`
-
-## Headless bridges
-
-- `pgl-shared.mjs` — editor-equivalent helpers (project source, colour tables, frame timing, glyph bits, native export routing). Keep in step with `index.html`.
-- `pgl_cli.mjs` — `validate`, `list-effects`, `plan`, `render-plan`, `export-native`, text grids, typed text
-- Python: `src/project_io.py`, `src/pgl_export.py` (rasterizer only), `src/drawing.py`, `src/project_store.py`
-
-## Tests
-
-Run every MCP test (CI runs the same command when MCP files or shared modules change):
-
-```bash
-cd agents/petscii-preview && .venv/bin/python -m unittest discover -s tests -v
-```
-
-### Editor parity check (local)
-
-Compares MCP exports with the editor's own downloads in Chromium: PNG and SVG for every machine, both cell shapes and two VIC palettes, GIFs, and native PRGs. Needs Node and the pre-installed Playwright Chromium.
-
-```bash
-agents/petscii-preview/.venv/bin/python agents/petscii-preview/smoke/editor_parity.py
-```
-
-Known difference: for CRT cells the editor's still PNG is an anti-aliased rasterization of its SVG, so glyph edges blur. The MCP draws CRT stills crisply, like the editor canvas and its GIF/ZIP/video. The check requires the same size and no colours the editor lacks.
-## Errors and safety
-
-- A failed tool call returns an MCP error result with the reason (bad glyph, cell outside the canvas, no selection, invalid project). It never leaves a half-written file.
-- Saves are atomic: the project is validated with the editor's `project-validation.js` before it replaces the old file.
-- Edits that change nothing do not add an undo step.
-- Tools refuse to write inside `examples/`. Call `copy_project_to_workspace` first.
-- Brush state and undo history live in `out/workspace/sessions/`, one folder per project path.
-
-## Exploratory PGL examples
-
-```bash
-node agents/petscii-preview/make_pgl_examples.mjs
-agents/petscii-preview/.venv/bin/python agents/petscii-preview/render_pgl_examples.py
-```
-
-The example projects predate the `machine` field, so they load as C64.
+Architecture, encodings, tests, and the editor-parity check are in the [maintainer reference](../../docs/maintainer-reference.md#mcp-server-agentspetscii-preview). The improvement history is in the [MCP improvement plan](../../docs/mcp-improvement-plan.md).

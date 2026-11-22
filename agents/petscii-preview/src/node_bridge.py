@@ -15,29 +15,12 @@ WORKSPACE = AGENT_ROOT / "out" / "workspace"
 DEFAULT_PROJECT = AGENT_ROOT / "examples" / "pgl-wordmark.json"
 
 
-def _manual_node() -> str | None:
-    """The Node 24 built from source under ~/build/node24."""
-    root = Path.home() / "build" / "node24"
-    if not root.is_dir():
-        return None
-    candidates = sorted(root.glob("node-v*/out/Release/node"))
-    for path in reversed(candidates):
-        if path.is_file() and os.access(path, os.X_OK):
-            return str(path)
-    return None
-
-
 def find_node() -> str:
+    """Node from PGL_NODE (set by run-mcp.sh), else the first `node` on PATH."""
     override = os.environ.get("PGL_NODE", "").strip()
     if override and Path(override).is_file() and os.access(override, os.X_OK):
         return override
-    manual = _manual_node()
-    if manual:
-        return manual
-    found = shutil.which("node")
-    if found:
-        return found
-    return "node"
+    return shutil.which("node") or "node"
 
 
 def run_node(script: Path, args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:

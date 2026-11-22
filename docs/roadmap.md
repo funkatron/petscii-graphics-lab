@@ -8,6 +8,14 @@ Shipped on `main` (PR #163): **New Project** with confirm/Undo; 48×48 adjective
 
 **Validation:** `tests/project-naming.spec.cjs` and `tests/project-save.spec.cjs` green on Chromium and both iPad WebKit layouts in CI (2026-11-17).
 
+## Agent drawing server (MCP) — complete
+
+The `petscii-preview` MCP server ([user guide](../agents/petscii-preview/README.md), [plan and evidence](mcp-improvement-plan.md)) lets coding agents draw and export projects with the editor's glyphs, colours, timing, and native exporters for C64, C128 40/80-col, and Plus/4. It returns preview images, takes typed settings, and is configured for Claude Code (`.mcp.json`) and Cursor (`.cursor/mcp.json`).
+
+**Validation:** 58 MCP tests in the **MCP server tests** CI job; local editor-parity check, 28 comparisons with 0 mismatches.
+
+**Follow-ups:** the editor's CRT still PNG blurs glyph edges (it rasterizes its SVG with anti-aliasing); example projects in `agents/petscii-preview/examples/` predate the `machine` field.
+
 ## Tier A cross-editor UX — complete
 
 Shipped through **0.35.18**: reference overlay, scroller export copy, animation glossary, export filename `_` slugs, download filename preview, project `projectName` in v3 JSON. See [tier-a-ooda-plans.md](tier-a-ooda-plans.md) and [owner-program-queue.md](owner-program-queue.md).
