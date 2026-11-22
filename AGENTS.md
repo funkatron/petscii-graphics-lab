@@ -43,6 +43,8 @@ The [audit](AUDIT.md) records earlier versions. The [UI review](docs/ui-review.m
 
 - `package.json`, `playwright.config.cjs`, `tests/*.spec.cjs`, and `.github/workflows/ci.yml` implement automated browser testing for Chromium and iPad WebKit in landscape and portrait.
 
+- `agents/petscii-preview/` is a local MCP server that lets coding agents draw and export projects (registered in `.mcp.json` and `.cursor/mcp.json`). Its `pgl-shared.mjs` mirrors named `index.html` functions for frames, colors, and native export; when you change those, keep it in step and run `smoke/editor_parity.py`. See the [maintainer reference](docs/maintainer-reference.md#mcp-server-agentspetscii-preview).
+
 - Artwork uses numeric atlas glyph IDs 0–511 (source bank × 256 + screen code) and an empty-cell marker only. There is no Unicode-shape renderer or stencil-analysis workflow. Keep glyph IDs distinct from screen codes and PETSCII bytes.
 
 - Keep changes targeted. The owner approved the v3 unified-glyph format break without migration; preserve v3 files and existing editor workflows.
