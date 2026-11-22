@@ -29,7 +29,7 @@ function writeOut(out, contents) {
 }
 
 const validation = await import(pathToFileURL(join(ROOT, 'project-validation.js')).href);
-const { MACHINES, maxInkIndex } = await import(pathToFileURL(join(ROOT, 'machine-modes.js')).href);
+const { MACHINES, maxInkIndex, convertInk } = await import(pathToFileURL(join(ROOT, 'machine-modes.js')).href);
 const { DISPLAY_PALETTE_IDS } = await import(pathToFileURL(join(ROOT, 'c64-colors.js')).href);
 const { SOLID_EFFECTS } = await import(pathToFileURL(join(ROOT, 'solid-motion.js')).href);
 
@@ -127,6 +127,13 @@ const commands = {
     validateProject(next);
     writeOut(out, `${JSON.stringify(next, null, 2)}\n`);
     return { ok: true, out, columns: next.columns, rows: next.rows };
+  },
+
+  /** VIC ink numbers (recipe defaults) to the machine's index space with the editor's convertInk(). */
+  'convert-inks'() {
+    const machine = flag('machine') || 'c64';
+    const inks = (flag('inks') || '').split(',').filter(Boolean).map(Number);
+    return { ok: true, machine, inks: Object.fromEntries(inks.map((ink) => [ink, convertInk(ink, 'c64', machine)])) };
   },
 
   /** Typed C64 text using the editor's typed-text.js; prints the planned cells, writes nothing. */

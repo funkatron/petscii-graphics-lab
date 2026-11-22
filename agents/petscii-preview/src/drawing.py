@@ -618,6 +618,27 @@ def stamp_checkerboard(project_path: str | None) -> dict[str, Any]:
     return _mutate(project_path, mutate)
 
 
+def _recipe_inks_for_machine(data: dict[str, Any], cells: list[dict[str, Any]], explicit: set[int]) -> list[dict[str, Any]]:
+    """Recipes are written in VIC ink numbers. Map every ink the caller did not pass to the
+    project's machine (TED, VDC) with the editor's convertInk(); VIC projects are unchanged."""
+    machine = data.get('machine', 'c64')
+    if machine in ('c64', 'c128'):
+        return cells
+    defaults = sorted({cell['ink'] for cell in cells if 'ink' in cell and cell['ink'] not in explicit})
+    if not defaults:
+        return cells
+    result = parse_json_stdout(run_node(
+        PGL_CLI, ['convert-inks', f'--machine={machine}', f"--inks={','.join(map(str, defaults))}"], check=False,
+    ))
+    if not result.get('ok'):
+        raise ProjectError(f"could not convert recipe inks for {machine}: {result.get('error')}")
+    mapping = {int(key): value for key, value in result['inks'].items()}
+    return [
+        {**cell, 'ink': mapping.get(cell['ink'], cell['ink'])} if 'ink' in cell and cell['ink'] not in explicit else cell
+        for cell in cells
+    ]
+
+
 def stamp_op_art(
     project_path: str | None,
     recipe: str,
@@ -640,7 +661,8 @@ def stamp_op_art(
     )
     if not generated.get('ok'):
         return generated
-    painted = paint_cells(project_path, generated['cells'])
+    explicit = {ink for ink in (ink_a, ink_b) if ink is not None}
+    painted = paint_cells(project_path, _recipe_inks_for_machine(data, generated['cells'], explicit))
     painted['recipe'] = generated['recipe']
     painted['cell_count'] = generated['cell_count']
     if generated.get('animation_suggest'):
@@ -670,7 +692,8 @@ def stamp_combined_style(
     )
     if not generated.get("ok"):
         return generated
-    painted = paint_cells(project_path, generated["cells"])
+    explicit = {ink for ink in (ink_a, ink_b) if ink is not None}
+    painted = paint_cells(project_path, _recipe_inks_for_machine(data, generated["cells"], explicit))
     painted["combination"] = generated["combination"]
     painted["layers"] = generated.get("layers")
     painted["cell_count"] = generated["cell_count"]

@@ -429,8 +429,9 @@ def generate_pattern_cells(
 
     glyphs = spec["glyphs"]
     inks = spec["inks"]
-    a_ink = _clamp_int(ink_a, inks[0] if inks else 1, 0, 15)
-    b_ink = _clamp_int(ink_b, inks[1] if len(inks) > 1 else a_ink, 0, 15)
+    # 0–120 covers TED; a VIC/VDC project rejects inks above 15 when it is saved.
+    a_ink = _clamp_int(ink_a, inks[0] if inks else 1, 0, 120)
+    b_ink = _clamp_int(ink_b, inks[1] if len(inks) > 1 else a_ink, 0, 120)
     p = _clamp_int(period, spec.get("period") or 2, 1, 12)
 
     cells: list[dict[str, int]] = []
