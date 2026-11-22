@@ -1,6 +1,6 @@
 # PETSCII preview MCP — review and improvement plan
 
-Status: **approved**. Phase 0 done (see below); Phases 1–3 not started. Reviewed 2026-11-22.
+Status: **approved**. Phases 0 and 1 done (see below); Phases 2–3 not started. Reviewed 2026-11-22.
 
 Scope: the `petscii-preview` MCP server in `agents/petscii-preview/` (Python, started by `.cursor/mcp.json` → `run-mcp.sh` → `src/server.py`).
 
@@ -57,6 +57,21 @@ Phases are ordered so each one is shippable alone. Every phase adds tests and ru
 8. Remove the duplicate decorator; pin `mcp>=2.3,<3`; fix transparent GIF background.
 
 ### Phase 1 — Machine-mode authenticity
+
+**Done.** Evidence:
+
+- `tests/test_machines.py` (12 tests; 53 MCP tests in all pass on Python 3.12 and 3.13): colours checked against the editor's own `inkHex` / `plus4Hex` / `vdcHex`, known C64 ROM shapes (ball `$51`, `A`), TED glyphs on Plus/4, CRT sizes, vector SVG, backdrop frames, ZIP manifest, video loop length, PRG load addresses and D64 size for all four machines, replay order.
+- `smoke/editor_parity.py` (local, Chromium): 28 comparisons with the editor's downloads, 0 mismatches. Square PNGs and GIF playback are pixel-identical, SVG cells/fills/sizes match, and native PRGs are byte-identical for C64, C128 40-col, C128 80-col and Plus/4.
+
+What changed beyond the list below:
+
+- One frame path: `pgl-shared.mjs` mirrors the editor's `animationSource()`, `animationRaster()` colour tables, `animationExportFrames()` timing (10 ms rounding) and native export routing. The old `export_animation.mjs`, `export_color_animation.mjs` and `animation-source.mjs` were removed.
+- Fixed while porting: animations ignored per-frame backdrop colours and mattes; reveal/replay effects read non-existent `replayBase` fields; GIFs forced a 40 ms minimum frame time; too-fast settings silently lengthened the loop; video resampled to 25 fps. Drawing tools now record paint order in `drawingReplay` like the editor.
+- `export_c64` is now `export_native`. `export_color_ram_bin` is VIC-only, as in the editor.
+
+**Editor finding (not changed here):** at CRT proportion the editor's still PNG rasterizes its SVG at 1.25×1.5 with anti-aliasing, so glyph edges blur and solid blocks show seams. The canvas and the GIF/ZIP/video exports are crisp. Worth a separate editor fix.
+
+**Still open:** the example projects in `examples/` predate the `machine` field (all load as C64); `render_pgl_examples.py` keeps its own Pepto-only renderer until Phase 2 moves the demo tools out.
 
 Follow `docs/machine-modes.md`.
 

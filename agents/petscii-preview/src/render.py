@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from glyphs import load_glyph_banks, lines_to_screen
+from glyphs import lines_to_screen, load_glyph_banks, sheet_path
 from machines import MachineMode, get_machine
 
 DEMO_UI = (
@@ -50,7 +50,8 @@ def render_screen(
     glyph_svg: str | None = None,
 ) -> Image.Image:
     mode = get_machine(machine) if isinstance(machine, str) else machine
-    banks = load_glyph_banks(glyph_svg)
+    # Plus/4 uses the TED character ROM artwork; C64/C128 share the C64 sheet (as in the editor).
+    banks = load_glyph_banks(glyph_svg or str(sheet_path("ted" if mode.id == "plus4" else "c64")))
     glyphs = banks[mode.glyph_bank]
 
     content_lines: list[str] = []

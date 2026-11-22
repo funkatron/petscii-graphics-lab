@@ -161,12 +161,50 @@ def _apply_snapshot(data: dict[str, Any], snap: dict[str, Any]) -> None:
             data[key] = snap[key]
 
 
-def _sync_replay(data: dict[str, Any]) -> None:
-    ink = data.get('colors', {}).get('ink', 14)
-    replay = {'base': list(data['grid']), 'events': []}
-    if any(color != ink for color in data['cellColors']):
-        replay['baseColors'] = list(data['cellColors'])
-    data['drawingReplay'] = replay
+REPLAY_EVENT_LIMIT = 20000
+
+
+def _reset_replay(data: dict[str, Any]) -> None:
+    """Editor resetReplay(): empty base, then one event per painted cell in index order."""
+    events = []
+    event_colors = []
+    for index, glyph in enumerate(data['grid']):
+        if glyph != '':
+            events.append([index, glyph])
+            event_colors.append(data['cellColors'][index])
+    data['drawingReplay'] = {
+        'base': [''] * len(data['grid']),
+        'events': events,
+        'baseColors': list(data['cellColors']),
+        'eventColors': event_colors,
+    }
+
+
+def _record_replay(data: dict[str, Any], before: dict[str, Any] | None) -> None:
+    """Editor recordCell(): append one [index, glyph] event per changed cell, in edit order.
+
+    Reveal/draw-on animations replay these events, so the order an agent paints in is kept.
+    Whole-canvas changes (no `before`, or a different size) reset the replay instead.
+    """
+    replay = data.get('drawingReplay')
+    if (
+        before is None
+        or not isinstance(replay, dict)
+        or len(before.get('grid', [])) != len(data['grid'])
+        or len(replay.get('base', [])) != len(data['grid'])
+    ):
+        _reset_replay(data)
+        return
+    count = len(data['grid'])
+    events = replay.setdefault('events', [])
+    replay.setdefault('baseColors', list(before['cellColors']))
+    event_colors = replay.setdefault('eventColors', [data.get('colors', {}).get('ink', 14)] * len(events))
+    for index in range(count):
+        if data['grid'][index] != before['grid'][index] or data['cellColors'][index] != before['cellColors'][index]:
+            events.append([index, data['grid'][index]])
+            event_colors.append(data['cellColors'][index])
+    if len(events) > REPLAY_EVENT_LIMIT:
+        _reset_replay(data)
 
 
 def _symmetry_points(x: int, y: int, columns: int, rows: int, mode: str) -> list[tuple[int, int]]:
@@ -218,11 +256,12 @@ def _mutate(project_path: str | None, mutator) -> dict[str, Any]:
         state.update(_load(state_path))
     before = _snapshot(data)
     result = mutator(data, state)
+    reset_replay = result.pop('reset_replay', False)
     out = {'ok': True, 'project': str(path)}
     out.update(result)
     if not result.get('changed'):
         return out
-    _sync_replay(data)
+    _record_replay(data, None if reset_replay else before)
     save = save_project(data, str(path))
     if not save.get('ok'):
         return save
@@ -404,7 +443,7 @@ def place_text(project_path: str | None, text: str, x: int, y: int, ink: int | N
         index = row * columns + column
         data['grid'][index] = glyph_id
         data['cellColors'][index] = brush
-    _sync_replay(data)
+    _record_replay(data, before)
     save = save_project(data, str(path))
     if not save.get('ok'):
         return save
@@ -532,7 +571,7 @@ def clear_drawing(project_path: str | None) -> dict[str, Any]:
         )
         data['grid'] = [''] * count
         data['cellColors'] = [ink] * count
-        return {'changed': changed}
+        return {'changed': changed, 'reset_replay': True}
 
     return _mutate(project_path, mutate)
 
@@ -723,7 +762,7 @@ def create_canvas(
         'colors': {'ink': ink, 'background': background},
         'animation': dict(DEFAULT_ANIMATION),
     }
-    _sync_replay(data)
+    _reset_replay(data)
     saved = save_project(data, str(path))
     if not saved.get('ok'):
         return saved

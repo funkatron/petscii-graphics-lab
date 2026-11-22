@@ -10,7 +10,6 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 AGENT_ROOT = Path(__file__).resolve().parents[1]
-EXPORT_ANIMATION = AGENT_ROOT / "export_animation.mjs"
 PGL_CLI = AGENT_ROOT / "pgl_cli.mjs"
 WORKSPACE = AGENT_ROOT / "out" / "workspace"
 DEFAULT_PROJECT = AGENT_ROOT / "examples" / "pgl-wordmark.json"

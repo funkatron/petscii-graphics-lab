@@ -1,4 +1,4 @@
-"""Load C64 PETSCII glyph bitmaps from assets/c64-glyphs.svg."""
+"""Load built-in glyph bitmaps from assets/c64-glyphs.svg (C64/C128) or assets/ted-glyphs.svg (Plus/4)."""
 
 from __future__ import annotations
 
@@ -9,14 +9,36 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_GLYPH_SVG = REPO_ROOT / "assets" / "c64-glyphs.svg"
+GLYPH_SHEETS = ("c64", "ted")
 
 RECT_RE = re.compile(
     r'<rect\s+x="(?P<x>\d+)"\s+y="(?P<y>\d+)"\s+width="(?P<w>\d+)"\s+height="(?P<h>\d+)"\s*/>'
 )
 SYMBOL_RE = re.compile(
-    r'<symbol id="c64-(?P<bank>\d+)-(?P<code>\d+)"[^>]*>(?P<body>.*?)</symbol>',
+    r'<symbol id="(?P<prefix>c64|ted)-(?P<bank>\d+)-(?P<code>\d+)"[^>]*>(?P<body>.*?)</symbol>',
     re.DOTALL,
 )
+
+
+def sheet_path(sheet: str) -> Path:
+    """Path of a built-in glyph sheet: 'c64' (C64/C128) or 'ted' (Plus/4)."""
+    if sheet not in GLYPH_SHEETS:
+        raise ValueError(f"unknown glyph sheet {sheet!r}; expected c64 or ted")
+    return REPO_ROOT / "assets" / f"{sheet}-glyphs.svg"
+
+
+@lru_cache(maxsize=4)
+def load_glyph_rows(sheet: str = "c64") -> tuple[bytes, ...]:
+    """512 glyphs (bank × 256 + screen code) as 8 row bytes each, bit 7 = leftmost pixel."""
+    banks = load_glyph_banks(str(sheet_path(sheet)))
+    glyphs: list[bytes] = []
+    for bank in banks:
+        for pixels in bank:
+            rows = bytearray(8)
+            for x, y in pixels:
+                rows[y] |= 0x80 >> x
+            glyphs.append(bytes(rows))
+    return tuple(glyphs)
 
 
 def parse_glyph_pixels(body: str) -> list[tuple[int, int]]:

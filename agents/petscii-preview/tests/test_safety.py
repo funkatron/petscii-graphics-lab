@@ -161,12 +161,12 @@ class GuardTests(unittest.TestCase):
         with self.assertRaisesRegex(ProjectError, "plain file name"):
             project_io.copy_project_to_workspace(None, "../escape.json")
 
-    def test_c64_export_refuses_other_machines(self):
+    def test_color_ram_is_vic_only(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = str(Path(tmp) / "p4.json")
             self.assertTrue(project_io.create_project(8, 8, ink=0, machine="plus4", save_path=path)["ok"])
-            with self.assertRaisesRegex(ProjectError, "C64 programs only"):
-                pgl_export.export_c64(path, save_path=str(Path(tmp) / "x.prg"))
+            with self.assertRaisesRegex(ProjectError, "VIC machines"):
+                pgl_export.export_color_ram_bin(path, save_path=str(Path(tmp) / "x.bin"))
 
 
 class TransparentGifTests(unittest.TestCase):

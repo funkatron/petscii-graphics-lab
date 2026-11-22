@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 from node_bridge import (
-    EXPORT_ANIMATION,
     PGL_CLI,
     ensure_workspace,
     parse_json_stdout,
@@ -54,7 +53,7 @@ DEFAULT_ANIMATION = {
 
 
 def list_effects() -> dict:
-    result = run_node(EXPORT_ANIMATION, ["--list-effects"])
+    result = run_node(PGL_CLI, ["list-effects"], check=False)
     return parse_json_stdout(result)
 
 
@@ -171,6 +170,10 @@ def update_project(
         data["columns"] = new_w
         data["rows"] = new_h
 
+    if "grid" in patch or "cellColors" in patch or new_w != old_w or new_h != old_h:
+        # The editor resets the drawing replay after resize or import; without the field,
+        # animations replay each painted cell from an empty base (index.html resetReplay()).
+        data.pop("drawingReplay", None)
     data["grid"] = grid
     data["cellColors"] = inks
     dest = save_path or str(path)

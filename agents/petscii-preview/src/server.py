@@ -85,7 +85,7 @@ def _settings(animation: dict[str, Any] | None = None, settings_json: str | None
 
 @tool()
 def list_machines() -> dict:
-    """List machine modes that share the C64 PETSCII glyph sheet."""
+    """List machine chrome modes (C64/C128 use the C64 glyph sheet; Plus/4 uses TED glyphs)."""
     return {
         machine_id: {
             "label": mode.label,
@@ -111,7 +111,7 @@ def render_petscii_screen(
     """
     Render a PETSCII text screen for c64, c128, or plus4.
 
-    All three modes use the same C64 glyph sheet; only chrome/palette change.
+    C64 and C128 use the C64 glyph sheet; Plus/4 uses the TED glyph sheet.
     Plain characters map to screen codes. Embed explicit codes as {{#70}} or {{112}}.
     Prefix ! inside braces for reverse video, e.g. {{!A}} or {{!#20}}.
     """
@@ -157,7 +157,7 @@ def render_machine_comparison(
     return {
         "stills": [str(path) for path in stills],
         "animation": str(gif),
-        "note": "Same glyphs; different border/background/foreground chrome.",
+        "note": "C64/C128 share the C64 glyph sheet; Plus/4 uses TED glyphs.",
     }
 
 
@@ -412,9 +412,16 @@ def render_still(
     background: str = "canvas",
     save_path: str | None = None,
     fmt: str = "png",
+    cell_shape: str = "square",
 ) -> dict:
-    """Render a project still as PNG or SVG (fmt=png|svg). background: canvas|white|black|transparent."""
-    return pgl_export.render_still(project_path, scale, background, save_path, fmt)
+    """
+    Render a project still as PNG or SVG (fmt=png|svg). background: canvas|white|black|transparent.
+
+    Glyphs and colours follow the project's machine (C64/C128: C64 glyphs + display palette;
+    Plus/4: TED glyphs + TED colours; C128 80-col: VDC RGBI). cell_shape: square or crt
+    (CRT proportion: 5∶6 VIC/TED, 5∶12 VDC). scale is pixels per glyph pixel.
+    """
+    return pgl_export.render_still(project_path, scale, background, save_path, fmt, cell_shape)
 
 
 @tool()
@@ -424,9 +431,14 @@ def render_animation(
     settings_json: str | None = None,
     scale: int = 2,
     save_path: str | None = None,
+    cell_shape: str = "square",
 ) -> dict:
     """
     Render movement, cell color, and backdrop together as a GIF.
+
+    Frame timing, colours and backdrop mattes match the editor's GIF download. If the
+    settings are too fast to render without aliasing, the call fails with the warning;
+    call plan_animation for a suggested loop duration. cell_shape: square or crt.
 
     Pass animation settings as an object (same keys as project.animation) or settings_json.
     Use motionEffect/effect, colorEffect, and backgroundEffect (not colorEffect: field for
@@ -437,6 +449,7 @@ def render_animation(
         _settings(animation, settings_json),
         scale=scale,
         save_path=save_path,
+        cell_shape=cell_shape,
     )
 
 
@@ -446,9 +459,10 @@ def export_png(
     scale: int = 4,
     background: str = "canvas",
     save_path: str | None = None,
+    cell_shape: str = "square",
 ) -> dict:
-    """Export a still PNG of the project."""
-    return pgl_export.render_still(project_path, scale, background, save_path, "png")
+    """Export a still PNG of the project (machine glyphs/colours; cell_shape square or crt)."""
+    return pgl_export.render_still(project_path, scale, background, save_path, "png", cell_shape)
 
 
 @tool()
@@ -456,9 +470,10 @@ def export_svg(
     project_path: str | None = None,
     background: str = "canvas",
     save_path: str | None = None,
+    cell_shape: str = "square",
 ) -> dict:
-    """Export a still SVG of the project."""
-    return pgl_export.render_still(project_path, 1, background, save_path, "svg")
+    """Export a still SVG of the project: one vector path per glyph shape, reused per cell."""
+    return pgl_export.render_still(project_path, 1, background, save_path, "svg", cell_shape)
 
 
 @tool()
@@ -468,6 +483,7 @@ def export_gif(
     settings_json: str | None = None,
     scale: int = 2,
     save_path: str | None = None,
+    cell_shape: str = "square",
 ) -> dict:
     """Export an animated GIF (alias of render_animation)."""
     return pgl_export.render_animation_gif(
@@ -475,6 +491,7 @@ def export_gif(
         _settings(animation, settings_json),
         scale=scale,
         save_path=save_path,
+        cell_shape=cell_shape,
     )
 
 
@@ -485,18 +502,20 @@ def export_png_frames_zip(
     settings_json: str | None = None,
     scale: int = 2,
     save_path: str | None = None,
+    cell_shape: str = "square",
 ) -> dict:
-    """Export a ZIP of PNG animation frames plus timing.json and project.json."""
+    """Export a ZIP of PNG animation frames plus timing.json (editor manifest v2) and project.json."""
     return pgl_export.export_png_frames_zip(
         project_path,
         _settings(animation, settings_json),
         scale=scale,
         save_path=save_path,
+        cell_shape=cell_shape,
     )
 
 
 @tool()
-def export_c64(
+def export_native(
     project_path: str | None = None,
     mode: str = "still",
     format: str = "prg",
@@ -506,8 +525,13 @@ def export_c64(
     allow_timing_overrun: bool = False,
     save_path: str | None = None,
 ) -> dict:
-    """Export a C64 .prg or .d64 (mode=still|animation)."""
-    return pgl_export.export_c64(
+    """
+    Export a native .prg or .d64 for the project's machine (mode=still|animation).
+
+    C64 and C128 40-col use the VIC player, C128 80-col the VDC player, Plus/4 the TED player —
+    the same exporters as the editor's Download panel. repetitions 0–100 (0 loops forever).
+    """
+    return pgl_export.export_native(
         project_path,
         mode=mode,
         format=format,
@@ -520,13 +544,13 @@ def export_c64(
 
 @tool()
 def export_glyph_bin(project_path: str | None = None, save_path: str | None = None) -> dict:
-    """Download glyph IDs as 16-bit little-endian binary (FFFF = empty)."""
+    """Glyph atlas IDs (bank × 256 + screen code) as 16-bit little-endian; FFFF = empty. Not PETSCII bytes."""
     return pgl_export.export_glyph_bin(project_path, save_path)
 
 
 @tool()
 def export_color_ram_bin(project_path: str | None = None, save_path: str | None = None) -> dict:
-    """Download color RAM as one palette index byte per cell."""
+    """Color RAM: one VIC colour index byte per cell, row-major. C64 / C128 40-col projects only."""
     return pgl_export.export_color_ram_bin(project_path, save_path)
 
 
@@ -539,9 +563,12 @@ def export_video(
     format: str = "mp4",
     repetitions: int = 1,
     save_path: str | None = None,
+    cell_shape: str = "square",
 ) -> dict:
     """
-    Export MP4 or WebM via ffmpeg from PNG frames (not browser WebCodecs).
+    Export MP4 or WebM via ffmpeg (not browser WebCodecs), 1–100 complete loops.
+
+    Each frame keeps its exact start time and duration (variable frame rate), as in the editor.
     Requires ffmpeg on PATH.
     """
     return pgl_export.export_video(
@@ -551,6 +578,7 @@ def export_video(
         format=format,
         save_path=save_path,
         repetitions=repetitions,
+        cell_shape=cell_shape,
     )
 
 

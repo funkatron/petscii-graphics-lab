@@ -51,7 +51,7 @@ class McpProtocolTests(unittest.TestCase):
         tools = self.run_client(lambda client: client.list_tools()).tools
         names = [tool.name for tool in tools]
         self.assertEqual(len(names), len(set(names)))
-        for name in ("create_canvas", "paint_cells", "render_still", "export_c64", "undo"):
+        for name in ("create_canvas", "paint_cells", "render_still", "export_native", "undo"):
             self.assertIn(name, names)
         canvas = next(tool for tool in tools if tool.name == "create_canvas")
         self.assertIn("machine", canvas.input_schema["properties"])

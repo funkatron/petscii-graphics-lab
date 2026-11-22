@@ -1,8 +1,17 @@
 # PETSCII preview MCP
 
-Renders shared C64-family glyphs with machine chrome, and lets an agent paint, animate, and export a PETSCII Graphics Lab project.
+Lets an agent paint, animate, and export a PETSCII Graphics Lab project, with the same glyphs, colours, timing and native programs as the editor.
 
-Glyph art always comes from `assets/c64-glyphs.svg`.
+Glyphs and colours follow the project's **machine**, exactly as in the editor:
+
+| Machine (`machine`) | Glyph sheet | Colours |
+| --- | --- | --- |
+| `c64` | `assets/c64-glyphs.svg` | VIC, using the project `palette` (Pepto, Colodore, VICE, RGB) |
+| `c128` (40-col) | `assets/c64-glyphs.svg` | VIC, using the project `palette` |
+| `c128-80` (80-col) | `assets/c64-glyphs.svg` | VDC RGBI |
+| `plus4` | `assets/ted-glyphs.svg` | TED (121 colours) |
+
+Every image export takes `cell_shape`: `square` (default) or `crt` (CRT proportion: 5∶6 cells on VIC/TED, 5∶12 on VDC).
 
 ## Setup
 
@@ -46,13 +55,15 @@ Outputs land in `agents/petscii-preview/out/`.
 
 | Tool | Purpose |
 | --- | --- |
-| `plan_animation` | Frame count + readiness warning |
-| `render_still` / `export_png` / `export_svg` | Still artwork |
-| `render_animation` / `export_gif` | Any motion × color GIF |
+| `plan_animation` | Frame count, readiness, and `suggestedSeconds` when the settings are too fast |
+| `render_still` / `export_png` / `export_svg` | Still artwork. SVG uses one vector path per glyph shape |
+| `render_animation` / `export_gif` | Movement × cell colour × backdrop GIF. Refuses settings that would alias (see `plan_animation`) |
 | `render_color_animation` / `render_color_animation_set` | Compat helpers (cube + color pack) |
-| `export_png_frames_zip` | PNG frame ZIP + `timing.json` |
-| `export_c64` | `.prg` / `.d64` (still or animation; max 40×25) |
-| `export_glyph_bin` / `export_color_ram_bin` | Raw dumps |
+| `export_png_frames_zip` | PNG frame ZIP + `timing.json` (editor manifest v2) + `project.json` |
+| `export_video` | MP4/WebM, exact frame timing, 1–100 loops (needs ffmpeg) |
+| `export_native` | `.prg` / `.d64` for the project's machine: C64, C128 40/80-col, Plus/4 |
+| `export_glyph_bin` | Glyph atlas IDs (bank × 256 + screen code), 16-bit LE, `FFFF` = empty. Not PETSCII bytes |
+| `export_color_ram_bin` | One VIC colour index per cell (C64 / C128 40-col only) |
 
 Animation settings use the same object shape as `project.animation` (pass
 `animation={...}` or `settings_json='{...}'`). Keys include `effect` /
@@ -101,17 +112,13 @@ Operate on a workspace project path. Brush state lives in a sidecar.
 
 ### Video (ffmpeg)
 
-| Tool | Purpose |
-| --- | --- |
-| `export_video` | MP4 or WebM from PNG frames via **ffmpeg** (not browser WebCodecs) |
-
-Requires `ffmpeg` on `PATH`:
+`export_video` encodes MP4 or WebM with **ffmpeg** (not browser WebCodecs). Install it first:
 
 ```bash
 sudo apt-get install -y ffmpeg   # or brew install ffmpeg
 ```
 
-Encoding notes: frames are duplicated to a **25 fps CFR** timeline from each frame’s `durationMs` (so timing matches the GIF), padded to even dimensions for H.264, and written with `yuv420p` + `faststart`. Prefer a painted project — an empty canvas yields a valid but black video.
+Each frame keeps its exact start time and duration (variable frame rate), matching the editor's video download. Frames are padded to even dimensions for `yuv420p`. Transparent backgrounds render black.
 
 ## Workspace
 
@@ -135,9 +142,9 @@ Restart Cursor (or start a new agent session) after changing MCP config.
 
 ## Headless bridges
 
-- `export_animation.mjs` — full motion/color frame JSON
-- `pgl_cli.mjs` — validate, text-grid, C64, place-text
-- Python: `src/project_io.py`, `src/pgl_export.py`, `src/drawing.py`
+- `pgl-shared.mjs` — editor-equivalent helpers (project source, colour tables, frame timing, glyph bits, native export routing). Keep in step with `index.html`.
+- `pgl_cli.mjs` — `validate`, `list-effects`, `plan`, `render-plan`, `export-native`, text grids, typed text
+- Python: `src/project_io.py`, `src/pgl_export.py` (rasterizer only), `src/drawing.py`, `src/project_store.py`
 
 ## Tests
 
@@ -147,6 +154,15 @@ Run every MCP test (CI runs the same command when MCP files or shared modules ch
 cd agents/petscii-preview && .venv/bin/python -m unittest discover -s tests -v
 ```
 
+### Editor parity check (local)
+
+Compares MCP exports with the editor's own downloads in Chromium: PNG and SVG for every machine, both cell shapes and two VIC palettes, GIFs, and native PRGs. Needs Node and the pre-installed Playwright Chromium.
+
+```bash
+agents/petscii-preview/.venv/bin/python agents/petscii-preview/smoke/editor_parity.py
+```
+
+Known difference: for CRT cells the editor's still PNG is an anti-aliased rasterization of its SVG, so glyph edges blur. The MCP draws CRT stills crisply, like the editor canvas and its GIF/ZIP/video. The check requires the same size and no colours the editor lacks.
 ## Errors and safety
 
 - A failed tool call returns an MCP error result with the reason (bad glyph, cell outside the canvas, no selection, invalid project). It never leaves a half-written file.
