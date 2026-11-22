@@ -40,8 +40,21 @@ function toolNeeds(result) {
     py65: result.specs.some(spec => PY65_SPECS.has(spec)),
   };
 }
-function select(files, {full=false, motionOnly=false, light=false}={}) {
+// The petscii-preview MCP server has its own Python job (see mcpNeeded).
+const MCP_DIR = 'agents/petscii-preview/';
+// Shared root modules, glyph assets and the MCP itself feed the MCP bridges.
+function mcpNeeded(files, {full=false}={}) {
+  if (full) return true;
+  return files.some(file =>
+    (file.startsWith(MCP_DIR) && !file.endsWith('.md'))
+    || /^[a-zA-Z0-9._-]+\.js$/.test(file)
+    || file.startsWith('assets/')
+    || file === '.github/workflows/ci.yml');
+}
+function select(allFiles, {full=false, motionOnly=false, light=false}={}) {
   if (full) return {mode:'full', specs:[]};
+  // MCP-only changes do not need browser checks.
+  const files = allFiles.filter(file => !file.startsWith(MCP_DIR));
   if (motionOnly) return {mode:'focused', specs:['tests/sine-scroll.spec.cjs','tests/diagonal-scroll.spec.cjs','tests/demoscene.spec.cjs','tests/wavelength.spec.cjs','tests/solid-motion.spec.cjs','tests/space-warp.spec.cjs','tests/depth-exports.spec.cjs']};
   if (!files.length || files.every(file => file.startsWith('docs/') || file.endsWith('.md')))
     return {mode:'none',specs:[]};
@@ -118,7 +131,7 @@ function select(files, {full=false, motionOnly=false, light=false}={}) {
   }
   return {mode:'focused',specs};
 }
-module.exports = {select, toolNeeds, FFMPEG_SPECS, PY65_SPECS};
+module.exports = {select, toolNeeds, mcpNeeded, FFMPEG_SPECS, PY65_SPECS};
 if (require.main === module) {
   const files = fs.readFileSync(0,'utf8').split('\n').filter(Boolean);
   const result = select(files,{
@@ -127,7 +140,8 @@ if (require.main === module) {
     light:process.env.LIGHT_REQUEST==='true',
   });
   const tools = toolNeeds(result);
+  const mcp = mcpNeeded(files, {full:process.env.FULL_REQUEST==='true'});
   const out = process.env.GITHUB_OUTPUT;
   if (!out) throw new Error('GITHUB_OUTPUT is required');
-  fs.appendFileSync(out,`mode=${result.mode}\nspecs=${result.specs.join(' ')}\nffmpeg=${tools.ffmpeg}\npy65=${tools.py65}\n`);
+  fs.appendFileSync(out,`mode=${result.mode}\nspecs=${result.specs.join(' ')}\nffmpeg=${tools.ffmpeg}\npy65=${tools.py65}\nmcp=${mcp}\n`);
 }

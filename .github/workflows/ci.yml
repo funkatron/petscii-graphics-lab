@@ -25,6 +25,7 @@ jobs:
       full: ${{ steps.choose.outputs.full }}
       ffmpeg: ${{ steps.choose.outputs.ffmpeg }}
       py65: ${{ steps.choose.outputs.py65 }}
+      mcp: ${{ steps.choose.outputs.mcp }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -73,6 +74,25 @@ jobs:
       - run: node --test tests/*.unit.mjs
         env:
           PETSCII_PY: /tmp/petscii-test-venv/bin/python
+  mcp:
+    name: MCP server tests
+    needs: select
+    if: needs.select.outputs.mcp == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the petscii-preview environment
+        run: agents/petscii-preview/setup-venv.sh
+      - name: Unit and MCP protocol tests
+        working-directory: agents/petscii-preview
+        run: .venv/bin/python -m unittest discover -s tests -v
   playwright:
     needs: select
     if: needs.select.outputs.mode != 'none'
@@ -129,7 +149,7 @@ jobs:
   validation:
     name: Validation gate
     if: always()
-    needs: [select, unit, playwright]
+    needs: [select, unit, playwright, mcp]
     runs-on: ubuntu-latest
     steps:
       - name: Require selected checks to pass
@@ -138,7 +158,10 @@ jobs:
           MODE: ${{ needs.select.outputs.mode }}
           UNIT: ${{ needs.unit.result }}
           BROWSER: ${{ needs.playwright.result }}
+          MCP_NEEDED: ${{ needs.select.outputs.mcp }}
+          MCP: ${{ needs.mcp.result }}
         run: |
           [[ "$SELECTION" == success ]] || exit 1
+          if [[ "$MCP_NEEDED" == true && "$MCP" != success ]]; then exit 1; fi
           if [[ "$MODE" == none ]]; then exit 0; fi
           [[ "$UNIT" == success && "$BROWSER" == success ]]

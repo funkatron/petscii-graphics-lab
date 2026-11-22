@@ -74,7 +74,7 @@ Operate on a workspace project path. Brush state lives in a sidecar.
 
 | Tool | Purpose |
 | --- | --- |
-| `create_canvas` | Blank 40×25 or 80×25 picture |
+| `create_canvas` | Blank picture; `machine` is c64, c128, c128-80 (80 columns) or plus4 |
 | `glyph_families` / `read_grid` | Atlas ids, then the cells you have painted |
 | `set_tool_state` / `get_tool_state` | Glyph, ink, symmetry, selection |
 | `paint_cells` / `erase_cells` / `fill` | Brush ops |
@@ -141,11 +141,19 @@ Restart Cursor (or start a new agent session) after changing MCP config.
 
 ## Tests
 
+Run every MCP test (CI runs the same command when MCP files or shared modules change):
+
 ```bash
-agents/petscii-preview/.venv/bin/python -m unittest agents.petscii-preview.tests.test_pgl_mcp_smoke
-# or:
-cd agents/petscii-preview && .venv/bin/python -m unittest tests.test_pgl_mcp_smoke
+cd agents/petscii-preview && .venv/bin/python -m unittest discover -s tests -v
 ```
+
+## Errors and safety
+
+- A failed tool call returns an MCP error result with the reason (bad glyph, cell outside the canvas, no selection, invalid project). It never leaves a half-written file.
+- Saves are atomic: the project is validated with the editor's `project-validation.js` before it replaces the old file.
+- Edits that change nothing do not add an undo step.
+- Tools refuse to write inside `examples/`. Call `copy_project_to_workspace` first.
+- Brush state and undo history live in `out/workspace/sessions/`, one folder per project path.
 
 ## Exploratory PGL examples
 

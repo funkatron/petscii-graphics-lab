@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 from node_bridge import (
-    DEFAULT_PROJECT,
     EXPORT_ANIMATION,
     PGL_CLI,
     ensure_workspace,
@@ -16,6 +15,9 @@ from node_bridge import (
     resolve_project,
     run_node,
 )
+from project_store import ProjectError, atomic_save, load, validate_file, write_target
+
+MACHINES = ("c64", "c128", "c128-80", "plus4")
 
 DEFAULT_ANIMATION = {
     "effect": "none",
@@ -58,26 +60,27 @@ def list_effects() -> dict:
 
 def validate_project(project_path: str | None = None) -> dict:
     path = resolve_project(project_path)
-    result = run_node(PGL_CLI, ["validate", f"--project={path}"], check=False)
-    return parse_json_stdout(result)
+    if not path.is_file():
+        return {"ok": False, "project": str(path), "error": f"project not found: {path}"}
+    return validate_file(path)
 
 
 def load_project(project_path: str | None = None) -> dict:
     path = resolve_project(project_path)
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return {"ok": True, "project": str(path), "data": data}
+    return {"ok": True, "project": str(path), "data": load(path)}
 
 
 def save_project(data: dict, save_path: str | None = None) -> dict:
-    workspace = ensure_workspace()
-    path = Path(save_path).expanduser().resolve() if save_path else (workspace / "project.json")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    # Validate via round-trip write + CLI
-    path.write_text(f"{json.dumps(data, indent=2)}\n", encoding="utf-8")
-    check = validate_project(str(path))
-    if not check.get("ok"):
-        return {"ok": False, "error": check.get("error", "validation failed"), "project": str(path)}
-    return {"ok": True, "project": str(path)}
+    """Validate and atomically save a project (workspace/project.json by default)."""
+    if not isinstance(data, dict):
+        raise ProjectError("project data must be a JSON object")
+    return atomic_save(data, write_target(save_path, "project.json"))
+
+
+def check_machine(machine: str) -> str:
+    if machine not in MACHINES:
+        raise ProjectError(f"unknown machine {machine!r}; expected one of: {', '.join(MACHINES)}")
+    return machine
 
 
 def create_project(
@@ -87,13 +90,15 @@ def create_project(
     background: int = 0,
     name: str = "Untitled",
     save_path: str | None = None,
+    machine: str = "c64",
 ) -> dict:
-    if columns < 1 or columns > 40 or rows < 1 or rows > 40:
-        return {"ok": False, "error": "Dimensions must be 1–40"}
+    """Blank project. Column limit follows the machine (80 for c128-80, else 40); rows 1–40."""
+    check_machine(machine)
     cell_count = columns * rows
     data = {
         "format": "petscii-stencil-lab",
         "version": 3,
+        "machine": machine,
         "name": name,
         "columns": columns,
         "rows": rows,
@@ -131,8 +136,13 @@ def update_project(
     save_path: str | None = None,
 ) -> dict:
     path = resolve_project(project_path)
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = load(path)
     patch = patch or {}
+    if not isinstance(patch, dict):
+        raise ProjectError("patch must be a JSON object")
+    for key in ("columns", "rows"):
+        if key in patch and (isinstance(patch[key], bool) or not isinstance(patch[key], int)):
+            raise ProjectError(f"{key} must be an integer")
 
     if "name" in patch:
         data["name"] = patch["name"]
@@ -169,6 +179,10 @@ def update_project(
 
 def copy_project_to_workspace(project_path: str | None = None, name: str = "session.json") -> dict:
     source = resolve_project(project_path)
+    if not source.is_file():
+        raise ProjectError(f"project not found: {source}")
+    if Path(name).name != name or not name.endswith(".json"):
+        raise ProjectError("name must be a plain file name ending in .json, e.g. portrait.json")
     dest = ensure_workspace() / name
     shutil.copy2(source, dest)
     return {"ok": True, "project": str(dest.resolve()), "source": str(source)}
@@ -176,8 +190,7 @@ def copy_project_to_workspace(project_path: str | None = None, name: str = "sess
 
 def export_text_grid(project_path: str | None = None, include_colors: bool = True, out_path: str | None = None) -> dict:
     path = resolve_project(project_path)
-    workspace = ensure_workspace()
-    out = Path(out_path).expanduser().resolve() if out_path else (workspace / f"{path.stem}.txt")
+    out = write_target(out_path, f"{path.stem}.txt")
     result = run_node(
         PGL_CLI,
         [
@@ -186,6 +199,7 @@ def export_text_grid(project_path: str | None = None, include_colors: bool = Tru
             f"--out={out}",
             f"--include-colors={'1' if include_colors else '0'}",
         ],
+        check=False,
     )
     payload = parse_json_stdout(result)
     payload["out"] = str(out)
@@ -197,8 +211,7 @@ def import_text_grid(
     project_path: str | None = None,
     out_path: str | None = None,
 ) -> dict:
-    workspace = ensure_workspace()
-    out = Path(out_path).expanduser().resolve() if out_path else (workspace / "imported.json")
+    out = write_target(out_path, "imported.json")
     args = [
         "import-text-grid",
         f"--text={Path(text_path).expanduser().resolve()}",
@@ -206,5 +219,5 @@ def import_text_grid(
     ]
     if project_path:
         args.append(f"--project={resolve_project(project_path)}")
-    result = run_node(PGL_CLI, args)
+    result = run_node(PGL_CLI, args, check=False)
     return parse_json_stdout(result)

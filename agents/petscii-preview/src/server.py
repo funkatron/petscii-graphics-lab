@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import base64
+import functools
 import io
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import Any
@@ -13,6 +15,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 
 from color_anim import render_color_animation_gif
 import craft
@@ -23,9 +26,49 @@ import rug_styles
 import pgl_export
 import project_io
 from machines import MACHINES, get_machine
+from project_store import ProjectError, parse_json_arg
 from render import render_mode_animation, render_screen, save_machine_stills
 
-mcp = MCPServer("petscii-preview", version="0.2.0")
+mcp = MCPServer("petscii-preview", version="0.3.0")
+logger = logging.getLogger("petscii-preview")
+
+
+def _failure_message(result: dict[str, Any]) -> str:
+    message = str(result.get("error") or "the operation failed")
+    details = {key: value for key, value in result.items() if key not in ("ok", "error", "stderr")}
+    if details:
+        message += f" Details: {json.dumps(details, default=str)}"
+    return message
+
+
+def tool(*, raw_ok: bool = False, **kwargs: Any):
+    """Register an MCP tool whose failures reach the client as `is_error` results.
+
+    - ProjectError (bad input, missing file, invalid project) → its message.
+    - Any other exception → logged with a traceback; the client gets type + message.
+    - A returned {"ok": false, "error": ...} → an error result, unless `raw_ok` is set
+      for tools where "not ok" is the answer (validate_project).
+    """
+
+    def decorate(fn):
+        @functools.wraps(fn)
+        def wrapper(*args: Any, **inner: Any):
+            try:
+                result = fn(*args, **inner)
+            except ToolError:
+                raise
+            except ProjectError as error:
+                raise ToolError(str(error)) from error
+            except Exception as error:  # noqa: BLE001 - surface the reason to the agent
+                logger.exception("tool %s crashed", fn.__name__)
+                raise ToolError(f"{type(error).__name__}: {error}") from error
+            if not raw_ok and isinstance(result, dict) and result.get("ok") is False:
+                raise ToolError(_failure_message(result))
+            return result
+
+        return mcp.tool(**kwargs)(wrapper)
+
+    return decorate
 
 
 def _settings(animation: dict[str, Any] | None = None, settings_json: str | None = None) -> dict[str, Any]:
@@ -33,11 +76,14 @@ def _settings(animation: dict[str, Any] | None = None, settings_json: str | None
     if animation:
         merged.update(animation)
     if settings_json:
-        merged.update(json.loads(settings_json))
+        parsed = parse_json_arg(settings_json, "settings_json")
+        if not isinstance(parsed, dict):
+            raise ProjectError("settings_json must be a JSON object")
+        merged.update(parsed)
     return merged
 
 
-@mcp.tool()
+@tool()
 def list_machines() -> dict:
     """List machine modes that share the C64 PETSCII glyph sheet."""
     return {
@@ -53,7 +99,7 @@ def list_machines() -> dict:
     }
 
 
-@mcp.tool()
+@tool()
 def render_petscii_screen(
     machine: str = "c64",
     lines: list[str] | None = None,
@@ -99,7 +145,7 @@ def render_petscii_screen(
     }
 
 
-@mcp.tool()
+@tool()
 def render_machine_comparison(
     scale: int = 2,
     out_dir: str | None = None,
@@ -115,7 +161,7 @@ def render_machine_comparison(
     }
 
 
-@mcp.tool()
+@tool()
 def render_themed_examples(
     scale: int = 3,
     out_dir: str | None = None,
@@ -188,7 +234,7 @@ def render_themed_examples(
     }
 
 
-@mcp.tool()
+@tool()
 def render_color_animation(
     effect: str = "plus4-cycle",
     scale: int = 2,
@@ -223,7 +269,7 @@ def render_color_animation(
     }
 
 
-@mcp.tool()
+@tool()
 def render_color_animation_set(
     scale: int = 2,
     out_dir: str | None = None,
@@ -269,31 +315,31 @@ def render_color_animation_set(
 # --- Phase 1: project document + animation + exports ---
 
 
-@mcp.tool()
+@tool()
 def list_effects() -> dict:
     """List motion, color, and backdrop effects plus animation enum values from the lab UI."""
     return project_io.list_effects()
 
 
-@mcp.tool()
+@tool(raw_ok=True)
 def validate_project(project_path: str | None = None) -> dict:
     """Validate a v3 PGL project JSON file."""
     return project_io.validate_project(project_path)
 
 
-@mcp.tool()
+@tool()
 def load_project(project_path: str | None = None) -> dict:
     """Load a v3 PGL project JSON (defaults to the wordmark example)."""
     return project_io.load_project(project_path)
 
 
-@mcp.tool()
+@tool()
 def save_project(data_json: str, save_path: str | None = None) -> dict:
     """Save a v3 PGL project JSON string to disk (workspace by default)."""
-    return project_io.save_project(json.loads(data_json), save_path)
+    return project_io.save_project(parse_json_arg(data_json, "data_json"), save_path)
 
 
-@mcp.tool()
+@tool()
 def create_project(
     columns: int = 16,
     rows: int = 16,
@@ -301,12 +347,13 @@ def create_project(
     background: int = 0,
     name: str = "Untitled",
     save_path: str | None = None,
+    machine: str = "c64",
 ) -> dict:
-    """Create a blank v3 PGL project (1–40 columns/rows)."""
-    return project_io.create_project(columns, rows, ink, background, name, save_path)
+    """Create a blank v3 PGL project. machine: c64, c128, c128-80 (up to 80 columns), plus4. Rows 1–40."""
+    return project_io.create_project(columns, rows, ink, background, name, save_path, machine)
 
 
-@mcp.tool()
+@tool()
 def update_project(
     project_path: str,
     patch_json: str,
@@ -316,10 +363,10 @@ def update_project(
     Patch a project. patch_json may include name, colors, animation, columns, rows,
     grid, and cellColors. Resize keeps overlapping cells.
     """
-    return project_io.update_project(project_path, json.loads(patch_json), save_path)
+    return project_io.update_project(project_path, parse_json_arg(patch_json, "patch_json"), save_path)
 
 
-@mcp.tool()
+@tool()
 def copy_project_to_workspace(
     project_path: str | None = None,
     name: str = "session.json",
@@ -328,7 +375,7 @@ def copy_project_to_workspace(
     return project_io.copy_project_to_workspace(project_path, name)
 
 
-@mcp.tool()
+@tool()
 def export_text_grid(
     project_path: str | None = None,
     include_colors: bool = True,
@@ -338,7 +385,7 @@ def export_text_grid(
     return project_io.export_text_grid(project_path, include_colors, out_path)
 
 
-@mcp.tool()
+@tool()
 def import_text_grid(
     text_path: str,
     project_path: str | None = None,
@@ -348,7 +395,7 @@ def import_text_grid(
     return project_io.import_text_grid(text_path, project_path, out_path)
 
 
-@mcp.tool()
+@tool()
 def plan_animation(
     project_path: str | None = None,
     animation: dict[str, Any] | None = None,
@@ -358,7 +405,7 @@ def plan_animation(
     return pgl_export.plan_animation(project_path, _settings(animation, settings_json))
 
 
-@mcp.tool()
+@tool()
 def render_still(
     project_path: str | None = None,
     scale: int = 4,
@@ -370,7 +417,7 @@ def render_still(
     return pgl_export.render_still(project_path, scale, background, save_path, fmt)
 
 
-@mcp.tool()
+@tool()
 def render_animation(
     project_path: str | None = None,
     animation: dict[str, Any] | None = None,
@@ -393,7 +440,7 @@ def render_animation(
     )
 
 
-@mcp.tool()
+@tool()
 def export_png(
     project_path: str | None = None,
     scale: int = 4,
@@ -404,7 +451,7 @@ def export_png(
     return pgl_export.render_still(project_path, scale, background, save_path, "png")
 
 
-@mcp.tool()
+@tool()
 def export_svg(
     project_path: str | None = None,
     background: str = "canvas",
@@ -414,7 +461,7 @@ def export_svg(
     return pgl_export.render_still(project_path, 1, background, save_path, "svg")
 
 
-@mcp.tool()
+@tool()
 def export_gif(
     project_path: str | None = None,
     animation: dict[str, Any] | None = None,
@@ -431,7 +478,7 @@ def export_gif(
     )
 
 
-@mcp.tool()
+@tool()
 def export_png_frames_zip(
     project_path: str | None = None,
     animation: dict[str, Any] | None = None,
@@ -448,7 +495,7 @@ def export_png_frames_zip(
     )
 
 
-@mcp.tool()
+@tool()
 def export_c64(
     project_path: str | None = None,
     mode: str = "still",
@@ -471,19 +518,19 @@ def export_c64(
     )
 
 
-@mcp.tool()
+@tool()
 def export_glyph_bin(project_path: str | None = None, save_path: str | None = None) -> dict:
     """Download glyph IDs as 16-bit little-endian binary (FFFF = empty)."""
     return pgl_export.export_glyph_bin(project_path, save_path)
 
 
-@mcp.tool()
+@tool()
 def export_color_ram_bin(project_path: str | None = None, save_path: str | None = None) -> dict:
     """Download color RAM as one palette index byte per cell."""
     return pgl_export.export_color_ram_bin(project_path, save_path)
 
 
-@mcp.tool()
+@tool()
 def export_video(
     project_path: str | None = None,
     animation: dict[str, Any] | None = None,
@@ -510,7 +557,7 @@ def export_video(
 # --- Phase 2: drawing tools ---
 
 
-@mcp.tool()
+@tool()
 def set_tool_state(
     project_path: str,
     glyph: int | None = None,
@@ -528,13 +575,13 @@ def set_tool_state(
     return drawing.set_tool_state(project_path, patch)
 
 
-@mcp.tool()
+@tool()
 def get_tool_state(project_path: str) -> dict:
     """Read current brush/selection state for a project session."""
     return drawing.get_tool_state(project_path)
 
 
-@mcp.tool()
+@tool()
 def paint_cells(project_path: str, cells: list[dict]) -> dict:
     """
     Paint cells in batches. Each cell is {x, y, glyph?, ink?}; missing fields use the brush.
@@ -545,25 +592,25 @@ def paint_cells(project_path: str, cells: list[dict]) -> dict:
     return drawing.paint_cells(project_path, cells)
 
 
-@mcp.tool()
+@tool()
 def erase_cells(project_path: str, cells: list[dict]) -> dict:
     """Clear cells back to empty. Each cell is {x, y}."""
     return drawing.erase_cells(project_path, cells)
 
 
-@mcp.tool()
+@tool()
 def fill(project_path: str, x: int, y: int) -> dict:
     """Flood-fill from (x,y) with the current glyph/ink."""
     return drawing.fill(project_path, x, y)
 
 
-@mcp.tool()
+@tool()
 def draw_line(project_path: str, x0: int, y0: int, x1: int, y1: int) -> dict:
     """Draw a glyph line from (x0,y0) to (x1,y1)."""
     return drawing.draw_line(project_path, x0, y0, x1, y1)
 
 
-@mcp.tool()
+@tool()
 def draw_rect(
     project_path: str,
     x0: int,
@@ -576,7 +623,7 @@ def draw_rect(
     return drawing.draw_rect(project_path, x0, y0, x1, y1, filled)
 
 
-@mcp.tool()
+@tool()
 def place_text(
     project_path: str,
     text: str,
@@ -588,90 +635,93 @@ def place_text(
     return drawing.place_text(project_path, text, x, y, ink)
 
 
-@mcp.tool()
+@tool()
 def select_rect(project_path: str, x0: int, y0: int, x1: int, y1: int) -> dict:
     """Select a rectangular region."""
     return drawing.select_rect(project_path, x0, y0, x1, y1)
 
 
-@mcp.tool()
+@tool()
 def deselect(project_path: str) -> dict:
     """Clear the current selection."""
     return drawing.deselect(project_path)
 
 
-@mcp.tool()
+@tool()
 def move_selection(project_path: str, dx: int, dy: int) -> dict:
     """Move the selection by (dx,dy), clearing the old cells."""
     return drawing.move_selection(project_path, dx, dy)
 
 
-@mcp.tool()
+@tool()
 def duplicate_selection(project_path: str, dx: int = 1, dy: int = 0) -> dict:
     """Duplicate the selection offset by (dx,dy)."""
     return drawing.duplicate_selection(project_path, dx, dy)
 
 
-@mcp.tool()
+@tool()
 def delete_selection(project_path: str) -> dict:
     """Delete glyphs inside the selection."""
     return drawing.delete_selection(project_path)
 
 
-@mcp.tool()
+@tool()
 def clear_drawing(project_path: str) -> dict:
     """Clear the entire drawing."""
     return drawing.clear_drawing(project_path)
 
 
-@mcp.tool()
+@tool()
 def recolor_drawing(project_path: str, ink: int) -> dict:
     """Recolor all painted cells to ink and set the brush ink."""
     return drawing.recolor_drawing(project_path, ink)
 
 
-@mcp.tool()
+@tool()
 def stamp_border(project_path: str) -> dict:
     """Stamp a border using the current glyph/ink."""
     return drawing.stamp_border(project_path)
 
 
-@mcp.tool()
+@tool()
 def stamp_checkerboard(project_path: str) -> dict:
     """Stamp a checkerboard using the current glyph/ink."""
     return drawing.stamp_checkerboard(project_path)
 
 
-@mcp.tool()
+@tool()
 def undo(project_path: str) -> dict:
     """Undo the last drawing mutation."""
     return drawing.undo(project_path)
 
 
-@mcp.tool()
+@tool()
 def redo(project_path: str) -> dict:
     """Redo the last undone drawing mutation."""
     return drawing.redo(project_path)
 
 
-@mcp.tool()
+@tool()
 def create_canvas(
     project_path: str,
     columns: int = 40,
     rows: int = 25,
     background: int = 0,
     ink: int = 1,
+    machine: str | None = None,
 ) -> dict:
     """
     Start a blank PETSCII picture (40×25 or 80×25).
 
+    machine: c64, c128, c128-80, or plus4. Defaults to c128-80 for more than 40 columns, else c64.
+
     Before painting: list_drawing_references or illustration_brief for the subject.
     Study the reference JPG/PNG paths in agents/petscii-preview/examples/ — do not trace.
     """
-    return drawing.create_canvas(project_path, columns, rows, background, ink)
+    return drawing.create_canvas(project_path, columns, rows, background, ink, machine)
 
 
-@mcp.tool()
+@tool()
 def glyph_families() -> dict:
     """Atlas ids by role, plus a shading ladder for fill (160, 102, 77/78, halves, quarters)."""
     families = drawing.glyph_families()
@@ -681,13 +731,13 @@ def glyph_families() -> dict:
     return families
 
 
-@mcp.tool()
+@tool()
 def read_grid(project_path: str) -> dict:
     """Read occupied cells. Empty cells are omitted."""
     return drawing.read_grid(project_path)
 
 
-@mcp.tool()
+@tool()
 def list_drawing_references(category: str | None = None) -> dict:
     """
   Gallery craft notes for master PETSCII art in agents/petscii-preview/examples/.
@@ -698,13 +748,13 @@ def list_drawing_references(category: str | None = None) -> dict:
     return craft.list_drawing_references(category)
 
 
-@mcp.tool()
+@tool()
 def shading_ladder(background_ink: int = 0) -> dict:
     """Brightness steps from solid 160 down to quarter blocks on a given screen background ink."""
     return craft.shading_ladder(background_ink)
 
 
-@mcp.tool()
+@tool()
 def illustration_brief(subject: str) -> dict:
     """
     Plan a picture: inferred category, palette hint, layout, reference ids, pass order, tool sequence.
@@ -714,7 +764,7 @@ def illustration_brief(subject: str) -> dict:
     return craft.illustration_brief(subject)
 
 
-@mcp.tool()
+@tool()
 def critique_drawing(project_path: str, style: str = "auto") -> dict:
     """
     Heuristic review vs reference-artist habits: coverage, ink count, texture pass, focal band.
@@ -724,13 +774,13 @@ def critique_drawing(project_path: str, style: str = "auto") -> dict:
     return craft.critique_drawing(project_path, style=style)
 
 
-@mcp.tool()
+@tool()
 def list_op_art_recipes() -> dict:
     """Op-art / abstract recipe catalog (Riley bars, Vasarely targets, moiré lines, plasma fields)."""
     return op_art.list_op_art_recipes()
 
 
-@mcp.tool()
+@tool()
 def op_art_recipe(recipe_id: str) -> dict:
     """
     Full craft notes + animation_suggest for one recipe.
@@ -743,7 +793,7 @@ def op_art_recipe(recipe_id: str) -> dict:
     return op_art.op_art_recipe(recipe_id)
 
 
-@mcp.tool()
+@tool()
 def study_world_art(tradition: str = "all") -> dict:
     """
     Craft study for Islamic geometric / arabesque and Hindu mandala-yantra-kolam traditions.
@@ -753,14 +803,13 @@ def study_world_art(tradition: str = "all") -> dict:
     return world_art.study_world_art(tradition)
 
 
-@mcp.tool()
-@mcp.tool()
+@tool()
 def list_style_combinations() -> dict:
     """Oriental rug presets that layer Islamic, Hindu, and kilim recipes (border + field + medallion)."""
     return rug_styles.list_style_combinations()
 
 
-@mcp.tool()
+@tool()
 def combine_styles(combination: str) -> dict:
     """
     Layer plan for a multi-tradition carpet.
@@ -770,7 +819,7 @@ def combine_styles(combination: str) -> dict:
     return rug_styles.combine_styles(combination)
 
 
-@mcp.tool()
+@tool()
 def stamp_combined_style(
     project_path: str,
     combination: str,
@@ -788,7 +837,7 @@ def stamp_combined_style(
     )
 
 
-@mcp.tool()
+@tool()
 def list_world_art_references(tradition: str | None = None) -> dict:
     """
     Local study images under examples/world-art/ plus Wikimedia Commons page URLs.
@@ -798,7 +847,7 @@ def list_world_art_references(tradition: str | None = None) -> dict:
     return world_art.list_world_art_references(tradition)
 
 
-@mcp.tool()
+@tool()
 def stamp_op_art(
     project_path: str,
     recipe: str,

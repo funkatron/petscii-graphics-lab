@@ -12,6 +12,7 @@ from typing import Any
 from PIL import Image, ImageDraw
 
 from glyphs import load_glyph_banks
+from project_store import ProjectError, load, write_target
 from node_bridge import (
     EXPORT_ANIMATION,
     PGL_CLI,
@@ -48,8 +49,7 @@ def hex_to_rgb(value: str) -> tuple[int, int, int]:
 
 def load_project_data(project_path: str | None) -> tuple[Path, dict]:
     path = resolve_project(project_path)
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return path, data
+    return path, load(path)
 
 
 def background_rgb(data: dict, mode: str = "canvas") -> tuple[int, int, int] | None:
@@ -121,12 +121,11 @@ def render_still(
     bg = background_rgb(data, background)
     img = render_cells_image(cells, inks, columns, rows, PEPTO, bg, scale, banks)
 
-    workspace = ensure_workspace()
-    if save_path:
-        out = Path(save_path).expanduser().resolve()
-    else:
-        suffix = "svg" if fmt == "svg" else "png"
-        out = workspace / f"{path.stem}-still.{suffix}"
+    if fmt not in ("png", "svg"):
+        raise ProjectError(f"fmt must be png or svg, got {fmt!r}")
+    if background not in ("canvas", "white", "black", "transparent"):
+        raise ProjectError(f"background must be canvas, white, black or transparent, got {background!r}")
+    out = write_target(save_path, f"{path.stem}-still.{fmt}")
     out.parent.mkdir(parents=True, exist_ok=True)
 
     if fmt == "svg":
@@ -195,8 +194,10 @@ def export_frames_payload(
     ]
     if settings:
         args.append(f"--settings={json.dumps(settings)}")
-    result = run_node(EXPORT_ANIMATION, args)
+    result = run_node(EXPORT_ANIMATION, args, check=False)
     summary = parse_json_stdout(result)
+    if result.returncode != 0 or summary.get("ok") is False:
+        raise ProjectError(f"animation export failed: {summary.get('error', 'unknown error')}")
     data = json.loads(payload_path.read_text(encoding="utf-8"))
     summary["payload"] = data
     summary["payloadPath"] = str(payload_path)
@@ -208,7 +209,7 @@ def plan_animation(project_path: str | None = None, settings: dict[str, Any] | N
     args = [f"--project={path}", "--plan-only"]
     if settings:
         args.append(f"--settings={json.dumps(settings)}")
-    result = run_node(EXPORT_ANIMATION, args)
+    result = run_node(EXPORT_ANIMATION, args, check=False)
     return parse_json_stdout(result)
 
 
@@ -243,19 +244,17 @@ def render_animation_gif(
             data["columns"],
             data["rows"],
             palette,
-            background if background is not None else (0, 0, 0),
+            background,
             scale,
             banks,
         )
-        frames.append(img.convert("RGB"))
+        # Transparent backgrounds stay RGBA so Pillow writes a GIF transparency index.
+        frames.append(img if background is None else img.convert("RGB"))
         durations.append(max(40, int(frame.get("durationMs", data.get("durationMs", 80)))))
 
-    workspace = ensure_workspace()
     motion = data.get("motionEffect", "none")
     color = data.get("effect", "none")
-    out = Path(save_path).expanduser().resolve() if save_path else (
-        workspace / f"{Path(data['project']).stem}-{motion}-{color}.gif"
-    )
+    out = write_target(save_path, f"{Path(data['project']).stem}-{motion}-{color}.gif")
     out.parent.mkdir(parents=True, exist_ok=True)
     frames[0].save(
         out,
@@ -264,6 +263,7 @@ def render_animation_gif(
         duration=durations,
         loop=0,
         optimize=False,
+        disposal=2 if background is None else 0,
     )
     return {
         "ok": True,
@@ -290,7 +290,7 @@ def export_png_frames_zip(
     background = hex_to_rgb(data["background"])
     workspace = ensure_workspace()
     stem = Path(data["project"]).stem
-    out = Path(save_path).expanduser().resolve() if save_path else (workspace / f"{stem}-frames.zip")
+    out = write_target(save_path, f"{stem}-frames.zip")
     out.parent.mkdir(parents=True, exist_ok=True)
     frame_dir = workspace / f"{stem}-frames-tmp"
     if frame_dir.exists():
@@ -360,11 +360,18 @@ def export_c64(
     allow_timing_overrun: bool = False,
     save_path: str | None = None,
 ) -> dict:
-    path = resolve_project(project_path)
-    workspace = ensure_workspace()
-    out = Path(save_path).expanduser().resolve() if save_path else (
-        workspace / f"{path.stem}-{mode}.{format}"
-    )
+    path, data = load_project_data(project_path)
+    machine = data.get("machine", "c64")
+    if machine != "c64":
+        raise ProjectError(
+            f"export_c64 makes C64 programs only; this project's machine is {machine!r}. "
+            "Plus/4 and C128 native exports are not available from the MCP yet."
+        )
+    if mode not in ("still", "animation"):
+        raise ProjectError(f"mode must be still or animation, got {mode!r}")
+    if format not in ("prg", "d64"):
+        raise ProjectError(f"format must be prg or d64, got {format!r}")
+    out = write_target(save_path, f"{path.stem}-{mode}.{format}")
     args = [
         "export-c64",
         f"--project={path}",
@@ -387,10 +394,7 @@ def export_c64(
 
 def export_glyph_bin(project_path: str | None = None, save_path: str | None = None) -> dict:
     path, data = load_project_data(project_path)
-    workspace = ensure_workspace()
-    out = Path(save_path).expanduser().resolve() if save_path else (
-        workspace / f"{path.stem}-glyph-ids.bin"
-    )
+    out = write_target(save_path, f"{path.stem}-glyph-ids.bin")
     out.parent.mkdir(parents=True, exist_ok=True)
     raw = bytearray()
     for glyph in data["grid"]:
@@ -403,10 +407,7 @@ def export_glyph_bin(project_path: str | None = None, save_path: str | None = No
 
 def export_color_ram_bin(project_path: str | None = None, save_path: str | None = None) -> dict:
     path, data = load_project_data(project_path)
-    workspace = ensure_workspace()
-    out = Path(save_path).expanduser().resolve() if save_path else (
-        workspace / f"{path.stem}-color-ram.bin"
-    )
+    out = write_target(save_path, f"{path.stem}-color-ram.bin")
     out.parent.mkdir(parents=True, exist_ok=True)
     ink = data.get("colors", {}).get("ink", 14)
     colors = data.get("cellColors") or [ink] * len(data["grid"])
@@ -435,6 +436,8 @@ def export_video(
     save_path: str | None = None,
     repetitions: int = 1,
 ) -> dict:
+    if format not in ("mp4", "webm"):
+        raise ProjectError(f"format must be mp4 or webm, got {format!r}")
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         return {
@@ -484,9 +487,7 @@ def export_video(
         shutil.rmtree(frame_dir)
         return {"ok": False, "error": "no frames produced for video export"}
 
-    out = Path(save_path).expanduser().resolve() if save_path else (
-        workspace / f"{stem}-{data.get('motionEffect', 'none')}-{data.get('effect', 'none')}.{format}"
-    )
+    out = write_target(save_path, f"{stem}-{data.get('motionEffect', 'none')}-{data.get('effect', 'none')}.{format}")
     out.parent.mkdir(parents=True, exist_ok=True)
 
     if format == "webm":

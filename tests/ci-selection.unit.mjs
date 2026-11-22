@@ -85,3 +85,15 @@ test('ci: light drops native and video suites but keeps animation coverage',()=>
   assert.ok(!light.specs.includes('tests/cell-colors.spec.cjs'));
   assert.deepEqual(toolNeeds(light),{ffmpeg:false,py65:false});
 });
+
+test('MCP-only changes run the MCP job without browser checks',()=>{
+  const {mcpNeeded}=selector;
+  const files=['agents/petscii-preview/src/drawing.py','agents/petscii-preview/tests/test_drawing.py'];
+  assert.deepEqual(select(files),{mode:'none',specs:[]});
+  assert.equal(mcpNeeded(files),true);
+  assert.equal(mcpNeeded(['agents/petscii-preview/README.md']),false);
+  assert.equal(mcpNeeded(['project-validation.js']),true);
+  assert.equal(mcpNeeded(['assets/ted-glyphs.svg']),true);
+  assert.equal(mcpNeeded(['tests/colors.spec.cjs']),false);
+  assert.equal(mcpNeeded(['README.md'],{full:true}),true);
+});

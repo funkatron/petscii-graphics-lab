@@ -1,6 +1,6 @@
 # PETSCII preview MCP — review and improvement plan
 
-Status: **approved**; Phase 0 in progress. Reviewed 2026-11-22.
+Status: **approved**. Phase 0 done (see below); Phases 1–3 not started. Reviewed 2026-11-22.
 
 Scope: the `petscii-preview` MCP server in `agents/petscii-preview/` (Python, started by `.cursor/mcp.json` → `run-mcp.sh` → `src/server.py`).
 
@@ -44,6 +44,8 @@ Smaller issues:
 Phases are ordered so each one is shippable alone. Every phase adds tests and runs them in CI (Phase 0 adds the CI job first).
 
 ### Phase 0 — Safety and correctness (small, do first)
+
+**Done.** D1, D2 (creation only; rendering is Phase 1), D4, D5, D6 and items 1–8 below. Evidence: `tests/test_safety.py` and `tests/test_mcp_protocol.py` (41 MCP tests pass locally on Python 3.13), a stdio launch through `run-mcp.sh` lists 60 tools with no warnings. `export_c64` now refuses non-C64 projects until Phase 1.4.
 
 1. **CI job.** Add a path-filtered job for `agents/petscii-preview/**` that runs the unittest suite plus a new in-process MCP client test (list tools, call a read tool, a draw tool and an export tool over the protocol). This catches duplicate registrations and schema breaks.
 2. **Atomic saves (D1).** Write to a temp file in the same folder, validate, then `os.replace`. On failure the original file is untouched. Share one `save_project` between `drawing.py` and `project_io.py`.
