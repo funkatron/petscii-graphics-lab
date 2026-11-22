@@ -69,7 +69,7 @@ What changed beyond the list below:
 - Fixed while porting: animations ignored per-frame backdrop colours and mattes; reveal/replay effects read non-existent `replayBase` fields; GIFs forced a 40 ms minimum frame time; too-fast settings silently lengthened the loop; video resampled to 25 fps. Drawing tools now record paint order in `drawingReplay` like the editor.
 - `export_c64` is now `export_native`. `export_color_ram_bin` is VIC-only, as in the editor.
 
-**Editor finding (not changed here):** at CRT proportion the editor's still PNG rasterizes its SVG at 1.25×1.5 with anti-aliasing, so glyph edges blur and solid blocks show seams. The canvas and the GIF/ZIP/video exports are crisp. Worth a separate editor fix.
+**Editor finding, fixed afterwards:** at CRT proportion the editor's still PNG rasterized its SVG at 1.25×1.5 with anti-aliasing (52 colours instead of 5 in the C64 parity case), so glyph edges blurred and solid blocks showed seams. `index.html` now draws still PNG pixels directly with the GIF/ZIP/video sampling rule; a new Playwright test fails on the old code and passes on the new one, and the parity check now compares CRT stills pixel for pixel (28 comparisons, 0 mismatches).
 
 **Still open:** the example projects in `examples/` predate the `machine` field (all load as C64); `render_pgl_examples.py` keeps its own Pepto-only renderer until Phase 2 moves the demo tools out.
 

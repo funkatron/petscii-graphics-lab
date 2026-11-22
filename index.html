@@ -1298,24 +1298,36 @@ function makeSvg(foreground=colorHex('ink'),background=colorHex('background')){
 }
 function stillBackground(){const bg=$('pngBg').value;return bg==='transparent'?null:bg==='canvas'?colorHex('background'):bg}
 $('svg').onclick=()=>{try{download('.svg',makeSvg(undefined,stillBackground()),'image/svg+xml')}catch(e){setStatus(e.message)}};
+// Still PNG: draw glyph bits straight into pixels with the same nearest sampling as GIF/ZIP/video
+// (floor(x×8/cellW)). Rasterizing the SVG instead anti-aliased CRT cells (1.25×1.5 per glyph pixel).
+function stillPngPixels(width,height,cellW,cellH,background){
+ const image=new ImageData(width,height),data=image.data;
+ const bg=background===null?null:background==='white'?[255,255,255]:background==='black'?[0,0,0]:colorRGB(background);
+ const srcX=Array.from({length:cellW},(_,x)=>0x80>>Math.floor(x*8/cellW)),srcY=Array.from({length:cellH},(_,y)=>Math.floor(y*8/cellH));
+ for(let cy=0;cy<H;cy++)for(let cx=0;cx<W;cx++){
+  const g=grid[cy*W+cx],rows=typeof g==='number'?romGlyphRows(g):null,ink=rows?colorRGB(inkFill(cellColors[cy*W+cx])):null;
+  for(let y=0;y<cellH;y++){
+   const bits=rows?rows[srcY[y]]:0;let offset=((cy*cellH+y)*width+cx*cellW)*4;
+   for(let x=0;x<cellW;x++,offset+=4){
+    const rgb=bits&srcX[x]?ink:bg;
+    if(rgb){data[offset]=rgb[0];data[offset+1]=rgb[1];data[offset+2]=rgb[2];data[offset+3]=255}
+   }
+  }
+ }
+ return image;
+}
 $('png').onclick=async()=>{
- const button=$('png'),scale=Number($('pngScale').value),exportW=W,exportH=H;
- const stillCell=exportCellSize(workspaceMachine,workspaceCellAspect,2);
- let markup,name;try{name=projectStem();markup=makeSvg(undefined,stillBackground())}catch(e){setStatus(e.message);return}
- const blob=new Blob([markup],{type:'image/svg+xml;charset=utf-8'});
- const url=URL.createObjectURL(blob);
+ const button=$('png'),scale=Number($('pngScale').value);
+ const stillCell=exportCellSize(workspaceMachine,workspaceCellAspect,2),cellW=stillCell.cellW*scale,cellH=stillCell.cellH*scale;
+ let name;try{name=projectStem();if(!rom&&grid.some(g=>typeof g==='number'))throw Error('Glyph data unavailable; reload C64 glyphs before exporting artwork')}catch(e){setStatus(e.message);return}
  button.disabled=true;setStatus('Rendering PNG…');
  try{
-  const image=new Image();
-  const loaded=new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('Could not render SVG'));});
-  image.src=url;await loaded;
   const bmp=document.createElement('canvas');
-  bmp.width=exportW*stillCell.cellW*scale;bmp.height=exportH*stillCell.cellH*scale;
-  const c=bmp.getContext('2d');
-  c.imageSmoothingEnabled=false;
-  c.drawImage(image,0,0,bmp.width,bmp.height);
+  bmp.width=W*cellW;bmp.height=H*cellH;
+  const c=bmp.getContext('2d'),pixels=stillPngPixels(bmp.width,bmp.height,cellW,cellH,stillBackground());
   const look=$('screenLook').value;
-  if(look!=='none'){const pixels=c.getImageData(0,0,bmp.width,bmp.height);shadeScreenImage(pixels,look,stillCell.cellW*scale/8,stillCell.cellH*scale/8);c.putImageData(pixels,0,0)}
+  if(look!=='none')shadeScreenImage(pixels,look,cellW/8,cellH/8);
+  c.putImageData(pixels,0,0);
   const pngBlob=await new Promise((resolve,reject)=>bmp.toBlob(b=>b?resolve(b):reject(new Error('PNG encoding failed')),'image/png'));
   const pngUrl=URL.createObjectURL(pngBlob);
   const a=document.createElement('a');a.href=pngUrl;a.download=stillPngFilename(name,bmp.width,bmp.height);
@@ -1323,7 +1335,7 @@ $('png').onclick=async()=>{
   setTimeout(()=>URL.revokeObjectURL(pngUrl),60000);
   setStatus('PNG exported: '+bmp.width+' × '+bmp.height);
  }catch(e){setStatus('PNG export failed: '+e.message)}
- finally{URL.revokeObjectURL(url);button.disabled=false}
+ finally{button.disabled=false}
 };
 $('c64Mode').onchange=()=>{$('c64LoopSettings').hidden=$('c64Mode').value!=='animation';updateNativeExportLabels();updateExportScrollerCopy()};
 let c64TimingConsentKey=null;

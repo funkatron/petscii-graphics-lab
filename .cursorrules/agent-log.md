@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-22 — Crisp CRT still PNG + petscii-preview MCP rebuild (0.35.23, branch claude/mcp-improvements-plan-qfvqv2, PR #186)
+
+**What:** Still PNG draws glyph pixels directly (`stillPngPixels`) with the GIF/ZIP/video sampling rule instead of rasterizing the SVG; CRT stills no longer anti-alias (blurred edges, striped solid blocks). Same PR rebuilds the `agents/petscii-preview` MCP server (safety, machine-correct exports, typed tools, previews, docs). Release **0.35.23**.  
+**Tested:** `tests/machine-modes.spec.cjs` *CRT still PNG is crisp* (Chromium; fails on the old code with 6 extra blended colours, passes now); PNG-related specs on Chromium: 101 passed, 9 failed identically on the unmodified editor (local Chromium build newer than pinned Playwright); MCP: 58 tests on Python 3.12/3.13; `smoke/editor_parity.py` 28 comparisons, 0 mismatches including CRT stills. WebKit not run locally.
+
 ## 2026-11-19 — Canvas replace UX (0.35.15, branch cursor/canvas-replace-ux-6ab6)
 
 **What:** Merged PR #178 (v0.35.14). Replace ink in Canvas tools uses palette swatches (like brush ink), not selects. Glyph pick for replace keeps or restores the Canvas popover after each choice.  

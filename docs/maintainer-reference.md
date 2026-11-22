@@ -456,8 +456,8 @@ Animation overrides passed to tools are merged over `project.animation` and chec
 
 ### Rendering rules
 
-- GIF, ZIP and video frames sample each glyph to the cell with `floor(x × 8 / cellW)`, like the editor's `tileFor()`. Stills use the same sampling.
-- The editor's still PNG is a browser rasterization of its SVG. Square cells match the MCP pixel for pixel. CRT cells (1.25 × 1.5 scale) are anti-aliased in the editor, giving blended edges and seams in solid blocks; the MCP stays crisp like the canvas. This is a known editor difference, not an MCP target.
+- Every raster export samples each glyph to the cell with `floor(x × 8 / cellW)`: the editor's GIF/ZIP/video `tileFor()`, the editor's still PNG `stillPngPixels()`, and every MCP raster. Square and CRT stills therefore match the MCP pixel for pixel.
+- The editor's still PNG used to be a browser rasterization of its SVG. At CRT proportion (1.25 × 1.5 per glyph pixel) that anti-aliased glyph edges and striped solid blocks; it now draws pixels directly (`tests/machine-modes.spec.cjs`: *CRT still PNG is crisp*).
 - Per-frame `background` and backdrop `matte` come from `animationCells()`. Transparent GIFs keep alpha only where no matte applies.
 - Pillow merges identical consecutive GIF frames and adds their durations; playback timing is unchanged.
 - Video uses ffmpeg's concat demuxer with each frame's duration (variable frame rate), matching the editor's WebCodecs timestamps.
@@ -486,5 +486,5 @@ Animation overrides passed to tools are merged over `project.animation` and chec
 | Unit and protocol tests (58) | `cd agents/petscii-preview && .venv/bin/python -m unittest discover -s tests -v` | Yes: **MCP server tests** job, Python 3.12, when MCP files, root `*.js` modules, `assets/` or the CI workflow change |
 | Editor parity (28 comparisons) | `agents/petscii-preview/.venv/bin/python agents/petscii-preview/smoke/editor_parity.py` | No: local, needs Playwright Chromium |
 
-`tests/test_mcp_protocol.py` imports the server fresh and fails on any registration warning, then drives it through an in-process MCP client. Last parity result: 28 comparisons, 0 mismatches (square PNGs and GIF playback pixel-identical; SVG cells, fills and sizes equal; PRGs byte-identical for C64, C128 40/80-col and Plus/4; CRT stills checked for size and palette only).
+`tests/test_mcp_protocol.py` imports the server fresh and fails on any registration warning, then drives it through an in-process MCP client. Last parity result: 28 comparisons, 0 mismatches (square PNGs and GIF playback pixel-identical; SVG cells, fills and sizes equal; PRGs byte-identical for C64, C128 40/80-col and Plus/4; square and CRT PNGs pixel-identical). Set `CHROMIUM_EXECUTABLE_PATH` to use a local Chromium build.
 

@@ -128,18 +128,7 @@ def main() -> int:
             for kind, editor_file in result["files"].items():
                 checks += 1
                 editor_path, mcp_path = Path(editor_file), local[name][kind]
-                if kind == "png" and name.endswith("-crt"):
-                    # Known editor difference: its still PNG rasterizes the SVG at 1.25×1.5 with
-                    # anti-aliasing (blended edge colours). The MCP samples crisply, like the editor
-                    # canvas and its CRT GIF/ZIP/video. Require equal size and no colours the editor lacks.
-                    a = Image.open(editor_path).convert("RGBA")
-                    b = Image.open(mcp_path).convert("RGBA")
-                    extra = set(b.get_flattened_data()) - set(a.get_flattened_data())
-                    if a.size != b.size or extra:
-                        failures.append(f"{name}.png differs: editor {a.size} mcp {b.size}; colours only in mcp {sorted(extra)[:4]}")
-                    else:
-                        notes.append(f"{name}.png: same size and palette; editor anti-aliases CRT stills, MCP is crisp")
-                elif kind == "png":
+                if kind == "png":
                     a = Image.open(editor_path).convert("RGBA")
                     b = Image.open(mcp_path).convert("RGBA")
                     if a.size != b.size or a.tobytes() != b.tobytes():

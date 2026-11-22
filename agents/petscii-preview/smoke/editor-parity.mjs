@@ -4,7 +4,8 @@
  *
  * Usage: node smoke/editor-parity.mjs cases.json out-dir
  * cases.json: [{name, project, cellAspect, outputs: ["png","svg","gif","prg"]}]
- * Needs the pre-installed Playwright (require('playwright')) and Chromium. Serves the repo itself.
+ * Needs Playwright (require('playwright')) and Chromium; set CHROMIUM_EXECUTABLE_PATH to use a local
+ * Chromium build. Serves the repo itself.
  */
 import { createServer } from 'node:http';
 import { readFileSync, writeFileSync, mkdirSync, statSync } from 'node:fs';
@@ -57,7 +58,9 @@ async function download(page, selector, selects = {}) {
   return Buffer.concat(chunks);
 }
 
-const browser = await chromium.launch();
+// Like playwright.config.cjs: CHROMIUM_EXECUTABLE_PATH selects a local Chromium build.
+const executablePath = process.env.CHROMIUM_EXECUTABLE_PATH;
+const browser = await chromium.launch(executablePath ? { executablePath, args: ['--no-sandbox'] } : {});
 const results = [];
 try {
   for (const item of cases) {

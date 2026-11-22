@@ -14,7 +14,9 @@ The `petscii-preview` MCP server ([user guide](../agents/petscii-preview/README.
 
 **Validation:** 58 MCP tests in the **MCP server tests** CI job; local editor-parity check, 28 comparisons with 0 mismatches.
 
-**Follow-ups:** the editor's CRT still PNG blurs glyph edges (it rasterizes its SVG with anti-aliasing); example projects in `agents/petscii-preview/examples/` predate the `machine` field.
+Found and fixed along the way: the editor's CRT still PNG was anti-aliased (blurred glyph edges, striped solid blocks); it now draws crisp pixels like the canvas and GIF/ZIP/video.
+
+**Follow-up:** example projects in `agents/petscii-preview/examples/` predate the `machine` field.
 
 ## Tier A cross-editor UX — complete
 
