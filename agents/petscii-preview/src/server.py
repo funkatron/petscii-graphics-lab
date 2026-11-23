@@ -31,6 +31,7 @@ import op_art
 import pgl_export
 import project_io
 import rug_styles
+import shading
 import world_art
 from machines import MACHINES as CHROME_MACHINES
 from node_bridge import PGL_CLI, parse_json_stdout, run_node
@@ -282,6 +283,11 @@ def glyph_families_catalog() -> dict:
 @catalog("petscii://glyphs/shading-ladder/{background_ink}", "Brightness steps from solid 160 to quarter blocks on a background ink.")
 def shading_ladder_catalog(background_ink: str) -> dict:
     return craft.shading_ladder(int(background_ink))
+
+
+@catalog("petscii://colors/ramps/{machine}", "Inks sorted by measured brightness and suggested shading ramps (darkest first) for c64, c128, c128-80 or plus4.")
+def color_ramps_catalog(machine: str) -> dict:
+    return shading.color_ramps(machine)
 
 
 @catalog("petscii://op-art/recipes", "Op-art, Islamic girih, Hindu mandala and rug recipe catalog.")
@@ -572,6 +578,55 @@ def stamp_combined_style(
 ) -> dict:
     """Paint a layered rug (field, border, medallion, corners); layer plan at petscii://rugs/{combination}."""
     return drawing.stamp_combined_style(project_path, combination, period=period, ink_a=ink_a, ink_b=ink_b)
+
+
+@tool(EDIT)
+def gradient_fill(
+    project_path: str,
+    x0: int,
+    y0: int,
+    x1: int,
+    y1: int,
+    ramp: Annotated[list[int], Field(min_length=1, description="Ink numbers, darkest first; see petscii://colors/ramps/{machine}.")],
+    direction: Literal["down", "up", "right", "left", "radial"] = "down",
+    dither: Literal["bayer4", "bayer2", "checker", "none"] = "bayer4",
+    center_x: Optional[float] = None,
+    center_y: Optional[float] = None,
+    radius: Optional[float] = None,
+) -> dict:
+    """
+    Fill a rectangle with a colour ramp (one undo step). ramp[0] sits at the start: the top for
+    down, the bottom for up, the centre for radial. Steps between inks alternate whole cells in an
+    ordered (Bayer) pattern; a cell can only blend its ink with the background. dither=checker uses
+    the 102/230 checker where a step meets the background ink. Ramp inks equal to the background
+    leave cells empty. Symmetry does not apply.
+    """
+    center = (center_x, center_y) if center_x is not None and center_y is not None else None
+    return shading.gradient_fill(project_path, x0, y0, x1, y1, ramp, direction, dither, center, radius)
+
+
+@tool(EDIT)
+def shade_shape(
+    project_path: str,
+    cx: float,
+    cy: float,
+    rx: Annotated[float, Field(gt=0, description="Half width in cells.")],
+    ry: Annotated[float, Field(gt=0, description="Half height in cells.")],
+    ramp: Annotated[list[int], Field(min_length=1, description="Ink numbers, darkest first; the last is the specular.")],
+    shape: Literal["sphere", "cylinder"] = "sphere",
+    light: Literal["top-left", "top", "top-right", "left", "right", "front"] = "top-left",
+    specular: bool = True,
+    bounce: bool = True,
+    smooth_edges: bool = True,
+) -> dict:
+    """
+    Paint a lit sphere (ellipse outline) or upright cylinder (rectangle) centred on cell coordinates
+    (one undo step). Light falls along the ramp in banded steps with ordered half-steps, one cell of
+    the lightest ink marks the specular, and bounce adds reflected light on the lower shadow side so
+    the outline stays readable on black. smooth_edges uses triangles and half blocks on the outline.
+    Paint shapes back to front. Symmetry does not apply.
+    """
+    return shading.shade_shape(project_path, cx, cy, rx, ry, ramp, shape, light, specular, bounce, smooth_edges)
 
 
 @tool(EDIT)
