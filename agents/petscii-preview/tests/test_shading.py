@@ -45,7 +45,9 @@ class ShadingTests(unittest.TestCase):
                              sorted(i['luminance'] for i in ramps['by_luminance']))
             for name, ramp in ramps['ramps'].items():
                 values = [lum[ink] for ink in ramp]
-                self.assertEqual(values, sorted(values), f'{machine} {name} {ramp}')
+                self.assertTrue(all(a < b for a, b in zip(values, values[1:])),
+                                f'{machine} {name} {ramp} {values}: every step must be brighter')
+                self.assertGreaterEqual(len(ramp), 3, f'{machine} {name} has too few steps')
         self.assertLess(self.lum[2], self.lum[4], 'C64 red is darker than purple')
 
     def test_vertical_gradient_brightens_downwards_with_ordered_steps(self):
@@ -123,7 +125,7 @@ class ShadingTests(unittest.TestCase):
         path = str(Path(self.temp.name) / 'ted.json')
         drawing.create_canvas(path, 40, 25, background=0, ink=8, machine='plus4')
         ramps = shading.color_ramps('plus4')['ramps']
-        self.assertEqual(ramps['red'], [0, 9, 11, 13, 15, 16])
+        self.assertNotIn(10, ramps['red'], 'red L1 repeats L0 (#ff0000) in the editor table')
         result = shading.shade_shape(path, 20, 12, 6, 6, ramps['blue'])
         self.assertTrue(result['ok'], result)
         self.assertTrue(max(json.loads(Path(path).read_text())['cellColors']) > 15, 'TED inks above 15 survive')

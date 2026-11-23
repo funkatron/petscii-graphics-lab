@@ -66,8 +66,7 @@ def color_ramps(machine: str = 'c64', palette: str = 'pepto') -> dict[str, Any]:
     if machine == 'plus4':
         ramps = {'grey': [0, 2, 4, 6, 8]}
         for hue, name in enumerate(TED_HUES[1:], start=2):
-            base = 1 + (hue - 1) * 8
-            ramps[name] = [0] + [base + lum for lum in (0, 2, 4, 6, 7)]
+            ramps[name] = _ted_hue_ramp(inks, 1 + (hue - 1) * 8)
     elif machine == 'c128-80':
         ramps = {'grey': [0, 8, 7, 15], 'warm': [0, 4, 6, 12, 14, 15], 'cool': [0, 1, 9, 3, 11, 15],
                  'green': [0, 2, 10, 15]}
@@ -85,6 +84,25 @@ def color_ramps(machine: str = 'c64', palette: str = 'pepto') -> dict[str, Any]:
             'Build your own ramp from by_luminance; names can mislead (C64 red is darker than purple).',
         ],
     }
+
+
+def _ted_hue_ramp(inks: tuple[dict[str, Any], ...], base: int, steps: int = 5) -> list[int]:
+    """Black, then a hue's distinct colours darkest first; dark greys fill in below a short hue.
+
+    The editor's TED table clips several luminance levels of a hue to the same colour (purple
+    L0–L5 are all #ff00ff), so levels are chosen by distinct colour, not by number.
+    """
+    distinct: dict[str, dict[str, Any]] = {}
+    for ink in inks[base:base + 8]:
+        distinct.setdefault(ink['hex'], ink)
+    hue = sorted(distinct.values(), key=lambda item: item['luminance'])
+    if len(hue) > steps - 1:
+        picks = [hue[round(i * (len(hue) - 1) / (steps - 2))] for i in range(steps - 1)]
+        hue = list({item['ink']: item for item in picks}.values())
+    darkest = hue[0]['luminance']
+    greys = [ink for ink in inks[1:9] if ink['luminance'] < darkest * 0.75]
+    fill = greys[-max(0, steps - 1 - len(hue)):] if len(hue) < steps - 1 else []
+    return [0] + [ink['ink'] for ink in fill + hue]
 
 
 def _ramp(data: dict[str, Any], ramp: list[Any] | None) -> list[int]:
