@@ -385,6 +385,19 @@ At widths up to 600px, or short viewports up to 1000px wide and 500px high, appl
 
 Short phone landscape additionally hides the idle selection dock for Paint/Eraser/Text and visually hides the tool hint while retaining it for assistive technology. Selection/shape tools reserve the dock before pointer-down, avoiding mid-gesture canvas resizing. A regression compares canvas height against the prior reserved-space layout and checks stable selection geometry and reachable Deselect.
 
+### Stage layout stability (tablet and desktop)
+
+Above 600px wide and 500px high, stage chrome must not move when state changes (Raskin review H1):
+
+| Element | Rule |
+| --- | --- |
+| `#dimensions`, `#status` | Equal fixed slots (`clamp(64px,18%,220px)`), truncated with an ellipsis, so the centered zoom/grid/symmetry controls keep their position. |
+| `#previewBanner` | Lives inside `.stagebar` and overlays it (leaving the stage help button exposed). `#stageCanvasView` is `inert` during preview. No row is inserted above the canvas. |
+| `.stage-footer` | One fixed 46px row holding `#stageHint` and the selection dock. Selecting Select, Line or Rectangle, or making a selection, does not resize the canvas. |
+| `#downloadDialog` | Fixed height; `#exportTabs` sits above the two-column layout, so switching tabs keeps tabs and Close in place. |
+
+Phones and short landscape keep the earlier behavior: `.stage-footer` uses `display:contents` and the idle selection dock is removed to give space to artwork. The Text tool's multi-line entry panel still inserts a row; that remains a follow-up. `canvas-space.spec.cjs` measures canvas, zoom and symmetry boxes across tools, selection, a long status, preview and Return to drawing at five tablet/desktop sizes, plus Download tab geometry.
+
 
 ### Rotating solid surfaces
 

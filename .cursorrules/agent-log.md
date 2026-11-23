@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Stable stage layout (0.35.27, branch ui/stable-stage-layout)
+
+**What:** Raskin review H1. Tablet/desktop stage chrome no longer moves with state: fixed status/dimension slots keep zoom/grid/symmetry in place; the preview banner overlays the stage bar (`#stageCanvasView` inert during preview); hint and selection actions share one fixed footer row; the Download dialog has a fixed height with tabs above the columns. Phones and short landscape keep the previous reclaim behavior. Text entry panel still inserts a row (follow-up).  
+**Tested:** Chromium (system Chrome 1.63 runner, local pngjs shim): `canvas-space` 7 passed incl. new stability tests at 810×1080, 1080×810, 1180×820, 820×1180, 1440×900; 44 non-GIF/ZIP specs: no new failures vs main (34 failures reproduce on main in this environment: C64/D64 emulator specs, two phone specs). WebKit/iPad not run locally.
+
 ## 2026-11-23 — Measured TED palette (0.35.26, branch claude/mcp-improvements-plan-qfvqv2)
 
 **What:** `plus4-colors.js` builds the 121 Plus/4 colours from measured TED parameters (Colodore values as used by VICE `ted-color.c`, converted like VICE `video-color.c`) instead of unit-length Pb/Pr on linear luma. The old table clipped: 98 of 120 per-hue entries distinct, 239 channels at 0/255. Now 120 distinct, luma rises per hue. Affects Plus/4 drawing, picker, exports, animation and MCP. Release **0.35.26**.  
