@@ -22,6 +22,25 @@ test('TED palette has black plus 120 chroma/luma colors', () => {
   assert.equal(tedIndex(15, 7), 120);
 });
 
+test('TED colors come from measured parameters: distinct, rising luma, no hue collapse', () => {
+  const luma = (hex) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  // The earlier unit-length Pb/Pr model clipped hues (purple L0–L5 were all #ff00ff).
+  assert.equal(new Set(PLUS4_COLORS.slice(1).map(([, hex]) => hex)).size, 120, 'every chroma/luma pair is distinct');
+  for (let chroma = 1; chroma <= 15; chroma++) {
+    const ramp = Array.from({length: 8}, (_, l) => luma(PLUS4_COLORS[tedIndex(chroma, l)][1]));
+    for (let l = 1; l < 8; l++) assert.ok(ramp[l] > ramp[l - 1], `${PLUS4_COLORS[tedIndex(chroma, l)][0]} brighter than L${l - 1}`);
+  }
+  // Anchors: grey ramp, dark level 0, measured hue angle (−9.5° phase).
+  assert.equal(PLUS4_COLORS[tedIndex(1, 0)][1], '#202020');
+  assert.equal(PLUS4_COLORS[tedIndex(1, 7)][1], '#ffffff');
+  assert.equal(PLUS4_COLORS[tedIndex(2, 0)][1], '#520c06');
+  assert.equal(PLUS4_COLORS[tedIndex(6, 3)][1], '#483ec1');
+  assert.ok(luma(PLUS4_COLORS[tedIndex(4, 0)][1]) < 40, 'level 0 is dark, not saturated');
+});
+
 test('Plus/4 cycle uses the entire TED palette', () => {
   assert.deepEqual(PLUS4_COLOR_CYCLES['plus4-cycle'], fullTedPaletteRamp());
   assert.equal(PLUS4_COLOR_CYCLES['plus4-cycle'].length, 121);

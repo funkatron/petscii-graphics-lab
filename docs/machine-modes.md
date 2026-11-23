@@ -32,7 +32,7 @@ Exploratory MCP chrome demos live under `agents/petscii-preview/` and are **not*
 ### Index spaces
 
 - **C64 / C128:** cell inks and shared background are integers `0–15`.
-- **Plus/4:** cell inks and shared background are TED indices `0–120` (black + chroma 1–15 × luma 0–7), using `plus4-colors.js`.
+- **Plus/4:** cell inks and shared background are TED indices `0–120` (black + chroma 1–15 × luma 0–7), using `plus4-colors.js` (RGB from measured TED parameters; see the maintainer reference, *TED palette*).
 - VIC **Display palette** (Pepto, Colodore, VICE, RGB) remaps RGB for the same `0–15` indices. It does not rewrite cells.
 - In Plus/4 mode the VIC display-palette control is hidden or disabled; drawing and still/animation RGB use the TED table.
 

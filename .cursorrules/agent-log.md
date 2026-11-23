@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Measured TED palette (0.35.26, branch claude/mcp-improvements-plan-qfvqv2)
+
+**What:** `plus4-colors.js` builds the 121 Plus/4 colours from measured TED parameters (Colodore values as used by VICE `ted-color.c`, converted like VICE `video-color.c`) instead of unit-length Pb/Pr on linear luma. The old table clipped: 98 of 120 per-hue entries distinct, 239 channels at 0/255. Now 120 distinct, luma rises per hue. Affects Plus/4 drawing, picker, exports, animation and MCP. Release **0.35.26**.  
+**Tested:** `node --test tests/*.unit.mjs` 228 pass (new palette test fails on 0.35.25); Chromium `machine-modes` + `ui-theme` 21 passed; MCP tests OK; `smoke/editor_parity.py` 28 comparisons, 0 mismatches. WebKit not run locally.
+
 ## 2026-11-23 — MCP shading tools (branch claude/mcp-improvements-plan-qfvqv2)
 
 **What:** `gradient_fill`, `shade_shape` and the `petscii://colors/ramps/{machine}` catalog in `agents/petscii-preview/src/shading.py`, from the shading studies; `pgl_cli.mjs color-luminance`. Skill file gains the shading and mirror-symmetry lessons and points to the tools. Tool cap in the protocol test raised from 41 to 43.  
