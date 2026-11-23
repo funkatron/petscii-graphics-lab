@@ -4,6 +4,8 @@
 
 This record explains the recent workspace changes and identifies follow-up work. For instructions on using the editor, see the [user guide](../README.md).
 
+**Latest review:** [Raskin principles — November 2026](ui-review-raskin-2026-11.md) lists current high-priority layout, preview and tool-option findings.
+
 ## Layout stability (owner priority)
 
 The editor is a **tool**: users build muscle memory for where controls live. When a control is inactive, **siblings must not shift**. Prefer a **fixed slot** that is dimmed, `inert`, or `disabled` over `hidden` or conditional DOM that changes strip width. Stage chrome (zoom, guides, symmetry, tap endpoints) and the drawing strip follow this rule. Document new UI against [Playwright layout checks](tests/drawing-tools.spec.cjs) where tool changes previously collapsed slots.
