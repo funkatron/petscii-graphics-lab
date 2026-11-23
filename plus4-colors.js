@@ -4,9 +4,11 @@
  * TED encodes chroma (0–15) and luma (0–7). Black (chroma 0) stays black at
  * every luma. Indices here are: 0 = black, then chroma 1–15 × luma 0–7.
  *
- * RGB is a YPbPr→RGB approximation for feel-finding, not a unique hardware
- * specification. Used for Plus/4 drawing inks and TED-native color animation
- * (see docs/machine-modes.md).
+ * RGB comes from measured TED (PAL) colour parameters: Pepto's "Colodore"
+ * luma levels, hue angles and saturation, as used by VICE (src/plus4/ted-color.c,
+ * converted like src/video/video-color.c with neutral brightness, contrast and
+ * gamma). Used for Plus/4 drawing inks and TED-native color animation (see
+ * docs/machine-modes.md and the maintainer reference).
  *
  * Plus/4 animation ramps either walk the full TED set, or expand a C64 ramp
  * by inserting TED luma steps that fill the gaps between discrete VIC colors
@@ -34,27 +36,28 @@ export const CHROMA_NAMES = Object.freeze([
   'Light green',
 ]);
 
-// Relative Pb/Pr from TED documentation / Wikipedia (MOS TED).
-const CHROMA_PB_PR = [
-  [0, 0],
-  [0, 0],
-  [-0.3826834, 0.9238795],
-  [0.3826834, -0.9238795],
-  [0.7071068, 0.7071068],
-  [-0.7071068, -0.7071068],
-  [1, 0],
-  [-1, 0],
-  [-0.7071068, 0.7071068],
-  [-0.9238795, 0.3826834],
-  [-0.9238795, -0.3826834],
-  [0, 1],
-  [0, -1],
-  [0.7071068, -0.7071068],
-  [0.9238795, 0.3826834],
-  [-0.3826834, -0.9238795],
+// Measured TED parameters (PAL). Luma on a 0–256 scale for luma steps 0–7; black is always 0.
+const TED_LUMA = [32, 48, 64, 80, 120, 144, 192, 256];
+// Chroma vector angle in degrees and direction per chroma 1–15 (direction 0 = grey, -1 = inverted).
+const TED_HUES = [
+  [157.5, 0], // White
+  [112.5, 1], // Red
+  [112.5, -1], // Cyan
+  [-112.5, -1], // Purple
+  [-112.5, 1], // Green
+  [0, 1], // Blue
+  [0, -1], // Yellow
+  [-45, -1], // Orange
+  [157.5, 1], // Brown
+  [-157.5, 1], // Yellow-green
+  [90, 1], // Pink
+  [-90, 1], // Blue-green
+  [-22.5, 1], // Light blue
+  [22.5, 1], // Dark blue
+  [-135, 1], // Light green
 ];
-
-const LUMA_LEVELS = [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+const TED_PHASE = -9.5;
+const TED_SATURATION = 56 / 1.75;
 
 /** C64 Pepto ramps mirrored from animation-frames.js / COLOR_CYCLES. */
 export const C64_COLOR_RAMPS = Object.freeze({
@@ -67,13 +70,26 @@ export const C64_COLOR_RAMPS = Object.freeze({
 });
 
 function clampByte(value) {
-  return Math.max(0, Math.min(255, Math.round(value * 255)));
+  return Math.max(0, Math.min(255, Math.round(value)));
 }
 
-function ypbprToHex(y, pb, pr) {
-  const r = y + 1.402 * pr;
-  const g = y - 0.344136 * pb - 0.714136 * pr;
-  const b = y + 1.772 * pb;
+/** One TED colour: U/V from the hue angle, scaled to Cb/Cr, then BT.601 to RGB (0–255). */
+function tedHex(chroma, luma) {
+  const [angle, direction] = TED_HUES[chroma - 1];
+  const radians = ((angle + TED_PHASE) * Math.PI) / 180;
+  let cb = (TED_SATURATION * Math.cos(radians)) / 0.493111;
+  let cr = (TED_SATURATION * Math.sin(radians)) / 0.877283;
+  if (direction === 0) {
+    cb = 0;
+    cr = 0;
+  } else if (direction < 0) {
+    cb = -cb;
+    cr = -cr;
+  }
+  const y = TED_LUMA[luma];
+  const r = y + 1.402 * cr;
+  const g = y - 0.344136 * cb - 0.714136 * cr;
+  const b = y + 1.772 * cb;
   const hex = (n) => clampByte(n).toString(16).padStart(2, '0');
   return `#${hex(r)}${hex(g)}${hex(b)}`;
 }
@@ -89,10 +105,9 @@ export function tedIndex(chroma, luma) {
 function buildPlus4Colors() {
   const colors = [['Black', '#000000']];
   for (let chroma = 1; chroma <= 15; chroma++) {
-    const [pb, pr] = CHROMA_PB_PR[chroma];
     for (let luma = 0; luma < 8; luma++) {
       const name = `${CHROMA_NAMES[chroma]} L${luma}`;
-      colors.push([name, ypbprToHex(LUMA_LEVELS[luma], pb, pr)]);
+      colors.push([name, tedHex(chroma, luma)]);
     }
   }
   return colors;
