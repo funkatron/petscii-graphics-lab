@@ -194,7 +194,7 @@ Controls are grouped into **Timeline & preview**, **Movement**, **Color**, and *
 
 **Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
 
-The canvas is read-only during playback and while paused. **Paint** and **Eraser** are unavailable until you choose **Return to drawing**. Other artwork edits stop the preview. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
+The canvas is read-only during playback and while paused. All drawing tools are dimmed and unavailable until you choose **Return to drawing**. Other edits, such as choosing a new ink, **Undo** or a **Canvas** action, return to drawing first; the status message says **Returned to drawing**. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
 
 | Effect | What you see |
 | --- | --- |

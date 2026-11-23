@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Consistent preview mode (0.35.28, branch ui/consistent-preview)
+
+**What:** Raskin review H2. Paint/Pick/Fill menu triggers (`aria-disabled`) now dim like the other drawing tools during read-only preview. Rule made explicit: tools are off; history edits (ink, glyph, Undo/Redo, Canvas actions) return to drawing and the status says "Returned to drawing". Stage hint during preview names the rule. Review correction: Fill was already inert in preview; the earlier exit came from Undo.  
+**Tested:** Chromium: new `preview-consistency.spec.cjs` passes; `stage-hint.unit.mjs` 5 pass; animation-glossary, canvas-space, workspace, drawing-tools, editor, 6581-theme, download-preview: 58 passed (`cleanup` two-tap failure reproduces on main in this environment). WebKit/iPad not run locally; `animation.spec` needs `omggif` (unavailable offline).
+
 ## 2026-11-23 — Stable stage layout (0.35.27, branch ui/stable-stage-layout)
 
 **What:** Raskin review H1. Tablet/desktop stage chrome no longer moves with state: fixed status/dimension slots keep zoom/grid/symmetry in place; the preview banner overlays the stage bar (`#stageCanvasView` inert during preview); hint and selection actions share one fixed footer row; the Download dialog has a fixed height with tabs above the columns. Phones and short landscape keep the previous reclaim behavior. Text entry panel still inserts a row (follow-up).  

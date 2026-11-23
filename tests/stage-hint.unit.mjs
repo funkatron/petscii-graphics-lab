@@ -33,7 +33,7 @@ function baseState(overrides = {}) {
 
 test('buildDrawingHintText shows preview banner copy', () => {
   const text = buildDrawingHintText(baseState({ animationPreview: true }));
-  assert.equal(text, 'Preview (read-only)');
+  assert.equal(text, 'Preview (read-only) · Tools are off; editing returns to drawing');
 });
 
 test('buildDrawingHintText includes tap endpoints for line', () => {

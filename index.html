@@ -541,7 +541,9 @@ let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).f
 let cellColors=Array(256).fill(colors.ink);
 let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0;
 let W=16,H=16,grid=Array(256).fill(''),glyph=64,erasing=false,painting=false,last=null,pointer=null,unit=20;
-function setStatus(s){$('status').textContent=s;if(!animationExportTask)$('downloadStatus').textContent=s}
+let previewLeftByEdit=false;
+function noteLeftPreview(){if(!animationPreview)return;previewLeftByEdit=true;setTimeout(()=>{if(previewLeftByEdit){previewLeftByEdit=false;setStatus('Returned to drawing')}},0)}
+function setStatus(s){if(previewLeftByEdit){previewLeftByEdit=false;s='Returned to drawing · '+s}$('status').textContent=s;if(!animationExportTask)$('downloadStatus').textContent=s}
 function romGlyphRows(code){
  if(!rom||!Number.isInteger(code)||code<0||code>511)return null;
  // The C64 4KB ROM has two 2048-byte sets, each with 256 8-byte glyphs.
@@ -1089,9 +1091,9 @@ $('exportFrames').onclick=()=>exportAnimation('zip');
 $('exportVideo').onclick=()=>exportAnimation('video');
 const undoStack=[],redoStack=[];
 function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),glyph,erasing,colors:{...colors},machine:workspaceMachine,palette:workspacePalette,symmetry:$('sym').value,mirrorGlyphs:$('symMirror').checked,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
-function remember(){stopAnimation();selection=null;cancelToolDrag();updateToolPalette();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
+function remember(){noteLeftPreview();stopAnimation();selection=null;cancelToolDrag();updateToolPalette();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
-function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;stopAnimation();workspaceMachine=MACHINES[state.machine]?state.machine:workspaceMachine;workspacePalette=isDisplayPaletteId(state.palette)?state.palette:workspacePalette;writeWorkspacePrefs(prefsPayload());selectActiveRom();syncMachineControls();updateSourceInfo();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;$('symMirror').checked=!!state.mirrorGlyphs;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();redraw();historyButtons();}
+function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;noteLeftPreview();stopAnimation();workspaceMachine=MACHINES[state.machine]?state.machine:workspaceMachine;workspacePalette=isDisplayPaletteId(state.palette)?state.palette:workspacePalette;writeWorkspacePrefs(prefsPayload());selectActiveRom();syncMachineControls();updateSourceInfo();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;$('symMirror').checked=!!state.mirrorGlyphs;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();redraw();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 let fillMode='both',pickerMode='ink',paintMode='both';
