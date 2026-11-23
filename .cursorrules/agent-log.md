@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Portrait lessons + paint_tone_map (branch claude/mcp-improvements-plan-qfvqv2)
+
+**What:** Three original portrait studies (noir split light on C64, cel-shaded Plus/4, textured old fisherman on C64) after reading the reference faces. The petscii-draw skill gains a Portraits section (type the face as a tone map, flat skin bands, large eyes with one catchlight, expression from brows and mouth, texture by engraving with inverse glyphs 227/205/206/221). New MCP tool `paint_tone_map` (`src/tone_map.py`); protocol tool cap 43 → 44.  
+**Tested:** MCP tests incl. `tests/test_tone_map.py` (legend and offsets, transparent cells, one undo step, smooth-edge corners, atomic rejection of ragged rows, unknown characters, oversize maps and bad legends). Editor unchanged.
+
 ## 2026-11-23 — Visible tool options and one hint grammar (0.35.29, branch ui/visible-tool-options)
 
 **What:** Raskin review H3. Paint/Pick/Fill triggers keep their own icon; a non-default option shows a corner badge (square/drop/bar) and extends the accessible name. Previously Paint and Fill ink-only showed the identical droplet. Canvas hint now always reads `Tool · option · ink · action` (Paint name restored, Line/Rectangle/Text include ink).  

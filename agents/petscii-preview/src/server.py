@@ -32,6 +32,7 @@ import pgl_export
 import project_io
 import rug_styles
 import shading
+import tone_map
 import world_art
 from machines import MACHINES as CHROME_MACHINES
 from node_bridge import PGL_CLI, parse_json_stdout, run_node
@@ -603,6 +604,28 @@ def gradient_fill(
     """
     center = (center_x, center_y) if center_x is not None and center_y is not None else None
     return shading.gradient_fill(project_path, x0, y0, x1, y1, ramp, direction, dither, center, radius)
+
+
+@tool(EDIT)
+def paint_tone_map(
+    project_path: str,
+    rows: Annotated[list[str], Field(min_length=1, description="Equal-width strings, one character per cell.")],
+    legend: Annotated[
+        dict[str, Any],
+        Field(description='Character → {"ink": n} or {"ink": n, "glyph": id} (glyph defaults to 160 solid).'),
+    ],
+    x: int = 0,
+    y: int = 0,
+    transparent: str = ".",
+    smooth_edges: bool = False,
+) -> dict:
+    """
+    Paint a hand-typed tone map at (x, y) in one undo step: each character is a cell, mapped
+    through the legend; the transparent character leaves a cell untouched. Best for faces and
+    figures: type the lit plane, mid-tone band and shadow side as tones, then carve features
+    with paint_cells. smooth_edges cuts solid outline corners into triangles. Symmetry does not apply.
+    """
+    return tone_map.paint_tone_map(project_path, rows, legend, x, y, transparent, smooth_edges)
 
 
 @tool(EDIT)
