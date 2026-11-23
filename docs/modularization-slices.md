@@ -2,7 +2,7 @@
 
 **Goal:** Shrink the `index.html` module script without a bundler or build step. GitHub Pages keeps static ESM imports.
 
-Phases 0–1 are complete; slice **1a** may land while validation and animation prep continue ([owner-program-queue.md](owner-program-queue.md)).
+Slices **1–3** are on `main` (**0.35.22**). Next is slice **4**, `editor/download-shell.js`. See [owner-program-queue.md](owner-program-queue.md).
 
 ## Proposed modules (order)
 

@@ -2,7 +2,7 @@
 
 **Status:** **Paused (2026-11-17).** Owner chose not to ship per-cell UI until a procedural-animation-aligned workflow is designed. Tier A (reference overlay, export copy, glossary) stays on `main`.
 
-**Exploratory implementation (not on `main`):** branch `cursor/cell-editing-v1-6ab6` (v0.35.3 spike — Edit cell tool + inspector bar). Reverted from `main` in favor of stroke/zoom/selection-first editing.
+**Exploratory implementation (not on `main`):** [PR #169](https://github.com/funkatron/petscii-graphics-lab/pull/169) (v0.35.3 spike — Edit cell tool + inspector bar) was merged, then reverted. The remote branch is gone. Use that pull request for the spike; do not look for a live branch.
 
 **Working name:** *Cell inspector* or *Edit cell* — precise UI label TBD.
 

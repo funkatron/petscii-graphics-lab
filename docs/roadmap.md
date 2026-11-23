@@ -79,7 +79,7 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 
 **Done when:** Tier A checkboxes green, README/help match new labels, iPad WebKit spot-check for changed Animation/Download strings.
 
-**Cell editing:** Paused — see [cell-editing-ooda-plan.md](cell-editing-ooda-plan.md). Spike on `cursor/cell-editing-v1-6ab6`; focus on zoom, selection, and procedural-friendly tools first.
+**Cell editing:** Paused — see [cell-editing-ooda-plan.md](cell-editing-ooda-plan.md). The v0.35.3 spike ([PR #169](https://github.com/funkatron/petscii-graphics-lab/pull/169)) was reverted. Focus on zoom, selection, and procedural-friendly tools first.
 
 ## Editor modularization — planned
 
@@ -104,15 +104,16 @@ Most of the app still lives in one `index.html` module script; smaller areas alr
 - [x] **FLD blinds** in Movement menu ([fld-blinds-spike.md](fld-blinds-spike.md), [fld-blinds-native.md](fld-blinds-native.md)); procedural-v2 C64 for movement-only exports; py65 in CI, VICE optional.
 - [ ] Keep **VSP/FLI/AGSP** as documentation-only unless requirements change.
 
-**Checklist (not started)**
+**Checklist**
 
-- [ ] Agree module boundaries and naming (`editor-stage.js`, `canvas-view.js`, `drawing-tools.js`, or similar).
-- [ ] Move canvas view (zoom, guides, pan) out of `index.html`.
-- [ ] Move download/export UI orchestration behind a module boundary shared with existing exporters.
-- [ ] Reduce boot script to imports, DOM queries, and `init()` calls.
-- [ ] Confirm cold load on GitHub Pages and CI (Chromium + iPad WebKit) after each slice.
+- [x] Agree the first module names in [modularization slices](modularization-slices.md): `editor/canvas-view.js`, `editor/drawing-tools.js`, `editor/stage-hint.js`.
+- [x] Move canvas view (zoom, guides, pan) out of `index.html` (slices 1a–1b, **0.35.19–0.35.20**).
+- [x] Move vector tool preview and stage-hint copy (slices 2–3, **0.35.22**).
+- [ ] Move download/export UI orchestration behind a module boundary shared with existing exporters (slice 4).
+- [ ] Reduce the boot script to imports, DOM queries, and `init()` calls (slices 4–5 and whatever remains).
+- [x] Confirm CI (Chromium + iPad WebKit) after slices 1–3. Repeat after each later slice.
 
-## Machine modes and display palettes — design in progress
+## Machine modes and display palettes — shipped
 
 Design contract: [machine modes](machine-modes.md).
 

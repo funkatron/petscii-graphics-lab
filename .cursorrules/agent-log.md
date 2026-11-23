@@ -1,5 +1,9 @@
 # Agent log
 
+## 2026-11-23 — Docs after remote branch cleanup
+
+**What:** Only `main` remains on the remote. Living docs no longer tell readers to check out deleted branches. Cell-editing spike points at PR #169. Modularization queue records slices 1–3 shipped; next extract is the download shell. Machine-modes roadmap heading marked shipped. Historical log lines that name old branches are unchanged.
+
 ## 2026-11-23 — Portrait lessons + paint_tone_map (branch claude/mcp-improvements-plan-qfvqv2)
 
 **What:** Three original portrait studies (noir split light on C64, cel-shaded Plus/4, textured old fisherman on C64) after reading the reference faces. The petscii-draw skill gains a Portraits section (type the face as a tone map, flat skin bands, large eyes with one catchlight, expression from brows and mouth, texture by engraving with inverse glyphs 227/205/206/221). New MCP tool `paint_tone_map` (`src/tone_map.py`); protocol tool cap 43 → 44.  
