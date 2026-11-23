@@ -400,7 +400,7 @@ Above 600px wide and 500px high, stage chrome must not move when state changes (
 | `.stage-footer` | One fixed 46px row holding `#stageHint` and the selection dock. Selecting Select, Line or Rectangle, or making a selection, does not resize the canvas. |
 | `#downloadDialog` | Fixed height; `#exportTabs` sits above the two-column layout, so switching tabs keeps tabs and Close in place. |
 
-Phones and short landscape keep the earlier behavior: `.stage-footer` uses `display:contents` and the idle selection dock is removed to give space to artwork. The Text tool's multi-line entry panel still inserts a row; that remains a follow-up. `canvas-space.spec.cjs` measures canvas, zoom and symmetry boxes across tools, selection, a long status, preview and Return to drawing at five tablet/desktop sizes, plus Download tab geometry.
+Phones and short landscape keep the earlier behavior: a `matchMedia` listener moves the hint and selection dock back to their original DOM positions (`.stage-footer` is `display:none`), and the idle selection dock is removed to give space to artwork. The Text tool's multi-line entry panel still inserts a row; that remains a follow-up. `canvas-space.spec.cjs` measures canvas, zoom and symmetry boxes across tools, selection, a long status, preview and Return to drawing at five tablet/desktop sizes, plus Download tab geometry.
 
 
 ### Rotating solid surfaces
