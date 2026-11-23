@@ -9,6 +9,11 @@
 **What:** Three original portrait studies (noir split light on C64, cel-shaded Plus/4, textured old fisherman on C64) after reading the reference faces. The petscii-draw skill gains a Portraits section (type the face as a tone map, flat skin bands, large eyes with one catchlight, expression from brows and mouth, texture by engraving with inverse glyphs 227/205/206/221). New MCP tool `paint_tone_map` (`src/tone_map.py`); protocol tool cap 43 → 44.  
 **Tested:** MCP tests incl. `tests/test_tone_map.py` (legend and offsets, transparent cells, one undo step, smooth-edge corners, atomic rejection of ragged rows, unknown characters, oversize maps and bad legends). Editor unchanged.
 
+## 2026-11-23 — Visible tool options and one hint grammar (0.35.29, branch ui/visible-tool-options)
+
+**What:** Raskin review H3. Paint/Pick/Fill triggers keep their own icon; a non-default option shows a corner badge (square/drop/bar) and extends the accessible name. Previously Paint and Fill ink-only showed the identical droplet. Canvas hint now always reads `Tool · option · ink · action` (Paint name restored, Line/Rectangle/Text include ink). Merged to main via #196 → #199; this entry and the 0.35.29 version were lost in that merge and restored separately.  
+**Tested:** CI on #196 (Chromium, iPad touch, iPad portrait, unit, MCP) passed; locally `node --test tests/*.unit.mjs` 230/230 with py65 1.2.0; Chromium `tool-options-visible.spec.cjs` passes.
+
 ## 2026-11-23 — Consistent preview mode (0.35.28, branch ui/consistent-preview)
 
 **What:** Raskin review H2. Paint/Pick/Fill menu triggers (`aria-disabled`) now dim like the other drawing tools during read-only preview. Rule made explicit: tools are off; history edits (ink, glyph, Undo/Redo, Canvas actions) return to drawing and the status says "Returned to drawing". Stage hint during preview names the rule. Review correction: Fill was already inert in preview; the earlier exit came from Undo.  
