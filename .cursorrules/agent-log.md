@@ -4,6 +4,7 @@
 
 **What:** Symmetry popover gains **Mirror glyph shapes** (`#symMirror`, project `mirrorGlyphs`): reflected copies use the glyph whose pixels mirror the brush glyph, from the active machine's sheet (`glyph-mirror.js`; exact flip, else one-pixel-shifted flip). MCP `set_tool_state(mirror_glyphs)` uses the same tables through `pgl_cli.mjs mirror-tables`. Release **0.35.24**.  
 **Tested:** `tests/glyph-mirror.unit.mjs` 7/7; Chromium editor/layout/drawing-tools/tool-mode/6581 specs 26 passed, 1 failed (*project JSON save and reload round-trip*, fails identically on unmodified code locally); MCP 63 tests OK; `smoke/editor_parity.py` 28/0. WebKit not run locally.
+**Also fixed:** opening a project or importing text at the current canvas size left the canvas and text panel stale (`fit()` skips redraw when the size is unchanged since #184); `applyProject` and text import now call `redraw()`. Regression: `editor.spec.cjs` *project JSON save and reload round-trip* (was failing on main) and new *same-size text import redraws the canvas* (fails without the fix).
 
 ## 2026-11-22 — Crisp CRT still PNG + petscii-preview MCP rebuild (0.35.23, branch claude/mcp-improvements-plan-qfvqv2, PR #186)
 

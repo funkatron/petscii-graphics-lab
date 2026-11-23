@@ -1406,7 +1406,7 @@ function importTextGrid(text){
    parsed.cellColors=convertInkArray(parsed.cellColors,MACHINE.PLUS4,MACHINE.C64);parsed.colors=convertColorsObject(parsed.colors,MACHINE.PLUS4,MACHINE.C64);
   }
   validateProject({format:'petscii-stencil-lab',version:3,machine:workspaceMachine,columns:parsed.columns,rows:parsed.rows,grid:parsed.grid,cellColors:parsed.cellColors,colors:parsed.colors});
-  remember();W=parsed.columns;H=parsed.rows;grid=parsed.grid;cellColors=parsed.cellColors;setColors(parsed.colors);resetReplay();$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();setStatus('Imported text');
+  remember();W=parsed.columns;H=parsed.rows;grid=parsed.grid;cellColors=parsed.cellColors;setColors(parsed.colors);resetReplay();$('columns').value=String(W);$('rows').value=String(H);drawPalette();fit();redraw();setStatus('Imported text');
 }
 $('import').onclick=()=>{try{importTextGrid(out.value)}catch(e){setStatus('Import failed: '+e.message)}};
 $('openTextGrid').onclick=()=>{$('projectMenu').open=false;$('textGridFile').click()};
@@ -1459,7 +1459,8 @@ function applyProject(data){
  glyph=Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=511?data.selectedGlyph:64;
  erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';$('symMirror').checked=data.mirrorGlyphs===true;applyProjectName(data);
  if(data.projectName===undefined){const stem=readStoredProjectStem();if(stem){$('projectFilename').value=stem;$('projectFilename').removeAttribute('aria-invalid')}}
- drawPalette();fit();
+ // fit() skips redraw when the canvas size is unchanged; a same-size project still needs one.
+ drawPalette();fit();redraw();
 }
 window.addEventListener('pagehide',autosave);
 function persistProjectStem(){writeStoredProjectStem($('projectFilename').value)}

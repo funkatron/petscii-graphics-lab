@@ -95,6 +95,13 @@ test('SVG, text, and PNG produce downloads',async({page})=>{
   if(ext==='.png')expect(buffer.subarray(0,8).toString('hex')).toBe('89504e470d0a1a0a');
  }
 });
+test('same-size text import redraws the canvas',async({page})=>{
+ const before=await page.locator('#canvas').evaluate(c=>c.toDataURL());
+ const row=Array(16).fill('1A0').join(' ');
+ await ui(page,'#output','fill','# PETSCII-GLYPHS 1 16 16\n'+Array(16).fill(row).join('\n'));
+ await ui(page,'#import');
+ await expect.poll(()=>page.locator('#canvas').evaluate(c=>c.toDataURL())).not.toBe(before);
+});
 test('import text is undoable',async({page})=>{
  await ui(page,'#output','fill','# PETSCII-GLYPHS 1 2 2\n0A0 0E2\n062 0A0');
  await ui(page,'#import');
