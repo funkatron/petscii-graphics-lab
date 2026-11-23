@@ -232,3 +232,10 @@ dialog button[hidden]{display:none!important}
 @media(min-width:601px){
  #downloadDialog[open]{height:min(680px,calc(100dvh - 24px));box-sizing:border-box}
 }
+/* Preview consistency (Raskin review H2): every drawing tool looks unavailable during
+   read-only preview, including the Paint/Pick/Fill menu triggers that use aria-disabled. */
+.drawing-strip .tool-mode-trigger[aria-disabled=true]{cursor:default;opacity:.5}
+/* Tool option badge (Raskin review H3): visible on the button face, not only in its menu. */
+.tool-mode-menu>summary .tool-mode-badge{position:absolute;left:2px;top:2px;width:15px;height:15px;display:grid;place-items:center;border-radius:50%;background:var(--key-active);color:var(--text-on-accent);pointer-events:none}
+.tool-mode-menu>summary .tool-mode-badge svg{width:9px;height:9px;fill:currentColor;stroke:none}
+.tool-mode-menu>summary.active .tool-mode-badge{background:var(--text-on-accent);color:var(--key-active)}

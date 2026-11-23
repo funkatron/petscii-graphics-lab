@@ -76,9 +76,12 @@ Glyph codes are hidden by default. Turn on **Character options → Show glyph co
 
 The compact drawing strip uses familiar tool icons with accessible names. The selected tool is highlighted. Undo and Redo stay together. Tap the question mark for drawing instructions.
 
+Paint, Pick and Fill keep their own icon. When you choose an option other than the first one, a small badge appears in the button's corner: a square for **Glyph only**, a drop for **Ink only**, a bar for **Background**. The line under the canvas always starts with the tool name, then the option, ink and action — for example, *Paint · Ink only · Light blue · Drag to draw*.
+
 | Tool | Action |
 | --- | --- |
-| Paint / Eraser | Drag to draw or remove cells |
+| Paint | Open the menu · **Glyph and ink** / **Glyph only** / **Ink only** · drag to draw |
+| Eraser | Drag to remove cells |
 | Pick | Open the menu · **Ink** / **Glyph** / **Background** · tap a cell to copy that value to the brush or shared background |
 | Fill | Open the menu · **Glyph + ink** / **Glyph only** / **Ink only** · tap a connected region; empty regions ignore ink when matching |
 | Line / Rectangle | Drag to preview a straight line or outlined rectangle; release to apply |
@@ -194,7 +197,7 @@ Controls are grouped into **Timeline & preview**, **Movement**, **Color**, and *
 
 **Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
 
-The canvas is read-only during playback and while paused. **Paint** and **Eraser** are unavailable until you choose **Return to drawing**. Other artwork edits stop the preview. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
+The canvas is read-only during playback and while paused. All drawing tools are dimmed and unavailable until you choose **Return to drawing**. Other edits, such as choosing a new ink, **Undo** or a **Canvas** action, return to drawing first; the status message says **Returned to drawing**. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
 
 | Effect | What you see |
 | --- | --- |
