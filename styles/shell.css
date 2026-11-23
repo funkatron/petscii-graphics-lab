@@ -232,3 +232,6 @@ dialog button[hidden]{display:none!important}
 @media(min-width:601px){
  #downloadDialog[open]{height:min(680px,calc(100dvh - 24px));box-sizing:border-box}
 }
+/* Preview consistency (Raskin review H2): every drawing tool looks unavailable during
+   read-only preview, including the Paint/Pick/Fill menu triggers that use aria-disabled. */
+.drawing-strip .tool-mode-trigger[aria-disabled=true]{cursor:default;opacity:.5}

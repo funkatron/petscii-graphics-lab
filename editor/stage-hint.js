@@ -54,7 +54,7 @@ export function zoomPanHintSuffix(editorZoomed) {
  * @param {string} state.inkLabelText
  */
 export function buildDrawingHintText(state) {
-  if (state.animationPreview) return 'Preview (read-only)';
+  if (state.animationPreview) return 'Preview (read-only) · Tools are off; editing returns to drawing';
 
   const pan = zoomPanHintSuffix(state.editorZoomed);
   const sym = symmetryHintSuffix(state.symmetryValue, state.symmetryOptionText, state.mirrorGlyphs);
