@@ -303,6 +303,7 @@ Show letters & numbers reveals both cases. There is no whole-drawing character-s
 - [x] Evaluate reusable stamps; remove them during UI cleanup in favor of Select and Duplicate.
 - [x] Keep each completed drawing operation undoable; use pointer input for touch and mouse.
 - [x] Contextual Symmetry: show the control only while Paint or Eraser is active; preserve the saved symmetry setting elsewhere.
+- [x] Mirror glyph shapes: symmetric copies use reflected glyph partners from the active machine's glyph sheet (editor and MCP share `glyph-mirror.js`).
 - [x] Two-finger pan on the zoomed editor canvas (touch).
 
 ## Combine movement and color cycling — implemented

@@ -9,23 +9,26 @@ export function canvasCell(canvas, columns, rows, clientX, clientY) {
   ];
 }
 
+/** Symmetric copies of a cell, each with the reflections that produced it. */
 function symmetryCopies(x, y, columns, rows, mode) {
-  const points = [[x, y]];
+  const points = [[x, y, false, false]];
   if (mode === 'horizontal' || mode === 'both') {
-    points.push([columns - 1 - x, y]);
+    points.push([columns - 1 - x, y, true, false]);
   }
   if (mode === 'vertical' || mode === 'both') {
-    points.push([x, rows - 1 - y]);
+    points.push([x, rows - 1 - y, false, true]);
   }
   if (mode === 'both') {
-    points.push([columns - 1 - x, rows - 1 - y]);
+    points.push([columns - 1 - x, rows - 1 - y, true, true]);
   }
   return points;
 }
 
 /**
  * Brush painting with optional symmetry. The host supplies grid dimensions and
- * receives one callback per cell that actually changes.
+ * receives one callback per cell that actually changes. With `getMirrorGlyph`,
+ * each reflected copy asks the host for the glyph to use (for example the
+ * mirrored partner from glyph-mirror.js); without it every copy uses the brush glyph.
  */
 export function createPainter(options) {
   const {
@@ -36,6 +39,7 @@ export function createPainter(options) {
     getErasing,
     getInk,
     onCell,
+    getMirrorGlyph = null,
   } = options;
 
   function paint(x, y) {
@@ -47,9 +51,10 @@ export function createPainter(options) {
     const glyph = getErasing() ? '' : getGlyph();
     const ink = getInk();
     const points = symmetryCopies(x, y, columns, rows, getSymmetry());
-    for (const [px, py] of points) {
+    for (const [px, py, flipX, flipY] of points) {
       const index = py * columns + px;
-      onCell(index, glyph, ink);
+      const copyGlyph = getMirrorGlyph && (flipX || flipY) ? getMirrorGlyph(glyph, flipX, flipY) : glyph;
+      onCell(index, copyGlyph, ink);
     }
   }
 

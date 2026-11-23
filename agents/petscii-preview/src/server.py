@@ -416,8 +416,14 @@ def set_tool_state(
     glyph: Optional[int | Literal[""]] = None,
     ink: Optional[int] = None,
     symmetry: Optional[Symmetry] = None,
+    mirror_glyphs: Optional[bool] = None,
 ) -> dict:
-    """Set the brush: glyph atlas id (160 = solid block), ink colour number, symmetry mode."""
+    """Set the brush: glyph atlas id (160 = solid block), ink colour number, symmetry mode.
+
+    mirror_glyphs=true makes symmetric copies use the reflected glyph (a lower-right triangle
+    becomes lower-left in the left/right copy), like the editor's "Mirror glyph shapes".
+    Glyphs without a mirrored partner, such as most letters, keep their shape.
+    """
     patch: dict[str, Any] = {}
     if glyph is not None:
         patch["glyph"] = glyph
@@ -425,6 +431,8 @@ def set_tool_state(
         patch["ink"] = ink
     if symmetry is not None:
         patch["symmetry"] = symmetry
+    if mirror_glyphs is not None:
+        patch["mirrorGlyphs"] = mirror_glyphs
     return drawing.set_tool_state(project_path, patch)
 
 

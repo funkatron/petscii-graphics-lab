@@ -26,7 +26,7 @@ async function reveal(page,selector){
   if(await page.locator('#glyphBackdrop').isVisible())await page.locator('#glyphClose').click();
   if(await page.locator('#sidebar').evaluate(e=>e.classList.contains('closed')))await page.locator('#toggle').click();
  }
- else if(['#tapPoints','#centerGuides','#symmetrySummary','#editorZoom','#symmetryMenu'].includes(selector)&&await page.locator('#glyphBackdrop').isVisible()){
+ else if(['#tapPoints','#centerGuides','#symmetrySummary','#editorZoom','#symmetryMenu','#symMirror','#sym'].includes(selector)&&await page.locator('#glyphBackdrop').isVisible()){
   await page.locator('#glyphClose').click();
  }
  if(location.mode){

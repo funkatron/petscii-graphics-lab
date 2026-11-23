@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
   ROOT, loadProject, validateProject, renderPlan, nativeProgram, animationSource, animationPlan,
-  colorTable, glyphSheet,
+  colorTable, glyphSheet, glyphBits,
 } from './pgl-shared.mjs';
 
 const command = process.argv[2];
@@ -32,6 +32,7 @@ const validation = await import(pathToFileURL(join(ROOT, 'project-validation.js'
 const { MACHINES, maxInkIndex, convertInk } = await import(pathToFileURL(join(ROOT, 'machine-modes.js')).href);
 const { DISPLAY_PALETTE_IDS } = await import(pathToFileURL(join(ROOT, 'c64-colors.js')).href);
 const { SOLID_EFFECTS } = await import(pathToFileURL(join(ROOT, 'solid-motion.js')).href);
+const { buildMirrorTables } = await import(pathToFileURL(join(ROOT, 'glyph-mirror.js')).href);
 
 const commands = {
   /** Enumerations the editor accepts in project.animation. */
@@ -75,6 +76,13 @@ const commands = {
       displayPalettes: DISPLAY_PALETTE_IDS,
       cellShapes: ['square', 'crt'],
     };
+  },
+
+  /** Mirrored glyph partners for the machine's glyph sheet (editor's glyph-mirror.js; -1 = keep glyph). */
+  'mirror-tables'() {
+    const sheet = glyphSheet(flag('machine') || 'c64');
+    const { horizontal, vertical } = buildMirrorTables(glyphBits(sheet));
+    return { ok: true, sheet, horizontal: Array.from(horizontal), vertical: Array.from(vertical) };
   },
 
   validate() {

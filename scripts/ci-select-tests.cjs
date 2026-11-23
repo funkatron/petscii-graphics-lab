@@ -95,7 +95,10 @@ function select(allFiles, {full=false, motionOnly=false, light=false}={}) {
     set.add('tests/c64-procedural-playback.spec.cjs');
     set.add('tests/research-motion-capacity.spec.cjs');
   }
-  if (changed(/^pointer-stroke\.js$/)) set.add('tests/layout.spec.cjs');
+  if (changed(/^(pointer-stroke|glyph-mirror)\.js$/)) {
+    set.add('tests/layout.spec.cjs');
+    set.add('tests/editor.spec.cjs');
+  }
   if (changed(/^(typed-text|text-grid|glyph-families|c64-colors)\.js$/))
     set.add('tests/c64-only.spec.cjs');
   if (changed(/^bonfire\.js$/)) set.add('tests/bonfire.spec.cjs');
