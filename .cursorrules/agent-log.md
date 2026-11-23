@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Portrait lessons + paint_tone_map (branch claude/mcp-improvements-plan-qfvqv2)
+
+**What:** Three original portrait studies (noir split light on C64, cel-shaded Plus/4, textured old fisherman on C64) after reading the reference faces. The petscii-draw skill gains a Portraits section (type the face as a tone map, flat skin bands, large eyes with one catchlight, expression from brows and mouth, texture by engraving with inverse glyphs 227/205/206/221). New MCP tool `paint_tone_map` (`src/tone_map.py`); protocol tool cap 43 → 44.  
+**Tested:** MCP tests incl. `tests/test_tone_map.py` (legend and offsets, transparent cells, one undo step, smooth-edge corners, atomic rejection of ragged rows, unknown characters, oversize maps and bad legends). Editor unchanged.
+
 ## 2026-11-23 — Stable stage layout (0.35.27, branch ui/stable-stage-layout)
 
 **What:** Raskin review H1. Tablet/desktop stage chrome no longer moves with state: fixed status/dimension slots keep zoom/grid/symmetry in place; the preview banner overlays the stage bar (`#stageCanvasView` inert during preview); hint and selection actions share one fixed footer row; the Download dialog has a fixed height with tabs above the columns. Phones and short landscape keep the previous reclaim behavior. Text entry panel still inserts a row (follow-up).  
