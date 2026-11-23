@@ -9,6 +9,8 @@ Paint cells with the `petscii-preview` MCP. A sentence does not become a picture
 
 **Before painting:** call `illustration_brief`, then read the catalogs `petscii://references/drawing/{category}`, `petscii://glyphs/families` and `petscii://glyphs/shading-ladder/{background_ink}` (MCP resources; clients without resource support use the `read_catalog` tool with the same URI). For abstracts read `petscii://op-art/recipes` and `petscii://op-art/recipes/{id}`, then `stamp_op_art`. `critique_drawing` reviews each pass. The `draw_picture` and `op_art_piece` prompts list the whole workflow.
 
+Recognisable copyrighted characters are out of scope. When asked for one, design an original character with its own silhouette and details.
+
 Before the first stroke, open the reference pictures in `agents/petscii-preview/examples/`. Read the image files. They are the quality bar. Study the craft in them. Do not trace them into the project.
 
 For a face, read `IMG_0343.JPG`, `IMG_0350.JPG`, `IMG_0354.PNG`, `IMG_0355.PNG`, `IMG_0356.PNG`, `IMG_0357.JPG`, and `IMG_0358.GIF`.
@@ -49,6 +51,49 @@ Keep the outline as `160` or a half-block (`225` on a left edge, `97` on a right
 
 `103`, `116`, and `111` are slots, scans, and thin lines. They are not shade. In the middle of a surface they open a hole. Add 128 to a bank-0 id for its inverse when the cell should be mostly ink with a dark notch.
 
+## Gradients and smooth shading
+
+Lessons from shading studies (lit spheres, a sunset sky). Measure; do not guess.
+
+**Brightness, not names.** C64 (Pepto) inks from dark to light, with measured luminance:
+
+| Ink | 0 black | 6 blue | 9 brown | 2 red | 11 dark grey | 4 purple | 8 orange | 14 light blue | 12 grey | 10 light red | 5 green | 15 light grey | 3 cyan | 7 yellow | 13 light green | 1 white |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Lum | 0 | 49 | 55 | 65 | 68 | 77 | 83 | 103 | 108 | 113 | 124 | 149 | 154 | 189 | 192 | 255 |
+
+- Build each ramp in that order. Red is darker than purple, so a blue → red → orange sky goes muddy. Use blue → purple → orange → light red → yellow.
+- Ramps that work: grey `0 11 12 15 1`; warm `9 2 8 10 7`; cool `6 4 14 3 1`; green `11 5 13 1`.
+- Pepto orange reads brown. Warm gradients stay muted; let yellow or white carry the brightest step.
+- Plus/4 ink numbers are `1 + (hue − 1) × 8 + luminance` (white L0–L7 is 1–8, red 9–16, cyan 17–24 …). Look colours up with the machine's colour table, not C64 numbers.
+
+**One ink per cell.** A cell shows its ink and the shared background, nothing else.
+
+- A dither glyph blends an ink with the background only. Between two non-background inks there is no in-cell blend.
+- Between two ramp inks, use a hard cell edge, or alternate whole cells with a 2×2 or 4×4 ordered (Bayer) pattern: `ink = ramp[round(s × (n−1) + bayer[y%4][x%4] − 0.5)]`. This reads as deliberate texture.
+- Checker `102`/`230` (alternate by `(x+y)%2` so it stays continuous) is for the step from black into the darkest ink.
+- Choosing the background is part of the gradient. A sky that fades to orange can use orange as the background and lay sparser blue glyphs over it.
+
+**What failed.** Error diffusion over every coverage glyph produced streaky static. Diffusion that crossed object edges bled one ramp into another. Prefer cell-level ordered dither, and keep any diffusion inside one object.
+
+**Exact partial blocks** (from glyph bytes, not memory):
+
+| Fill | 1/8 | 2/8 | 3/8 | 4/8 | 5/8 | 6/8 | 7/8 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| From the bottom | 100 | 111 | 121 | 98 | 248 | 247 | 227 |
+| From the left | — | 116 | 117 | 97 | 246 | 234 | — |
+
+Quadrants: `126` top-left, `124` top-right, `123` bottom-left, `108` bottom-right.
+
+**Forms.**
+
+- A lit ball: Lambert light into the ramp, one white cell for the specular, and a faint bounce light on the lower shadow side so the silhouette survives against black.
+- Smooth an edge by sampling the shape at the four cell corners: 4 inside → `160`, 3 → triangle (`233`/`223`/`95`/`105`, the missing corner is the empty half), 2 → half block. Skip single-corner cells; quadrants there make spikes at the poles.
+- Mountains against sky are black negative space. The ridge cells are sky-coloured triangles (`95`, `105`) whose filled half is the sky.
+- Thin line glyphs `99`, `100` and `64` make water shimmer and a sun path. They are not general shading.
+- A cast shadow is a darker band of the floor ramp, offset away from the light and flattened.
+
+Render after every pass and compare with the references. Two or three passes are normal: the first attempt is usually too bright, too noisy, or loses the silhouette.
+
 ## Passes
 
 1. Silhouette. Block the mass with solid 160. One background, usually black (color 0).
@@ -65,6 +110,19 @@ Keep the outline as `160` or a half-block (`225` on a left edge, `97` on a right
 - `undo` if a pass goes wrong.
 
 Screen look stays off while drawing.
+
+## Symmetry and mirror glyphs
+
+Faces, rugs, mandalas, butterflies and reflections are symmetric. Paint one half or one quarter and let the brush copy it.
+
+1. `set_tool_state(symmetry="horizontal" | "vertical" | "both", mirror_glyphs=true)`.
+2. Paint only the source part: the left half, the top half, or the top-left quarter.
+3. `render_still` and check that the copies read as true reflections.
+
+- With `mirror_glyphs`, each copy uses the reflected glyph: triangles `233` ↔ `223` left-right and `233` ↔ `95` top-bottom, diagonals `77` ↔ `78`, half blocks `97` ↔ `225` and `226` ↔ `98`, round corners `85`/`73`/`74`/`75`, quadrants. Glyphs without a partner, such as most letters, keep their shape. The editor's **Mirror glyph shapes** uses the same rule (`glyph-mirror.js`), and the Plus/4 uses TED shapes.
+- Use an even width for left/right and an even height for top/bottom. On an odd size the centre column or row is its own copy, and the flipped glyph overwrites the original.
+- An asymmetric detail (a reflection darkened under water, ripples, a signature) goes in afterwards with `symmetry="none"`.
+- A reflection in water: paint the scene with top/bottom symmetry, then repaint the lower half with darker inks of each ramp and add line-glyph ripples.
 
 ## Op-art and complex abstracts
 
