@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import json
 from pathlib import Path
+from functools import lru_cache
 from typing import Any
 
 import op_art
@@ -98,12 +99,41 @@ def _symmetry(value: Any) -> str:
     return value
 
 
+@lru_cache(maxsize=4)
+def _mirror_tables(machine: str) -> tuple[tuple[int, ...], tuple[int, ...]]:
+    """Horizontal/vertical mirror partners from the editor's glyph-mirror.js (one rule for both)."""
+    result = parse_json_stdout(run_node(PGL_CLI, ['mirror-tables', f'--machine={machine}'], check=False))
+    if not result.get('ok'):
+        raise ProjectError(f'could not build mirror tables: {result.get("error")}')
+    return tuple(result['horizontal']), tuple(result['vertical'])
+
+
+def mirror_glyph(glyph: Any, flip_x: bool, flip_y: bool, machine: str) -> Any:
+    """Glyph for a reflected copy; empty cells and glyphs without a partner are unchanged."""
+    if not isinstance(glyph, int) or isinstance(glyph, bool) or not (flip_x or flip_y):
+        return glyph
+    horizontal, vertical = _mirror_tables(machine)
+    result = glyph
+    if flip_x:
+        if horizontal[result] < 0:
+            return glyph
+        result = horizontal[result]
+    if flip_y:
+        if vertical[result] < 0:
+            return glyph
+        result = vertical[result]
+    return result
+
+
 def _in_bounds(data: dict[str, Any], x: int, y: int) -> bool:
     return 0 <= x < data['columns'] and 0 <= y < data['rows']
 
 
 def default_tool_state() -> dict[str, Any]:
-    return {'glyph': 160, 'ink': 14, 'backgroundTarget': 'ink', 'symmetry': 'none', 'selection': None}
+    return {
+        'glyph': 160, 'ink': 14, 'backgroundTarget': 'ink', 'symmetry': 'none', 'mirrorGlyphs': False,
+        'selection': None,
+    }
 
 
 def get_tool_state(project_path: str | None = None) -> dict[str, Any]:
@@ -122,6 +152,8 @@ def set_tool_state(project_path: str | None, patch: dict[str, Any]) -> dict[str,
         clean['ink'] = _ink(clean['ink'])
     if 'symmetry' in clean:
         clean['symmetry'] = _symmetry(clean['symmetry'])
+    if 'mirrorGlyphs' in clean and not isinstance(clean['mirrorGlyphs'], bool):
+        raise ProjectError(f'mirrorGlyphs must be true or false, got {clean["mirrorGlyphs"]!r}')
     _, state_path, _ = _session_paths(project_path)
     state = default_tool_state()
     if state_path.exists():
@@ -208,28 +240,33 @@ def _record_replay(data: dict[str, Any], before: dict[str, Any] | None) -> None:
         _reset_replay(data)
 
 
-def _symmetry_points(x: int, y: int, columns: int, rows: int, mode: str) -> list[tuple[int, int]]:
-    points = [(x, y)]
+def _symmetry_points(x: int, y: int, columns: int, rows: int, mode: str) -> list[tuple[int, int, bool, bool]]:
+    """Points as (x, y, flip_x, flip_y), matching pointer-stroke.js symmetryCopies()."""
+    points = [(x, y, False, False)]
     if mode in ('horizontal', 'both'):
-        points.append((columns - 1 - x, y))
+        points.append((columns - 1 - x, y, True, False))
     if mode in ('vertical', 'both'):
-        points.append((x, rows - 1 - y))
+        points.append((x, rows - 1 - y, False, True))
     if mode == 'both':
-        points.append((columns - 1 - x, rows - 1 - y))
+        points.append((columns - 1 - x, rows - 1 - y, True, True))
     return points
 
 
-def _paint_point(data: dict[str, Any], x: int, y: int, glyph: Any, ink: int, symmetry: str) -> int:
+def _paint_point(
+    data: dict[str, Any], x: int, y: int, glyph: Any, ink: int, symmetry: str, mirror: bool = False
+) -> int:
     columns = data['columns']
     rows = data['rows']
+    machine = data.get('machine', 'c64')
     changed = 0
-    for px, py in _symmetry_points(x, y, columns, rows, symmetry):
+    for px, py, flip_x, flip_y in _symmetry_points(x, y, columns, rows, symmetry):
         if px < 0 or py < 0 or px >= columns or py >= rows:
             continue
         index = py * columns + px
-        if data['grid'][index] == glyph and data['cellColors'][index] == ink:
+        copy = mirror_glyph(glyph, flip_x, flip_y, machine) if mirror else glyph
+        if data['grid'][index] == copy and data['cellColors'][index] == ink:
             continue
-        data['grid'][index] = glyph
+        data['grid'][index] = copy
         data['cellColors'][index] = ink
         changed += 1
     return changed
@@ -312,7 +349,9 @@ def paint_cells(
             planned.append((x, y, glyph, ink))
         changed = 0
         for x, y, glyph, ink in planned:
-            changed += _paint_point(data, x, y, glyph, ink, state.get('symmetry', 'none'))
+            changed += _paint_point(
+                data, x, y, glyph, ink, state.get('symmetry', 'none'), state.get('mirrorGlyphs', False)
+            )
         return {'changed': changed}
 
     return _mutate(project_path, mutate)
@@ -382,10 +421,11 @@ def draw_line(project_path: str | None, x0: int, y0: int, x1: int, y1: int) -> d
         glyph = state['glyph']
         ink = state['ink']
         symmetry = state.get('symmetry', 'none')
+        mirror = state.get('mirrorGlyphs', False)
         for step in range(steps + 1):
             x = round(x0 + (x1 - x0) * step / steps)
             y = round(y0 + (y1 - y0) * step / steps)
-            changed += _paint_point(data, x, y, glyph, ink, symmetry)
+            changed += _paint_point(data, x, y, glyph, ink, symmetry, mirror)
         return {'changed': changed}
 
     return _mutate(project_path, mutate)
@@ -399,11 +439,12 @@ def draw_rect(project_path: str | None, x0: int, y0: int, x1: int, y1: int, fill
         glyph = state['glyph']
         ink = state['ink']
         symmetry = state.get('symmetry', 'none')
+        mirror = state.get('mirrorGlyphs', False)
         for y in range(top, bottom + 1):
             for x in range(left, right + 1):
                 on_edge = x in (left, right) or y in (top, bottom)
                 if filled or on_edge:
-                    changed += _paint_point(data, x, y, glyph, ink, symmetry)
+                    changed += _paint_point(data, x, y, glyph, ink, symmetry, mirror)
         return {'changed': changed}
 
     return _mutate(project_path, mutate)

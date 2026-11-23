@@ -24,9 +24,9 @@ export function pickerHintText(pickerMode, modes) {
   return `${label} · Tap a cell on the canvas.`;
 }
 
-export function symmetryHintSuffix(symmetryValue, symmetryOptionText) {
+export function symmetryHintSuffix(symmetryValue, symmetryOptionText, mirrorGlyphs = false) {
   if (symmetryValue === 'none') return '';
-  return ` Symmetry: ${symmetryOptionText}.`;
+  return ` Symmetry: ${symmetryOptionText}${mirrorGlyphs ? ', mirrored glyphs' : ''}.`;
 }
 
 export function zoomPanHintSuffix(editorZoomed) {
@@ -49,6 +49,7 @@ export function zoomPanHintSuffix(editorZoomed) {
  * @param {readonly {id: string, label: string}[]} state.pickerModes
  * @param {string} state.symmetryValue
  * @param {string} state.symmetryOptionText
+ * @param {boolean} [state.mirrorGlyphs]
  * @param {boolean} state.editorZoomed
  * @param {string} state.inkLabelText
  */
@@ -56,7 +57,7 @@ export function buildDrawingHintText(state) {
   if (state.animationPreview) return 'Preview (read-only)';
 
   const pan = zoomPanHintSuffix(state.editorZoomed);
-  const sym = symmetryHintSuffix(state.symmetryValue, state.symmetryOptionText);
+  const sym = symmetryHintSuffix(state.symmetryValue, state.symmetryOptionText, state.mirrorGlyphs);
 
   if (!['paint', 'erase'].includes(state.drawingTool)) {
     const name = state.toolNames[state.drawingTool] ?? state.drawingTool;
@@ -87,11 +88,19 @@ export function buildDrawingHintText(state) {
  * @param {HTMLDetailsElement} refs.menu
  * @param {HTMLElement} refs.summary
  * @param {HTMLSelectElement} refs.symSelect
+ * @param {HTMLInputElement} [refs.mirror] Mirror glyph shapes checkbox
+ * @param {HTMLElement} [refs.mirrorRow] Its label; stays in place, dimmed while Symmetry is Off
  * @param {boolean} brushToolActive
  */
 export function syncSymmetryChrome(refs, brushToolActive) {
-  const { menu, summary, symSelect } = refs;
+  const { menu, summary, symSelect, mirror, mirrorRow } = refs;
   const show = brushToolActive;
+  if (mirror) {
+    const off = symSelect.value === 'none';
+    mirror.disabled = off;
+    mirrorRow?.classList.toggle('tool-slot-inactive', off);
+    if (mirrorRow) mirrorRow.title = off ? 'Choose a Symmetry option first' : 'Copies use the reflected glyph shape';
+  }
   menu.inert = !show;
   summary.setAttribute('aria-disabled', String(!show));
   menu.classList.toggle('tool-slot-inactive', !show);

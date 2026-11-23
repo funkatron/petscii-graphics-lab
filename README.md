@@ -134,7 +134,14 @@ The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic
 
 ### Repeat a stroke or change the whole drawing
 
-**Symmetry** lives in the bar above the canvas (with zoom and guides). It places the selected glyph in matching cell positions across the chosen axis and repeats the glyph without flipping its pixels. Symmetry is available when **Paint** or **Eraser** is active.
+**Symmetry** lives in the bar above the canvas (with zoom and guides). It places the selected glyph in matching cell positions across the chosen axis. Symmetry is available when **Paint** or **Eraser** is active.
+
+By default every copy repeats the same glyph. To make copies look truly reflected:
+
+1. Open **Symmetry** and choose an axis.
+2. Turn on **Mirror glyph shapes**.
+
+Each copy now uses the glyph whose pixels are the reflection of your brush glyph. For example, a lower-right triangle becomes a lower-left triangle in the left/right copy. Glyphs without a reflected partner, such as most letters, stay as they are. The checkbox is dimmed while Symmetry is **Off**, and the setting is saved with the project.
 
 Canvas setup groups dimensions and staged resizing under **Canvas size**. The drawing strip **Canvas** control (after **Ink**) opens whole-grid tools. The bar above the canvas also offers editor zoom (fit through 300%), **Grid** (center guides) for the middle column and row when working with symmetry, and **Tap endpoints** when line, rectangle, select, move, or duplicate tools are active; zoom and guides affect the editor only, not PNG/SVG/animation exports. Hold **Ctrl** or **⌘** and scroll on the canvas to step zoom. When zoomed in, **two-finger drag on the canvas pans**; one finger still paints or erases. **Colors** keeps brush, background, swap, and screen look only.
 

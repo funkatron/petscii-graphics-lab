@@ -103,7 +103,7 @@
 
 </div></details></aside>
 <main class="stage">
-<div class="stagebar"><span id="dimensions">16 × 16</span><div class="stage-canvas-view" id="stageCanvasView"><select id="editorZoom" aria-label="Canvas zoom" title="Editor zoom"></select><label class="stage-view-guides"><input type="checkbox" id="centerGuides" aria-label="Show grid"><span>Grid</span></label><details id="symmetryMenu"><summary aria-label="Symmetry options" id="symmetrySummary">↔<span class="stage-view-symmetry-label" id="symmetryLabel">Symmetry</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div></div></details><label class="stage-view-tap tool-slot-inactive" id="tapEndpointsSlot" inert><input type="checkbox" id="tapPoints"><span>Tap endpoints</span></label></div><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
+<div class="stagebar"><span id="dimensions">16 × 16</span><div class="stage-canvas-view" id="stageCanvasView"><select id="editorZoom" aria-label="Canvas zoom" title="Editor zoom"></select><label class="stage-view-guides"><input type="checkbox" id="centerGuides" aria-label="Show grid"><span>Grid</span></label><details id="symmetryMenu"><summary aria-label="Symmetry options" id="symmetrySummary">↔<span class="stage-view-symmetry-label" id="symmetryLabel">Symmetry</span></summary><div class="tool-popover"><div class="field"><label for="sym">Symmetry</label><select id="sym"><option value="none">Off</option><option value="horizontal">Left/right</option><option value="vertical">Top/bottom</option><option value="both">Both axes</option></select></div><label class="sym-mirror-row" id="symMirrorRow"><input type="checkbox" id="symMirror"><span>Mirror glyph shapes</span></label></div></details><label class="stage-view-tap tool-slot-inactive" id="tapEndpointsSlot" inert><input type="checkbox" id="tapPoints"><span>Tap endpoints</span></label></div><span id="status" class="status" role="status">Ready to draw</span><span id="quickglyph">█</span></div>
 <div id="previewBanner" class="preview-banner" hidden><span id="previewLabel"></span><button id="editAnimationFromPreview" type="button">Animation settings</button><button id="returnDrawing">Return to drawing</button></div>
 <div id="referenceOverlayBar" class="preview-banner reference-overlay-bar" hidden><span>Reference overlay · approximate colors and blocks</span><label class="reference-opacity">Opacity <input type="range" id="referenceOpacity" min="10" max="100" value="50" aria-label="Reference opacity"></label><button type="button" id="referenceApply">Apply as import</button><button type="button" id="referenceCancel">Remove overlay</button></div>
 <div id="frame" class="canvas-frame"><canvas id="canvas" aria-label="Touch drawing canvas" aria-describedby="stageHint"></canvas></div>
@@ -164,6 +164,7 @@ const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveV
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
 function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareNativeBackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}
 const {canvasCell,createPainter}=await import('./pointer-stroke.js');
+const {buildMirrorTables,mirrorGlyph}=await import('./glyph-mirror.js');
 const {colorRGB,inkHex,paletteColors,isDisplayPaletteId}=await import('./c64-colors.js');
 const {PLUS4_COLORS,isPlus4ColorEffect,plus4Hex,tedIndex}=await import('./plus4-colors.js');
 const {VDC_COLORS,vdcHex}=await import('./vdc-colors.js');
@@ -533,6 +534,9 @@ $('workspacePalette').onchange=()=>{setWorkspacePalette($('workspacePalette').va
 $('workspaceCellAspect').onchange=()=>{setWorkspaceCellAspect($('workspaceCellAspect').value);$('machineMenu').open=false};
 let rom=null,romC64=null,romTed=null,saveTimer=null,initialized=false,videoRepeats=1,referenceOverlay=null;
 function selectActiveRom(){rom=isTedMachine(workspaceMachine)?romTed:romC64}
+const mirrorTableCache=new WeakMap();
+// Mirrored copies use the glyph whose pixels reflect the brush glyph in the active machine's sheet (glyph-mirror.js).
+function activeMirrorTables(){if(!rom)return null;let t=mirrorTableCache.get(rom);if(!t){t=buildMirrorTables(rom);mirrorTableCache.set(rom,t)}return t}
 const PROJECT_KEY='petscii-graphics-project-v3';
 let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).fill(colors.ink),replayEventColors=[];
 let cellColors=Array(256).fill(colors.ink);
@@ -1085,18 +1089,18 @@ $('exportGif').onclick=()=>exportAnimation('gif');
 $('exportFrames').onclick=()=>exportAnimation('zip');
 $('exportVideo').onclick=()=>exportAnimation('video');
 const undoStack=[],redoStack=[];
-function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),glyph,erasing,colors:{...colors},machine:workspaceMachine,palette:workspacePalette,symmetry:$('sym').value,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
+function snapshot(){return {W,H,grid:[...grid],cellColors:cellColors.slice(),glyph,erasing,colors:{...colors},machine:workspaceMachine,palette:workspacePalette,symmetry:$('sym').value,mirrorGlyphs:$('symMirror').checked,animation:animationSettings(),replayBase:[...replayBase],replayEvents:replayEvents.slice(),replayBaseColors:replayBaseColors.slice(),replayEventColors:replayEventColors.slice()};}
 function remember(){stopAnimation();selection=null;cancelToolDrag();updateToolPalette();undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack.length=0;historyButtons();}
 function historyButtons(){$('undo').disabled=!undoStack.length;$('redo').disabled=!redoStack.length;}
-function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;stopAnimation();workspaceMachine=MACHINES[state.machine]?state.machine:workspaceMachine;workspacePalette=isDisplayPaletteId(state.palette)?state.palette:workspacePalette;writeWorkspacePrefs(prefsPayload());selectActiveRom();syncMachineControls();updateSourceInfo();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();redraw();historyButtons();}
+function restore(state){const activeTool=['move','duplicate'].includes(drawingTool)?'select':drawingTool;cancelToolDrag();selection=null;stopAnimation();workspaceMachine=MACHINES[state.machine]?state.machine:workspaceMachine;workspacePalette=isDisplayPaletteId(state.palette)?state.palette:workspacePalette;writeWorkspacePrefs(prefsPayload());selectActiveRom();syncMachineControls();updateSourceInfo();setColors(state.colors);setAnimationSettings(state.animation);replayBase=[...state.replayBase];replayEvents=state.replayEvents.slice();W=state.W;H=state.H;grid=[...state.grid];cellColors=state.cellColors.slice();replayBaseColors=state.replayBaseColors.slice();replayEventColors=state.replayEventColors.slice();glyph=state.glyph;erasing=state.erasing;drawingTool=activeTool;erasing=drawingTool==='erase';$('sym').value=state.symmetry;$('symMirror').checked=!!state.mirrorGlyphs;drawPalette();$('columns').value=String(W);$('rows').value=String(H);fit();redraw();historyButtons();}
 $('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());setStatus('Undid edit');};
 $('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());setStatus('Redid edit');};
 let fillMode='both',pickerMode='ink',paintMode='both';
-const {paint,stroke}=createPainter({getW:()=>W,getH:()=>H,getSymmetry:()=>$('sym').value,getGlyph:()=>glyph,getErasing:()=>erasing,getInk:()=>colors.ink,onCell:(i,g,ink)=>{let ng=g,nk=ink;if(erasing){if(paintMode==='glyph'){ng='';nk=cellColors[i]}else if(paintMode==='ink'){if(grid[i]==='')return;ng=grid[i];nk=colors.background}}else{if(paintMode==='glyph')nk=cellColors[i];else if(paintMode==='ink'){if(grid[i]==='')return;ng=grid[i]}}if(grid[i]!==ng||cellColors[i]!==nk){grid[i]=ng;cellColors[i]=nk;recordCell(i)}}});
+const {paint,stroke}=createPainter({getW:()=>W,getH:()=>H,getSymmetry:()=>$('sym').value,getGlyph:()=>glyph,getErasing:()=>erasing,getInk:()=>colors.ink,getMirrorGlyph:(g,fx,fy)=>$('symMirror').checked?mirrorGlyph(g,fx,fy,activeMirrorTables()):g,onCell:(i,g,ink)=>{let ng=g,nk=ink;if(erasing){if(paintMode==='glyph'){ng='';nk=cellColors[i]}else if(paintMode==='ink'){if(grid[i]==='')return;ng=grid[i];nk=colors.background}}else{if(paintMode==='glyph')nk=cellColors[i];else if(paintMode==='ink'){if(grid[i]==='')return;ng=grid[i]}}if(grid[i]!==ng||cellColors[i]!==nk){grid[i]=ng;cellColors[i]=nk;recordCell(i)}}});
 let drawingTool='paint',selection=null,toolDrag=null;
 function brushToolActive(){return ['paint','erase'].includes(drawingTool)&&!animationPreview}
 function updateSymmetryChrome(){
- stageHint.syncSymmetryChrome({menu:$('symmetryMenu'),summary:$('symmetrySummary'),symSelect:$('sym')},brushToolActive());
+ stageHint.syncSymmetryChrome({menu:$('symmetryMenu'),summary:$('symmetrySummary'),symSelect:$('sym'),mirror:$('symMirror'),mirrorRow:$('symMirrorRow')},brushToolActive());
 }
 let tapPoints=false,textOrigin=null;
 const EYEDROPPER='M7 21l3-1.5 M4 14l12-12 M16 2l2 2 M17.5 7.5l2.5 2.5';
@@ -1260,6 +1264,7 @@ function drawingHintState(){
   pickerModes:PICKER_MODES,
   symmetryValue:$('sym').value,
   symmetryOptionText:$('sym').selectedOptions[0]?.textContent??'',
+  mirrorGlyphs:$('symMirror').checked,
   editorZoomed:canvasView.editorZoomed(canvasZoom),
   inkLabelText:inkLabel(colors.ink),
  };
@@ -1270,6 +1275,7 @@ function updateDrawingHint(){
 }
 function refresh(){refreshModeMenuSummaries();updateDrawingHint();updateSymmetryChrome();updateWholeDrawingActions();updateReplaceGlyphUI();$('hiddenGlyph').hidden=typeof glyph!=='number'||!!palette.querySelector('button[data-g="'+glyph+'"]');const preview=$('glyphPreview').getContext('2d');preview.clearRect(0,0,24,24);preview.fillStyle=colorHex('ink');if(erasing){preview.font='20px sans-serif';preview.fillText('⌫',0,20)}else if(typeof glyph==='number')romCanvasGlyph(preview,glyph,0,0,24);for(const b of palette.querySelectorAll('button')){const active=b.dataset.g===String(glyph)&&!erasing;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))}$('erase').classList.toggle('active',erasing);$('erase').setAttribute('aria-pressed',String(erasing));$('paint').setAttribute('aria-pressed',String(drawingTool==='paint'));const favorite=typeof glyph==='number'&&favoriteGlyphs.some(g=>g[0]===0&&g[1]===glyph);$('favoriteGlyph').setAttribute('aria-pressed',String(favorite));$('favoriteGlyph').textContent=favorite?'★':'☆';$('favoriteGlyph').setAttribute('aria-label',favorite?'Remove selected glyph from favorites':'Add selected glyph to favorites');$('quickglyph').textContent=erasing?'⌫':typeof glyph==='number'?'#'+glyph:glyph;clearTimeout(saveTimer);saveTimer=setTimeout(autosave,250);}
 $('sym').onchange=()=>{$('symmetryMenu').open=false;refresh();autosave()};
+$('symMirror').onchange=()=>{refresh();autosave()};
 $('erase').onclick=()=>setDrawingTool('erase');
 $('clear').onclick=()=>{remember();grid.fill('');cellColors.fill(colors.ink);resetReplay();redraw();setStatus('Canvas cleared')};
 $('border').onclick=()=>{remember();for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(x===0||y===0||x===W-1||y===H-1){grid[y*W+x]=glyph;cellColors[y*W+x]=colors.ink}resetReplay();redraw()};
@@ -1420,7 +1426,7 @@ $('textGridFile').onchange=async e=>{
 function editorProjectName(){return sanitizeProjectStem($('projectFilename').value)}
 function projectData(){
  const projectName=editorProjectName();
- return {format:'petscii-stencil-lab',version:3,machine:workspaceMachine,palette:workspacePalette,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,glyphSource:'builtin',colors:{...colors},screen:$('screenLook').value,animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()},...(projectName?{projectName}:{})};
+ return {format:'petscii-stencil-lab',version:3,machine:workspaceMachine,palette:workspacePalette,columns:W,rows:H,grid:[...grid],cellColors:cellColors.slice(),selectedGlyph:glyph,eraser:erasing,symmetry:$('sym').value,mirrorGlyphs:$('symMirror').checked,glyphSource:'builtin',colors:{...colors},screen:$('screenLook').value,animation:animationSettings(),drawingReplay:{base:[...replayBase],events:replayEvents.slice(),baseColors:replayBaseColors.slice(),eventColors:replayEventColors.slice()},...(projectName?{projectName}:{})};
 }
 function applyProjectName(data){
  if(data.projectName===undefined)return;
@@ -1451,7 +1457,7 @@ function applyProject(data){
  // Projects may omit colors; fall back to the machine's boot defaults.
  setColors(data.colors??{ink:getMachine(workspaceMachine).defaultInk,background:getMachine(workspaceMachine).defaultBackground});W=data.columns;H=data.rows;grid=[...data.grid];cellColors=data.cellColors?.slice()??Array(grid.length).fill(colors.ink);if(data.drawingReplay){replayBase=data.drawingReplay.base.slice();replayEvents=data.drawingReplay.events.map(e=>e.slice());replayBaseColors=data.drawingReplay.baseColors?.slice()??Array(grid.length).fill(colors.ink);replayEventColors=data.drawingReplay.eventColors?.slice()??Array(replayEvents.length).fill(colors.ink)}else resetReplay();setAnimationSettings(data.animation);$('screenLook').value=SCREEN_LOOKS.includes(data.screen)?data.screen:'none';$('columns').value=String(W);$('rows').value=String(H);
  glyph=Number.isInteger(data.selectedGlyph)&&data.selectedGlyph>=0&&data.selectedGlyph<=511?data.selectedGlyph:64;
- erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';applyProjectName(data);
+ erasing=!!data.eraser;drawingTool=erasing?'erase':'paint';$('sym').value=['none','horizontal','vertical','both'].includes(data.symmetry)?data.symmetry:'none';$('symMirror').checked=data.mirrorGlyphs===true;applyProjectName(data);
  if(data.projectName===undefined){const stem=readStoredProjectStem();if(stem){$('projectFilename').value=stem;$('projectFilename').removeAttribute('aria-invalid')}}
  drawPalette();fit();
 }

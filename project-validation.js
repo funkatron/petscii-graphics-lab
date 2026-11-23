@@ -372,6 +372,9 @@ export function validateProject(data, {fallbackMachine = MACHINE.C64} = {}) {
       throw Error('Invalid selected C64 glyph');
     }
   }
+  if (data.mirrorGlyphs !== undefined && typeof data.mirrorGlyphs !== 'boolean') {
+    throw Error('Invalid mirror glyph setting');
+  }
   if (data.charset !== undefined) {
     throw Error('Whole-drawing character sets are no longer supported');
   }

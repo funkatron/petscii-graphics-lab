@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Mirror glyph shapes for Symmetry (0.35.24, branch claude/mcp-improvements-plan-qfvqv2)
+
+**What:** Symmetry popover gains **Mirror glyph shapes** (`#symMirror`, project `mirrorGlyphs`): reflected copies use the glyph whose pixels mirror the brush glyph, from the active machine's sheet (`glyph-mirror.js`; exact flip, else one-pixel-shifted flip). MCP `set_tool_state(mirror_glyphs)` uses the same tables through `pgl_cli.mjs mirror-tables`. Release **0.35.24**.  
+**Tested:** `tests/glyph-mirror.unit.mjs` 7/7; Chromium editor/layout/drawing-tools/tool-mode/6581 specs 26 passed, 1 failed (*project JSON save and reload round-trip*, fails identically on unmodified code locally); MCP 63 tests OK; `smoke/editor_parity.py` 28/0. WebKit not run locally.
+
 ## 2026-11-22 — Crisp CRT still PNG + petscii-preview MCP rebuild (0.35.23, branch claude/mcp-improvements-plan-qfvqv2, PR #186)
 
 **What:** Still PNG draws glyph pixels directly (`stillPngPixels`) with the GIF/ZIP/video sampling rule instead of rasterizing the SVG; CRT stills no longer anti-alias (blurred edges, striped solid blocks). Same PR rebuilds the `agents/petscii-preview` MCP server (safety, machine-correct exports, typed tools, previews, docs). Release **0.35.23**.  

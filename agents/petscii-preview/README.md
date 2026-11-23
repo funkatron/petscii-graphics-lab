@@ -60,7 +60,7 @@ New canvases start in the machine's boot-screen colors. Any image or video can u
 | Job | Tools |
 | --- | --- |
 | Start or open a project | `create_canvas`, `load_project`, `copy_project_to_workspace`, `import_text_grid` |
-| Paint | `paint_cells`, `erase_cells`, `fill`, `draw_line`, `draw_rect`, `place_text`, `set_tool_state` (brush and symmetry) |
+| Paint | `paint_cells`, `erase_cells`, `fill`, `draw_line`, `draw_rect`, `place_text`, `set_tool_state` (brush, symmetry, `mirror_glyphs`) |
 | Select and move | `select_rect`, `move_selection`, `duplicate_selection`, `delete_selection`, `deselect` |
 | Whole canvas | `clear_drawing`, `recolor_drawing`, `stamp_border`, `stamp_checkerboard`, `stamp_op_art`, `stamp_combined_style` |
 | Check and fix | `read_grid`, `critique_drawing`, `undo`, `redo`, `validate_project` |
