@@ -40,10 +40,10 @@ This also breaks the layout-stability rule in [AGENTS.md](../AGENTS.md).
 ### H2. Preview is a mode with inconsistent signals and exits
 
 - During preview, Paint, Pick and Fill are `aria-disabled` but render at full opacity. Paint stays orange, so it looks active. Eraser, Line, Rectangle, Select and Text dim to 50 %.
-- Tapping Fill during preview leaves preview and selects Fill. Tapping Line does nothing.
-- Choosing ink or pressing Undo also leaves preview without saying so.
+- Choosing ink or pressing Undo leaves preview without saying so.
+- *Correction:* an earlier draft said tapping Fill leaves preview. Fill is already inert; that exit came from a preceding Undo.
 
-**Proposed fix:** one rule for every control. Recommended: any editing action returns to drawing, and the preview banner says so.
+**Proposed fix:** one rule for every control: drawing tools look and are unavailable; edits (ink, Undo, Canvas actions) return to drawing and say so.
 
 ### H3. Paint, Pick and Fill have hidden options
 
