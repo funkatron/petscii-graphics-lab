@@ -1,36 +1,45 @@
 /** Stage foot hint and stage-bar tool chrome (modularization slice 3). */
 
-export function fillHintText(fillMode, modes) {
-  const mode = modes.find((m) => m.id === fillMode);
-  const label = mode?.label ?? 'Fill';
-  let suffix = '';
-  if (fillMode === 'glyph') suffix = ' Changes glyph only.';
-  else if (fillMode === 'ink') suffix = ' Changes ink only.';
-  return `${label} · Tap a connected region of matching glyph and ink.${suffix}`;
+/**
+ * Canvas hint grammar (Raskin review H3): every tool reads
+ * `Tool · option · ink · action`, omitting parts that do not apply.
+ */
+const SHORT_MODE = Object.freeze({
+  both: 'Glyph and ink',
+  glyph: 'Glyph only',
+  ink: 'Ink only',
+});
+const PICK_MODE = Object.freeze({ ink: 'Ink', glyph: 'Glyph', background: 'Background' });
+
+function joinHint(parts) {
+  return parts.filter(Boolean).join(' · ');
 }
 
-export function paintHintText(paintMode, modes) {
-  const mode = modes.find((m) => m.id === paintMode);
-  const label = mode?.label ?? 'Paint';
-  let detail = '';
-  if (paintMode === 'glyph') detail = 'Changes glyph only.';
-  else if (paintMode === 'ink') detail = 'Changes ink on existing cells only.';
-  return `${label} · ${detail}`;
+export function fillHintText(fillMode, _modes, inkLabelText = '') {
+  return joinHint(['Fill', SHORT_MODE[fillMode] ?? SHORT_MODE.both, fillMode === 'glyph' ? '' : inkLabelText, 'Tap a matching region']);
 }
 
-export function pickerHintText(pickerMode, modes) {
-  const mode = modes.find((m) => m.id === pickerMode);
-  const label = mode?.label ?? 'Pick';
-  return `${label} · Tap a cell on the canvas.`;
+export function paintHintText(paintMode, _modes, inkLabelText = '') {
+  return joinHint(['Paint', SHORT_MODE[paintMode] ?? SHORT_MODE.both, paintMode === 'glyph' ? '' : inkLabelText, 'Drag to draw']);
+}
+
+export function pickerHintText(pickerMode) {
+  return joinHint(['Pick', PICK_MODE[pickerMode] ?? PICK_MODE.ink, 'Tap a cell']);
 }
 
 export function symmetryHintSuffix(symmetryValue, symmetryOptionText, mirrorGlyphs = false) {
   if (symmetryValue === 'none') return '';
-  return ` Symmetry: ${symmetryOptionText}${mirrorGlyphs ? ', mirrored glyphs' : ''}.`;
+  return ` · Symmetry: ${symmetryOptionText}${mirrorGlyphs ? ', mirrored glyphs' : ''}`;
 }
 
 export function zoomPanHintSuffix(editorZoomed) {
-  return editorZoomed ? ' Two-finger drag pans when zoomed.' : '';
+  return editorZoomed ? ' · Two-finger drag pans' : '';
+}
+
+/** Plain tool name without the decorative glyph prefix used on some labels. */
+function plainToolName(toolNames, tool) {
+  const name = toolNames[tool] ?? tool.charAt(0).toUpperCase() + tool.slice(1);
+  return String(name).replace(/^[^A-Za-z]+\s*/, '');
 }
 
 /**
@@ -58,29 +67,30 @@ export function buildDrawingHintText(state) {
 
   const pan = zoomPanHintSuffix(state.editorZoomed);
   const sym = symmetryHintSuffix(state.symmetryValue, state.symmetryOptionText, state.mirrorGlyphs);
+  const ink = state.inkLabelText;
+  const tool = state.drawingTool;
 
-  if (!['paint', 'erase'].includes(state.drawingTool)) {
-    const name = state.toolNames[state.drawingTool] ?? state.drawingTool;
-    let hint = name;
-    if (state.drawingTool === 'fill') {
-      hint = fillHintText(state.fillMode, state.fillModes);
-    } else if (state.drawingTool === 'picker') {
-      hint = pickerHintText(state.pickerMode, state.pickerModes);
-    } else if (['line', 'rectangle', 'select'].includes(state.drawingTool)) {
-      const tap =
-        state.tapPoints && ['line', 'rectangle'].includes(state.drawingTool)
-          ? ' · Tap endpoints'
-          : ' · Drag';
-      hint = name + tap;
-      if (state.toolDrag) hint += ' · Cancel to abandon';
-    } else if (['move', 'duplicate'].includes(state.drawingTool)) {
-      hint = name + (state.tapPoints ? ' · Tap destination' : ' · Drag destination');
-    }
+  if (tool === 'erase' || (tool === 'paint' && state.erasing)) return joinHint(['Eraser', 'Drag to erase']) + sym + pan;
+  if (tool === 'paint') return paintHintText(state.paintMode, state.paintModes, ink) + sym + pan;
+  if (tool === 'fill') return fillHintText(state.fillMode, state.fillModes, ink) + pan;
+  if (tool === 'picker') return pickerHintText(state.pickerMode) + pan;
+
+  const name = plainToolName(state.toolNames, tool);
+  if (['line', 'rectangle'].includes(tool)) {
+    let hint = joinHint([name, ink, state.tapPoints ? 'Tap endpoints' : 'Drag']);
+    if (state.toolDrag) hint += ' · Cancel to abandon';
     return hint + pan;
   }
-
-  if (state.erasing) return `Eraser${sym}${pan}`;
-  return `${paintHintText(state.paintMode, state.paintModes)}${state.inkLabelText}${sym}${pan}`;
+  if (tool === 'select') {
+    let hint = joinHint([name, 'Drag']);
+    if (state.toolDrag) hint += ' · Cancel to abandon';
+    return hint + pan;
+  }
+  if (['move', 'duplicate'].includes(tool)) {
+    return joinHint([name, state.tapPoints ? 'Tap destination' : 'Drag destination']) + pan;
+  }
+  if (tool === 'text') return joinHint([name, ink, 'Tap a starting cell']) + pan;
+  return name + pan;
 }
 
 /**

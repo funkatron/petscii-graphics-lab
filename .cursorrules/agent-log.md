@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Visible tool options and one hint grammar (0.35.29, branch ui/visible-tool-options)
+
+**What:** Raskin review H3. Paint/Pick/Fill triggers keep their own icon; a non-default option shows a corner badge (square/drop/bar) and extends the accessible name. Previously Paint and Fill ink-only showed the identical droplet. Canvas hint now always reads `Tool · option · ink · action` (Paint name restored, Line/Rectangle/Text include ink).  
+**Tested:** `node --test tests/*.unit.mjs` 229/230 (C128 py65 emulator test fails without `py65`, as on main); Chromium: new `tool-options-visible.spec.cjs` passes; 46-spec Chromium run: no new failures vs main (one D64 cancellation flake under load passes alone). WebKit/iPad not run locally.
+
 ## 2026-11-23 — Consistent preview mode (0.35.28, branch ui/consistent-preview)
 
 **What:** Raskin review H2. Paint/Pick/Fill menu triggers (`aria-disabled`) now dim like the other drawing tools during read-only preview. Rule made explicit: tools are off; history edits (ink, glyph, Undo/Redo, Canvas actions) return to drawing and the status says "Returned to drawing". Stage hint during preview names the rule. Review correction: Fill was already inert in preview; the earlier exit came from Undo.  
