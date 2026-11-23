@@ -30,6 +30,12 @@ test('known C64 shapes find their mirrored partners', () => {
   assert.equal(c64.vertical[233], 95, 'one pixel off from an exact mirror, still the right partner');
   assert.equal(c64.vertical[223], 105);
   assert.equal(mirrorGlyph(233, true, true, c64), 105);
+  // Reverse direction: the one-pixel shift only fits one way, so partners are paired back.
+  assert.equal(c64.vertical[105], 223);
+  assert.equal(c64.vertical[95], 233);
+  for (const id of [233, 223, 95, 105]) {
+    assert.equal(mirrorGlyph(mirrorGlyph(id, true, true, c64), true, true, c64), id, `double flip ${id}`);
+  }
   // 225 right half, 97 left half; 226 top half, 98 bottom half.
   assert.equal(c64.horizontal[225], 97);
   assert.equal(c64.vertical[226], 98);
@@ -47,15 +53,35 @@ test('empty cells and glyphs without a close partner keep their glyph', () => {
   for (const id of loners) assert.equal(mirrorGlyph(id, false, true, c64), id);
 });
 
-test('every partner is an exact or one-pixel-shifted mirror', () => {
+test('every partner is an exact or one-pixel-shifted mirror, in one direction or the other', () => {
   for (const [bits, tables] of [[c64Bits, c64], [tedBits, ted]]) {
     for (let id = 0; id < GLYPH_COUNT; id++) {
       const h = tables.horizontal[id];
       const v = tables.vertical[id];
       const fh = flipH(rows(bits, id));
       const fv = rows(bits, id).reverse();
-      if (h >= 0) assert.ok(same(rows(bits, h), fh) || shiftedMatch(rows(bits, h), fh, false), `h ${id}`);
-      if (v >= 0) assert.ok(same(rows(bits, v), fv) || shiftedMatch(rows(bits, v), fv, true), `v ${id}`);
+      // Either direction: a paired-back partner is the one whose own flip matches this glyph.
+      if (h >= 0) {
+        assert.ok(same(rows(bits, h), fh) || shiftedMatch(rows(bits, h), fh, false)
+          || shiftedMatch(rows(bits, id), flipH(rows(bits, h)), false), `h ${id}`);
+      }
+      if (v >= 0) {
+        assert.ok(same(rows(bits, v), fv) || shiftedMatch(rows(bits, v), fv, true)
+          || shiftedMatch(rows(bits, id), rows(bits, v).reverse(), true), `v ${id}`);
+      }
+    }
+  }
+});
+
+test('reflecting twice restores the shape', () => {
+  for (const [bits, tables] of [[c64Bits, c64], [tedBits, ted]]) {
+    for (const dir of ['horizontal', 'vertical']) {
+      for (let id = 0; id < GLYPH_COUNT; id++) {
+        const p = tables[dir][id];
+        if (p < 0) continue;
+        assert.ok(tables[dir][p] >= 0, `${dir} ${id} → ${p} has no way back`);
+        assert.deepEqual(rows(bits, tables[dir][p]), rows(bits, id), `${dir} ${id} → ${p} → ${tables[dir][p]}`);
+      }
     }
   }
 });
