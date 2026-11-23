@@ -66,7 +66,7 @@ Other PETSCII tools use these words for **drawing**, not for our procedural anim
 
 **Why we defer quarter-block mode:** it implies a **virtual 2×2 subgrid** (or similar) and different import/export contracts. Our reference overlay import and native players assume **integer screen codes per cell**. Sub-cell painting is a possible future track only if requirements and format versioning are explicit.
 
-**Procedural-friendly alternative (current product):** zoom/pan, Pick/Fill, glyph-only/ink-only paint, selection move/duplicate, and reference **Apply as import**—all on the single grid. Per-cell inspector UI was prototyped on `cursor/cell-editing-v1-6ab6` and **reverted from `main`** until a full workflow is designed ([cell-editing-ooda-plan.md](cell-editing-ooda-plan.md)).
+**Procedural-friendly alternative (current product):** zoom/pan, Pick/Fill, glyph-only/ink-only paint, selection move/duplicate, and reference **Apply as import**—all on the single grid. Per-cell inspector UI was prototyped in [PR #169](https://github.com/funkatron/petscii-graphics-lab/pull/169) and **reverted from `main`** until a full workflow is designed ([cell-editing-ooda-plan.md](cell-editing-ooda-plan.md)). The remote spike branch has been deleted.
 
 ---
 

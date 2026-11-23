@@ -9,7 +9,7 @@ Ordered delivery tracks agreed in agent session. **One slice merged before the n
 | **1b** | **#2** Validation debt | Sine scroller, Bonfire, depth preview pacing — CI matrix + [validation-debt-status.md](validation-debt-status.md) | **In progress** |
 | **2** | **#1** Prep → prototype | [diagonal-wave-wipe-prep.md](diagonal-wave-wipe-prep.md) then spike | **Prep** (after 1b) |
 | **3** | **#2** C64 / animation validation | VICE PAL/NTSC matrix, physical checks; [native-player-rewrite.md](native-player-rewrite.md) when needed | **Queued** (extends 1b) |
-| **4** | **#7** Modularization | Slice `editor/canvas-view.js` per [modularization-slices.md](modularization-slices.md) | **Queued** (after phase 2 prep) |
+| **4** | **#7** Modularization | `editor/canvas-view.js`, `drawing-tools.js`, `stage-hint.js` per [modularization-slices.md](modularization-slices.md) | **Slices 1–3 complete** (0.35.22). Next: download shell |
 
 ## Phase 0–1 acceptance (done)
 
@@ -34,8 +34,8 @@ Ordered delivery tracks agreed in agent session. **One slice merged before the n
 
 ## Phase 4 kickoff (#7)
 
-1. [modularization-slices.md](modularization-slices.md) — slice 1a: pure helpers in `editor/canvas-view.js`; slice 1b: `fit` + pan (follow-up).
-2. CI: `canvas-view.spec.cjs`, existing guides/drawing-tools specs stay green.
+1. [modularization-slices.md](modularization-slices.md) — slices 1–3 are merged. Next extract is `editor/download-shell.js` (slice 4), then help popovers (slice 5).
+2. CI: `canvas-view.spec.cjs`, `drawing-tools.spec.cjs`, and stage-hint coverage stay green.
 3. No bundler; static ESM imports on GitHub Pages.
 
 ## Manual polish (ongoing)

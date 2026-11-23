@@ -11,7 +11,7 @@ One slice is planned, approved, implemented, and merged before the next begins. 
 | 2 | Roadmap **#3** | Colors/register help, export filenames, glossary | **Merged** (v0.35.16–0.35.18) |
 | 3 | Roadmap **#2** | Validation debt matrix + status doc | **In progress** |
 | 4 | Roadmap **#1** | Diagonal wave/wipe — [prep doc](diagonal-wave-wipe-prep.md) then spike | **Queued** |
-| 5 | Roadmap **#7** | `editor/canvas-view.js` slice 1 | **Queued** |
+| 5 | Roadmap **#7** | `canvas-view`, `drawing-tools`, `stage-hint` | **Merged** (0.35.19–0.35.22). Next: download shell |
 
 ---
 
@@ -34,6 +34,6 @@ See [diagonal-wave-wipe-prep.md](diagonal-wave-wipe-prep.md). No Animation menu 
 
 ---
 
-## Slice 5 — Modularization slice 1
+## Slice 5 — Modularization
 
-See [modularization-slices.md](modularization-slices.md). Extract `drawCenterGuides`, `centerFrameScroll`, `editorZoomed` first; `fit` + pan in slice 1b.
+See [modularization-slices.md](modularization-slices.md). Slices 1–3 are on `main`. The next extract is the download dialog shell.
