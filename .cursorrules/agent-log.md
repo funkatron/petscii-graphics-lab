@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Mirror glyph partners pair both ways (0.35.25, branch claude/mcp-improvements-plan-qfvqv2)
+
+**What:** The one-pixel-shift match only worked one way, so top↔bottom copies of 105 and 95 kept their glyph (v[233]=95 but v[95]=-1). `glyph-mirror.js` now pairs partners back, so reflecting twice restores the shape. Found while drawing symmetric art with the MCP.  
+**Tested:** `tests/glyph-mirror.unit.mjs` 8/8 incl. new *reflecting twice restores the shape* (fails on 0.35.24); MCP tests; Chromium editor spec.
+
 ## 2026-11-23 — Mirror glyph shapes for Symmetry (0.35.24, branch claude/mcp-improvements-plan-qfvqv2)
 
 **What:** Symmetry popover gains **Mirror glyph shapes** (`#symMirror`, project `mirrorGlyphs`): reflected copies use the glyph whose pixels mirror the brush glyph, from the active machine's sheet (`glyph-mirror.js`; exact flip, else one-pixel-shifted flip). MCP `set_tool_state(mirror_glyphs)` uses the same tables through `pgl_cli.mjs mirror-tables`. Release **0.35.24**.  

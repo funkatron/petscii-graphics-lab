@@ -55,11 +55,31 @@ function matchesShift(glyphBits, candidate, shift) {
 }
 
 /**
+ * A shifted match only works one way: 233's flip loses a blank row and matches 95, but 95's
+ * flip would lose a full row. Reflecting twice should return the original shape, so a glyph
+ * without a partner takes the glyph that maps to it (same bank first, then the lowest id).
+ */
+function pairBack(table) {
+  for (let id = 0; id < GLYPH_COUNT; id++) {
+    const partnerId = table[id];
+    if (partnerId < 0 || table[partnerId] >= 0) continue;
+    for (let candidate = 0; candidate < GLYPH_COUNT; candidate++) {
+      if (table[candidate] !== partnerId) continue;
+      const current = table[partnerId];
+      if (current < 0 || (current >> 8 !== partnerId >> 8 && candidate >> 8 === partnerId >> 8)) {
+        table[partnerId] = candidate;
+      }
+    }
+  }
+}
+
+/**
  * Build mirror tables from 4096 bytes of glyph rows (2 banks × 256 glyphs × 8 rows).
  * `horizontal[id]` is the glyph drawn as `id` flipped left↔right; `vertical[id]` as `id`
  * flipped top↔bottom. An exact pixel match wins. Otherwise a glyph that matches the flip
  * moved by one pixel is accepted (see shiftedTargets), because the ROM offsets some pairs
- * such as the corner triangles. Same-bank partners win ties; then the lowest id.
+ * such as the corner triangles. Same-bank partners win ties; then the lowest id. A glyph
+ * that another glyph maps to always maps back (pairBack), so reflecting twice restores it.
  * -1 means no partner, so the glyph keeps its orientation.
  * @param {Uint8Array} glyphBits
  * @returns {{horizontal: Int16Array, vertical: Int16Array}}
@@ -95,6 +115,8 @@ export function buildMirrorTables(glyphBits) {
     horizontal[id] = partner(id, rows.map(reverseBits), false);
     vertical[id] = partner(id, rows.slice().reverse(), true);
   }
+  pairBack(horizontal);
+  pairBack(vertical);
   return {horizontal, vertical};
 }
 
