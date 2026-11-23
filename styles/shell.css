@@ -60,8 +60,6 @@ header .header-save-wrap .help-trigger{width:28px;height:28px;min-width:28px;min
 .stagefoot{font-size:.8rem;min-height:1.6em}
 .note{font-size:.8rem}
 .selection-dock{height:46px;flex:none;overflow-x:auto;overflow-y:hidden}
-/* Reserve gesture actions before a drag, but give idle drawing tools the space. */
-.app:not(:has(#tool-select[aria-pressed=true],#tool-line[aria-pressed=true],#tool-rectangle[aria-pressed=true])) .selection-dock:has(>.selection-actions[hidden]){display:none}
 .selection-actions{width:max-content;min-width:100%;height:44px;flex-wrap:nowrap;padding:3px 0;background:transparent}
 .selection-actions button,.selection-actions span{flex-shrink:0}
 .stage{position:relative}
@@ -202,4 +200,35 @@ dialog button[hidden]{display:none!important}
  .sidebar.closed{transform:translateX(-100%);width:min(320px,86%);padding:10px;visibility:hidden}
  .stage{padding:6px;gap:5px}
  .canvas-frame{padding:5px}
+}
+
+/* Layout stability (Raskin review H1): state changes must not move stage controls.
+   Status and dimensions keep equal fixed slots so the centered view controls stay put;
+   the preview banner overlays the stage bar instead of inserting a row. */
+.stagebar{position:relative}
+.stagebar>.preview-banner{position:absolute;inset:0 36px 0 0;z-index:2;padding:0 4px;background:var(--stage-wash-top)}
+.stagebar>.preview-banner[hidden]{display:none}
+#previewLabel{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview-banner button{flex:none}
+@media(min-width:601px){
+ .stagebar #dimensions,.stagebar #status{flex:0 0 clamp(64px,18%,220px);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .stagebar #status{text-align:right}
+}
+/* Tablet/desktop: one fixed footer row holds the tool hint and selection actions,
+   so choosing Select, Line or Rectangle does not resize the canvas. Phones and short
+   landscape screens keep the earlier behavior and give idle space to artwork. */
+.stage-footer{display:none}
+@media(min-width:601px) and (min-height:501px){
+ .stage-footer{display:flex;align-items:center;justify-content:center;gap:8px;flex:none;min-width:0;height:46px}
+ .stage-footer>#stageHint{order:-1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .stage-footer>.selection-dock{flex:0 1 auto;min-width:0}
+ .stage-footer>.selection-dock:has(>.selection-actions[hidden]){visibility:hidden;width:0}
+}
+@media(max-width:600px),(max-height:500px){
+ /* Reserve gesture actions before a drag, but give idle drawing tools the space. */
+ .app:not(:has(#tool-select[aria-pressed=true],#tool-line[aria-pressed=true],#tool-rectangle[aria-pressed=true])) .selection-dock:has(>.selection-actions[hidden]){display:none}
+}
+/* Download dialog: fixed height so switching tabs keeps the tabs and Close in place. */
+@media(min-width:601px){
+ #downloadDialog[open]{height:min(680px,calc(100dvh - 24px));box-sizing:border-box}
 }
