@@ -543,7 +543,12 @@ let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=
 let W=16,H=16,grid=Array(256).fill(''),glyph=64,erasing=false,painting=false,last=null,pointer=null,unit=20;
 let previewLeftByEdit=false;
 function noteLeftPreview(){if(!animationPreview)return;previewLeftByEdit=true;setTimeout(()=>{if(previewLeftByEdit){previewLeftByEdit=false;setStatus('Returned to drawing')}},0)}
-function setStatus(s){if(previewLeftByEdit){previewLeftByEdit=false;s='Returned to drawing · '+s}$('status').textContent=s;if(!animationExportTask)$('downloadStatus').textContent=s}
+// Raskin review M1: routine stage messages clear after a few seconds so stale text ("Redid edit")
+// is not mistaken for current state; problems stay until replaced. Downloads only mirror status
+// while that dialog is open.
+const STATUS_FADE_MS=6000,STATUS_PERSIST=/fail|error|could ?n[o']t|can[' ]?no?t|invalid|unsupported|not supported|reject|warn|too (many|large|long|fast)|exceed|unavailable|blocked|first/i;
+let statusFadeTimer=0;
+function setStatus(s){if(previewLeftByEdit){previewLeftByEdit=false;s='Returned to drawing · '+s}$('status').textContent=s;clearTimeout(statusFadeTimer);if(s&&!STATUS_PERSIST.test(s))statusFadeTimer=setTimeout(()=>{if($('status').textContent===s)$('status').textContent=''},STATUS_FADE_MS);if(!animationExportTask&&$('downloadDialog').open)$('downloadStatus').textContent=s}
 function romGlyphRows(code){
  if(!rom||!Number.isInteger(code)||code<0||code>511)return null;
  // The C64 4KB ROM has two 2048-byte sets, each with 256 8-byte glyphs.
@@ -922,8 +927,8 @@ function toggleAnimation(){
  cancelToolDrag();selection=null;cancelStroke();animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
 }
 $('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
- for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Ready to draw')}else toggleAnimation()};
-$('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Ready to draw')};
+ for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Returned to drawing')}else toggleAnimation()};
+$('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Returned to drawing')};
 $('editAnimationFromPreview').onclick=()=>openAnimationSettings();
 for(const id of [...Object.keys(SOLID_CAMERA_VALUES),'depthWaveShape','depthTravel','animationEffect','animationColor','backdropEffect','animationSeconds','animationCycles','animationColorCycles','animationBackgroundCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude','waveLength','colorWaveLength','fieldWaveDirection','fieldWaveShape','fieldWaveAmplitude','fieldWaveLength','wipePattern','parallaxGroup','parallaxSpread','parallaxTravel','fieldRamp','fieldDirection','fieldLead','fieldBrightness'])$(id).onchange=()=>{if(id==='animationEffect')researchMotionEffect=null;if(id==='animationColor'&&['raster-bars','plus4-raster'].includes($('animationColor').value))$('colorWaveDirection').value='up';if(id==='animationColor'&&['plasma','plus4-plasma'].includes($('animationColor').value)){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};if(id==='fieldRamp'&&['raster-bars'].includes($('fieldRamp').value))$('fieldWaveDirection').value='up';if(id==='fieldRamp'&&['plasma'].includes($('fieldRamp').value)){$('fieldWaveDirection').value='up-left';$('fieldWaveShape').value='sine'};updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
 for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;
@@ -1452,7 +1457,7 @@ function setSaveStatus(state,fullText,compactText){
  const icon=el.querySelector('.save-status-icon');
  if(icon)icon.textContent=state==='failed'?'!':'✓';
 }
-function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()));setSaveStatus('saved','Saved on this device','Saved');$('saveFailure').hidden=true}catch{setSaveStatus('failed','Not saved — download a project backup','Error');$('saveFailure').hidden=false;setStatus('Autosave unavailable; download JSON to keep your work')}}
+function autosave(){if(!initialized)return;try{localStorage.setItem(PROJECT_KEY,JSON.stringify(projectData()));setSaveStatus('saved','Saved on this device','Saved');$('saveFailure').hidden=true}catch{setSaveStatus('failed','Not saved — download a project backup','Not saved');$('saveFailure').hidden=false;setStatus('Autosave unavailable; download JSON to keep your work')}}
 function applyProject(data){
  stopAnimation();
  // Missing machine/palette: keep the current workspace host (do not force C64 / Pepto).
