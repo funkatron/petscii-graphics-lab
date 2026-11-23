@@ -112,7 +112,7 @@ agents/petscii-preview/.venv/bin/python agents/petscii-preview/generate_demos.py
 agents/petscii-preview/.venv/bin/python agents/petscii-preview/render_pgl_examples.py
 ```
 
-Images land in `agents/petscii-preview/out/`. The example projects predate the machine setting, so they open as C64.
+Images land in `agents/petscii-preview/out/`. Each example project sets its machine (C64, C128 40-column, or Plus/4).
 
 ## For maintainers
 

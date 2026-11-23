@@ -223,6 +223,37 @@ class NativeExportTests(unittest.TestCase):
                     self.assertEqual(Path(d64["saved_to"]).stat().st_size, 174848)
 
 
+class StampInkTests(unittest.TestCase):
+    def test_plus4_stamps_keep_ted_inks_and_convert_recipe_defaults(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = str(Path(tmp) / "p4.json")
+            drawing.create_canvas(path, 16, 8, background=41, ink=70, machine="plus4")
+            # Explicit TED inks above 15 used to be clamped to 15 (a TED orange-red).
+            drawing.stamp_op_art(path, "islamic-girih-8", ink_a=70, ink_b=8)
+            inks = set(json.loads(Path(path).read_text())["cellColors"])
+            self.assertEqual(inks, {70, 8})
+            # Recipe defaults are VIC numbers (white 1, yellow 7); a Plus/4 project gets their TED equivalents.
+            drawing.stamp_op_art(path, "islamic-girih-8")
+            inks = set(json.loads(Path(path).read_text())["cellColors"])
+            expected = subprocess.run(
+                [find_node(), "--input-type=module", "-e",
+                 "import {convertInk} from './machine-modes.js';console.log(JSON.stringify([1,7].map(i=>convertInk(i,'c64','plus4'))))"],
+                cwd=REPO_ROOT, capture_output=True, text=True, check=True,
+            )
+            self.assertEqual(inks, set(json.loads(expected.stdout)))
+            rug = drawing.stamp_combined_style(path, "konya-gul")
+            self.assertTrue(rug["ok"], rug)
+
+    def test_vic_project_rejects_ted_only_inks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = str(Path(tmp) / "c64.json")
+            drawing.create_canvas(path, 8, 4)
+            before = Path(path).read_bytes()
+            result = drawing.stamp_op_art(path, "dual-checker", ink_a=70, ink_b=1)
+            self.assertFalse(result["ok"])
+            self.assertEqual(Path(path).read_bytes(), before)
+
+
 class ReplayTests(unittest.TestCase):
     def test_paint_order_is_recorded_for_reveal_animations(self):
         with tempfile.TemporaryDirectory() as tmp:

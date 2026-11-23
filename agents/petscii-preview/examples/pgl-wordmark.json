@@ -1,6 +1,8 @@
 {
   "format": "petscii-stencil-lab",
   "version": 3,
+  "machine": "c64",
+  "palette": "pepto",
   "columns": 18,
   "rows": 6,
   "grid": [
