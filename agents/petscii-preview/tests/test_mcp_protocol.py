@@ -104,7 +104,12 @@ class McpProtocolTests(unittest.TestCase):
 
     def test_surface_is_compact_and_annotated(self):
         tools = {tool.name: tool for tool in self.run_client(lambda client: client.list_tools()).tools}
-        self.assertLessEqual(len(tools), 41)
+        # 41 after the Phase 2 consolidation, plus gradient_fill and shade_shape (owner request).
+        self.assertLessEqual(len(tools), 43)
+        for name in ("gradient_fill", "shade_shape"):
+            self.assertFalse(tools[name].annotations.read_only_hint)
+        self.assertIn('"radial"', json.dumps(tools["gradient_fill"].input_schema))
+        self.assertIn('"cylinder"', json.dumps(tools["shade_shape"].input_schema))
         for removed in ("export_png", "export_svg", "export_gif", "create_project", "list_effects",
                         "render_color_animation", "render_themed_examples", "export_c64"):
             self.assertNotIn(removed, tools)
@@ -116,6 +121,23 @@ class McpProtocolTests(unittest.TestCase):
         for value in ("plasma", "plus4-cycle", "scroll-x", "field"):
             self.assertIn(f'"{value}"', animation)
         self.assertIn('"square"', json.dumps(tools["render_still"].input_schema))
+
+    def test_shading_tools_and_ramp_catalog_over_the_protocol(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = str(Path(tmp) / "shade.json")
+            self.call("create_canvas", {"project_path": project, "columns": 16, "rows": 10, "machine": "c64"})
+            ramps = json_of(self.call("read_catalog", {"uri": "petscii://colors/ramps/c64"}))
+            self.assertIn("grey", ramps["ramps"])
+            filled = json_of(self.call("gradient_fill", {"project_path": project, "x0": 0, "y0": 0, "x1": 15, "y1": 9,
+                                                          "ramp": ramps["ramps"]["sky"]}))
+            self.assertTrue(filled["ok"])
+            self.assertGreater(filled["changed"], 100)
+            lit = json_of(self.call("shade_shape", {"project_path": project, "cx": 8, "cy": 5, "rx": 4, "ry": 4,
+                                                     "ramp": ramps["ramps"]["grey"]}))
+            self.assertTrue(lit["ok"])
+            bad = self.call("gradient_fill", {"project_path": project, "x0": 0, "y0": 0, "x1": 3, "y1": 3, "ramp": [0, 99]})
+            self.assertTrue(bad.is_error)
+            self.assertIn("outside the c64 range", text_of(bad))
 
     def test_previews_come_back_as_images(self):
         with tempfile.TemporaryDirectory() as tmp:

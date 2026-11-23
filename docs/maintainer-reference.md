@@ -479,11 +479,21 @@ Animation overrides passed to tools are merged over `project.animation` and chec
 - Tools refuse to write inside `agents/petscii-preview/examples/`.
 - Drawing edits append `[index, glyph]` events to `drawingReplay` in edit order; clear, resize and import reset it like the editor.
 
+### Shading tools
+
+`src/shading.py` turns the shading lessons in `.cursor/skills/petscii-draw/SKILL.md` into two tools and a catalog.
+
+- `petscii://colors/ramps/{machine}`: every ink with its Rec. 709 luma from the editor's colour table (`pgl_cli.mjs color-luminance`, the project palette for VIC machines), sorted darkest first, plus suggested ramps. A test keeps every suggested ramp in increasing brightness on all machines (C64 red 65 is darker than purple 77; VDC red 36 is darker than brown 97).
+- `gradient_fill`: rectangle, `ramp` darkest first, `direction` down/up/left/right/radial. Steps between two inks alternate whole cells with a 2×2 or 4×4 Bayer matrix, because a cell blends its ink only with the background. `dither="checker"` uses 102/230 only where a step meets the background ink. Ramp inks equal to the background leave cells empty.
+- `shade_shape`: sphere (ellipse outline) or upright cylinder. Lambert light from a named direction, an ambient floor and an optional bounce term on the lower shadow side. With `specular`, the last ramp ink is kept for the single brightest-highlight cell. Sphere outlines use corner sampling (3 corners → triangle, 2 → half block, 1 → nothing, to avoid quadrant spikes). Cylinders fill whole cells. Shapes are opaque: a background-coloured step is a solid cell.
+- Neither tool applies brush symmetry. Each is one undo step through `drawing._mutate`; ink range is checked against the machine's colour table first.
+- Limit: an outline cell's empty half shows the background, not what was painted behind, so a sphere over a gradient gets a thin background-coloured outline.
+
 ### Tests
 
 | Check | Command | Runs in CI |
 | --- | --- | --- |
-| Unit and protocol tests (58) | `cd agents/petscii-preview && .venv/bin/python -m unittest discover -s tests -v` | Yes: **MCP server tests** job, Python 3.12, when MCP files, root `*.js` modules, `assets/` or the CI workflow change |
+| Unit and protocol tests (71) | `cd agents/petscii-preview && .venv/bin/python -m unittest discover -s tests -v` | Yes: **MCP server tests** job, Python 3.12, when MCP files, root `*.js` modules, `assets/` or the CI workflow change |
 | Editor parity (28 comparisons) | `agents/petscii-preview/.venv/bin/python agents/petscii-preview/smoke/editor_parity.py` | No: local, needs Playwright Chromium |
 
 `tests/test_mcp_protocol.py` imports the server fresh and fails on any registration warning, then drives it through an in-process MCP client. Last parity result: 28 comparisons, 0 mismatches (square PNGs and GIF playback pixel-identical; SVG cells, fills and sizes equal; PRGs byte-identical for C64, C128 40/80-col and Plus/4; square and CRT PNGs pixel-identical). Set `CHROMIUM_EXECUTABLE_PATH` to use a local Chromium build.

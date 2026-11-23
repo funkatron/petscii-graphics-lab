@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — MCP shading tools (branch claude/mcp-improvements-plan-qfvqv2)
+
+**What:** `gradient_fill`, `shade_shape` and the `petscii://colors/ramps/{machine}` catalog in `agents/petscii-preview/src/shading.py`, from the shading studies; `pgl_cli.mjs color-luminance`. Skill file gains the shading and mirror-symmetry lessons and points to the tools. Tool cap in the protocol test raised from 41 to 43.  
+**Tested:** MCP unit and protocol tests (including `tests/test_shading.py`: monotonic ramps on all machines, ordered gradient rows, one undo step, validation, lit side brighter, one specular cell, no quadrant spikes, opaque shapes, seam-free cylinders, TED inks); demo render `out/workspace/shading-tools-demo.png`. Editor unchanged.
+
 ## 2026-11-23 — Mirror glyph partners pair both ways (0.35.25, branch claude/mcp-improvements-plan-qfvqv2)
 
 **What:** The one-pixel-shift match only worked one way, so top↔bottom copies of 105 and 95 kept their glyph (v[233]=95 but v[95]=-1). `glyph-mirror.js` now pairs partners back, so reflecting twice restores the shape. Found while drawing symmetric art with the MCP.  

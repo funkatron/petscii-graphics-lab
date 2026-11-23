@@ -55,6 +55,8 @@ Keep the outline as `160` or a half-block (`225` on a left edge, `97` on a right
 
 Lessons from shading studies (lit spheres, a sunset sky). Measure; do not guess.
 
+**Tools.** Read `petscii://colors/ramps/{machine}` for inks sorted by brightness and ready ramps. `gradient_fill` paints a sky, backdrop or floor ramp with ordered dithering (`direction` down, up, left, right or radial). `shade_shape` paints a lit sphere or cylinder with a specular and a bounce light. Paint the backdrop first, then shapes back to front, then hand detail with `paint_cells`. On a gradient, a sphere's smooth outline shows a thin line of background colour; that is the one-ink-per-cell limit.
+
 **Brightness, not names.** C64 (Pepto) inks from dark to light, with measured luminance:
 
 | Ink | 0 black | 6 blue | 9 brown | 2 red | 11 dark grey | 4 purple | 8 orange | 14 light blue | 12 grey | 10 light red | 5 green | 15 light grey | 3 cyan | 7 yellow | 13 light green | 1 white |

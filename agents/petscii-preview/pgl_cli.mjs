@@ -85,6 +85,17 @@ const commands = {
     return { ok: true, sheet, horizontal: Array.from(horizontal), vertical: Array.from(vertical) };
   },
 
+  /** The machine's inks with measured brightness (Rec. 709 luma of the editor's colour table), darkest first. */
+  'color-luminance'() {
+    const machine = flag('machine') || 'c64';
+    const table = colorTable(machine, flag('palette') || 'pepto');
+    const inks = table.colors.map(([name, hex], ink) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+      return { ink, name, hex, luminance: Math.round((0.2126 * r + 0.7152 * g + 0.0722 * b) * 10) / 10 };
+    });
+    return { ok: true, machine, colorTable: table.id, inks };
+  },
+
   validate() {
     const path = flag('project');
     try {
