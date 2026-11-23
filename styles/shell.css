@@ -217,7 +217,7 @@ dialog button[hidden]{display:none!important}
 /* Tablet/desktop: one fixed footer row holds the tool hint and selection actions,
    so choosing Select, Line or Rectangle does not resize the canvas. Phones and short
    landscape screens keep the earlier behavior and give idle space to artwork. */
-.stage-footer{display:contents}
+.stage-footer{display:none}
 @media(min-width:601px) and (min-height:501px){
  .stage-footer{display:flex;align-items:center;justify-content:center;gap:8px;flex:none;min-width:0;height:46px}
  .stage-footer>#stageHint{order:-1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
