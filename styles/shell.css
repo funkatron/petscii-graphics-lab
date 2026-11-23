@@ -223,6 +223,14 @@ dialog button[hidden]{display:none!important}
  .stage-footer>#stageHint{order:-1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  .stage-footer>.selection-dock{flex:0 1 auto;min-width:0}
  .stage-footer>.selection-dock:has(>.selection-actions[hidden]){visibility:hidden;width:0}
+ /* Text entry: one line in the footer, replacing the hint while Text is active. */
+ .stage-footer:has(>.text-entry:not([hidden]))>#stageHint{display:none}
+ .stage-footer>.text-entry{flex:1 1 auto;min-width:0;max-height:none;height:42px;box-sizing:border-box;display:flex;align-items:center;gap:6px;padding:3px 6px;overflow:hidden}
+ .stage-footer>.text-entry[hidden]{display:none}
+ .stage-footer>.text-entry>label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ .stage-footer>.text-entry textarea{flex:1 1 45%;min-width:80px;height:34px;min-height:34px;max-height:34px;resize:none;padding:5px 8px;box-sizing:border-box}
+ .stage-footer>.text-entry .row{flex:0 1 auto;min-width:0;margin:0;gap:6px;flex-wrap:nowrap}
+ .stage-footer>.text-entry .note{flex:0 1 auto;min-width:0;max-width:32ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 @media(max-width:600px),(max-height:500px){
  /* Reserve gesture actions before a drag, but give idle drawing tools the space. */

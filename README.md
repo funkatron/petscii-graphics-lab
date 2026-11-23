@@ -103,7 +103,7 @@ The C64 download panel checks readiness before downloading: dimensions, distinct
 ### Type letters and numbers
 
 1. Choose **Text** (the T icon), then tap a starting cell on the canvas.
-2. Type in **Text to place** using the on-screen or physical keyboard. The canvas previews the C64 glyphs. Tap another cell to reposition the draft.
+2. Type in **Text to place** using the on-screen or physical keyboard. On a tablet or computer it is a one-line box under the canvas; Return still starts a new line. The canvas previews the C64 glyphs. Tap another cell to reposition the draft.
 3. Choose **Apply text** to place the whole draft as one undoable edit, or **Cancel text** to discard it.
 
 Uppercase, lowercase, digits and spaces use authentic C64 glyphs and the current brush ink. Typing does not enable **Show letters & numbers** in the palette. Spaces overwrite cells with the C64 space glyph.

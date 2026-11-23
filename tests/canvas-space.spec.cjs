@@ -43,8 +43,13 @@ for(const [width,height] of [[810,1080],[1080,810],[1180,820],[820,1180],[1440,9
  const geometry=async()=>({canvas:await canvas.boundingBox(),zoom:await zoom.boundingBox(),sym:await sym.boundingBox()});
  await expect.poll(async()=>JSON.stringify(await geometry())).toBe(JSON.stringify(await geometry()));
  const initial=await geometry();
- // Text keeps its multi-line entry panel for now (tracked separately in the Raskin review).
- for(const tool of ['#erase','#tool-fill','#tool-line','#tool-rectangle','#tool-select','#paint']){await ui(page,tool);expect(await geometry()).toEqual(initial)}
+ for(const tool of ['#erase','#tool-fill','#tool-text','#tool-line','#tool-rectangle','#tool-select','#paint']){await ui(page,tool);expect(await geometry()).toEqual(initial)}
+ // Text entry sits in the footer row below the canvas and is usable there.
+ await ui(page,'#tool-text');const entry=await page.locator('.text-entry').boundingBox();
+ expect(entry.y).toBeGreaterThanOrEqual(initial.canvas.y+initial.canvas.height);expect(entry.height).toBeLessThanOrEqual(46);
+ await expect(page.locator('#typedText')).toBeVisible();await expect(page.locator('#applyText')).toBeVisible();await expect(page.locator('#cancelText')).toBeVisible();
+ await canvas.click({position:{x:5,y:5}});await page.locator('#typedText').fill('HI');expect(await geometry()).toEqual(initial);
+ await ui(page,'#cancelText');await ui(page,'#paint');
  await ui(page,'#tool-select');await canvas.focus();await page.keyboard.press('Enter');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
  await expect(page.locator('#deselect')).toBeVisible();expect(await geometry()).toEqual(initial);
  const actions=await page.locator('.selection-actions').boundingBox();expect(actions.y).toBeGreaterThanOrEqual(initial.canvas.y+initial.canvas.height);

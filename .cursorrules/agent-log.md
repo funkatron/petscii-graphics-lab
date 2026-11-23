@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Text entry in the stage footer (0.35.30, branch ui/text-entry-footer)
+
+**What:** Closes the remaining Raskin H1 gap. On tablet/desktop the Text tool's entry moves into the fixed stage footer as a one-line box with status and Apply/Cancel (hint hidden while Text is active), so choosing Text no longer resizes the canvas. Phones keep the multi-line panel in its original position.  
+**Tested:** Chromium: `canvas-space` (Text now in the tool loop, typing keeps geometry), `alphanumeric-entry` pass; `phone-workspace` two failures reproduce on main here. WebKit/iPad: CI.
+
 ## 2026-11-23 — Docs after remote branch cleanup
 
 **What:** Only `main` remains on the remote. Living docs no longer tell readers to check out deleted branches. Cell-editing spike points at PR #169. Modularization queue records slices 1–3 shipped; next extract is the download shell. Machine-modes roadmap heading marked shipped. Historical log lines that name old branches are unchanged.
