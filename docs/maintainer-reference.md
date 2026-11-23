@@ -385,6 +385,10 @@ At widths up to 600px, or short viewports up to 1000px wide and 500px high, appl
 
 Short phone landscape additionally hides the idle selection dock for Paint/Eraser/Text and visually hides the tool hint while retaining it for assistive technology. Selection/shape tools reserve the dock before pointer-down, avoiding mid-gesture canvas resizing. A regression compares canvas height against the prior reserved-space layout and checks stable selection geometry and reachable Deselect.
 
+### Tool options and canvas hint
+
+Raskin review H3. `createToolModeMenu` always renders the first mode's icon on the Paint, Pick and Fill triggers, so tools never share an icon (Paint and Fill ink-only used to show the same droplet). A non-default mode adds `.tool-mode-badge` (`MODE_BADGE`: square = glyph only, drop = ink only, bar = background) and extends the trigger's accessible name, e.g. `Paint: ink only`. `buildDrawingHintText` (`editor/stage-hint.js`) uses one grammar: `Tool · option · ink · action`, omitting parts that do not apply, then ` · Symmetry: …` and ` · Two-finger drag pans`. Covered by `stage-hint.unit.mjs` and `tool-options-visible.spec.cjs`.
+
 ### Stage layout stability (tablet and desktop)
 
 Above 600px wide and 500px high, stage chrome must not move when state changes (Raskin review H1):

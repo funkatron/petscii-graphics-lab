@@ -76,9 +76,12 @@ Glyph codes are hidden by default. Turn on **Character options → Show glyph co
 
 The compact drawing strip uses familiar tool icons with accessible names. The selected tool is highlighted. Undo and Redo stay together. Tap the question mark for drawing instructions.
 
+Paint, Pick and Fill keep their own icon. When you choose an option other than the first one, a small badge appears in the button's corner: a square for **Glyph only**, a drop for **Ink only**, a bar for **Background**. The line under the canvas always starts with the tool name, then the option, ink and action — for example, *Paint · Ink only · Light blue · Drag to draw*.
+
 | Tool | Action |
 | --- | --- |
-| Paint / Eraser | Drag to draw or remove cells |
+| Paint | Open the menu · **Glyph and ink** / **Glyph only** / **Ink only** · drag to draw |
+| Eraser | Drag to remove cells |
 | Pick | Open the menu · **Ink** / **Glyph** / **Background** · tap a cell to copy that value to the brush or shared background |
 | Fill | Open the menu · **Glyph + ink** / **Glyph only** / **Ink only** · tap a connected region; empty regions ignore ink when matching |
 | Line / Rectangle | Drag to preview a straight line or outlined rectangle; release to apply |

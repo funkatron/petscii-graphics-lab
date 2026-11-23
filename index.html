@@ -1111,12 +1111,17 @@ const MODE_ICON={
  picker:{ink:EYEDROPPER,glyph:EYEDROPPER+' M3 17h5v5H3z',background:EYEDROPPER+' M3 20h18'},
 };
 function modeIconSvg(path){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+path+'"/></svg>'}
+// Raskin review H3: a tool button always shows its own icon, so Paint and Fill never look alike;
+// a non-default option adds a labelled corner badge instead of replacing the icon.
+const MODE_BADGE={glyph:{path:'M5 5h14v14H5z',label:'glyph only'},ink:{path:'M12 2c-3.5 4.5-7 8.5-7 12.5a7 7 0 0 0 14 0C19 10.5 15.5 6.5 12 2z',label:'ink only'},background:{path:'M2 9h20v7H2z',label:'background'}};
+function modeSummaryHtml(icons,modes,mode){const base=modes[0].id,badge=mode!==base&&MODE_BADGE[mode];return modeIconSvg(icons[base])+(badge?'<span class="tool-mode-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="'+badge.path+'"/></svg></span>':'')+'<span class="tool-mode-chevron" aria-hidden="true">▾</span>'}
 function closeToolModeMenus(except){for(const id of ['fillMenu','pickerMenu','paintMenu']){if(id===except)continue;const el=$(id);if(el)el.open=false}}
 function closeSiblingModeMenus(menuId){for(const id of ['fillMenu','pickerMenu','paintMenu','symmetryMenu']){if(id===menuId)continue;const el=$(id);if(el)el.open=false}}
 function createToolModeMenu({id,summaryId,summaryTitle,ariaLabel,modes,icons,onSelect,getMode}){
  const details=document.createElement('details');details.id=id;details.className='tool-mode-menu';
  const summary=document.createElement('summary');summary.id=summaryId;summary.className='tool-mode-trigger';summary.title=summaryTitle;summary.setAttribute('aria-label',summaryTitle);
- summary.innerHTML=modeIconSvg(icons[getMode()])+'<span class="tool-mode-chevron" aria-hidden="true">▾</span>';details.append(summary);
+ const label=()=>{const m=getMode();return summaryTitle+(m!==modes[0].id&&MODE_BADGE[m]?': '+MODE_BADGE[m].label:'')};
+ summary.innerHTML=modeSummaryHtml(icons,modes,getMode());summary.setAttribute('aria-label',label());summary.title=label();details.append(summary);
  const pop=document.createElement('div');pop.className='tool-popover tool-mode-popover';pop.setAttribute('role','group');pop.setAttribute('aria-label',ariaLabel);
  const bar=document.createElement('div');bar.className='tool-mode-bar';
  for(const mode of modes){
@@ -1127,7 +1132,7 @@ function createToolModeMenu({id,summaryId,summaryTitle,ariaLabel,modes,icons,onS
  }
  pop.append(bar);details.append(pop);
  details.addEventListener('toggle',()=>{if(details.open)closeSiblingModeMenus(id)});
- return {details,summary,refreshSummary:()=>{summary.innerHTML=modeIconSvg(icons[getMode()])+'<span class="tool-mode-chevron" aria-hidden="true">▾</span>'}};
+ return {details,summary,refreshSummary:()=>{summary.innerHTML=modeSummaryHtml(icons,modes,getMode());summary.setAttribute('aria-label',label());summary.title=label()}};
 }
 const toolNames={picker:'Pick',fill:'Fill',line:'╱ Line',rectangle:'□ Rectangle',select:'⬚ Select',text:'Text'};
 const FILL_MODES=[{id:'both',label:'Fill glyph and ink',title:'Fill matching cells with the brush glyph and ink'},{id:'glyph',label:'Fill glyph only',title:'Fill matching cells with the brush glyph; keep each cell ink'},{id:'ink',label:'Fill ink only',title:'Fill matching cells with the brush ink; keep each glyph'}];
