@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-23 — Portrait lessons + paint_tone_map (branch claude/mcp-improvements-plan-qfvqv2)
+
+**What:** Three original portrait studies (noir split light on C64, cel-shaded Plus/4, textured old fisherman on C64) after reading the reference faces. The petscii-draw skill gains a Portraits section (type the face as a tone map, flat skin bands, large eyes with one catchlight, expression from brows and mouth, texture by engraving with inverse glyphs 227/205/206/221). New MCP tool `paint_tone_map` (`src/tone_map.py`); protocol tool cap 43 → 44.  
+**Tested:** MCP tests incl. `tests/test_tone_map.py` (legend and offsets, transparent cells, one undo step, smooth-edge corners, atomic rejection of ragged rows, unknown characters, oversize maps and bad legends). Editor unchanged.
+
 ## 2026-11-23 — Measured TED palette (0.35.26, branch claude/mcp-improvements-plan-qfvqv2)
 
 **What:** `plus4-colors.js` builds the 121 Plus/4 colours from measured TED parameters (Colodore values as used by VICE `ted-color.c`, converted like VICE `video-color.c`) instead of unit-length Pb/Pr on linear luma. The old table clipped: 98 of 120 per-hue entries distinct, 239 channels at 0/255. Now 120 distinct, luma rises per hue. Affects Plus/4 drawing, picker, exports, animation and MCP. Release **0.35.26**.  

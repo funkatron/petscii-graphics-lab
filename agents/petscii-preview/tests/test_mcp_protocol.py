@@ -104,8 +104,9 @@ class McpProtocolTests(unittest.TestCase):
 
     def test_surface_is_compact_and_annotated(self):
         tools = {tool.name: tool for tool in self.run_client(lambda client: client.list_tools()).tools}
-        # 41 after the Phase 2 consolidation, plus gradient_fill and shade_shape (owner request).
-        self.assertLessEqual(len(tools), 43)
+        # 41 after the Phase 2 consolidation, plus gradient_fill, shade_shape and paint_tone_map (owner requests).
+        self.assertLessEqual(len(tools), 44)
+        self.assertFalse(tools["paint_tone_map"].annotations.read_only_hint)
         for name in ("gradient_fill", "shade_shape"):
             self.assertFalse(tools[name].annotations.read_only_hint)
         self.assertIn('"radial"', json.dumps(tools["gradient_fill"].input_schema))
