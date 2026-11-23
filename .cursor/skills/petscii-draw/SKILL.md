@@ -96,6 +96,37 @@ Quadrants: `126` top-left, `124` top-right, `123` bottom-left, `108` bottom-righ
 
 Render after every pass and compare with the references. Two or three passes are normal: the first attempt is usually too bright, too noisy, or loses the silhouette.
 
+## Portraits
+
+Lessons from portrait studies (a split-lit noir man, a cel-shaded woman, a textured old fisherman).
+
+**Type the face; do not compute it.** A head is about 18×22 cells on a 40×25 screen. Lighting computed from a 3-D face model became blobs. Typing the planes by hand reads far better: write rows of tone letters (W white, L light, G grey, D dark, K black) for the lit forehead, cheek and nose plane, the mid band down the centre, and the shadow side, then paint them with `paint_tone_map` (`smooth_edges=true` rounds the jaw and skull). Carve features afterwards with `paint_cells`.
+
+**Planes and bands.**
+
+- Split light: one side lit, the far side steps dark grey → black. The black side is paint, not empty cells.
+- Skin is 3–4 flat bands plus black. Do not dither skin; dither breaks a face into noise. Dither belongs in backgrounds.
+- Black hair or a black shadow side vanishes on a black screen. Put a lit wall, a glow or a rim light behind the head.
+
+**Features.**
+
+- Eyes decide the picture and must be large: a dark socket, two or three cells of white or iris, and one catchlight cell (a white quadrant such as `108`) on the lit eye only. The shadow eye just glints.
+- Brows, nostrils and the mouth line are black shapes. Brows that slope down toward the nose read as anger; lift the inner ends for a calm face. A closed mouth is a dark line with a lit lower lip.
+- Small marks carry expression. Check the face after every brow or mouth change.
+
+**Texture by engraving.** The references' dense mid-tones are cut into the skin, not drawn on it. An inverse glyph keeps the skin ink and leaves a thin black line:
+
+| Mark | Glyph |
+| --- | --- |
+| Forehead crease, lower lid | `227` (black line along the top) |
+| Crow's feet, smile lines, hair and beard strands | `205`, `206` (inverse diagonals) |
+| Knit or ribbed cloth | `221` |
+| Cheek turning into shadow | `102` checker in the mid ink |
+
+Strands follow the form: one diagonal direction per side, falling down and outward, mixed with solid cells. Alternating both diagonals makes a lattice that reads as chain mail.
+
+**Workflow.** Tone map → features → engraved texture → `render_still`, then fix what reads wrong. Three passes were normal.
+
 ## Passes
 
 1. Silhouette. Block the mass with solid 160. One background, usually black (color 0).
