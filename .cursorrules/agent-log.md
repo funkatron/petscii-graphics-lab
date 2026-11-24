@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-24 — Fix: GIF/frame ZIP ignored Animation background White (branch fix/gif-white-background)
+
+**What:** Since #128 (0.32.2 backdrop mattes), `indexedFrame` wrote the canvas color index into every non-glyph pixel, so **Animation background → White** exported the canvas color in GIF and frame ZIP. Non-matte paper pixels use palette slot 0 again (White, the frame's canvas color, or transparent); spatial backdrop mattes still paint per cell.  
+**Tested:** `color-animation.spec.cjs` failed on unmodified main (probe #210, Chromium); see PR CI for the result after the fix.
+
 ## 2026-11-23 — Text entry in the stage footer (0.35.30, branch ui/text-entry-footer)
 
 **What:** Closes the remaining Raskin H1 gap. On tablet/desktop the Text tool's entry moves into the fixed stage footer as a one-line box with status and Apply/Cancel (hint hidden while Text is active), so choosing Text no longer resizes the canvas. Phones keep the multi-line panel in its original position.  
