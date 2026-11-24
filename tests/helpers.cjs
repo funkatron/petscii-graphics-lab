@@ -101,4 +101,6 @@ function project(grid,columns=grid.length,rows=1,extra={}){
  if(p.charset===1){const id=g=>g===''?g:g+256;p.grid=p.grid.map(id);p.selectedGlyph=id(p.selectedGlyph);if(p.drawingReplay)p.drawingReplay={...p.drawingReplay,base:p.drawingReplay.base.map(id),events:p.drawingReplay.events.map(([i,g])=>[i,id(g)])}}
  delete p.charset;return p;
 }
-module.exports={previewSample,waitForPreviewAdvance,waitForProjectAutosave,reveal,ui,test,expect,contents,download,loadProject,project};
+// Brush ink has one control: the drawing-strip Ink popover (Raskin M3).
+async function chooseInk(page,index){await ui(page,'#inkQuick');await page.locator('#quickInkPalette button[data-ink="'+index+'"]').click()}
+module.exports={chooseInk,previewSample,waitForPreviewAdvance,waitForProjectAutosave,reveal,ui,test,expect,contents,download,loadProject,project};

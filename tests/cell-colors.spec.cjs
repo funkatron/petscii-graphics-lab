@@ -1,10 +1,10 @@
 const {PNG}=require('pngjs'),{GifReader}=require('omggif'),AdmZip=require('adm-zip');
-const {ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
+const {chooseInk,ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
 const {decodeVideo,nearPixel}=require('./video-utils.cjs');
 const red=[104,55,43],cyan=[112,164,178],blue=[108,94,181],black=[0,0,0];
 const pixel=(png,x,y)=>Array.from(png.data.slice((y*png.width+x)*4,(y*png.width+x)*4+4));
 async function saved(page){return JSON.parse(await download(page,'#saveProject'))}
-async function ink(page,index){await ui(page,'#inkTarget');await ui(page,'#colorPalette button:nth-child('+(index+1)+')')}
+async function ink(page,index){await chooseInk(page,index)}
 async function paint(page,x,y=.5){const b=await page.locator('#canvas').boundingBox();if(await page.locator('#glyphBackdrop').isVisible())await ui(page,'#glyphClose');await page.mouse.click(b.x+b.width*x,b.y+b.height*y)}
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('brush paints individual colors, recolors the same glyph, and retains colored replay through undo and autosave',async({page})=>{

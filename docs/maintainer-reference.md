@@ -72,7 +72,7 @@ For drawing instructions, start with the [user guide](../README.md).
 
 - **Coverage.** Regression tests cover all 512 SVG symbols/fingerprint, known glyph shapes, both banks/inverse pixels in canvas/SVG/PNG, real Chromium touch dragging, real WebKit taps plus synthetic touch/pen streams, exports, storage, input rejection, resize, sidebar and undo. Physical iPad/Pencil verification remains a hardware check.
 
-Canvas size uses a sidebar fieldset; whole-grid actions live in `#canvasPopover` (opened from `#canvasTool` on the drawing strip). Paint colors keep ink/background/swap/screen look only. Preserve control IDs (`#recolorDrawing`, `#border`, etc.) and project data during layout changes.
+Canvas size uses a sidebar fieldset; whole-grid actions live in `#canvasPopover` (opened from `#canvasTool` on the drawing strip). The sidebar **Background** fieldset (`#backgroundGroup`) keeps background, swap, and screen look only; brush ink is chosen only from the strip Ink popover (`#quickInkPalette`). Raskin review M3: one place per action, so Play/Pause is only the header `#quickPlay` and Return to drawing is only the stage banner `#returnDrawing`. Preserve control IDs (`#recolorDrawing`, `#border`, etc.) and project data during layout changes.
 
 ## Animation and export
 

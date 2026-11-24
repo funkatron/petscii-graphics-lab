@@ -18,7 +18,7 @@ for(const effect of effects)test('browser preview pacing: '+effect,async({page},
  await ui(page,'#waveLength','selectOption','100');
  // Baseline after configuring the animation, before entering preview.
  const configured=await download(page,'#saveProject');
- await ui(page,'#animationPlay');
+ await ui(page,'#quickPlay');
  await waitForPreviewAdvance(page);
  const sample=await page.evaluate(async()=>{
   const c=document.querySelector('#canvas'),times=[],markers=[];
@@ -31,7 +31,7 @@ for(const effect of effects)test('browser preview pacing: '+effect,async({page},
  expect(sample.differentPreviewMarkers).toBeGreaterThan(1);
  await info.attach('depth-preview-pacing-'+effect,{body:JSON.stringify({effect,browser:info.project.name,...sample,scope:'requestAnimationFrame cadence, not complete renderer CPU cost or physical device performance'},null,2),contentType:'application/json'});
  await info.attach('depth-preview-'+effect,{body:await page.screenshot(),contentType:'image/png'});
- await ui(page,'#animationStop');
+ await ui(page,'#returnDrawing');
  expect(await download(page,'#saveProject')).toEqual(configured);
  // Changing animation settings is expected; preview itself must not touch artwork.
  expect(JSON.parse(configured).grid).toEqual(JSON.parse(before).grid);

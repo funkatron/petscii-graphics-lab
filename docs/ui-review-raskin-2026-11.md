@@ -60,7 +60,7 @@ This also breaks the layout-stability rule in [AGENTS.md](../AGENTS.md).
 | --- | --- | --- |
 | M1 | Status appears in three places (stage bar, canvas hint, header). Stale messages persist: “Redid edit” during a selection, “Ready to draw” inside the Download dialog. | Show transient feedback beside the canvas and let it fade; drop routine messages. |
 | M2 | Device save status is an icon-only ✓ (previously “Saved on this device”). | Restore a short word: Saved / Not saved. |
-| M3 | Duplicate entry points: Play (header and sidebar), Return to drawing (sidebar and stage), ink (strip, Colors, Canvas menu). Colors are named in the Ink popover but shown as 0–F in the Canvas menu. | One primary place per action; one color naming scheme. |
+| M3 | Duplicate entry points: Play (header and sidebar), Return to drawing (sidebar and stage), ink (strip, Colors, Canvas menu). Colors are named in the Ink popover but shown as 0–F in the Canvas menu. | One primary place per action; one color naming scheme. **Done:** sidebar Play / Return to drawing and sidebar brush-ink picker removed; header ▶, stage Return to drawing and strip Ink remain. |
 | M4 | The Canvas button sits among drawing tools and looks like one, but opens whole-drawing commands. Replace ink defaults to White → Red. | Group it apart from tools; apply Recolor/Replace to an active selection; default “To” to current brush ink. |
 | M5 | At 1180 px (11-inch iPad landscape) the glyph panel overlays about 40 % of the artwork, because docking starts at 1200 px. Choosing a glyph takes three taps. | Lower the docking threshold, or add recent glyphs to the strip. |
 
@@ -69,7 +69,7 @@ This also breaks the layout-stability rule in [AGENTS.md](../AGENTS.md).
 | ID | Finding | Proposed direction |
 | --- | --- | --- |
 | L1 | Only ⌘Z / ⇧⌘Z exist. No quasimodes. | Hold Option to pick, hold Space to pan, two-finger tap to Undo. |
-| L2 | Tap endpoints is a persistent global mode for Line and Rectangle. | Let a tap set a point and a drag draw, without a setting. |
+| L2 | Tap endpoints is a persistent global mode for Line and Rectangle. | Let a tap set a point and a drag draw, without a setting. **Decision (owner, Nov 2026):** keep it opt-in. Two-tap corners for Line, Rectangle, Select, Move and Duplicate stay behind **Tap endpoints**. |
 | L3 | Small targets: ▾ option markers; 28 px help buttons. | Larger option affordance; check help target spacing. |
 | L4 | The animation timing summary wraps in half the sidebar width. | Use the full column width. |
 
