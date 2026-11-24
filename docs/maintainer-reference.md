@@ -396,6 +396,9 @@ Raskin review H3. `createToolModeMenu` always renders the first mode's icon on t
 ### Status feedback
 
 Raskin review M1/M2. `setStatus` clears routine stage messages after `STATUS_FADE_MS` (6 s) so stale text is not read as current state; messages matching `STATUS_PERSIST` (failures, warnings, limits, "first" prompts) stay until replaced. `#downloadStatus` mirrors status only while the Download dialog is open. The header save chip shows its compact word (**Saved** / **Not saved**) beside the icon above 600 px. Covered by `status-feedback.spec.cjs`.
+### Shortcuts and quasimodes
+
+Raskin review L1. Implemented beside `strokeAndRedraw` in `index.html`: a confirmed two-finger tap (both touches within 300 ms, lifted within 400 ms, neither moved >12 px) reverts the one-cell stroke the first finger began and then clicks **Undo**; an accidental second touch during a drag is still ignored (`interaction.spec.cjs`). Holding Alt switches to Pick and restores the previous tool on keyup or window blur. Holding Space on a zoomed canvas pans with a mouse or pen drag and stops drawing listeners. L3: `.help-trigger::after` extends the touch area to about 40 px. L4: `.animation-section>.note` spans the grid. Covered by `shortcuts.spec.cjs`.
 
 ### Stage layout stability (tablet and desktop)
 

@@ -698,3 +698,5 @@ dialog details>summary:hover{color:var(--header-title)}
 }
 .color-grid.ted-grid button{overflow:hidden;font-size:.58rem}
 #inkPopover .color-grid.ted-grid button{font-size:.55rem}
+/* Raskin review L4: summaries in animation sections use the full width. */
+.animation-section>.note{grid-column:1/-1}

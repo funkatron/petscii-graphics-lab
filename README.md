@@ -100,6 +100,15 @@ Optional explanations are available through compact question marks beside sectio
 
 The C64 download panel checks readiness before downloading: dimensions, distinct patterns, program memory and estimated update time. PRG and D64 share the same limits. When playback is too demanding, a longer loop is offered only after the exporter accepts that candidate. Applying it is undoable. When needed, the exporter tries a faster row renderer while preserving the sampled frames and requested speed. If timing is the remaining blocker, check **Download despite timing warning** to try the animation anyway. The warning stays visible; memory and artwork limits still apply. Changing the artwork or animation settings clears this choice. These estimates do not guarantee smooth physical-hardware playback; broader capacity validation remains on the roadmap.
 
+### Shortcuts
+
+| Do this | Result |
+| --- | --- |
+| Tap with two fingers | **Undo** |
+| Hold **Option** (Mac) or **Alt** | Pick from the canvas; release to return to your tool |
+| Hold **Space** and drag (zoomed in) | Move around the canvas without drawing |
+| **⌘Z** / **Ctrl+Z**, **⇧⌘Z** / **Ctrl+Y** | Undo / Redo |
+
 ### Type letters and numbers
 
 1. Choose **Text** (the T icon), then tap a starting cell on the canvas.
