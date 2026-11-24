@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-24 — Release 0.36.0: Raskin review batch 2 (#207)
+
+**What:** Minor bump for the user-visible batch squash-merged in #207 (from #202–#206). H1: Text entry sits in the fixed stage footer on tablet/desktop. M1/M2: routine status fades after 6 s, problems persist, save chip shows Saved / Not saved. M5: glyph panel docks at 1180 px. M4: Canvas commands grouped with Undo/Redo, named colors, Replace "To" defaults to brush ink, Recolor/Replace act on a selection. L1/L3/L4: two-finger tap Undo, hold Alt to pick, hold Space to pan; larger help targets; full-width animation note. Still open: M3 (duplicate Play / Return to drawing) and L2 (Line/Rectangle tap-tap without the Tap endpoints setting).  
+**Tested:** CI on main 22d8af6 (focused run): unit, MCP server tests, Playwright chromium, ipad-portrait and ipad-touch all pass. Full suite not run. Known flake: `c64.spec.cjs` lazy-loading cases (lines 25, 29) fail ~5 of 6 runs on main because the exporter is already loaded before the test waits.
+
 ## 2026-11-23 — Text entry in the stage footer (0.35.30, branch ui/text-entry-footer)
 
 **What:** Closes the remaining Raskin H1 gap. On tablet/desktop the Text tool's entry moves into the fixed stage footer as a one-line box with status and Apply/Cancel (hint hidden while Text is active), so choosing Text no longer resizes the canvas. Phones keep the multi-line panel in its original position.  
