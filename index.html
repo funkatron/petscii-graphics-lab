@@ -986,7 +986,9 @@ function animationRaster({s,bits,cellAspect}){
    for(let row=0;row<cellH;row++)for(let col=0;col<cellW;col++){
     const px=(y*cellH+row)*width+x*cellW+col;
     if(tile&&tile[row*cellW+col])indexed[px]=inks[cellIndex]+1;
-    else if(s.background==='transparent'&&!useMatte)indexed[px]=0;
+    // Slot 0 is the frame background: White, the (possibly animated) canvas color, or transparent.
+    // Only spatial backdrop mattes paint per-cell paper colors.
+    else if(!useMatte)indexed[px]=0;
     else indexed[px]=matteInk+1;
    }
   }
