@@ -1,4 +1,5 @@
 const fs=require('node:fs'),{PNG}=require('pngjs'),{GifReader}=require('omggif'),AdmZip=require('adm-zip');
+// CI probe: run this spec on unmodified main (temporary).
 const {ui,test,expect,download,contents,loadProject,project}=require('./helpers.cjs');
 const {decodeVideo,nearPixel}=require('./video-utils.cjs');
 const hex=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'];
