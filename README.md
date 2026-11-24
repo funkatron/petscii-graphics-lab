@@ -131,7 +131,7 @@ The **Background** color is shared by the whole canvas.
 | **Ink** | Brush color for future strokes |
 | **Background** | Shared canvas background |
 | **Swap brush / background** | Those two settings; existing cell ink stays the same |
-| **Canvas** (drawing strip) | **Recolor with current brush ink**, **Replace ink**, **Replace glyph**, **Border**, **Checkerboard**, and **Clear drawing**; one undo per action. Tap **?** in the panel for details. |
+| **Canvas** (drawing strip, beside Undo) | **Recolor with current brush ink**, **Replace ink**, **Replace glyph**, **Border**, **Checkerboard**, and **Clear drawing**; one undo per action. With a selection, Recolor and Replace change only the selected cells. **To ink** starts as your brush ink, and the line under the swatches names both colors. Tap **?** in the panel for details. |
 
 The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic/2001/), an RGB approximation of C64 color. The default is Light blue ink on Blue. Glyph thumbnails stay white on black so their shapes remain visible at any brush color.
 
