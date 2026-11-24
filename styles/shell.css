@@ -239,3 +239,7 @@ dialog button[hidden]{display:none!important}
 .tool-mode-menu>summary .tool-mode-badge{position:absolute;left:2px;top:2px;width:15px;height:15px;display:grid;place-items:center;border-radius:50%;background:var(--key-active);color:var(--text-on-accent);pointer-events:none}
 .tool-mode-menu>summary .tool-mode-badge svg{width:9px;height:9px;fill:currentColor;stroke:none}
 .tool-mode-menu>summary.active .tool-mode-badge{background:var(--text-on-accent);color:var(--key-active)}
+/* Raskin review L3: small help buttons keep their look but get a ~40px touch area. */
+.help-trigger{position:relative}
+.help-trigger::after{content:'';position:absolute;inset:-6px;border-radius:50%}
+.space-pan,.space-pan canvas{cursor:grab}

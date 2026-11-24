@@ -1249,6 +1249,26 @@ function fit(){stageView.fit()}
 function updateCanvasViewChrome(){stageView.updateCanvasViewChrome()}
 function setCanvasZoom(next,opts){stageView.setCanvasZoom(next,opts)}
 function strokeAndRedraw(a,b){stroke(a,b);redraw()}
+// Raskin review L1: shortcuts that end when released (quasimodes) plus the common two-finger tap.
+// Two-finger tap = Undo. Only a confirmed tap (both fingers down together, lifted quickly, not moved)
+// counts; it first reverts the one-cell stroke the first finger began, so no stray dot remains.
+// An accidental second touch during a drag is still ignored.
+const twoTap={pointers:new Map(),valid:false,second:0,strokeFromFirst:false};
+frame.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;const t=twoTap;t.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,t:e.timeStamp,moved:false});if(t.pointers.size===1){t.valid=false;t.strokeFromFirst=false;return}if(t.pointers.size===2){const [a,b]=[...t.pointers.values()];t.valid=!animationPreview&&!a.moved&&Math.abs(b.t-a.t)<300;t.second=e.timeStamp;t.strokeFromFirst=painting}else t.valid=false},true);
+frame.addEventListener('pointermove',e=>{const p=twoTap.pointers.get(e.pointerId);if(p&&Math.hypot(e.clientX-p.x,e.clientY-p.y)>12){p.moved=true;twoTap.valid=false}},true);
+for(const type of ['pointerup','pointercancel'])frame.addEventListener(type,e=>{const t=twoTap;if(!t.pointers.has(e.pointerId))return;t.pointers.delete(e.pointerId);if(type==='pointercancel')t.valid=false;if(!t.pointers.size){const fire=t.valid&&e.timeStamp-t.second<400,stray=t.strokeFromFirst;t.valid=false;t.strokeFromFirst=false;if(!fire)return;queueMicrotask(()=>{if(stray&&undoStack.length){cancelStroke();restore(undoStack.pop());historyButtons()}if(!$('undo').disabled)$('undo').click()})}},true);
+// Hold Option/Alt: Pick from canvas until released, then return to the previous tool.
+let altPickFrom=null;
+function endAltPick(){if(altPickFrom===null)return;const back=altPickFrom;altPickFrom=null;if(drawingTool==='picker')setDrawingTool(back)}
+addEventListener('keydown',e=>{if(e.key!=='Alt'||e.repeat||altPickFrom!==null||animationPreview||e.target.closest?.('input,textarea,select,[contenteditable]'))return;if(drawingTool==='picker'||!['paint','erase','fill','line','rectangle','text'].includes(drawingTool))return;altPickFrom=drawingTool;setDrawingTool('picker')});
+addEventListener('keyup',e=>{if(e.key==='Alt')endAltPick()});addEventListener('blur',endAltPick);
+// Hold Space and drag with a mouse or pen to pan a zoomed canvas.
+let spacePan=null,spaceHeld=false;
+addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat||e.target.closest?.('input,textarea,select,button,[contenteditable]'))return;if(!stageView.isEditorZoomed())return;e.preventDefault();spaceHeld=true;frame.classList.add('space-pan')});
+addEventListener('keyup',e=>{if(e.code==='Space'){spaceHeld=false;spacePan=null;frame.classList.remove('space-pan')}});
+frame.addEventListener('pointerdown',e=>{if(!spaceHeld||e.pointerType==='touch')return;e.preventDefault();e.stopPropagation();spacePan={id:e.pointerId,x:e.clientX,y:e.clientY,sl:frame.scrollLeft,st:frame.scrollTop};try{frame.setPointerCapture(e.pointerId)}catch{}},true);
+frame.addEventListener('pointermove',e=>{if(!spacePan||e.pointerId!==spacePan.id)return;e.stopPropagation();frame.scrollLeft=spacePan.sl-(e.clientX-spacePan.x);frame.scrollTop=spacePan.st-(e.clientY-spacePan.y)},true);
+frame.addEventListener('pointerup',e=>{if(spacePan&&e.pointerId===spacePan.id){spacePan=null;e.stopPropagation()}},true);
 canvas.addEventListener('pointerdown',e=>{if(!rom){setStatus('Reload C64 glyphs to resume drawing');return}if(animationPreview||!brushToolActive()){if(e.cancelable&&animationPreview)e.preventDefault();return}if(stageView.panPointerCount()>=2||painting||e.isPrimary===false||(e.pointerType==='mouse'&&e.button!==0))return;if(e.cancelable)e.preventDefault();remember();painting=true;pointer=e.pointerId;last=position(e);try{canvas.setPointerCapture(pointer)}catch{}strokeAndRedraw(last,last);setStatus('Drawing…');});
 canvas.addEventListener('pointermove',e=>{if(animationPreview||!painting||e.pointerId!==pointer||stageView.panPointerCount()>=2)return;if(e.cancelable)e.preventDefault();const p=position(e);strokeAndRedraw(last,p);last=p;});
 function cancelStroke(){const active=pointer;painting=false;pointer=null;last=null;if(active!==null)try{canvas.releasePointerCapture(active)}catch{}}

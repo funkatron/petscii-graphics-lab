@@ -389,6 +389,10 @@ Short phone landscape additionally hides the idle selection dock for Paint/Erase
 
 Raskin review H3. `createToolModeMenu` always renders the first mode's icon on the Paint, Pick and Fill triggers, so tools never share an icon (Paint and Fill ink-only used to show the same droplet). A non-default mode adds `.tool-mode-badge` (`MODE_BADGE`: square = glyph only, drop = ink only, bar = background) and extends the trigger's accessible name, e.g. `Paint: ink only`. `buildDrawingHintText` (`editor/stage-hint.js`) uses one grammar: `Tool · option · ink · action`, omitting parts that do not apply, then ` · Symmetry: …` and ` · Two-finger drag pans`. Covered by `stage-hint.unit.mjs` and `tool-options-visible.spec.cjs`.
 
+### Shortcuts and quasimodes
+
+Raskin review L1. Implemented beside `strokeAndRedraw` in `index.html`: a confirmed two-finger tap (both touches within 300 ms, lifted within 400 ms, neither moved >12 px) reverts the one-cell stroke the first finger began and then clicks **Undo**; an accidental second touch during a drag is still ignored (`interaction.spec.cjs`). Holding Alt switches to Pick and restores the previous tool on keyup or window blur. Holding Space on a zoomed canvas pans with a mouse or pen drag and stops drawing listeners. L3: `.help-trigger::after` extends the touch area to about 40 px. L4: `.animation-section>.note` spans the grid. Covered by `shortcuts.spec.cjs`.
+
 ### Stage layout stability (tablet and desktop)
 
 Above 600px wide and 500px high, stage chrome must not move when state changes (Raskin review H1):
