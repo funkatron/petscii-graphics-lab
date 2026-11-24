@@ -208,7 +208,7 @@ These are per-cycle sampling targets. Independent cycle counts multiply those ta
 
 - **Glyph panel.** Default to Grouped by shape: labeled Blocks/Lines/Corners/Diagonals/Symbols sections span code pages, pair each original/inverse, and include every remaining allowed code once under Other symbols, and a separate Letters & numbers section when enabled. Grouping follows the existing curated shape families; it does not change screen codes or artwork. The combined catalog in both checkbox states must remain complete and duplicate-free. Glyph picker retains one independent scrolling surface and authentic high-contrast white-on-black thumbnails. Hexadecimal tile labels default off; Show glyph codes (hex) persists as `showCodes` in the glyph-browser preference, with exact accessible labels retained. Recents (maximum 16) and favorites store validated [0, atlasID] pairs in device-local UI preferences, never project JSON. Families preserve the letter filter; both banks and inverse slots remain accessible.
 
-  Pin is optional at widths 700 px+; normal wide-screen docking starts at 1200 px. Overlay selection dismisses; docked selection stays open. Escape/close/backdrop restore focus without painting. Never nest the palette in settings.
+  Pin is optional at widths 700 px+; normal wide-screen docking starts at 1180 px (11-inch iPad landscape; Raskin review M5, `glyph-dock.spec.cjs`). Overlay selection dismisses; docked selection stays open. Escape/close/backdrop restore focus without painting. Never nest the palette in settings.
 
 - **Save feedback.** Autosave success says Saved on this device; storage failure needs a persistent visible backup notice even at small widths. UI preferences must not prevent art restoration or editing if storage is unavailable.
 
@@ -385,9 +385,20 @@ At widths up to 600px, or short viewports up to 1000px wide and 500px high, appl
 
 Short phone landscape additionally hides the idle selection dock for Paint/Eraser/Text and visually hides the tool hint while retaining it for assistive technology. Selection/shape tools reserve the dock before pointer-down, avoiding mid-gesture canvas resizing. A regression compares canvas height against the prior reserved-space layout and checks stable selection geometry and reachable Deselect.
 
+### Canvas commands
+
+Raskin review M4. `#canvasTool` sits in `.strip-end` with the Undo/Redo group (wrapping together on phones) and carries a ▾ menu marker, so it no longer reads as a drawing tool. Opening the popover defaults **To ink** to the brush ink and **From ink** to the most-used other ink in scope, unless the user already chose them this session; `#replaceInkSummary` names both. `canvasScope()` limits Recolor and Replace to the selection when one exists (captured before `remember()`, which clears the selection); `magic-replace.js` takes an optional `inScope` filter. When the glyph panel is docked, the popover is placed to its left so Replace glyph can pick from it. Covered by `magic-replace.spec.cjs` and `magic-replace.unit.mjs`.
+
 ### Tool options and canvas hint
 
 Raskin review H3. `createToolModeMenu` always renders the first mode's icon on the Paint, Pick and Fill triggers, so tools never share an icon (Paint and Fill ink-only used to show the same droplet). A non-default mode adds `.tool-mode-badge` (`MODE_BADGE`: square = glyph only, drop = ink only, bar = background) and extends the trigger's accessible name, e.g. `Paint: ink only`. `buildDrawingHintText` (`editor/stage-hint.js`) uses one grammar: `Tool · option · ink · action`, omitting parts that do not apply, then ` · Symmetry: …` and ` · Two-finger drag pans`. Covered by `stage-hint.unit.mjs` and `tool-options-visible.spec.cjs`.
+
+### Status feedback
+
+Raskin review M1/M2. `setStatus` clears routine stage messages after `STATUS_FADE_MS` (6 s) so stale text is not read as current state; messages matching `STATUS_PERSIST` (failures, warnings, limits, "first" prompts) stay until replaced. `#downloadStatus` mirrors status only while the Download dialog is open. The header save chip shows its compact word (**Saved** / **Not saved**) beside the icon above 600 px. Covered by `status-feedback.spec.cjs`.
+### Shortcuts and quasimodes
+
+Raskin review L1. Implemented beside `strokeAndRedraw` in `index.html`: a confirmed two-finger tap (both touches within 300 ms, lifted within 400 ms, neither moved >12 px) reverts the one-cell stroke the first finger began and then clicks **Undo**; an accidental second touch during a drag is still ignored (`interaction.spec.cjs`). Holding Alt switches to Pick and restores the previous tool on keyup or window blur. Holding Space on a zoomed canvas pans with a mouse or pen drag and stops drawing listeners. L3: `.help-trigger::after` extends the touch area to about 40 px. L4: `.animation-section>.note` spans the grid. Covered by `shortcuts.spec.cjs`.
 
 ### Stage layout stability (tablet and desktop)
 
@@ -400,7 +411,7 @@ Above 600px wide and 500px high, stage chrome must not move when state changes (
 | `.stage-footer` | One fixed 46px row holding `#stageHint` and the selection dock. Selecting Select, Line or Rectangle, or making a selection, does not resize the canvas. |
 | `#downloadDialog` | Fixed height; `#exportTabs` sits above the two-column layout, so switching tabs keeps tabs and Close in place. |
 
-Phones and short landscape keep the earlier behavior: a `matchMedia` listener moves the hint and selection dock back to their original DOM positions (`.stage-footer` is `display:none`), and the idle selection dock is removed to give space to artwork. The Text tool's multi-line entry panel still inserts a row; that remains a follow-up. `canvas-space.spec.cjs` measures canvas, zoom and symmetry boxes across tools, selection, a long status, preview and Return to drawing at five tablet/desktop sizes, plus Download tab geometry.
+Phones and short landscape keep the earlier behavior: a `matchMedia` listener moves the hint and selection dock back to their original DOM positions (`.stage-footer` is `display:none`), and the idle selection dock is removed to give space to artwork. The Text tool's entry (`.text-entry`) also moves into the footer as a one-line text box with its status and Apply/Cancel, replacing the hint while Text is active; phones keep the multi-line panel. `canvas-space.spec.cjs` measures canvas, zoom and symmetry boxes across tools, selection, a long status, preview and Return to drawing at five tablet/desktop sizes (including Text with typed text), plus Download tab geometry.
 
 
 ### Rotating solid surfaces

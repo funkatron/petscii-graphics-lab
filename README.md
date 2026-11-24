@@ -100,10 +100,19 @@ Optional explanations are available through compact question marks beside sectio
 
 The C64 download panel checks readiness before downloading: dimensions, distinct patterns, program memory and estimated update time. PRG and D64 share the same limits. When playback is too demanding, a longer loop is offered only after the exporter accepts that candidate. Applying it is undoable. When needed, the exporter tries a faster row renderer while preserving the sampled frames and requested speed. If timing is the remaining blocker, check **Download despite timing warning** to try the animation anyway. The warning stays visible; memory and artwork limits still apply. Changing the artwork or animation settings clears this choice. These estimates do not guarantee smooth physical-hardware playback; broader capacity validation remains on the roadmap.
 
+### Shortcuts
+
+| Do this | Result |
+| --- | --- |
+| Tap with two fingers | **Undo** |
+| Hold **Option** (Mac) or **Alt** | Pick from the canvas; release to return to your tool |
+| Hold **Space** and drag (zoomed in) | Move around the canvas without drawing |
+| **⌘Z** / **Ctrl+Z**, **⇧⌘Z** / **Ctrl+Y** | Undo / Redo |
+
 ### Type letters and numbers
 
 1. Choose **Text** (the T icon), then tap a starting cell on the canvas.
-2. Type in **Text to place** using the on-screen or physical keyboard. The canvas previews the C64 glyphs. Tap another cell to reposition the draft.
+2. Type in **Text to place** using the on-screen or physical keyboard. On a tablet or computer it is a one-line box under the canvas; Return still starts a new line. The canvas previews the C64 glyphs. Tap another cell to reposition the draft.
 3. Choose **Apply text** to place the whole draft as one undoable edit, or **Cancel text** to discard it.
 
 Uppercase, lowercase, digits and spaces use authentic C64 glyphs and the current brush ink. Typing does not enable **Show letters & numbers** in the palette. Spaces overwrite cells with the C64 space glyph.
@@ -131,7 +140,7 @@ The **Background** color is shared by the whole canvas.
 | **Ink** | Brush color for future strokes |
 | **Background** | Shared canvas background |
 | **Swap brush / background** | Those two settings; existing cell ink stays the same |
-| **Canvas** (drawing strip) | **Recolor with current brush ink**, **Replace ink**, **Replace glyph**, **Border**, **Checkerboard**, and **Clear drawing**; one undo per action. Tap **?** in the panel for details. |
+| **Canvas** (drawing strip, beside Undo) | **Recolor with current brush ink**, **Replace ink**, **Replace glyph**, **Border**, **Checkerboard**, and **Clear drawing**; one undo per action. With a selection, Recolor and Replace change only the selected cells. **To ink** starts as your brush ink, and the line under the swatches names both colors. Tap **?** in the panel for details. |
 
 The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic/2001/), an RGB approximation of C64 color. The default is Light blue ink on Blue. Glyph thumbnails stay white on black so their shapes remain visible at any brush color.
 

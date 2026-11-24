@@ -223,6 +223,14 @@ dialog button[hidden]{display:none!important}
  .stage-footer>#stageHint{order:-1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  .stage-footer>.selection-dock{flex:0 1 auto;min-width:0}
  .stage-footer>.selection-dock:has(>.selection-actions[hidden]){visibility:hidden;width:0}
+ /* Text entry: one line in the footer, replacing the hint while Text is active. */
+ .stage-footer:has(>.text-entry:not([hidden]))>#stageHint{display:none}
+ .stage-footer>.text-entry{flex:1 1 auto;min-width:0;max-height:none;height:42px;box-sizing:border-box;display:flex;align-items:center;gap:6px;padding:3px 6px;overflow:hidden}
+ .stage-footer>.text-entry[hidden]{display:none}
+ .stage-footer>.text-entry>label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ .stage-footer>.text-entry textarea{flex:1 1 45%;min-width:80px;height:34px;min-height:34px;max-height:34px;resize:none;padding:5px 8px;box-sizing:border-box}
+ .stage-footer>.text-entry .row{flex:0 1 auto;min-width:0;margin:0;gap:6px;flex-wrap:nowrap}
+ .stage-footer>.text-entry .note{flex:0 1 auto;min-width:0;max-width:32ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 @media(max-width:600px),(max-height:500px){
  /* Reserve gesture actions before a drag, but give idle drawing tools the space. */
@@ -239,3 +247,18 @@ dialog button[hidden]{display:none!important}
 .tool-mode-menu>summary .tool-mode-badge{position:absolute;left:2px;top:2px;width:15px;height:15px;display:grid;place-items:center;border-radius:50%;background:var(--key-active);color:var(--text-on-accent);pointer-events:none}
 .tool-mode-menu>summary .tool-mode-badge svg{width:9px;height:9px;fill:currentColor;stroke:none}
 .tool-mode-menu>summary.active .tool-mode-badge{background:var(--text-on-accent);color:var(--key-active)}
+/* Raskin review M2: device save state reads as a word, not only an icon, where space allows. */
+@media(min-width:601px){
+ header #saveStatus .save-status-compact{position:static;width:auto;height:auto;margin:0 10px 0 -6px;overflow:visible;clip-path:none;font-size:.8rem;font-weight:600}
+ header #saveStatus[data-state=saved] .save-status-compact{color:var(--header-control-fg,var(--case-text))}
+ header #saveStatus[data-state=failed] .save-status-compact{color:#ffe8e8}
+}
+/* Raskin review M4: Canvas commands sit with Undo/Redo, apart from drawing tools. */
+.drawing-strip .strip-end{display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0}
+.drawing-strip .strip-end>.recovery-group{margin-left:0}
+.drawing-strip #canvasTool{position:relative}
+.drawing-strip #canvasTool .tool-mode-chevron{position:absolute;right:2px;bottom:1px;font-size:.55rem;line-height:1;opacity:.7;pointer-events:none}
+/* Raskin review L3: small help buttons keep their look but get a ~40px touch area. */
+.help-trigger{position:relative}
+.help-trigger::after{content:'';position:absolute;inset:-6px;border-radius:50%}
+.space-pan,.space-pan canvas{cursor:grab}
