@@ -389,6 +389,10 @@ Short phone landscape additionally hides the idle selection dock for Paint/Erase
 
 Raskin review H3. `createToolModeMenu` always renders the first mode's icon on the Paint, Pick and Fill triggers, so tools never share an icon (Paint and Fill ink-only used to show the same droplet). A non-default mode adds `.tool-mode-badge` (`MODE_BADGE`: square = glyph only, drop = ink only, bar = background) and extends the trigger's accessible name, e.g. `Paint: ink only`. `buildDrawingHintText` (`editor/stage-hint.js`) uses one grammar: `Tool · option · ink · action`, omitting parts that do not apply, then ` · Symmetry: …` and ` · Two-finger drag pans`. Covered by `stage-hint.unit.mjs` and `tool-options-visible.spec.cjs`.
 
+### Status feedback
+
+Raskin review M1/M2. `setStatus` clears routine stage messages after `STATUS_FADE_MS` (6 s) so stale text is not read as current state; messages matching `STATUS_PERSIST` (failures, warnings, limits, "first" prompts) stay until replaced. `#downloadStatus` mirrors status only while the Download dialog is open. The header save chip shows its compact word (**Saved** / **Not saved**) beside the icon above 600 px. Covered by `status-feedback.spec.cjs`.
+
 ### Stage layout stability (tablet and desktop)
 
 Above 600px wide and 500px high, stage chrome must not move when state changes (Raskin review H1):

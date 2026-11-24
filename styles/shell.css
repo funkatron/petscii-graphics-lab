@@ -247,3 +247,9 @@ dialog button[hidden]{display:none!important}
 .tool-mode-menu>summary .tool-mode-badge{position:absolute;left:2px;top:2px;width:15px;height:15px;display:grid;place-items:center;border-radius:50%;background:var(--key-active);color:var(--text-on-accent);pointer-events:none}
 .tool-mode-menu>summary .tool-mode-badge svg{width:9px;height:9px;fill:currentColor;stroke:none}
 .tool-mode-menu>summary.active .tool-mode-badge{background:var(--text-on-accent);color:var(--key-active)}
+/* Raskin review M2: device save state reads as a word, not only an icon, where space allows. */
+@media(min-width:601px){
+ header #saveStatus .save-status-compact{position:static;width:auto;height:auto;margin:0 10px 0 -6px;overflow:visible;clip-path:none;font-size:.8rem;font-weight:600}
+ header #saveStatus[data-state=saved] .save-status-compact{color:var(--header-control-fg,var(--case-text))}
+ header #saveStatus[data-state=failed] .save-status-compact{color:#ffe8e8}
+}
