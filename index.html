@@ -211,7 +211,7 @@ function syncFieldRampOptions(){const select=$('fieldRamp'),saved=select.value;s
 function setFieldRampValue(value){const select=$('fieldRamp');if(FIELD_RAMPS.includes(value))select.value=value;else select.value='cycle'}
 syncCycleSelectOptions();syncFieldRampOptions();syncBackdropEffectSelect('none');
 // Navigation is UI state only: it never changes artwork, history or playback.
-const widePicker=matchMedia('(min-width:1200px)');
+const widePicker=matchMedia('(min-width:1180px)');
 let pickerPinned=false;
 const pickerDocked=()=>widePicker.matches||(pickerPinned&&innerWidth>=700);
 $('glyphPin').onclick=()=>{pickerPinned=!pickerPinned;if(pickerPinned&&innerWidth>=700&&innerWidth<1000){$('sidebar').classList.add('closed');$('toggle').setAttribute('aria-expanded','false');$('toggle').textContent='☰'}$('glyphPin').setAttribute('aria-pressed',String(pickerPinned));syncPickerDock()};

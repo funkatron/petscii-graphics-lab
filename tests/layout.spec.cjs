@@ -22,7 +22,7 @@ test('compact disclosures and export tabs expose every format without changing a
  expect(await page.locator('#output').inputValue()).toBe(before);await page.locator('#downloadClose').click();await page.locator('#undo').click();expect(JSON.parse(await download(page,'#saveProject')).grid.every(g=>g==='')).toBe(true);await expect(page.locator('#undo')).toBeDisabled();await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');
 });
 test('glyph picker is independent from tools, with single scrolling surface and responsive selection',async({page})=>{
- const wide=page.viewportSize().width>=1200;await expect(page.locator('#sidebar #palette')).toHaveCount(0);
+ const wide=page.viewportSize().width>=1180;await expect(page.locator('#sidebar #palette')).toHaveCount(0);
  if(!wide)await page.locator('#glyphToggle').click();await expect(page.locator('#glyphPicker')).toBeVisible();
  const overflow=await page.locator('#palette').evaluate(e=>getComputedStyle(e).overflowY);expect(overflow).toBe('visible');
  await page.locator('#glyphOptions > summary').click();const viewport=page.viewportSize();await page.setViewportSize({...viewport,height:480});const sidebarScroll=await page.locator('#sidebar').evaluate(e=>e.scrollTop);

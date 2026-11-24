@@ -208,7 +208,7 @@ These are per-cycle sampling targets. Independent cycle counts multiply those ta
 
 - **Glyph panel.** Default to Grouped by shape: labeled Blocks/Lines/Corners/Diagonals/Symbols sections span code pages, pair each original/inverse, and include every remaining allowed code once under Other symbols, and a separate Letters & numbers section when enabled. Grouping follows the existing curated shape families; it does not change screen codes or artwork. The combined catalog in both checkbox states must remain complete and duplicate-free. Glyph picker retains one independent scrolling surface and authentic high-contrast white-on-black thumbnails. Hexadecimal tile labels default off; Show glyph codes (hex) persists as `showCodes` in the glyph-browser preference, with exact accessible labels retained. Recents (maximum 16) and favorites store validated [0, atlasID] pairs in device-local UI preferences, never project JSON. Families preserve the letter filter; both banks and inverse slots remain accessible.
 
-  Pin is optional at widths 700 px+; normal wide-screen docking starts at 1200 px. Overlay selection dismisses; docked selection stays open. Escape/close/backdrop restore focus without painting. Never nest the palette in settings.
+  Pin is optional at widths 700 px+; normal wide-screen docking starts at 1180 px (11-inch iPad landscape; Raskin review M5, `glyph-dock.spec.cjs`). Overlay selection dismisses; docked selection stays open. Escape/close/backdrop restore focus without painting. Never nest the palette in settings.
 
 - **Save feedback.** Autosave success says Saved on this device; storage failure needs a persistent visible backup notice even at small widths. UI preferences must not prevent art restoration or editing if storage is unavailable.
 
