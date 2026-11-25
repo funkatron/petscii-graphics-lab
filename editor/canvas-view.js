@@ -176,9 +176,16 @@ export function initCanvasView(options) {
   }
 
   function fit() {
+    // Fit inside the frame's content box. The bevel border and padding vary by
+    // breakpoint, so measure them; a fixed inset let the canvas overshoot and CSS
+    // max-width/max-height then squashed one axis, distorting the cell shape.
     const r = frame.getBoundingClientRect();
-    const availableW = Math.max(20, r.width - 22);
-    const availableH = Math.max(20, r.height - 22);
+    const cs = getComputedStyle(frame);
+    const px = (name) => parseFloat(cs[name]) || 0;
+    const insetX = px('borderLeftWidth') + px('borderRightWidth') + px('paddingLeft') + px('paddingRight');
+    const insetY = px('borderTopWidth') + px('borderBottomWidth') + px('paddingTop') + px('paddingBottom');
+    const availableW = Math.max(20, r.width - insetX - 4);
+    const availableH = Math.max(20, r.height - insetY - 4);
     const { columns, rows, machine, cellAspect } = getGridContext();
     const { aw, ah } = cellAspectUnits(machine, cellAspect);
     const canvasZoom = getCanvasZoom();

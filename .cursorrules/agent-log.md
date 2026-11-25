@@ -1,5 +1,11 @@
 # Agent log
 
+## 2026-11-25 — Fix full-suite drift (branch fix/full-suite-drift)
+
+**What:** Fixes found by the first full CI run in a while. (1) Pending two-tap shapes never showed Cancel or the selection size: since #185 the module's tool previews bypassed the `toolPreview` wrapper that refreshed the toolbar; `onPreviewFrame` now calls `updateToolPalette()`. (2) Opening Download with an invalid project name flashed the dialog shut: the #182 filename note called `projectStem()`, whose invalid-name side effects close the dialog; the note now reads the name without side effects. (3) Canvas fit used a fixed 22 px inset, smaller than the bevel border + padding, so CSS max-width/max-height squashed one axis (distorted cells; CRT couldn't grow); `fit()` now measures the frame's insets. (4) Square-cell SVG writes `scale(2)` again (`scale(sx sy)` only for CRT). Tests: builtin checks the Paint menu's inert/aria-disabled lock (`#paint` is a `<summary>` since H3); CRT test compares aspect ratio instead of a pixel threshold.  
+**Known, not fixed:** `phone-workspace.spec.cjs:33` (568×320 short landscape): header and strip wrap to 225 px, leaving the canvas ~0 px once the selection dock appears; failing for 40+ commits; needs a compact short-landscape layout design.  
+**Tested:** Local Chromium (Playwright 1.63 via shim; specs needing pngjs/omggif/adm-zip only partially). Full CI run on the PR.
+
 ## 2026-11-24 — Fix: GIF/frame ZIP ignored Animation background White (branch fix/gif-white-background)
 
 **What:** Since #128 (0.32.2 backdrop mattes), `indexedFrame` wrote the canvas color index into every non-glyph pixel, so **Animation background → White** exported the canvas color in GIF and frame ZIP. Non-matte paper pixels use palette slot 0 again (White, the frame's canvas color, or transparent); spatial backdrop mattes still paint per cell.  

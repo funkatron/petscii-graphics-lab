@@ -295,13 +295,14 @@ test('CRT cell shape stretches the editor canvas but leaves native PRG bytes unc
  await ui(page,'#c64CanvasPreset');
  await ui(page,'#applyResize');
  await expect(page.locator('#dimensions')).toHaveText('40 × 25');
- const box=()=>page.locator('#canvas').evaluate(el=>({h:el.clientHeight,styleH:el.style.height}));
+ const box=()=>page.locator('#canvas').evaluate(el=>({w:el.clientWidth,h:el.clientHeight,styleH:el.style.height}));
  const square=await box();
  await page.locator('#machineMenu > summary').click();
  await ui(page,'#workspaceCellAspect','selectOption','crt');
  await expect(page.locator('#machineSummary')).toContainText('CRT');
- // CRT cells are shorter than square (5∶6), so a 40×25 fit grows taller in the frame.
- await expect.poll(async()=>(await box()).h).toBeGreaterThan(square.h+20);
+ // CRT cells are 5∶6 (taller than wide), so the 40×25 canvas gets narrower relative to its
+ // height (ratio × 5/6). Compare shape, not pixels: the frame's height limit varies by viewport.
+ await expect.poll(async()=>{const b=await box();return b.w/b.h}).toBeLessThan(square.w/square.h*0.9);
  await page.locator('#machineMenu > summary').click();
  await ui(page,'#workspaceCellAspect','selectOption','square');
  const squarePrg=await download(page,'#exportC64');
