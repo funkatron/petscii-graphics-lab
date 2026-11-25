@@ -781,11 +781,10 @@ function activeExportTab(){
 function updateExportFilenameNote(){
  const note=$('exportFilenameNote'),text=$('exportFilenameText');
  if(!note||!text||!$('downloadDialog').open)return;
- let stem;
- try{stem=projectStem()}catch{
-  note.hidden=true;text.textContent='';
-  return;
- }
+ // Read-only: projectStem() closes this dialog and focuses the name field when the
+ // name is invalid; only an actual export should do that.
+ const stem=sanitizeProjectStem($('projectFilename').value);
+ if(!stem){note.hidden=true;text.textContent='';return}
  const tab=activeExportTab();
  let filename;
  if(tab==='still'){
@@ -1225,7 +1224,7 @@ const toolSession=drawingTools.initDrawingTools({
  isContextHelpOpen:()=>document.querySelector('#contextHelp')?.matches(':popover-open'),
  positionFromEvent:position,
  getPreviewContext:()=>({columns:W,rows:H,grid,cellInks:cellColors,glyph,ink:colors.ink,selection}),
- onPreviewFrame:({cells,inks,rect})=>{renderGrid(cells,inks);if(!animationPreview){paintReferenceOverlay();drawCenterGuides()}toolOutline(rect)},
+ onPreviewFrame:({cells,inks,rect})=>{renderGrid(cells,inks);if(!animationPreview){paintReferenceOverlay();drawCenterGuides()}toolOutline(rect);updateToolPalette()},
  commitTool,
  afterToolCommit:()=>updateToolPalette(),
  onSelectionFromDrag:()=>refresh(),
@@ -1333,7 +1332,7 @@ function makeSvg(foreground=colorHex('ink'),background=colorHex('background')){
  const parts=[];
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
   const g=grid[y*W+x],fill=inkFill(cellColors[y*W+x]);
-  if(typeof g==='number'&&rom)parts.push('<g fill="'+fill+'" transform="translate('+(x*cellW)+' '+(y*cellH)+') scale('+(cellW/8)+' '+(cellH/8)+')">'+romRects(g,0,0,1)+'</g>');
+  if(typeof g==='number'&&rom)parts.push('<g fill="'+fill+'" transform="translate('+(x*cellW)+' '+(y*cellH)+') scale('+(cellW===cellH?cellW/8:(cellW/8)+' '+(cellH/8))+')">'+romRects(g,0,0,1)+'</g>');
  }
  const svgW=W*cellW,svgH=H*cellH;
  const bg=background?'<rect width="100%" height="100%" fill="'+background+'"/>':'';
