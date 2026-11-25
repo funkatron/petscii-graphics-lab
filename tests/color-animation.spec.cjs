@@ -1,5 +1,5 @@
 const fs=require('node:fs'),{PNG}=require('pngjs'),{GifReader}=require('omggif'),AdmZip=require('adm-zip');
-const {ui,test,expect,download,contents,loadProject,project}=require('./helpers.cjs');
+const {chooseInk,ui,test,expect,download,contents,loadProject,project}=require('./helpers.cjs');
 const {decodeVideo,nearPixel}=require('./video-utils.cjs');
 const hex=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'];
 const rgb=i=>[0,2,4].map(n=>parseInt(hex[i].slice(n,n+2),16));
@@ -28,7 +28,7 @@ test('color previews pause, stop and reload safely, while static exports keep or
  const pixels=()=>page.locator('#canvas').evaluate(c=>[.25,.75].map(x=>Array.from(c.getContext('2d').getImageData(c.width*x,c.height*.5,1,1).data))),original=await pixels();
  for(const effect of Object.keys(ramps)){
   await ui(page,'#animationEffect','selectOption','none');await ui(page,'#animationColor','selectOption',effect);await ui(page,'#animationSeconds','selectOption','0.5');const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#quickPlay');await expect.poll(pixels).not.toEqual(original);await ui(page,'#quickPlay');const paused=await pixels();await page.clock.runFor(2000);expect(await pixels()).toEqual(paused);expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
-  const png=PNG.sync.read(await download(page,'#png'));expect(Array.from(png.data.slice((32*png.width+32)*4,(32*png.width+32)*4+4))).toEqual([...rgb(2),255]);await ui(page,'#animationStop');expect(await pixels()).toEqual(original);
+  const png=PNG.sync.read(await download(page,'#png'));expect(Array.from(png.data.slice((32*png.width+32)*4,(32*png.width+32)*4+4))).toEqual([...rgb(2),255]);await ui(page,'#returnDrawing');expect(await pixels()).toEqual(original);
  }
  await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationColor')).toHaveValue('color-glow');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');expect(await pixels()).toEqual(original);
  const before=JSON.parse(await download(page,'#saveProject'));await loadProject(page,{...before,animation:{...before.animation,effect:'color-unknown'}});await expect(page.locator('#status')).toContainText('Load failed');expect(JSON.parse(await download(page,'#saveProject'))).toEqual(before);
@@ -36,7 +36,7 @@ test('color previews pause, stop and reload safely, while static exports keep or
 });
 test('color-cycle export snapshots colors and effect before encoder loading',async({page})=>{
  await loadProject(page,project([160,160],2,1,{cellColors:[0,14],animation:{effect:'none',colorEffect:'color-cycle',seconds:1,scale:1,background:'dark'}}));let release,requested;const gate=new Promise(r=>release=r),started=new Promise(r=>requested=r);await page.route('**/vendor/gifenc.esm.js',async route=>{requested();await gate;await route.continue()});
- const waiting=page.waitForEvent('download');await ui(page,'#exportGif');await started;await ui(page,'#inkTarget');await ui(page,'#colorPalette button:nth-child(3)');await ui(page,'#recolorDrawing');await ui(page,'#animationColor','selectOption','color-glow');release();const gif=new GifReader(await contents(await waiting));expect(gif.numFrames()).toBe(16);
+ const waiting=page.waitForEvent('download');await ui(page,'#exportGif');await started;await chooseInk(page,2);await ui(page,'#recolorDrawing');await ui(page,'#animationColor','selectOption','color-glow');release();const gif=new GifReader(await contents(await waiting));expect(gif.numFrames()).toBe(16);
  for(const f of [0,1,15]){const b=new Uint8Array(16*8*4);gif.decodeAndBlitFrameRGBA(f,b);for(const x of [0,1])expect(Array.from(b.slice((4*16+x*8+4)*4,(4*16+x*8+4)*4+3))).toEqual(rgb(inkAt('color-cycle',[0,14][x],x,0,f)))}expect(JSON.parse(await download(page,'#saveProject')).cellColors).toEqual([2,2]);
 });
 test('native repeated videos encode each color effect with the selected duration and fixed background',async({page})=>{

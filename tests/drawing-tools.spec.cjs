@@ -71,7 +71,7 @@ test('palette shows one selected tool and restores saved eraser state',async({pa
  await ui(page,'#erase');await saved(page);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#erase')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','false');
 });
 
-test('rectangle and selection corner taps only enter two-tap mode when explicitly enabled',async({page})=>{
+test('line, rectangle and selection corner taps only enter two-tap mode when explicitly enabled',async({page})=>{
  const canvas=page.locator('#canvas');
  const tap=async(x,y)=>canvas.evaluate((c,p)=>{
   const r=c.getBoundingClientRect(),cx=r.left+(p.x+.5)*r.width/4,cy=r.top+(p.y+.5)*r.height/4;
@@ -85,6 +85,15 @@ test('rectangle and selection corner taps only enter two-tap mode when explicitl
  await tap(3,3);
  // Two independent taps must not create a rectangle or leave a pending corner.
  expect((await saved(page)).grid.filter(g=>g===160).length).toBeLessThan(12);
+ // Owner decision (Raskin L2): Line also needs Tap endpoints; two taps are two separate one-cell lines.
+ await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
+ await ui(page,'#tool-line');
+ await tap(0,0);await tap(3,3);
+ expect((await saved(page)).grid.filter(g=>g===160).length).toBeLessThan(4);
+ await ui(page,'#tapPoints','check');
+ await tap(0,0);await tap(3,3);
+ expect((await saved(page)).grid.filter(g=>g===160).length).toBeGreaterThanOrEqual(4);
+ await ui(page,'#tapPoints','uncheck');
  await loadProject(page,project(blank,4,4,{selectedGlyph:160}));
  await ui(page,'#tool-select');
  await tap(0,0);

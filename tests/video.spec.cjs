@@ -8,7 +8,7 @@ test('speed defaults to two seconds, supports faster replay, and persists in pro
  await expect(page.getByLabel('Loop duration',{exact:true})).toHaveValue('2');await sample(page);await ui(page,'#animationEffect','selectOption','replay');
  const gif=new GifReader(await download(page,'#exportGif'));expect(Array.from({length:gif.numFrames()},(_,i)=>gif.frameInfo(i).delay).reduce((a,b)=>a+b,0)).toBe(50);
  const p=JSON.parse(await download(page,'#saveProject'));expect(p.animation.seconds).toBe(.5);await page.reload();await page.locator('.app[data-ready=true]').waitFor();await expect(page.locator('#animationSeconds')).toHaveValue('0.5');
- await ui(page,'#quickPlay');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#animationSeconds','selectOption','1');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#animationStop');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(p.grid);
+ await ui(page,'#quickPlay');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#animationSeconds','selectOption','1');await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');await ui(page,'#returnDrawing');expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(p.grid);
 });
 test('fast scrolling covers the whole grid with GIF-safe frame delays',async({page})=>{
  await loadProject(page,project([160,...Array(39).fill('')],40,1,{animation:{effect:'scroll-x',seconds:.5,scale:1,background:'dark'}}));

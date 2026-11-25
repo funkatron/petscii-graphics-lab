@@ -1,16 +1,16 @@
 const {PNG}=require('pngjs'),{GifReader}=require('omggif'),AdmZip=require('adm-zip');
-const {ui,test,expect,contents,download,loadProject,project}=require('./helpers.cjs');
+const {chooseInk,reveal,ui,test,expect,contents,download,loadProject,project}=require('./helpers.cjs');
 const {decodeVideo,nearPixel}=require('./video-utils.cjs');
 const hex=['000000','ffffff','68372b','70a4b2','6f3d86','588d43','352879','b8c76f','6f4f25','433900','9a6759','444444','6c6c6c','9ad284','6c5eb5','959595'];
 const rgb=index=>[0,2,4].map(i=>parseInt(hex[index].slice(i,i+2),16));
 const pixel=(png,x,y)=>Array.from(png.data.subarray((y*png.width+x)*4,(y*png.width+x)*4+4));
-async function choose(page,target,index){await ui(page,'#'+target+'Target');await ui(page,'#colorPalette button:nth-child('+(index+1)+')')}
+async function choose(page,target,index){if(target==='ink')await chooseInk(page,index);else await ui(page,'#colorPalette button:nth-child('+(index+1)+')')}
 async function canvasPixels(page){return page.locator('#canvas').evaluate(c=>{const t=c.getContext('2d');return [.25,.75].map(x=>Array.from(t.getImageData(Math.floor(c.width*x),Math.floor(c.height*.5),1,1).data))})}
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor()});
 test('all sixteen C64 swatches use documented RGB values and update bitmap previews and canvas',async({page})=>{
- await loadProject(page,project([160,''],2,1,{selectedGlyph:160}));await ui(page,'#inkTarget');await expect(page.locator('#colorPalette button')).toHaveCount(16);
+ await loadProject(page,project([160,''],2,1,{selectedGlyph:160}));await reveal(page,'#colorPalette');await expect(page.locator('#colorPalette button')).toHaveCount(16);
  const swatches=await page.locator('#colorPalette button').evaluateAll(buttons=>buttons.map(b=>getComputedStyle(b).backgroundColor));expect(swatches).toEqual(hex.map((_,i)=>'rgb('+rgb(i).join(', ')+')'));
- await choose(page,'ink',2);await ui(page,'#recolorDrawing');await expect(page.locator('#inkName')).toHaveText('Red');await expect(page.locator('#inkTarget')).toHaveAttribute('aria-pressed','true');
+ await choose(page,'ink',2);await ui(page,'#recolorDrawing');await expect(page.locator('#inkQuick')).toHaveAttribute('aria-label','Choose ink color: Red');
  expect(await canvasPixels(page)).toEqual([[...rgb(2),255],[...rgb(6),255]]);
  expect(await page.locator('#glyphPreview').evaluate(c=>Array.from(c.getContext('2d').getImageData(12,12,1,1).data))).toEqual([...rgb(2),255]);
  await choose(page,'background',1);expect(await canvasPixels(page)).toEqual([[...rgb(2),255],[255,255,255,255]]);await expect(page.locator('#backgroundName')).toHaveText('White');await expect(page.locator('#colorPalette button:nth-child(2)')).toHaveAttribute('aria-pressed','true');

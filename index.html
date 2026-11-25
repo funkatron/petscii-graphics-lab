@@ -45,16 +45,15 @@
 <div id="resizeDraft" hidden><p id="resizeSummary" class="note"></p><canvas id="resizePreview" aria-label="Resized drawing preview"></canvas><div class="row"><button id="applyResize">Apply size</button><button id="cancelResize">Cancel</button></div></div></fieldset>
 </div></details>
 <details id="colorDetails" class="tool-group"><summary>Colors <span id="colorSummary" class="summary-badge" aria-hidden="true"></span></summary><div class="group-body">
-<fieldset class="sidebar-section" id="paintColorsGroup"><legend>Paint colors</legend>
-<div class="row"><button id="inkTarget" aria-pressed="true">Ink<span id="inkName" class="color-name"></span></button><button id="backgroundTarget" aria-pressed="false">Background<span id="backgroundName" class="color-name"></span></button></div>
-<div id="colorPalette" class="color-grid" role="group" aria-label="C64 color palette"></div><button id="swapColors" class="full-width">Swap brush / background</button></fieldset><fieldset class="sidebar-section" id="screenGroup"><legend>Screen</legend><div class="field"><label for="screenLook">Look</label><select id="screenLook" aria-label="Screen look"><option value="none" selected>None</option><option value="monitor">Monitor</option><option value="tv">Television</option><option value="green">Green</option><option value="amber">Amber</option></select></div><p class="note">Thin scanlines and a little phosphor. Monitor and television keep color, with a slight color edge. Green and amber are one phosphor. PNG, GIF, video, and frame ZIP match the canvas. SVG, PRG, and disk images stay clean.</p></fieldset><p class="note" id="colorsHelp">Ink sets the brush color (character color / color RAM on C64). Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.</p>
+<fieldset class="sidebar-section" id="backgroundGroup"><legend>Background</legend>
+<p class="note" id="backgroundCurrent">Current: <span id="backgroundName"></span></p>
+<div id="colorPalette" class="color-grid" role="group" aria-label="C64 color palette"></div><button id="swapColors" class="full-width">Swap brush / background</button></fieldset><fieldset class="sidebar-section" id="screenGroup"><legend>Screen</legend><div class="field"><label for="screenLook">Look</label><select id="screenLook" aria-label="Screen look"><option value="none" selected>None</option><option value="monitor">Monitor</option><option value="tv">Television</option><option value="green">Green</option><option value="amber">Amber</option></select></div><p class="note">Thin scanlines and a little phosphor. Monitor and television keep color, with a slight color edge. Green and amber are one phosphor. PNG, GIF, video, and frame ZIP match the canvas. SVG, PRG, and disk images stay clean.</p></fieldset><p class="note" id="colorsHelp">Choose brush ink with <strong>Ink</strong> in the drawing strip (character color / color RAM on C64). Each cell keeps its own ink; the background is shared. All 16 VIC colors use the Display palette chosen in Machine.</p>
 <p class="note" id="vicRegistersNote" hidden>On C64 and C128 VIC modes, border color is register <code>$D020</code> and screen background is <code>$D021</code>. Brush <strong>Background</strong> here is empty-cell paper in the editor. <strong>Backdrop effect</strong> under Animation animates paper separately from your drawing.</p></div></details>
 <details id="animationDetails" class="tool-group"><summary>Animation</summary><div class="group-body">
 <fieldset class="animation-section" id="animationTimeline"><legend>Timeline &amp; preview</legend>
 <div class="field"><label for="animationSeconds">Loop duration</label><select id="animationSeconds"><option value="0.5">½ second</option><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="4">4 seconds</option><option value="8">8 seconds</option><option value="12">12 seconds</option></select></div>
 <div id="movementCyclesOptions" class="field cycle-rate" hidden><label for="animationCycles">Movement cycles</label><select id="animationCycles" aria-label="Movement cycles per loop"></select></div>
 <div id="colorCyclesOptions" class="field cycle-rate" hidden><label for="animationColorCycles">Color cycles</label><select id="animationColorCycles" aria-label="Color cycles per loop"></select></div>
-<div class="row"><button id="animationPlay" aria-pressed="false">▶ Play</button><button id="animationStop">Return to drawing</button></div>
 <p id="animationDerivedSummary" class="note" role="status" hidden></p>
 </fieldset>
 <fieldset class="animation-section" id="animationMovement"><legend>Movement</legend>
@@ -285,7 +284,7 @@ const COLOR_CYCLES={
  'color-wave':[2,8,7,13,3,14,6,4],
  'color-glow':[9,8,2,10,7,1,7,10,2,8]
 };
-let colors={ink:getMachine(workspaceMachine).defaultInk,background:getMachine(workspaceMachine).defaultBackground},colorTarget='ink';
+let colors={ink:getMachine(workspaceMachine).defaultInk,background:getMachine(workspaceMachine).defaultBackground};
 const colorHex=key=>inkFill(colors[key]);
 function inkLabel(index){return activeColorTable()[index]?.[0]??('Color '+index)}
 function contrastOn(hex){const rgb=colorRGB(hex);return rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>125?'#000':'#fff'}
@@ -306,8 +305,8 @@ function rebuildInkPalettes(){
  $('colorPalette').replaceChildren(...table.map(([name,hex],index)=>makeSwatchButton(index,name,hex,{
   label:ted?tedSwatchLabel(index):index.toString(16).toUpperCase(),
   ariaLabel:(ted?'TED color '+index+': ':vdc?'VDC color '+index+': ':'C64 color '+index+': ')+name,
-  pressed:colors[colorTarget]===index,
-  onChoose:(i,n)=>{if(colors[colorTarget]===i)return;remember();setColors({...colors,[colorTarget]:i});drawPalette();redraw();setStatus(n+' '+colorTarget+' color selected');$('colorPalette').children[i].focus({preventScroll:true})}
+  pressed:colors.background===index,
+  onChoose:(i,n)=>{if(colors.background===i)return;remember();setColors({...colors,background:i});drawPalette();redraw();setStatus(n+' background color selected');$('colorPalette').children[i].focus({preventScroll:true})}
  })));
  // The quick-ink popover only needs a rebuild when the machine or display palette changes.
  const quickKey=ted?'ted':vdc?'vdc':workspacePalette;
@@ -331,13 +330,12 @@ function updateColorUI(){
  const name=inkLabel(colors.ink);
  $('inkChip').style.background=colorHex('ink');$('inkQuick').title='Ink: '+name;$('inkQuick').setAttribute('aria-label','Choose ink color: '+name);$('inkSelection').textContent='Selected: '+name;
  document.documentElement.style.setProperty('--art-ink',colorHex('ink'));document.documentElement.style.setProperty('--art-bg',colorHex('background'));
- for(const key of ['ink','background']){$(key+'Name').textContent=inkLabel(colors[key]);$(key+'Target').setAttribute('aria-pressed',String(colorTarget===key))}
+ $('backgroundName').textContent=inkLabel(colors.background);
  $('colorSummary').innerHTML=['ink','background'].map(key=>'<span class="color-chip" style="background:'+colorHex(key)+'"></span>').join('');
  rebuildInkPalettes();
  syncReplaceInkPalettes();
 }
 function setColors(value){colors={ink:value.ink,background:value.background};tileCache.clear();updateColorUI()}
-for(const key of ['ink','background'])$(key+'Target').onclick=()=>{colorTarget=key;updateColorUI()};
 $('swapColors').onclick=()=>{if(colors.ink===colors.background)return;remember();setColors({ink:colors.background,background:colors.ink});drawPalette();redraw();setStatus('Brush and background swapped')};
 $('screenLook').onchange=()=>{redraw();updateDownloadPreview();autosave();const look=$('screenLook').value;let label='Screen look off';if(look==='monitor')label='Monitor screen';if(look==='tv')label='Television screen';if(look==='green')label='Green monitor';if(look==='amber')label='Amber monitor';setStatus(label)};
 let replaceInkFrom=1,replaceInkTo=2,replaceInkFromChosen=false,replaceInkToChosen=false;
@@ -878,7 +876,7 @@ function updateAnimationOptions(){
  $('movementCyclesOptions').hidden=effect==='none';$('colorCyclesOptions').hidden=$('animationColor').value==='none';$('backgroundCyclesOptions').hidden=!backdropEffectActive();
  const warning=animationPlan(animationSource()).warning;
  $('animationWarning').hidden=!warning;$('animationWarning').textContent=warning;
- for(const id of ['animationPlay','quickPlay'])$(id).disabled=!!warning;
+ $('quickPlay').disabled=!!warning;
  updateMotionSummary();
 }
 const solidCameraSettings=s=>Object.fromEntries(Object.keys(SOLID_CAMERA_VALUES).map(key=>[key,s?s[key]:Number($(key).value)]));
@@ -907,13 +905,13 @@ function animationSettings(){return {
 function animationSource(){return {W,H,grid,inks:cellColors,base:replayBase,baseColors:replayBaseColors,events:replayEvents,eventColors:replayEventColors,colors:{...colors},machine:workspaceMachine,palette:workspacePalette,...animationSettings()}}
 function animationButtons(){
  updateMotionSummary();$('previewBanner').hidden=!animationPreview;$('stageCanvasView').inert=!!animationPreview;$('previewLabel').textContent='Read-only preview · '+animationName()+(animationPlaying?'':' · Paused');
- $('animationPlay').textContent=animationPlaying?'❚❚ Pause':'▶ Play';$('quickPlay').textContent=animationPlaying?'❚❚':'▶';
- for(const id of ['animationPlay','quickPlay']){$(id).setAttribute('aria-pressed',String(animationPlaying));$(id).setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation')}
+ $('quickPlay').textContent=animationPlaying?'❚❚':'▶';
+ $('quickPlay').setAttribute('aria-pressed',String(animationPlaying));$('quickPlay').setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation');
  for(const id of ['motionPreview','c64Preview']){$(id).textContent=animationPreview?'■ Stop preview':'▶ Play preview';$(id).setAttribute('aria-pressed',String(animationPreview))}
  canvas.classList.toggle('preview-locked',animationPreview);
  $('erase').disabled=animationPreview;
  for(const id of ['paint','erase'])$(id).title=animationPreview?'Choose Return to drawing to edit':id==='paint'?'Paint with the selected glyph':'Erase cells';
- $('animationStop').disabled=!animationPreview;updateDrawingHint();updateSymmetryChrome();updateToolPalette();
+ updateDrawingHint();updateSymmetryChrome();updateToolPalette();
 }
 function stopAnimation(){
  animationPlaying=false;animationPreview=false;animationElapsed=0;animationFrame=0;cancelAnimationFrame(animationRAF);animationRAF=null;
@@ -932,9 +930,9 @@ function toggleAnimation(){
  if(grid.every(g=>g==='')&&!replayEvents.length){setStatus('Draw something first, then press Play');return}
  cancelToolDrag();selection=null;cancelStroke();animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
 }
-$('animationPlay').onclick=toggleAnimation;$('quickPlay').onclick=toggleAnimation;
+$('quickPlay').onclick=toggleAnimation;
  for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Returned to drawing')}else toggleAnimation()};
-$('animationStop').onclick=$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Returned to drawing')};
+$('returnDrawing').onclick=()=>{stopAnimation();setStatus('Returned to drawing')};
 $('editAnimationFromPreview').onclick=()=>openAnimationSettings();
 for(const id of [...Object.keys(SOLID_CAMERA_VALUES),'depthWaveShape','depthTravel','animationEffect','animationColor','backdropEffect','animationSeconds','animationCycles','animationColorCycles','animationBackgroundCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude','waveLength','colorWaveLength','fieldWaveDirection','fieldWaveShape','fieldWaveAmplitude','fieldWaveLength','wipePattern','parallaxGroup','parallaxSpread','parallaxTravel','fieldRamp','fieldDirection','fieldLead','fieldBrightness'])$(id).onchange=()=>{if(id==='animationEffect')researchMotionEffect=null;if(id==='animationColor'&&['raster-bars','plus4-raster'].includes($('animationColor').value))$('colorWaveDirection').value='up';if(id==='animationColor'&&['plasma','plus4-plasma'].includes($('animationColor').value)){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};if(id==='fieldRamp'&&['raster-bars'].includes($('fieldRamp').value))$('fieldWaveDirection').value='up';if(id==='fieldRamp'&&['plasma'].includes($('fieldRamp').value)){$('fieldWaveDirection').value='up-left';$('fieldWaveShape').value='sine'};updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
 for(const id of ['gifScale','gifBackground'])$(id).onchange=autosave;
