@@ -22,7 +22,7 @@ test('preview changes pixels, pauses, stops, and never alters the saved grid',as
  await expect.poll(pixels).not.toEqual(before);
  await ui(page,'#quickPlay');const paused=await pixels();await page.clock.runFor(2000);expect(await pixels()).toEqual(paused);
  expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(original);
- await ui(page,'#animationStop');expect(await pixels()).toEqual(before);
+ await ui(page,'#returnDrawing');expect(await pixels()).toEqual(before);
  await ui(page,'#quickPlay');await clickCell(page,1,0);await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');
  expect(JSON.parse(await download(page,'#saveProject')).grid).toEqual(original);
 });

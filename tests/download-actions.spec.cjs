@@ -1,5 +1,5 @@
 const {GifReader}=require('omggif');
-const {ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
+const {chooseInk,ui,test,expect,download,loadProject,project}=require('./helpers.cjs');
 test.beforeEach(async({page})=>{await page.goto('/');await page.locator('.app[data-ready=true]').waitFor();await loadProject(page,project([160,''],2,1,{selectedGlyph:160,animation:{effect:'scroll-x',seconds:.5,scale:4,background:'dark'}}))});
 test('each animation format has one download action and reuses a completed file on a second tap',async({page})=>{
  await expect(page.locator('#gifDownload,#videoDownload,#framesDownload')).toHaveCount(0);
@@ -8,7 +8,7 @@ test('each animation format has one download action and reuses a completed file 
  }
 });
 test('artwork and output changes regenerate the file instead of downloading stale content',async({page})=>{
- const first=await download(page,'#exportGif'),url=await page.locator('#exportGif').getAttribute('data-download-url');await ui(page,'#inkTarget');await ui(page,'#colorPalette button:nth-child(3)');await ui(page,'#recolorDrawing');const red=await download(page,'#exportGif');expect(red).not.toEqual(first);expect(await page.locator('#exportGif').getAttribute('data-download-url')).not.toBe(url);const gif=new GifReader(red),pixels=new Uint8Array(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(0,pixels);expect(Array.from(pixels.slice((16*gif.width+16)*4,(16*gif.width+16)*4+3))).toEqual([104,55,43]);
+ const first=await download(page,'#exportGif'),url=await page.locator('#exportGif').getAttribute('data-download-url');await chooseInk(page,2);await ui(page,'#recolorDrawing');const red=await download(page,'#exportGif');expect(red).not.toEqual(first);expect(await page.locator('#exportGif').getAttribute('data-download-url')).not.toBe(url);const gif=new GifReader(red),pixels=new Uint8Array(gif.width*gif.height*4);gif.decodeAndBlitFrameRGBA(0,pixels);expect(Array.from(pixels.slice((16*gif.width+16)*4,(16*gif.width+16)*4+3))).toEqual([104,55,43]);
  await ui(page,'#gifScale','selectOption','1');const small=await download(page,'#exportGif');expect(new GifReader(small).width).toBe(16);expect(small).not.toEqual(red);await ui(page,'#animationColor','selectOption','color-cycle');expect(new GifReader(await download(page,'#exportGif')).numFrames()).toBe(16);
 });
 test('download progress restores the same button after cancellation or an encoder error',async({page})=>{

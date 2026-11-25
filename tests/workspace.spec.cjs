@@ -72,7 +72,7 @@ test('paint and eraser select consistent tools, with read-only preview made expl
  await ui(page,'#paint');await ui(page,'#paint');await expect(page.locator('#paint')).toHaveAttribute('aria-pressed','true');
  await ui(page,'#quickPlay');await expect(page.locator('#erase')).toBeDisabled();await expect(page.locator('#previewLabel')).toContainText('Read-only preview');
  await ui(page,'#quickPlay');await expect(page.locator('#erase')).toBeDisabled();await expect(page.locator('#previewLabel')).toContainText('Paused');
- await ui(page,'#returnDrawing');await expect(page.locator('#erase')).toBeEnabled();await expect(page.locator('#animationStop')).toBeDisabled();
+ await ui(page,'#returnDrawing');await expect(page.locator('#erase')).toBeEnabled();await expect(page.locator('#previewBanner')).toBeHidden();
 });
 test('glyph codes are optional device preferences and do not change project contents',async({page})=>{
  const before=JSON.parse(await download(page,'#saveProject'));await ui(page,'#glyphFamily','selectOption','blocks');await expect(page.locator('#palette button[data-g="160"] small')).toBeHidden();await expect(page.locator('#palette button[data-g="160"]')).toHaveAttribute('aria-label','C64 glyph ID 160');

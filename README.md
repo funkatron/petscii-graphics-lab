@@ -137,9 +137,9 @@ The **Background** color is shared by the whole canvas.
 
 | Control | What changes |
 | --- | --- |
-| **Ink** | Brush color for future strokes |
-| **Background** | Shared canvas background |
-| **Swap brush / background** | Those two settings; existing cell ink stays the same |
+| **Ink** (drawing strip) | Brush color for future strokes |
+| **☰ → Colors → Background** | Shared canvas background |
+| **Swap brush / background** (same section) | Those two settings; existing cell ink stays the same |
 | **Canvas** (drawing strip, beside Undo) | **Recolor with current brush ink**, **Replace ink**, **Replace glyph**, **Border**, **Checkerboard**, and **Clear drawing**; one undo per action. With a selection, Recolor and Replace change only the selected cells. **To ink** starts as your brush ink, and the line under the swatches names both colors. Tap **?** in the panel for details. |
 
 The 16 colors use the [Pepto PAL palette](https://www.pepto.de/projects/colorvic/2001/), an RGB approximation of C64 color. The default is Light blue ink on Blue. Glyph thumbnails stay white on black so their shapes remain visible at any brush color.
@@ -202,9 +202,9 @@ Controls are grouped into **Timeline & preview**, **Movement**, **Color**, and *
 4. Set the direction and waveform controls that appear for your selected effects.
 5. Choose **Loop duration**, the length of the complete timeline: half a second to 12 seconds.
 6. Set **Movement cycles per loop** and **Color cycles per loop** independently from **1× through 16×** (1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16). More cycles make that effect faster without changing the overall loop duration.
-7. Press **Play**, or use **▶** in the header.
+7. Press **▶** in the header to play.
 
-**Pause** holds the current preview frame. **Return to drawing** restores the original artwork and colors. The preview names the effect and shows when it is paused.
+**❚❚** (the same header button) holds the current preview frame. **Return to drawing**, in the bar above the canvas, restores the original artwork and colors. The preview names the effect and shows when it is paused.
 
 The canvas is read-only during playback and while paused. All drawing tools are dimmed and unavailable until you choose **Return to drawing**. Other edits, such as choosing a new ink, **Undo** or a **Canvas** action, return to drawing first; the status message says **Returned to drawing**. Playback pauses when the browser tab is hidden and stays stopped when a project is reopened.
 

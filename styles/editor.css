@@ -53,7 +53,7 @@ h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.08rem;l
  box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 4px #000;
 }
 .color-grid button:focus-visible{outline:2px solid var(--ui-focus-border);outline-offset:-2px;z-index:2}
-.color-chip{display:inline-block;width:14px;height:14px;border:1px solid var(--case-edge);border-radius:3px;vertical-align:middle;margin-right:4px}.color-name{display:block;font-size:.67rem;margin-top:3px}#glyphPreview{background:var(--art-bg)}.glyph{color:var(--art-ink)}
+.color-chip{display:inline-block;width:14px;height:14px;border:1px solid var(--case-edge);border-radius:3px;vertical-align:middle;margin-right:4px}#glyphPreview{background:var(--art-bg)}.glyph{color:var(--art-ink)}
 .glyph-filter{display:flex;align-items:center;gap:6px;min-height:44px;flex:1}.glyph-filter input{flex:none}
 .glyph-family{grid-column:1/-1;font-size:.78rem;color:var(--case-text);margin:12px 0 3px;font-weight:600}
 .palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:5px;padding:2px}
@@ -450,7 +450,7 @@ header button[aria-pressed=true],.drawing-strip button[aria-pressed=true],
 .glyph-picker button.active,.export-tabs [aria-selected=true],
 .project-menu button[aria-pressed=true],dialog button[aria-pressed=true],
 .project-menu button.active,dialog button.active,
-#animationPlay[aria-pressed=true],#motionPreview[aria-pressed=true],
+#motionPreview[aria-pressed=true],
 #c64Preview[aria-pressed=true]{
  background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);
  box-shadow:var(--key-pressed-shadow);transform:translateY(2px);
@@ -603,17 +603,13 @@ dialog input:not([type=checkbox]):not([type=radio]):not([type=range]):focus{
 .drawing-strip label,.drawing-strip span:not(.tool-label),
 .drawing-strip .hint{color:var(--stage-caption)}
 header #saveStatus,header .status,header .note{color:var(--chrome-label)}
-#inkTarget[aria-pressed=true],#backgroundTarget[aria-pressed=true]{
- background:var(--key-active);color:var(--text-on-accent);border-color:var(--key-active-edge);
- box-shadow:var(--key-pressed-shadow);transform:translateY(2px);
-}
 .context-help{
  background:var(--help-panel-bg);color:var(--help-panel-fg);border:2px solid var(--help-panel-border);
  box-shadow:0 12px 30px #1a233650;
 }
 .context-help h3,.context-help p,.context-help li{color:var(--help-panel-fg)}
 .context-help button,.preview-banner button,
-#animationPlay,#animationStop,#motionPreview,#c64Preview,
+#motionPreview,#c64Preview,
 .stage .preview-banner #returnDrawing,.stagebar>.help-trigger,
 .stagebar .help-trigger,.help-section .help-trigger{
  background:var(--ui-control-bg);color:var(--ui-text);border:1px solid var(--ui-control-border);
