@@ -22,6 +22,33 @@ The example projects in `agents/petscii-preview/examples/` set their machine; th
 
 Shipped through **0.35.18**: reference overlay, scroller export copy, animation glossary, export filename `_` slugs, download filename preview, project `projectName` in v3 JSON. See [tier-a-ooda-plans.md](tier-a-ooda-plans.md) and [owner-program-queue.md](owner-program-queue.md).
 
+## UI review (Raskin, November 2026) — shipped in 0.36.0
+
+All findings in the [Raskin review](ui-review-raskin-2026-11.md) are fixed or decided: H1–H3, M1–M5 and L1/L3/L4 shipped (batch 1, then PRs #207 and #209). L2 decision: two-tap corners stay opt-in behind **Tap endpoints**.
+
+- [ ] Evaluate M1–M5 on a physical iPad (the review's own next step): status fading, save chip, glyph dock at 1180 px, Canvas commands, one place per action.
+- [ ] Try the new gestures on a device: two-finger tap to Undo; hold Space to pan and hold Alt to pick with a hardware keyboard.
+- [ ] Evaluate the remaining mode costs in real drawing sessions before changing them ([UI review](ui-review.md#raskin-informed-follow-up--23-october-2026)): choosing a glyph selects Paint; broad edits end preview; Undo includes brush settings.
+
+## Application-like UI — open product questions
+
+Source: [`.cursorrules/app-like-ui-ia.md`](../.cursorrules/app-like-ui-ia.md) §4. Header grouping (System / Project / Editor) and the import cross-links have shipped. These decisions are still open and block that plan's structural phase:
+
+- [ ] Machine: system-wide setting, or per project with a device default?
+- [ ] Display palette: per project only, so opening another person's file never changes your default?
+- [ ] Download: stay a header button, or become **Project → Export artwork…** with a one-tap shortcut?
+- [ ] Animation: a soft Draw / Preview mode, or sidebar settings plus header ▶ as now?
+- [ ] Background color: Colors section only, or a second chip beside **Ink** on the drawing strip?
+- [ ] Import: one **Open / Import** place for project JSON, text grids and pasted text, or keep the current two homes?
+- [ ] Device preferences (glyph codes, pin, Tap endpoints default): a dedicated preferences menu, or stay where they are?
+
+Resolved: project name is saved in v3 projects (`projectName`); whole-drawing actions live in the Canvas menu (M4).
+
+## Release and versioning
+
+- [ ] Show the UTC build timestamp and short Git SHA in the app (for example in the Project menu), tracked separately from `APP_VERSION` and file-format versions. Nothing records them today.
+- [x] Keep `package.json` `version` equal to `APP_VERSION` (fixed in PR #214; it had stayed at 0.35.0 through 0.35.x).
+
 ## Current priorities
 
 Reviewed **2026-11-16** after PETSCII editor landscape research, the real-hardware product gate, and the borrowings backlog.
@@ -63,9 +90,9 @@ Research PRs may land documentation for #1–#3 together; implementation order s
 - [x] **Glyph-only / ink-only paint** (Wizard Shift, Petmate modes); Playwright stroke coverage (`drawing-paint-modes.spec.cjs`).
 - [x] **Nomenclature pass (partial):** Movement label, Backdrop effect vs brush Background, Native program **(PRG)** tab; help glossary remains follow-up.
 - [x] **Project naming (#66):** name pool, export effect + machine filename tags; see [tier-a-ooda-plans.md](tier-a-ooda-plans.md) for remaining Tier A order.
-- [x] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship — **OODA §1** (PR pending).
-- [x] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment) — **OODA §2** (PR pending).
-- [x] **Animation glossary:** procedural effects vs cel frames — **OODA §3** (PR pending).
+- [x] **Reference image overlay → PETSCII** (Marq/Petmate/Wizard); accuracy limits documented before ship — **OODA §1** (shipped by 0.35.18).
+- [x] **Export copy:** scroller / native program labels when Scroll + PRG ([c64-output.md](c64-output.md) alignment) — **OODA §2** (shipped by 0.35.18).
+- [x] **Animation glossary:** procedural effects vs cel frames — **OODA §3** (shipped by 0.35.18).
 
 **Tier B — after Tier A or with #5**
 
@@ -110,6 +137,7 @@ Most of the app still lives in one `index.html` module script; smaller areas alr
 - [x] Move canvas view (zoom, guides, pan) out of `index.html` (slices 1a–1b, **0.35.19–0.35.20**).
 - [x] Move vector tool preview and stage-hint copy (slices 2–3, **0.35.22**).
 - [ ] Move download/export UI orchestration behind a module boundary shared with existing exporters (slice 4).
+- [ ] Move help popovers (`helpFor`, `contextHelp`) to `editor/help-popovers.js` (slice 5).
 - [ ] Reduce the boot script to imports, DOM queries, and `init()` calls (slices 4–5 and whatever remains).
 - [x] Confirm CI (Chromium + iPad WebKit) after slices 1–3. Repeat after each later slice.
 
@@ -142,6 +170,10 @@ See the [audit findings and remaining work](test-reliability-audit.md).
 - [x] Add repeated download/navigation coverage and failure-state attachments; PR #41 passed all nine CI jobs.
 - [x] Validate controlled-clock C64 download-preview playback and two-second Stop stability in all three browsers; PR #53.
 - [x] Fix iPad WebKit project-download helper flake (`#saveProject` hidden when Share is offered); see [test-reliability-audit.md](test-reliability-audit.md).
+- [x] Repair full-suite drift found in November 2026 (PRs #211, #212): stale assertions, a C64 lazy-loading race, and a 60 s per-test limit for iPad WebKit.
+- [ ] Review serialization fixtures, shared helpers and order-dependent state (open item in the [audit](test-reliability-audit.md)).
+- [ ] Run the full suite on a schedule (for example weekly on `main`). It is opt-in per PR, and recent drift went unnoticed for several releases.
+- [ ] Document the local agent test setup: `py65` for 6502 checks, `pngjs` / `omggif` / `adm-zip` for export decoding, and Playwright WebKit for iPad projects.
 
 ## Phone UI — automated first pass released
 
@@ -149,6 +181,8 @@ See the [audit findings and remaining work](test-reliability-audit.md).
 - [ ] Review panel placement, touch targets, safe areas and on-screen keyboard behavior; preserve artwork while resizing or rotating.
 - [x] Run 320/390/430-pixel portrait and rotated landscape checks for overflow, control reach, erase/Undo, exact projects and exported pixels; PR #45.
 - [ ] Verify the phone workflows on a physical device.
+- [ ] Fix short landscape (568 × 320, e.g. iPhone SE sideways): the header and drawing strip wrap to about 225 px, so the canvas collapses once the selection dock appears. Then turn `tests/phone-workspace.spec.cjs` back on (it is `test.fixme` until then).
+- [ ] Decide the phone cut order when the header wraps (app-like UI question 9): hide the title first, collapse Machine to an icon, move Project into ☰, keep Download, ▶ and the drawing strip.
 
 ## Canvas space — released
 
@@ -175,7 +209,17 @@ A shader is a visual effect applied over the rendered canvas. The shipped screen
 
 ## Additional animations — in progress
 
-**Roadmap priority #1.** **Research (2026-11-16):** [New animation types research](animation-types-research.md) maps shipped effects to C64 demoscene references and ranks next prototypes. Open checklist items below still apply.
+**Roadmap priority #1.**
+
+### Diagonal wave and wipe patterns — next (owner queue phase 2)
+
+Scope and acceptance: [diagonal wave / wipe prep](diagonal-wave-wipe-prep.md). Phase 1b's automated checks passed on Chromium and both iPad WebKit projects in the #212 full run, so this is unblocked.
+
+- [ ] Spike **Diagonal wave** (movement): deterministic frames at 4×4 and 40×25; one GIF and one PRG byte fixture; sampled-frame native player unless a procedural profile passes the capacity checks.
+- [ ] Decide **Diagonal wipe patterns**: add a new wipe pattern, or close it as already covered by Diagonal wipe with eight directions.
+- [ ] Owner approval before either appears in the Animation menu.
+
+**Research (2026-11-16):** [New animation types research](animation-types-research.md) maps shipped effects to C64 demoscene references and ranks next prototypes. Open checklist items below still apply.
 
 ### Bonfire — implementation, validation pending
 
