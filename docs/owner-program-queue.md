@@ -6,8 +6,8 @@ Ordered delivery tracks agreed in agent session. **One slice merged before the n
 | ---: | ---: | --- | --- |
 | **0** | UI polish | Post–help-panel polish: labels, stage hints, derived-frame summary, physical iPad checklist (manual) | **Complete** (v0.35.14+, merged #178) |
 | **1** | **#3** Cross-editor UX | Tier A/B: grid label, glossary, export filenames, Canvas tools, project name in v3 | **Complete** (through **0.35.18**, PRs #179–#182) |
-| **1b** | **#2** Validation debt | Sine scroller, Bonfire, depth preview pacing — CI matrix + [validation-debt-status.md](validation-debt-status.md) | **In progress** |
-| **2** | **#1** Prep → prototype | [diagonal-wave-wipe-prep.md](diagonal-wave-wipe-prep.md) then spike | **Prep** (after 1b) |
+| **1b** | **#2** Validation debt | Sine scroller, Bonfire, depth preview pacing — CI matrix + [validation-debt-status.md](validation-debt-status.md) | **Automated complete** (2026-11-27, full CI on #212); physical checks manual |
+| **2** | **#1** Prep → prototype | [diagonal-wave-wipe-prep.md](diagonal-wave-wipe-prep.md) then spike | **Next:** diagonal wave spike |
 | **3** | **#2** C64 / animation validation | VICE PAL/NTSC matrix, physical checks; [native-player-rewrite.md](native-player-rewrite.md) when needed | **Queued** (extends 1b) |
 | **4** | **#7** Modularization | `editor/canvas-view.js`, `drawing-tools.js`, `stage-hint.js` per [modularization-slices.md](modularization-slices.md) | **Slices 1–3 complete** (0.35.22). Next: download shell |
 
@@ -20,7 +20,7 @@ Ordered delivery tracks agreed in agent session. **One slice merged before the n
 - Export filenames use `_` between effect ids; download dialog **Downloads as:** matches `export-filename.js`.
 - Playwright: grid label, derived summary, naming, download-preview filename line; iPad WebKit in CI.
 
-## Phase 1b — validation debt (current)
+## Phase 1b — validation debt (automated part complete 2026-11-27)
 
 1. Run and record: `sine-scroll`, `diagonal-scroll`, `bonfire`, `depth-preview-pacing` on Chromium + both iPad WebKit projects (see validation-debt-status).
 2. Update [diagonal-movement.md](diagonal-movement.md) sine-scroller line when CI green.

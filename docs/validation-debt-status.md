@@ -29,7 +29,13 @@ npx playwright test tests/bonfire.spec.cjs tests/depth-preview-pacing.spec.cjs \
 
 Full export/native matrix remains opt-in (`ci: full` / workflow_dispatch).
 
-## Last recorded run (cloud agent, 2026-11-20, America/Indianapolis)
+## Status: automated matrix closed (2026-11-27)
+
+The full suite (`ci: full`) passed on all nine Playwright jobs, Chromium plus both iPad WebKit projects (3 shards each), with no failures or flaky retries: [CI run](https://github.com/funkatron/petscii-graphics-lab/actions/runs/45685633113) for PR #212 head `8bcce2f`. Its file tree is identical to the merge commit on `main` (`822aa2d`), so this counts as a run on `main`. It covers every spec in the matrix above.
+
+Physical iPad and C64 hardware checks remain open (see **Still manual**).
+
+## Earlier run (cloud agent, 2026-11-20, America/Indianapolis)
 
 | Command | Result |
 | --- | --- |
@@ -44,4 +50,4 @@ Full export/native matrix remains opt-in (`ci: full` / workflow_dispatch).
 
 ## Doc follow-ups
 
-When this matrix is green on all three Playwright projects on `main`, treat sine scroller browser validation as **closed** in [diagonal-movement.md](diagonal-movement.md).
+Done (2026-11-27): the matrix is green on all three Playwright projects on `main`, and sine scroller browser validation is marked **closed** in [diagonal-movement.md](diagonal-movement.md).
