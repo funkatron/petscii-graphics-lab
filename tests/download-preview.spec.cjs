@@ -47,10 +47,12 @@ test('C64 animation shows the same live preview with canvas colors and synchroni
  await page.locator('#motionPreview').click();await page.locator('#export-tab-data').click();
  await expect(button).toHaveText('▶ Play preview');expect(await pixels(page)).toEqual(first);
  await page.clock.runFor(2000);expect(await pixels(page)).toEqual(first);
- // Opening Download stops a preview playing on the main screen.
+ // Opening Download pauses a preview playing on the main screen; the dialog's own control starts fresh.
  await page.locator('#downloadClose').click();await ui(page,'#quickPlay');await expect(page.locator('#previewBanner')).toBeVisible();
  await ui(page,'#c64Mode','selectOption','animation');await expect(button).toHaveText('▶ Play preview');
- await expect(page.locator('#previewBanner')).toBeHidden();await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');
+ await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');await expect(page.locator('#previewLabel')).toContainText('Paused');
+ // Playing in the dialog ends the paused editor preview.
+ await button.click();await expect(button).toHaveText('■ Stop preview');await expect(page.locator('#previewBanner')).toBeHidden();
 });
 test('modal preview controls fit portrait and landscape iPad layouts',async({page},testInfo)=>{
  for(const [width,height] of [[810,1080],[1080,810]]){

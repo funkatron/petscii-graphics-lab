@@ -219,7 +219,7 @@ function syncPickerDock(){$('glyphPicker').classList.toggle('pinned',pickerPinne
 window.addEventListener('resize',syncPickerDock);
 const downloadShell=downloadShellModule.initDownloadShell({
  $,
- closeOtherSurfaces:()=>{if(animationPreview)stopAnimation();$('machineMenu').open=false;$('projectMenu').open=false;closeToolModeMenus();$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('canvasPopover').hidePopover()},
+ closeOtherSurfaces:()=>{if(animationPlaying&&previewTarget==='editor')pauseAnimation();$('machineMenu').open=false;$('projectMenu').open=false;closeToolModeMenus();$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('canvasPopover').hidePopover()},
  onOpen:()=>{updateNativeExportLabels();updateExportScrollerCopy();updateDownloadPreview();updateExportFilenameNote()},
  onRefresh:()=>{stopDialogPreviewIfStill();updateDownloadPreview();updateExportFilenameNote()},
 });
@@ -739,7 +739,7 @@ function updateDownloadPreview(){
  const motion=!$('export-motion').hidden,data=!$('export-data').hidden,moving=motion||(data&&$('c64Mode').value==='animation');
  // Every tab shows a preview; Native program › Still drawing shows the picture on the machine screen.
  $('downloadFigure').hidden=false;
- const source=animationSource(),picture=moving?animationCells(animationPreview?animationFrame:0,source):{cells:grid,inks:cellColors,colorPalette:drawingPaletteTag(),background:colors.background};
+ const source=animationSource(),picture=moving?animationCells(animationPreview&&previewTarget==='dialog'?animationFrame:0,source):{cells:grid,inks:cellColors,colorPalette:drawingPaletteTag(),background:colors.background};
  const artFill=inkFill(picture.background??colors.background,picture.colorPalette||drawingPaletteTag());
  const bg=data?artFill:motion?($('gifBackground').value==='transparent'&&$('animationFormat').value!=='video'?null:$('gifBackground').value==='white'?'#fff':artFill):stillBackground();
  let previewCells=picture.cells,previewInks=picture.inks,previewColumns=W,previewRows=H;
@@ -908,7 +908,8 @@ function animationButtons(){
  updateMotionSummary();$('previewBanner').hidden=!editorPreview;$('stageCanvasView').inert=editorPreview;$('previewLabel').textContent='Read-only preview · '+animationName()+(animationPlaying?'':' · Paused');
  $('quickPlay').textContent=editorPlaying?'❚❚':'▶';
  $('quickPlay').setAttribute('aria-pressed',String(editorPlaying));$('quickPlay').setAttribute('aria-label',editorPlaying?'Pause animation':'Play animation');
- for(const id of ['motionPreview','c64Preview']){$(id).textContent=animationPreview?'■ Stop preview':'▶ Play preview';$(id).setAttribute('aria-pressed',String(animationPreview))}
+ const dialogPreview=animationPreview&&previewTarget==='dialog';
+ for(const id of ['motionPreview','c64Preview']){$(id).textContent=dialogPreview?'■ Stop preview':'▶ Play preview';$(id).setAttribute('aria-pressed',String(dialogPreview))}
  canvas.classList.toggle('preview-locked',editorPreview);
  $('erase').disabled=animationPreview;
  for(const id of ['paint','erase'])$(id).title=editorPreview?'Choose Return to drawing to edit':id==='paint'?'Paint with the selected glyph':'Erase cells';
@@ -932,7 +933,7 @@ function toggleAnimation(target='editor'){
  cancelToolDrag();selection=null;cancelStroke();previewTarget=target;animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
 }
 $('quickPlay').onclick=()=>toggleAnimation('editor');
- for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Preview stopped')}else toggleAnimation('dialog')};
+ for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview&&previewTarget==='dialog'){stopAnimation();setStatus('Preview stopped');return}if(animationPreview)stopAnimation();toggleAnimation('dialog')};
 $('returnDrawing').onclick=()=>{stopAnimation();setStatus('Returned to drawing')};
 $('editAnimationFromPreview').onclick=()=>openAnimationSettings();
 for(const id of [...Object.keys(SOLID_CAMERA_VALUES),'depthWaveShape','depthTravel','animationEffect','animationColor','backdropEffect','animationSeconds','animationCycles','animationColorCycles','animationBackgroundCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude','waveLength','colorWaveLength','fieldWaveDirection','fieldWaveShape','fieldWaveAmplitude','fieldWaveLength','wipePattern','parallaxGroup','parallaxSpread','parallaxTravel','fieldRamp','fieldDirection','fieldLead','fieldBrightness'])$(id).onchange=()=>{if(id==='animationEffect')researchMotionEffect=null;if(id==='animationColor'&&['raster-bars','plus4-raster'].includes($('animationColor').value))$('colorWaveDirection').value='up';if(id==='animationColor'&&['plasma','plus4-plasma'].includes($('animationColor').value)){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};if(id==='fieldRamp'&&['raster-bars'].includes($('fieldRamp').value))$('fieldWaveDirection').value='up';if(id==='fieldRamp'&&['plasma'].includes($('fieldRamp').value)){$('fieldWaveDirection').value='up-left';$('fieldWaveShape').value='sine'};updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};
