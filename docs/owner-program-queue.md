@@ -34,7 +34,7 @@ Ordered delivery tracks agreed in agent session. **One slice merged before the n
 
 ## Phase 4 kickoff (#7)
 
-1. [modularization-slices.md](modularization-slices.md) — slices 1–3 are merged. Next extract is `editor/download-shell.js` (slice 4), then help popovers (slice 5).
+1. [modularization-slices.md](modularization-slices.md) — slices 1–4 are merged (slice 4: `editor/download-shell.js`). Next extract is help popovers (slice 5).
 2. CI: `canvas-view.spec.cjs`, `drawing-tools.spec.cjs`, and stage-hint coverage stay green.
 3. No bundler; static ESM imports on GitHub Pages.
 
