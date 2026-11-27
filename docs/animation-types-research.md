@@ -95,7 +95,7 @@ Typical intros combine **raster border**, **DYCP text**, **starfield**, **bounci
 | Topic | Doc / roadmap | Research note |
 | --- | --- | --- |
 | Diagonal **wave** / **wipe** | [diagonal-movement.md](diagonal-movement.md) | Separate from scroll; needs explicit ranking rules |
-| **Sine scroller** validation | Roadmap “browser checks pending” | Close with iPad + export byte checks |
+| **Sine scroller** validation | Browser and export checks **closed** 2026-11-27 ([validation-debt-status.md](validation-debt-status.md)) | Physical iPad check remains manual |
 | **Perspective floor**, **Curved road**, **Tunnel flight** | [depth-effects.md](depth-effects.md) | Compare readability vs **Space warp**; keep or trim |
 | **Orbital field** | depth-effects candidate #5 | Defer until simpler depth effects signed off |
 | Demoscene reference pass | Roadmap unchecked bullets | This document satisfies the *research* slice; prototypes still TBD |
