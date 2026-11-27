@@ -198,7 +198,7 @@ These are per-cycle sampling targets. Independent cycle counts multiply those ta
 
 - **Settings and resize.** Settings use initially closed Canvas setup, Colors and Animation disclosures with contextual question-mark help. Broad pattern/clear/recolor actions live under explicitly scoped disclosures. Stage columns and rows together, show the proposed crop, and apply once with one undo entry; Cancel leaves art/history unchanged.
 
-- **Download panel.** Header Download artwork opens a native responsive dialog with keyboard-accessible Image / Animation / C64 data tabs, format selection and exact grid-free output previews. Retain one action per chosen format, existing download caches and snapshot isolation.
+- **Download panel.** Header Download artwork opens a native responsive dialog with keyboard-accessible Image / Animation / C64 data tabs, format selection and exact grid-free output previews. Every tab shows a preview: Native program › Still drawing shows the picture centered on the machine screen (40 × 25, or 80 × 25 on VDC), and Selected animation adds Play preview. Retain one action per chosen format, existing download caches and snapshot isolation.
 
   Project open/editable JSON download live in a separate Project menu. Dialog navigation must not alter art/history/playback. Escape closes only the top surface; dismissing downloads or ink must not also close the glyph panel. Closing it keeps export work running; progress and Cancel remain accessible outside it and inside when open.
 

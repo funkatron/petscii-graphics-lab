@@ -728,7 +728,8 @@ function artworkPreview(target,cells,inks,cols,rows,background,colorPalette='pep
 function updateDownloadPreview(){
  if(!$('downloadDialog').open)return;
  const motion=!$('export-motion').hidden,data=!$('export-data').hidden,moving=motion||(data&&$('c64Mode').value==='animation');
- $('downloadFigure').hidden=data&&!moving;if($('downloadFigure').hidden)return;
+ // Every tab shows a preview; Native program › Still drawing shows the picture on the machine screen.
+ $('downloadFigure').hidden=false;
  const source=animationSource(),picture=moving?animationCells(animationPreview?animationFrame:0,source):{cells:grid,inks:cellColors,colorPalette:drawingPaletteTag(),background:colors.background};
  const artFill=inkFill(picture.background??colors.background,picture.colorPalette||drawingPaletteTag());
  const bg=data?artFill:motion?($('gifBackground').value==='transparent'&&$('animationFormat').value!=='video'?null:$('gifBackground').value==='white'?'#fff':artFill):stillBackground();
@@ -751,8 +752,8 @@ function updateDownloadPreview(){
  const thumb=exportCellSize(workspaceMachine,workspaceCellAspect,1);
  artworkPreview($('downloadPreview'),previewCells,previewInks,previewColumns,previewRows,bg,picture.colorPalette||'pepto-pal',thumb.cellW,thumb.cellH,!data,previewMatte);
  const loops=motion&&$('animationFormat').value==='video'?Number($('videoRepeats').value):1;
- $('downloadDimensions').textContent=(moving?'Animation':'Drawing')+' · '+previewColumns*previewCell.cellW+' × '+previewRows*previewCell.cellH+' pixels'+(centered?' · '+W+' × '+H+' cells centered':'')+(moving?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
- let description=moving?'Use Play preview to watch the selected animation here.':'Original drawing, without editing grid lines.';
+ $('downloadDimensions').textContent=(moving?'Animation':'Drawing')+' · '+previewColumns*previewCell.cellW+' × '+previewRows*previewCell.cellH+' pixels'+(centered?' · '+W+' × '+H+' cells centered':'')+(moving?' · '+Number((source.seconds*loops).toFixed(2))+' seconds · '+animationCount(source)*loops+' frames':data?'':($('stillFormat').value==='svg'?' · SVG vector scales freely':' PNG'));
+ let description=moving?'Use Play preview to watch the selected animation here.':data?'Still drawing as the native program shows it'+(centered?', centered on the '+screenCols+' × 25 screen.':'.'):'Original drawing, without editing grid lines.';
  if(moving&&(source.backgroundEffect==='field'||source.backgroundEffect==='plus4-field')){
   const lead=source.fieldLead??1;
   if(isVdcMachine(workspaceMachine)||lead===0)description+=' Border matches the background.';

@@ -32,7 +32,7 @@ test('Animation plays the output preview in the modal and Stop restores its firs
 });
 test('C64 animation shows the same live preview with canvas colors and synchronized Play/Stop controls',async({page})=>{
  await page.clock.install();
- await ui(page,'#c64Mode','selectOption','still');await expect(page.locator('#c64Preview')).toBeHidden();await expect(page.locator('#downloadFigure')).toBeHidden();
+ await ui(page,'#c64Mode','selectOption','still');await expect(page.locator('#c64Preview')).toBeHidden();await expect(page.locator('#downloadFigure')).toBeVisible();await expect(page.locator('#downloadDescription')).toContainText('Still drawing as the native program shows it');
  await page.locator('#c64Mode').selectOption('animation');await expect(page.locator('#downloadFigure')).toBeVisible();
  const first=await pixels(page),button=page.locator('#c64Preview');
  await expect(page.locator('#downloadDimensions')).toContainText('320 × 200 pixels · 4 × 1 cells centered');
@@ -60,4 +60,16 @@ test('modal preview controls fit portrait and landscape iPad layouts',async({pag
    await page.screenshot({path:'/tmp/petscii-preview-'+testInfo.project.name+'-'+width+'-'+selector.slice(1)+'.png',fullPage:true});
   }
  }
+});
+test('Native program still drawing previews the picture centered on the C64 screen',async({page})=>{
+ // 2×1 solid block (glyph 160) in white on blue: centered at columns 19–20, row 12 of 40×25.
+ await loadProject(page,project([160,160],2,1,{colors:{ink:1,background:6},cellColors:[1,1]}));
+ await ui(page,'#c64Mode','selectOption','still');
+ await expect(page.locator('#downloadFigure')).toBeVisible();
+ await expect(page.locator('#downloadDimensions')).toContainText('2 × 1 cells centered');
+ const px=await page.locator('#downloadPreview').evaluate(c=>{const g=c.getContext('2d');const at=(x,y)=>[...g.getImageData(x,y,1,1).data].slice(0,3).join(',');return {w:c.width,h:c.height,corner:at(1,1),ink:at(19*8+4,12*8+4),ink2:at(20*8+4,12*8+4),beside:at(18*8+4,12*8+4)}});
+ expect([px.w,px.h]).toEqual([320,200]);
+ expect(px.ink).toBe(px.ink2);
+ expect(px.ink).not.toBe(px.corner);
+ expect(px.beside).toBe(px.corner);
 });
