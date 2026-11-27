@@ -2,7 +2,7 @@
 
 **Goal:** Shrink the `index.html` module script without a bundler or build step. GitHub Pages keeps static ESM imports.
 
-Slices **1–3** are on `main` (**0.35.22**). Next is slice **4**, `editor/download-shell.js`. See [owner-program-queue.md](owner-program-queue.md).
+Slices **1–3** are on `main` (**0.35.22**); slice **4** (`editor/download-shell.js`) follows. Next is slice **5**, `editor/help-popovers.js`. See [owner-program-queue.md](owner-program-queue.md).
 
 ## Proposed modules (order)
 
@@ -38,5 +38,12 @@ Slices **1–3** are on `main` (**0.35.22**). Next is slice **4**, `editor/downl
 
 - [x] `buildDrawingHintText`, `syncSymmetryChrome`, `syncTapEndpointsChrome`.
 - [x] `index.html` `drawingHintState()` bag; `tests/stage-hint.unit.mjs`.
+
+### Slice 4 (`download-shell.js`)
+
+- [x] `initDownloadShell({ $, closeOtherSurfaces, onOpen, onRefresh })` owns open/close, backdrop-click close, refresh on change, export tabs (click + Arrow/Home/End), and the still/animation format toggles.
+- [x] Preview rendering, filename note and exporters stay in `index.html` / `*-export.js` and are called through hooks.
+- [x] `downloadShell.onTabChange(fn)` replaces the old global `selectExportTab` wrapper used by the native size check.
+- [x] `tests/download-shell.unit.mjs` covers tab-key navigation and backdrop hit testing.
 
 CI: `workspace.spec.cjs` (stage hint), `animation.spec.cjs`, drawing/canvas specs.

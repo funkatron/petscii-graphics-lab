@@ -136,7 +136,7 @@ Most of the app still lives in one `index.html` module script; smaller areas alr
 - [x] Agree the first module names in [modularization slices](modularization-slices.md): `editor/canvas-view.js`, `editor/drawing-tools.js`, `editor/stage-hint.js`.
 - [x] Move canvas view (zoom, guides, pan) out of `index.html` (slices 1a–1b, **0.35.19–0.35.20**).
 - [x] Move vector tool preview and stage-hint copy (slices 2–3, **0.35.22**).
-- [ ] Move download/export UI orchestration behind a module boundary shared with existing exporters (slice 4).
+- [x] Move download/export UI orchestration behind a module boundary shared with existing exporters (slice 4, `editor/download-shell.js`).
 - [ ] Move help popovers (`helpFor`, `contextHelp`) to `editor/help-popovers.js` (slice 5).
 - [ ] Reduce the boot script to imports, DOM queries, and `init()` calls (slices 4–5 and whatever remains).
 - [x] Confirm CI (Chromium + iPad WebKit) after slices 1–3. Repeat after each later slice.

@@ -158,6 +158,7 @@ const {animationRasterFilename,nativeProgramFilename,stillPngFilename,preferredV
 const canvasView=await import('./editor/canvas-view.js');
 const drawingTools=await import('./editor/drawing-tools.js');
 const stageHint=await import('./editor/stage-hint.js');
+const downloadShellModule=await import('./editor/download-shell.js');
 const {animationPlan,animationCount,animationDelay,cyclePhase,effectCycles,waveValue,scrollDirection,animationCells}=await import('./animation-frames.js');
 const {backdropExportActive,prepareNativeBackdropFrames}=await import('./native-backdrop-export.js');
 function buildNativeExportFrames(s,moving){if(backdropExportActive(s)){const frames=moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{...animationCells(0,s),durationMs:1000/60}];return prepareNativeBackdropFrames(frames)}return moving?animationExportFrames(s).map(f=>({...animationCells(f.index,s),durationMs:f.durationMs})):[{cells:s.grid,inks:s.inks,durationMs:1000/60}]}
@@ -216,12 +217,12 @@ const pickerDocked=()=>widePicker.matches||(pickerPinned&&innerWidth>=700);
 $('glyphPin').onclick=()=>{pickerPinned=!pickerPinned;if(pickerPinned&&innerWidth>=700&&innerWidth<1000){$('sidebar').classList.add('closed');$('toggle').setAttribute('aria-expanded','false');$('toggle').textContent='☰'}$('glyphPin').setAttribute('aria-pressed',String(pickerPinned));syncPickerDock()};
 function syncPickerDock(){$('glyphPicker').classList.toggle('pinned',pickerPinned&&innerWidth>=700);$('glyphBackdrop').hidden=$('glyphPicker').hidden||pickerDocked();requestAnimationFrame(fit)}
 window.addEventListener('resize',syncPickerDock);
-$('downloadOpen').onclick=()=>{$('machineMenu').open=false;$('projectMenu').open=false;closeToolModeMenus();$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('canvasPopover').hidePopover();$('downloadDialog').showModal();updateNativeExportLabels();updateExportScrollerCopy();updateDownloadPreview();updateExportFilenameNote()};
-$('downloadClose').onclick=()=>$('downloadDialog').close();
-$('downloadDialog').addEventListener('click',e=>{if(e.target===$('downloadDialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close()}});
-
-$('downloadDialog').addEventListener('change',()=>{updateDownloadPreview();updateExportFilenameNote()});
-$('cancelSheetDownload').onclick=()=>$('cancelAnimationExport').click();
+const downloadShell=downloadShellModule.initDownloadShell({
+ $,
+ closeOtherSurfaces:()=>{$('machineMenu').open=false;$('projectMenu').open=false;closeToolModeMenus();$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('canvasPopover').hidePopover()},
+ onOpen:()=>{updateNativeExportLabels();updateExportScrollerCopy();updateDownloadPreview();updateExportFilenameNote()},
+ onRefresh:()=>{updateDownloadPreview();updateExportFilenameNote()},
+});
 function positionInkPopover(){const r=$('inkQuick').getBoundingClientRect(),strip=$('inkQuick').closest('.drawing-strip').getBoundingClientRect();$('inkPopover').style.left=Math.max(8,Math.min(r.left,innerWidth-Math.min(310,innerWidth-16)-8))+'px';$('inkPopover').style.top=(strip.bottom+6)+'px';$('inkPopover').style.maxHeight=Math.max(80,innerHeight-strip.bottom-14)+'px'}
 function positionCanvasPopover(){const r=$('canvasTool').getBoundingClientRect(),strip=$('canvasTool').closest('.drawing-strip').getBoundingClientRect(),w=Math.min(360,innerWidth-16),center=r.left+r.width/2-w/2,top=strip.bottom+10,picker=$('glyphPicker'),pr=!picker.hidden?picker.getBoundingClientRect():null,right=pr&&pr.width&&pr.left>w+16?pr.left-8:innerWidth-8;$('canvasPopover').style.left=Math.max(8,Math.min(center,right-w))+'px';$('canvasPopover').style.top=top+'px';$('canvasPopover').style.maxHeight=Math.max(120,innerHeight-top-14)+'px'}
 $('inkPopover').addEventListener('beforetoggle',e=>{if(e.newState==='open'){$('inkSelection').textContent='Selected: '+inkLabel(colors.ink);closeToolModeMenus();$('symmetryMenu').open=false;$('canvasPopover').hidePopover();positionInkPopover()}});
@@ -242,14 +243,6 @@ $('glyphToggle').onclick=()=>setGlyphPicker($('glyphPicker').hidden,true);
 for(const id of ['glyphClose','glyphBackdrop'])$(id).onclick=()=>{setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('downloadDialog').open&&!$('glyphPicker').hidden){setGlyphPicker(false);$('glyphToggle').focus({preventScroll:true})}});
 widePicker.addEventListener('change',syncPickerDock);
-const exportTabs=[...document.querySelectorAll('[data-export-tab]')];
-function selectExportTab(tab){
- for(const item of exportTabs){const active=item===tab;item.setAttribute('aria-selected',String(active));item.tabIndex=active?0:-1}
- for(const panel of document.querySelectorAll('[data-export-mode]'))panel.hidden=panel.dataset.exportMode!==tab.dataset.exportTab;updateDownloadPreview();updateExportFilenameNote();
-}
-for(const tab of exportTabs){tab.onclick=()=>selectExportTab(tab);tab.onkeydown=e=>{let index=exportTabs.indexOf(tab);if(e.key==='ArrowRight')index=(index+1)%3;else if(e.key==='ArrowLeft')index=(index+2)%3;else if(e.key==='Home')index=0;else if(e.key==='End')index=2;else return;e.preventDefault();selectExportTab(exportTabs[index]);exportTabs[index].focus()}}
-$('stillFormat').onchange=()=>{const svg=$('stillFormat').value==='svg';$('png').hidden=svg;$('svg').hidden=!svg;$('pngResolution').hidden=svg;updateDownloadPreview()};
-$('animationFormat').onchange=()=>{for(const group of document.querySelectorAll('[data-motion-format]'))group.hidden=group.dataset.motionFormat!==$('animationFormat').value};
 $('editAnimation').onclick=()=>openAnimationSettings();
 function validVideoRepeats(n){return Number.isInteger(n)&&n>=1&&n<=100}
 function updateVideoDuration(){
@@ -774,10 +767,7 @@ function updateDownloadPreview(){
  $('downloadDescription').textContent=description;
  updateExportFilenameNote();
 }
-function activeExportTab(){
- for(const tab of exportTabs)if(tab.getAttribute('aria-selected')==='true')return tab.dataset.exportTab;
- return 'still';
-}
+function activeExportTab(){return downloadShell.activeExportTab()}
 function updateExportFilenameNote(){
  const note=$('exportFilenameNote'),text=$('exportFilenameText');
  if(!note||!text||!$('downloadDialog').open)return;
@@ -1721,8 +1711,8 @@ for(const id of ['columns','rows']){const select=$(id);select.innerHTML='';for(l
  // pulse recenters the modal on WebKit and makes dialog controls never settle.
  // Do not hook redraw either — ResizeObserver/fit redraw storms had the same effect.
  function schedule(){clearTimeout(timer);timer=setTimeout(check,250)}
- const previousTab=selectExportTab;selectExportTab=function(...args){previousTab(...args);schedule()};
- document.addEventListener('change',schedule);$('downloadOpen').addEventListener('click',schedule);document.querySelectorAll('[data-export-tab]').forEach(b=>b.addEventListener('click',schedule));
+ downloadShell.onTabChange(schedule);
+ document.addEventListener('change',schedule);$('downloadOpen').addEventListener('click',schedule);
  function ready(){if(document.querySelector('.app').dataset.ready!=='true')return;observer.disconnect();if($('status').textContent==='Ready to draw')setStatus('');updateToolPalette();refresh();fit()}const observer=new MutationObserver(ready);observer.observe(document.querySelector('.app'),{attributes:true,attributeFilter:['data-ready']});ready();
 })();
 
