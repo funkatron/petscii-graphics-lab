@@ -219,10 +219,17 @@ function syncPickerDock(){$('glyphPicker').classList.toggle('pinned',pickerPinne
 window.addEventListener('resize',syncPickerDock);
 const downloadShell=downloadShellModule.initDownloadShell({
  $,
- closeOtherSurfaces:()=>{$('machineMenu').open=false;$('projectMenu').open=false;closeToolModeMenus();$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('canvasPopover').hidePopover()},
+ closeOtherSurfaces:()=>{if(animationPreview)stopAnimation();$('machineMenu').open=false;$('projectMenu').open=false;closeToolModeMenus();$('symmetryMenu').open=false;$('inkPopover').hidePopover();$('canvasPopover').hidePopover()},
  onOpen:()=>{updateNativeExportLabels();updateExportScrollerCopy();updateDownloadPreview();updateExportFilenameNote()},
- onRefresh:()=>{updateDownloadPreview();updateExportFilenameNote()},
+ onRefresh:()=>{stopDialogPreviewIfStill();updateDownloadPreview();updateExportFilenameNote()},
 });
+// Dialog playback never outlives the dialog or a choice that has no animation.
+function stopDialogPreviewIfStill(){
+ if(!animationPreview||previewTarget!=='dialog')return;
+ const moving=!$('export-motion').hidden||(!$('export-data').hidden&&$('c64Mode').value==='animation');
+ if(!moving)stopAnimation();
+}
+$('downloadDialog').addEventListener('close',()=>{if(animationPreview&&previewTarget==='dialog')stopAnimation()});
 function positionInkPopover(){const r=$('inkQuick').getBoundingClientRect(),strip=$('inkQuick').closest('.drawing-strip').getBoundingClientRect();$('inkPopover').style.left=Math.max(8,Math.min(r.left,innerWidth-Math.min(310,innerWidth-16)-8))+'px';$('inkPopover').style.top=(strip.bottom+6)+'px';$('inkPopover').style.maxHeight=Math.max(80,innerHeight-strip.bottom-14)+'px'}
 function positionCanvasPopover(){const r=$('canvasTool').getBoundingClientRect(),strip=$('canvasTool').closest('.drawing-strip').getBoundingClientRect(),w=Math.min(360,innerWidth-16),center=r.left+r.width/2-w/2,top=strip.bottom+10,picker=$('glyphPicker'),pr=!picker.hidden?picker.getBoundingClientRect():null,right=pr&&pr.width&&pr.left>w+16?pr.left-8:innerWidth-8;$('canvasPopover').style.left=Math.max(8,Math.min(center,right-w))+'px';$('canvasPopover').style.top=top+'px';$('canvasPopover').style.maxHeight=Math.max(120,innerHeight-top-14)+'px'}
 $('inkPopover').addEventListener('beforetoggle',e=>{if(e.newState==='open'){$('inkSelection').textContent='Selected: '+inkLabel(colors.ink);closeToolModeMenus();$('symmetryMenu').open=false;$('canvasPopover').hidePopover();positionInkPopover()}});
@@ -536,6 +543,8 @@ function activeMirrorTables(){if(!rom)return null;let t=mirrorTableCache.get(rom
 const PROJECT_KEY='petscii-graphics-project-v3';
 let replayBase=Array(256).fill(''),replayEvents=[],replayBaseColors=Array(256).fill(colors.ink),replayEventColors=[];
 let cellColors=Array(256).fill(colors.ink);
+// previewTarget: 'editor' (header ▶, plays on the canvas) or 'dialog' (Download › Play preview, plays only in the dialog).
+let previewTarget='editor';
 let animationPlaying=false,animationPreview=false,animationFrame=0,animationRAF=null,animationStart=0,animationElapsed=0;
 let W=16,H=16,grid=Array(256).fill(''),glyph=64,erasing=false,painting=false,last=null,pointer=null,unit=20;
 let previewLeftByEdit=false;
@@ -894,34 +903,36 @@ function animationSettings(){return {
  ...(SOLID_EFFECTS.includes($('animationEffect').value)?solidCameraSettings():{}),...(DEPTH_EFFECTS.includes($('animationEffect').value)?{depthTravel:$('depthTravel').value,depthWaveShape:$('depthWaveShape').value}:{}),waveLength:Number($('waveLength').value),colorWaveLength:Number($('colorWaveLength').value),wipePattern:$('wipePattern').value,parallaxGroup:$('parallaxGroup').value,parallaxSpread:Number($('parallaxSpread').value),parallaxTravel:$('parallaxTravel').value,fieldRamp:$('fieldRamp').value,fieldDirection:$('fieldDirection').value,fieldLead:Number($('fieldLead').value),motionCycles:Number($('animationCycles').value),colorCycles:Number($('animationColorCycles').value),backgroundCycles:Number($('animationBackgroundCycles').value),scrollDirection:$('scrollDirection').value,waveDirection:$('waveDirection').value,waveShape:$('waveShape').value,waveAmplitude:Number($('waveAmplitude').value),colorWaveDirection:$('colorWaveDirection').value,colorWaveShape:$('colorWaveShape').value,colorWaveAmplitude:Number($('colorWaveAmplitude').value),fieldWaveDirection:$('fieldWaveDirection').value,fieldWaveShape:$('fieldWaveShape').value,fieldWaveAmplitude:Number($('fieldWaveAmplitude').value),fieldWaveLength:Number($('fieldWaveLength').value),fieldBrightness:Number($('fieldBrightness').value),effect:resolveMotionEffect(),colorEffect:$('animationColor').value,backgroundEffect:backdropEffectActive()?backdropEffectValue():'none',seconds:Number($('animationSeconds').value),scale:Number($('gifScale').value),background:$('gifBackground').value,videoRepeats}}
 function animationSource(){return {W,H,grid,inks:cellColors,base:replayBase,baseColors:replayBaseColors,events:replayEvents,eventColors:replayEventColors,colors:{...colors},machine:workspaceMachine,palette:workspacePalette,...animationSettings()}}
 function animationButtons(){
- updateMotionSummary();$('previewBanner').hidden=!animationPreview;$('stageCanvasView').inert=!!animationPreview;$('previewLabel').textContent='Read-only preview · '+animationName()+(animationPlaying?'':' · Paused');
- $('quickPlay').textContent=animationPlaying?'❚❚':'▶';
- $('quickPlay').setAttribute('aria-pressed',String(animationPlaying));$('quickPlay').setAttribute('aria-label',animationPlaying?'Pause animation':'Play animation');
+ // Download dialog playback renders only into the dialog; the editor chrome stays in drawing mode.
+ const editorPreview=animationPreview&&previewTarget==='editor',editorPlaying=animationPlaying&&previewTarget==='editor';
+ updateMotionSummary();$('previewBanner').hidden=!editorPreview;$('stageCanvasView').inert=editorPreview;$('previewLabel').textContent='Read-only preview · '+animationName()+(animationPlaying?'':' · Paused');
+ $('quickPlay').textContent=editorPlaying?'❚❚':'▶';
+ $('quickPlay').setAttribute('aria-pressed',String(editorPlaying));$('quickPlay').setAttribute('aria-label',editorPlaying?'Pause animation':'Play animation');
  for(const id of ['motionPreview','c64Preview']){$(id).textContent=animationPreview?'■ Stop preview':'▶ Play preview';$(id).setAttribute('aria-pressed',String(animationPreview))}
- canvas.classList.toggle('preview-locked',animationPreview);
+ canvas.classList.toggle('preview-locked',editorPreview);
  $('erase').disabled=animationPreview;
- for(const id of ['paint','erase'])$(id).title=animationPreview?'Choose Return to drawing to edit':id==='paint'?'Paint with the selected glyph':'Erase cells';
+ for(const id of ['paint','erase'])$(id).title=editorPreview?'Choose Return to drawing to edit':id==='paint'?'Paint with the selected glyph':'Erase cells';
  updateDrawingHint();updateSymmetryChrome();updateToolPalette();
 }
 function stopAnimation(){
- animationPlaying=false;animationPreview=false;animationElapsed=0;animationFrame=0;cancelAnimationFrame(animationRAF);animationRAF=null;
+ animationPlaying=false;animationPreview=false;previewTarget='editor';animationElapsed=0;animationFrame=0;cancelAnimationFrame(animationRAF);animationRAF=null;
  canvas.dataset.animationFrame='';animationButtons();if(initialized)renderGrid(grid);
 }
 function pauseAnimation(){if(!animationPlaying)return;animationElapsed+=performance.now()-animationStart;animationPlaying=false;cancelAnimationFrame(animationRAF);animationRAF=null;animationButtons();setStatus('Animation paused')}
 function animationTick(now){
  if(!animationPlaying)return;const s=animationSource(),n=animationCount(s);let time=(animationElapsed+now-animationStart)%(s.seconds*1000),index=0;
  while(index<n-1&&time>=animationDelay(index,s)){time-=animationDelay(index,s);index++}
- if(index!==animationFrame||canvas.dataset.animationFrame===''){animationFrame=index;renderGrid(animationCells(index,s));canvas.dataset.animationFrame=String(index);updateDownloadPreview()}
+ if(index!==animationFrame||canvas.dataset.animationFrame===''){animationFrame=index;if(previewTarget==='editor')renderGrid(animationCells(index,s));canvas.dataset.animationFrame=String(index);updateDownloadPreview()}
  animationRAF=requestAnimationFrame(animationTick);
 }
-function toggleAnimation(){
+function toggleAnimation(target='editor'){
  const warning=animationPlan(animationSource()).warning;if(warning){setStatus(warning);return}
  if(animationPlaying){pauseAnimation();return}
  if(grid.every(g=>g==='')&&!replayEvents.length){setStatus('Draw something first, then press Play');return}
- cancelToolDrag();selection=null;cancelStroke();animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
+ cancelToolDrag();selection=null;cancelStroke();previewTarget=target;animationPreview=true;animationPlaying=true;animationStart=performance.now();canvas.dataset.animationFrame='';animationButtons();setStatus('Animation playing');animationTick(animationStart);
 }
-$('quickPlay').onclick=toggleAnimation;
- for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Returned to drawing')}else toggleAnimation()};
+$('quickPlay').onclick=()=>toggleAnimation('editor');
+ for(const id of ['motionPreview','c64Preview'])$(id).onclick=()=>{if(animationPreview){stopAnimation();setStatus('Preview stopped')}else toggleAnimation('dialog')};
 $('returnDrawing').onclick=()=>{stopAnimation();setStatus('Returned to drawing')};
 $('editAnimationFromPreview').onclick=()=>openAnimationSettings();
 for(const id of [...Object.keys(SOLID_CAMERA_VALUES),'depthWaveShape','depthTravel','animationEffect','animationColor','backdropEffect','animationSeconds','animationCycles','animationColorCycles','animationBackgroundCycles','scrollDirection','waveDirection','waveShape','waveAmplitude','colorWaveDirection','colorWaveShape','colorWaveAmplitude','waveLength','colorWaveLength','fieldWaveDirection','fieldWaveShape','fieldWaveAmplitude','fieldWaveLength','wipePattern','parallaxGroup','parallaxSpread','parallaxTravel','fieldRamp','fieldDirection','fieldLead','fieldBrightness'])$(id).onchange=()=>{if(id==='animationEffect')researchMotionEffect=null;if(id==='animationColor'&&['raster-bars','plus4-raster'].includes($('animationColor').value))$('colorWaveDirection').value='up';if(id==='animationColor'&&['plasma','plus4-plasma'].includes($('animationColor').value)){$('colorWaveDirection').value='up-left';$('colorWaveShape').value='sine'};if(id==='fieldRamp'&&['raster-bars'].includes($('fieldRamp').value))$('fieldWaveDirection').value='up';if(id==='fieldRamp'&&['plasma'].includes($('fieldRamp').value)){$('fieldWaveDirection').value='up-left';$('fieldWaveShape').value='sine'};updateAnimationOptions();const wasPlaying=animationPlaying;stopAnimation();autosave();if(wasPlaying)toggleAnimation()};

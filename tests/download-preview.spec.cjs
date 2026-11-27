@@ -23,7 +23,8 @@ test('Animation plays the output preview in the modal and Stop restores its firs
  await expect(button).toHaveText('▶ Play preview');await button.focus();await page.keyboard.press('Space');
  await expect(button).toHaveText('■ Stop preview');await expect(button).toHaveAttribute('aria-pressed','true');
  await expect.poll(()=>pixels(page)).not.toEqual(first);await expect(page.locator('#downloadDialog')).toBeVisible();
- await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','true');
+ // Plays only in the dialog: the editor stays in drawing mode underneath.
+ await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');await expect(page.locator('#previewBanner')).toBeHidden();
  await page.locator('#animationFormat').selectOption('video');await expect(button).toHaveText('■ Stop preview');
  await page.locator('#animationFormat').selectOption('gif');await button.click();
  await expect(button).toHaveText('▶ Play preview');await expect(button).toHaveAttribute('aria-pressed','false');
@@ -46,9 +47,10 @@ test('C64 animation shows the same live preview with canvas colors and synchroni
  await page.locator('#motionPreview').click();await page.locator('#export-tab-data').click();
  await expect(button).toHaveText('▶ Play preview');expect(await pixels(page)).toEqual(first);
  await page.clock.runFor(2000);expect(await pixels(page)).toEqual(first);
- await page.locator('#downloadClose').click();await ui(page,'#quickPlay');await ui(page,'#quickPlay');
- await ui(page,'#c64Mode','selectOption','animation');await expect(button).toHaveText('■ Stop preview');
- await button.click();await expect(page.locator('#previewBanner')).toBeHidden();
+ // Opening Download stops a preview playing on the main screen.
+ await page.locator('#downloadClose').click();await ui(page,'#quickPlay');await expect(page.locator('#previewBanner')).toBeVisible();
+ await ui(page,'#c64Mode','selectOption','animation');await expect(button).toHaveText('▶ Play preview');
+ await expect(page.locator('#previewBanner')).toBeHidden();await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');
 });
 test('modal preview controls fit portrait and landscape iPad layouts',async({page},testInfo)=>{
  for(const [width,height] of [[810,1080],[1080,810]]){
@@ -72,4 +74,25 @@ test('Native program still drawing previews the picture centered on the C64 scre
  expect(px.ink).toBe(px.ink2);
  expect(px.ink).not.toBe(px.corner);
  expect(px.beside).toBe(px.corner);
+});
+test('dialog preview leaves the editor canvas still and stops when the dialog closes or no animation is chosen',async({page})=>{
+ await page.clock.install();
+ await ui(page,'#c64Mode','selectOption','animation');
+ const button=page.locator('#c64Preview'),editor=()=>page.locator('#canvas').evaluate(c=>c.toDataURL());
+ const editorBefore=await editor(),dialogFirst=await pixels(page);
+ await button.click();await page.clock.runFor(500);
+ expect(await pixels(page)).not.toEqual(dialogFirst);
+ expect(await editor()).toEqual(editorBefore);
+ // Choosing Still drawing stops dialog playback.
+ await page.locator('#c64Mode').selectOption('still');
+ await page.locator('#c64Mode').selectOption('animation');await expect(button).toHaveText('▶ Play preview');
+ // Switching to the Image tab stops it too.
+ await button.click();await expect(button).toHaveText('■ Stop preview');
+ await page.locator('#export-tab-still').click();await page.locator('#export-tab-data').click();await expect(button).toHaveText('▶ Play preview');
+ // Closing the dialog stops it, and the editor is back in drawing mode.
+ await button.click();await expect(button).toHaveText('■ Stop preview');
+ await page.locator('#downloadClose').click();
+ await expect(page.locator('#previewBanner')).toBeHidden();await expect(page.locator('#quickPlay')).toHaveAttribute('aria-pressed','false');
+ await page.clock.runFor(500);expect(await editor()).toEqual(editorBefore);
+ await ui(page,'#c64Mode','selectOption','animation');await expect(button).toHaveText('▶ Play preview');
 });
