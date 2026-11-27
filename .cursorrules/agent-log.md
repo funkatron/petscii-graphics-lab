@@ -1,5 +1,10 @@
 # Agent log
 
+## 2026-11-27 — Release 0.36.1: Machine menu fix (#216)
+
+**What:** Patch bump (0.36.0 → 0.36.1). #216: with the **Machine** menu open, the **?** Help button's enlarged tap area (from #207, Raskin L3) covered the menu, so taps on **Machine**, **Display palette** and **Cell shape** opened Help instead. The button is positioned again, so its tap area stays 6 px around it. Also since 0.36.0: `package.json` version aligned (#214); roadmap gained untracked tasks (#215, docs only).  
+**Tested:** #216 CI passed on Chromium, iPad touch and iPad portrait, including the new `menu-hit-targets.spec.cjs`. Not yet checked by tap on a physical iPad.
+
 ## 2026-11-25 — Release 0.36.0: Raskin review batch 2 and full-suite repair (#207, #209, #211, #212)
 
 **What:** Minor bump (0.35.30 → 0.36.0) for user-visible changes since 0.35.30.
