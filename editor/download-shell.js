@@ -53,6 +53,7 @@ export function initDownloadShell({ $, closeOtherSurfaces, onOpen, onRefresh }) 
   // onclick (not addEventListener): other code adds its own listeners to this button.
   $('downloadOpen').onclick = () => {
     closeOtherSurfaces();
+    syncFormats();
     dialog.showModal();
     onOpen();
   };
@@ -74,16 +75,28 @@ export function initDownloadShell({ $, closeOtherSurfaces, onOpen, onRefresh }) 
     };
   }
 
-  $('stillFormat').onchange = () => {
+  // Show only the controls for the chosen format. Browsers (notably Safari) can restore a
+  // <select> value after reload or Back without a change event, so sync on open and at start too.
+  function syncStillFormat() {
     const svg = $('stillFormat').value === 'svg';
     $('png').hidden = svg;
     $('svg').hidden = !svg;
     $('pngResolution').hidden = svg;
+  }
+  function syncAnimationFormat() {
+    for (const group of document.querySelectorAll('[data-motion-format]')) group.hidden = group.dataset.motionFormat !== $('animationFormat').value;
+  }
+  function syncFormats() {
+    syncStillFormat();
+    syncAnimationFormat();
+  }
+  $('stillFormat').onchange = () => {
+    syncStillFormat();
     onRefresh();
   };
-  $('animationFormat').onchange = () => {
-    for (const group of document.querySelectorAll('[data-motion-format]')) group.hidden = group.dataset.motionFormat !== $('animationFormat').value;
-  };
+  $('animationFormat').onchange = syncAnimationFormat;
+  window.addEventListener('pageshow', syncFormats);
+  syncFormats();
 
   return {
     activeExportTab,
