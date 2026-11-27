@@ -8,6 +8,7 @@ import {
   FIELD_RAMPS,
   INTRO_MOTIONS,
   DIAGONAL_DIRECTIONS,
+  DIAGONAL_WAVE_EFFECT,
   normalizeAnimation,
 } from './project-validation.js';
 import {
@@ -147,6 +148,12 @@ export function waveValue(shape, phase) {
   return Math.sin(t * Math.PI * 2);
 }
 
+/** Travel vector for the diagonal-wave spike; non-diagonal directions fall back to down-right. */
+export function diagonalWaveVector(source) {
+  const direction = DIAGONAL_DIRECTIONS.includes(source.waveDirection) ? source.waveDirection : 'down-right';
+  return {direction, dx: direction.endsWith('right') ? 1 : -1, dy: direction.startsWith('down') ? 1 : -1};
+}
+
 export function scrollDirection(source) {
   if (source.scrollDirection !== undefined) {
     return source.scrollDirection;
@@ -243,6 +250,9 @@ function samplesPerMotionCycle(source) {
   if (source.effect === 'column-wave') {
     return Math.max(24, source.W);
   }
+  if (source.effect === DIAGONAL_WAVE_EFFECT) {
+    return Math.max(24, Math.max(source.W, source.H));
+  }
   if (source.effect === 'fld-blinds') {
     return 24;
   }
@@ -264,7 +274,7 @@ function minimumFrameCount(source, motionCycles, cellColorSteps, colorCycles, ba
       || DEPTH_EFFECTS.includes(source.effect)
       || SOLID_EFFECTS.includes(source.effect);
     const intro = INTRO_MOTIONS.includes(source.effect);
-    const waveLike = ['wave', 'ripple', 'replay', 'sine-scroll', 'column-wave', 'fld-blinds'].includes(source.effect);
+    const waveLike = ['wave', 'ripple', 'replay', 'sine-scroll', 'column-wave', 'fld-blinds', DIAGONAL_WAVE_EFFECT].includes(source.effect);
     if (needsManySamples) {
       motionMinimum = 12;
     } else if (intro) {
@@ -681,6 +691,22 @@ function applyGridMotion(frame, phase, source, cells, inks) {
             sampleX = wrap(x + bend, source.W);
           }
         }
+      }
+
+      if (source.effect === DIAGONAL_WAVE_EFFECT) {
+        // Longitudinal wave: bands lie across the travel diagonal and each cell samples
+        // along the travel direction, so artwork bunches and spreads as the bands pass.
+        // (Wave with a diagonal waveDirection is the transverse counterpart.)
+        const {dx, dy} = diagonalWaveVector(source);
+        const position = (dx * x / Math.max(1, source.W) + dy * y / Math.max(1, source.H)) / 2
+          * (50 / (source.waveLength ?? 50));
+        const shift = Math.round(
+          waveValue(source.waveShape ?? 'sine', position - phase)
+            * Math.min(3, Math.max(1, Math.min(source.W, source.H) / 4))
+            * ((source.waveAmplitude ?? 100) / 100),
+        );
+        sampleX = wrap(x - dx * shift, source.W);
+        sampleY = wrap(y - dy * shift, source.H);
       }
 
       if (source.effect === 'ripple') {

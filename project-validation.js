@@ -43,6 +43,12 @@ export const SOLID_CAMERA_VALUES = {
 /** Research spike only — not exposed in the Movement menu until native export is designed. */
 export const COLUMN_WAVE_EFFECT = 'column-wave';
 export const FLD_BLINDS_EFFECT = 'fld-blinds';
+/**
+ * Research spike (roadmap #1, owner queue phase 2) — longitudinal diagonal wave.
+ * Deliberately NOT in MOTION_EFFECTS: project files cannot carry it, and it has no
+ * menu entry or native export path until the owner approves the spike.
+ */
+export const DIAGONAL_WAVE_EFFECT = 'diagonal-wave';
 
 export const MOTION_EFFECTS = [
   'none', 'bonfire', 'replay', 'scroll-x', 'scroll-y', 'scroll-diagonal',

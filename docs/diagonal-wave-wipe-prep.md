@@ -31,6 +31,23 @@ This prep covers **new ranking / phase behavior**, not re-adding direction optio
 - Playwright: one GIF + one PRG byte fixture on 8×8 art.
 - No v3 field additions until id and validation lists are final.
 
+### Spike result (2026-11-27)
+
+**Rule chosen: longitudinal.** **Wave** with a diagonal **Wave direction** already displaces cells *perpendicular* to travel (transverse). The spike adds the missing counterpart: cells sample *along* the travel diagonal, so artwork bunches and spreads as bands pass.
+
+| Item | Spike |
+| --- | --- |
+| Id | `diagonal-wave` (`DIAGONAL_WAVE_EFFECT` in `project-validation.js`); **not** in `MOTION_EFFECTS`, so no menu entry and no project-file support |
+| Direction | `waveDirection`, diagonals only; anything else falls back to `down-right` |
+| Shift | `round(waveValue(shape, position − phase) × min(3, max(1, min(W, H) / 4)) × amplitude / 100)`, where `position = (dx·x/W + dy·y/H) / 2 × 50 / waveLength` |
+| Sample | `(x − dx·shift, y − dy·shift)`, wrapped; source glyph and ink move together |
+| Frames | `max(24, W, H)` per motion cycle; minimum 4 per cycle, like other wave-like effects |
+| Tests | `tests/diagonal-wave-longitudinal.unit.mjs`: source pairs, along-travel sampling only, shift rule, band travel direction, loop closure, determinism, fallback |
+
+**Owner review:** preview GIF of 40×25 colored columns, down-right, sine, 100 % amplitude (attached to the PR conversation).
+
+**Not done until approved:** Movement menu entry, `MOTION_EFFECTS` / v3 validation, Playwright GIF and PRG byte fixtures, native player (sampled-frame by default), README and maintainer contract.
+
 ## Candidate B — Diagonal wipe patterns
 
 **User-visible idea:** Reveal/hold/hide cycles where **rank** follows diagonal, checker, or blinds — orthogonal to direction picker.
